@@ -542,6 +542,28 @@ html.dark .tool-chip-active {
   animation: shimmer-bg 4s linear infinite;
 }
 
+/* Animated gradient text — colors flow across the phrase over time, not just spatially */
+@keyframes gradient-text-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-text {
+  background-size: 250% auto;
+  animation: gradient-text-flow 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-text {
+    animation: none;
+  }
+}
+
 @keyframes marquee-scroll {
   from {
     transform: translateX(0%);

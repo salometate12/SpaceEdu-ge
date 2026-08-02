@@ -32,7 +32,7 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-cyan-500 shadow-[0_0_16px_rgba(124,58,237,0.4)]">
             <Rocket className="h-4 w-4 text-white" />
           </div>
-          <span className="headline bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-lg font-bold text-transparent">
+          <span className="headline animate-gradient-text bg-gradient-to-r from-violet-300 via-indigo-300 to-cyan-300 bg-clip-text text-lg font-bold text-transparent">
             SpaceEdu
           </span>
         </Link>

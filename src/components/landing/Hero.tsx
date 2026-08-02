@@ -77,7 +77,7 @@ export function Hero() {
           <h1 className="headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white">
             <span className="block text-white">
               ისწავლე{" "}
-              <span className="bg-gradient-to-r from-[#a78bfa] to-[#60a5fa] bg-clip-text text-transparent">
+              <span className="animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent">
                 უფრო ჭკვიანურად,
               </span>
             </span>
