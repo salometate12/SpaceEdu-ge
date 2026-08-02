@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# flashcards.ge
 
-## Getting Started
+მინიმალისტური ფლეშბარათების პლატფორმა — **Next.js**, **TypeScript**, **Tailwind CSS**, **Lucide React**, **Vercel AI SDK** (Google Gemini).
 
-First, run the development server:
+## დაყენება
 
 ```bash
+npm install
+cp .env.local.example .env.local
+# დაამატე GOOGLE_GENERATIVE_AI_API_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+გახსენი [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## AI პაკეტები
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install ai @ai-sdk/google zod mammoth youtube-transcript
+```
 
-## Learn More
+| პაკეტი | დანიშნულება |
+|--------|-------------|
+| `ai` | Vercel AI SDK (`generateObject`) |
+| `@ai-sdk/google` | Google Gemini 2.5 Flash (მულტიმოდალური) |
+| `zod` | JSON სქემის ვალიდაცია |
+| `mammoth` | DOCX → ტექსტი |
+| `youtube-transcript` | YouTube ტრანსკრიპტი |
 
-To learn more about Next.js, take a look at the following resources:
+### `.env.local`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+GOOGLE_GENERATIVE_AI_API_KEY=your_key_here
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+გასაღები: [Google AI Studio](https://aistudio.google.com/apikey)
 
-## Deploy on Vercel
+**ალტერნატივა (OpenAI GPT-4o):**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install @ai-sdk/openai
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+OPENAI_API_KEY=sk-...
+```
+
+შემდეგ `src/app/api/generate-cards/route.ts`-ში შეცვალე `google('gemini-2.5-flash')` → `openai('gpt-4o')`.
+
+## ფუნქციები
+
+- **მთავარი** — კოლოფების ბადე პროგრესით (ქართული UI)
+- **ბარათების გენერაცია** (`/generate`) — AI მულტიმოდალური შეყვანა
+- **სწავლა** — 3D flip, `არ ვიცი` / `ვიცი`, კლავიშები
+
+### შეყვანის ტიპები (AI)
+
+| ტაბი | ფორმატები |
+|------|-----------|
+| სურათი / ფაილი | PNG, JPEG, PDF, DOCX, TXT |
+| აუდიო | MP3, WAV, M4A |
+| ვიდეო | MP4, WebM |
+| YouTube | ბმული (ტრანსკრიპტი) |
+| ტექსტი | ხელით შეყვანა |
+
+**მნიშვნელოვანი:** AI ყოველთვის აგენერირებს კითხვა/პასუხს **ქართულად**, მიუხედავად შეყვანის ენისა.
+
+## სტრუქტურა
+
+```
+src/
+├── app/api/generate-cards/route.ts
+├── app/generate/page.tsx
+├── components/CardGenerator.tsx
+├── lib/i18n.ts              # ქართული ტექსტები
+├── lib/ai/prompts.ts        # სისტემური პრომპტი
+└── lib/custom-decks.ts      # AI კოლოფები (localStorage)
+```
+
+## კლავიშები (სწავლა)
+
+| კლავიში | მოქმედება |
+|---------|-----------|
+| `Space` | გადატრიალება |
+| `←` | არ ვიცი |
+| `→` | ვიცი |
