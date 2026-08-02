@@ -82,9 +82,9 @@ function PricingTierCard({
         <Link href={tierCtaHref(role)} className="relative z-[1] mt-8 block w-full">
           <Button
             variant={popular ? "primary" : "ghost"}
-            className={`w-full ${
+            className={`w-full !rounded-full ${
               popular
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 shadow-[0_0_20px_rgba(124,58,237,0.35)] hover:from-purple-500 hover:to-indigo-500"
                 : "!border-white/[0.12] !bg-white/[0.03] hover:!border-purple-500/40"
             }`}
           >
@@ -116,7 +116,7 @@ export function PricingCards() {
 
       <div className="mb-12 flex justify-center">
         <div
-          className="inline-flex rounded-xl border border-white/[0.08] bg-white/[0.03] p-1"
+          className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.03] p-1"
           role="tablist"
           aria-label="ფასების კატეგორია"
         >
@@ -129,7 +129,7 @@ export function PricingCards() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveRole(tab.id)}
-                className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200 sm:px-8 ${
+                className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 sm:px-8 ${
                   active
                     ? tab.id === "abiturient"
                       ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/20"

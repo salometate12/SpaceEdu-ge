@@ -1,110 +1,136 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Brain,
+  Calculator,
   Calendar,
+  Copy,
+  FileCheck2,
   FileText,
-  Layers,
+  GraduationCap,
+  Lightbulb,
   MessageSquare,
-  MoveRight,
-  PenTool,
+  RotateCw,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
+import { MoveRight } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
-interface FeatureCard {
+interface ToolCard {
   id: string;
+  kicker?: string;
   title: string;
   body: string;
   icon: LucideIcon;
-  colSpan: "md:col-span-2" | "md:col-span-1";
-  cardClass: string;
-  iconClass: string;
+  color: string;
+  featured?: boolean;
 }
 
-const FEATURES: FeatureCard[] = [
-  {
-    id: "study-plan",
-    title: "სასწავლო გეგმა",
-    body: "შეიყვანე გამოცდის თარიღი და მიიღე დღეებზე გაწერილი პერსონალური გეგმა.",
-    icon: Calendar,
-    colSpan: "md:col-span-2",
-    cardClass:
-      "border-purple-500/20 hover:border-purple-500/50 hover:shadow-[0_0_25px_rgba(168,85,247,0.15)]",
-    iconClass: "text-purple-400 group-hover:text-purple-300 group-hover:border-purple-500/30",
-  },
+const SIDE_TOOLS: ToolCard[] = [
   {
     id: "quiz",
     title: "Active Recall Quiz",
-    body: "ავტომატურად გენერირებული კითხვები შენივე მასალებიდან სუსტი წერტილების აღმოსაჩენად.",
-    icon: Brain,
-    colSpan: "md:col-span-1",
-    cardClass:
-      "border-cyan-500/20 hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]",
-    iconClass: "text-cyan-400 group-hover:text-cyan-300 group-hover:border-cyan-500/30",
+    body: "ქვიზები, რომლებიც გახსოვნებას ამყარებენ და სუსტ ადგილებს გაჩვენებენ.",
+    icon: RotateCw,
+    color: "#22d3ee",
   },
   {
     id: "ai-teacher",
     title: "AI მასწავლებელი",
-    body: "24/7 ინტერაქტიული კითხვა-პასუხი ქართულად, რეალური მაგალითებითა და დეტალური ახსნით.",
+    body: "პასუხობს კითხვებს ბუნებრივ ენაზე, ნებისმიერ საათზე.",
     icon: MessageSquare,
-    colSpan: "md:col-span-1",
-    cardClass:
-      "border-emerald-500/20 hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]",
-    iconClass:
-      "text-emerald-400 group-hover:text-emerald-300 group-hover:border-emerald-500/30",
-  },
-  {
-    id: "conspectus-eli5",
-    title: "კონსპექტი + ELI5",
-    body: "ნებისმიერი სირთულის PDF მასალის მომენტალური შეჯამება და უმარტივეს ენაზე ახსნა.",
-    icon: FileText,
-    colSpan: "md:col-span-2",
-    cardClass:
-      "border-amber-500/20 hover:border-amber-500/50 hover:shadow-[0_0_25px_rgba(245,158,11,0.15)]",
-    iconClass: "text-amber-400 group-hover:text-amber-300 group-hover:border-amber-500/30",
-  },
-  {
-    id: "arguments-bank",
-    title: "არგუმენტების ბანკი",
-    body: "ყველა საჭირო ლიტერატურული პარალელი და მყარი არგუმენტი ერთ სივრცეში, თემების მიხედვით ორგანიზებული.",
-    icon: Layers,
-    colSpan: "md:col-span-2",
-    cardClass:
-      "border-fuchsia-500/20 hover:border-fuchsia-500/50 hover:shadow-[0_0_25px_rgba(217,70,239,0.15)]",
-    iconClass:
-      "text-fuchsia-400 group-hover:text-fuchsia-300 group-hover:border-fuchsia-500/30",
-  },
-  {
-    id: "essay-simulator",
-    title: "ესეების სიმულატორი",
-    body: "დაწერე ესე, მიიღე მომენტალური შეფასება კრიტერიუმების მიხედვით და გაასწორე შეცდომები რეალურ დროში.",
-    icon: PenTool,
-    colSpan: "md:col-span-1",
-    cardClass:
-      "border-indigo-500/20 hover:border-indigo-500/50 hover:shadow-[0_0_25px_rgba(99,102,241,0.15)]",
-    iconClass: "text-indigo-400 group-hover:text-indigo-300 group-hover:border-indigo-500/30",
+    color: "#10b981",
   },
 ];
 
-function FeatureBentoCard({ feature, delayMs }: { feature: FeatureCard; delayMs: number }) {
-  const Icon = feature.icon;
+const MID_TOOLS: ToolCard[] = [
+  {
+    id: "conspectus",
+    title: "კონსპექტი",
+    body: "გრძელი მასალიდან მოკლე, სტრუქტურირებული კონსპექტი წამებში.",
+    icon: FileText,
+    color: "#f59e0b",
+  },
+  {
+    id: "eli5",
+    title: "ELI5",
+    body: "რთული თემები ახსნილი უმარტივესად, გასაგები ენით.",
+    icon: Lightbulb,
+    color: "#f472b6",
+  },
+  {
+    id: "flashcards",
+    title: "ფლეშქარდები",
+    body: "ავტომატურად გენერირებული ბარათები გამეორებისთვის.",
+    icon: Copy,
+    color: "#2dd4bf",
+  },
+];
 
+const SMALL_TOOLS: ToolCard[] = [
+  {
+    id: "pdf-to-test",
+    title: "PDF → ტესტი",
+    body: "ატვირთე PDF და AI ავტომატურად შეადგენს ტესტურ კითხვებს მისი შინაარსიდან.",
+    icon: FileCheck2,
+    color: "#6366f1",
+  },
+  {
+    id: "flashcards-any-source",
+    title: "ფლეშქარდები ნებისმიერი წყაროდან",
+    body: "დაამატე PDF, ბმული ან YouTube ვიდეო — AI გამოყოფს საკვანძო საკითხებს ბარათებად.",
+    icon: Video,
+    color: "#fb7185",
+  },
+  {
+    id: "score-calculator",
+    title: "გამოცდის ქულის კალკულატორი",
+    body: "გამოთვალე მოსალოდნელი ჯამური ქულა საგნების მიხედვით და თარგმნე ის ჩარიცხვის შანსში.",
+    icon: Calculator,
+    color: "#a3e635",
+  },
+  {
+    id: "program-picker",
+    title: "პროგრამის შესარჩევი",
+    body: "შენი ქულების მიხედვით ხედავ, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის საშუალება.",
+    icon: GraduationCap,
+    color: "#f59e0b",
+  },
+];
+
+function ToolTile({ tool, className = "" }: { tool: ToolCard; className?: string }) {
+  const Icon = tool.icon;
   return (
-    <RevealOnScroll delayMs={delayMs} className={feature.colSpan}>
-      <article
-        className={`group relative flex h-full min-h-[200px] flex-col justify-between overflow-hidden rounded-2xl border bg-[#121214]/30 p-8 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${feature.cardClass}`}
-      >
-        <div>
-          <div
-            className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] text-inherit transition-colors ${feature.iconClass}`}
-          >
-            <Icon className="h-5 w-5 stroke-[1.5]" aria-hidden />
-          </div>
-          <h3 className="mb-2 text-lg font-bold text-white">{feature.title}</h3>
-          <p className="text-sm leading-relaxed text-gray-400">{feature.body}</p>
+    <article
+      className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-[#121214]/40 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${className}`}
+      style={{ borderColor: `${tool.color}30` }}
+    >
+      <div>
+        <div
+          className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl border"
+          style={{
+            borderColor: `${tool.color}45`,
+            backgroundColor: `${tool.color}14`,
+            color: tool.color,
+          }}
+        >
+          <Icon className="h-4 w-4 stroke-[1.75]" aria-hidden />
         </div>
-      </article>
-    </RevealOnScroll>
+        {tool.kicker && (
+          <p
+            className="mono mb-1 text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: tool.color }}
+          >
+            {tool.kicker}
+          </p>
+        )}
+        <h3
+          className={`mb-2 font-bold text-white ${tool.featured ? "text-xl" : "text-sm"}`}
+        >
+          {tool.title}
+        </h3>
+        <p className="text-xs leading-relaxed text-gray-400 sm:text-sm">{tool.body}</p>
+      </div>
+    </article>
   );
 }
 
@@ -112,24 +138,58 @@ export function Features() {
   return (
     <section id="features" className="relative mx-auto w-full max-w-7xl py-16 sm:py-20">
       <div className="mx-auto mb-10 max-w-2xl px-4 text-center sm:px-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
-          ინსტრუმენტები
-        </p>
-        <h2 className="headline mt-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-          ფუნქციები
+        <h2 className="headline text-2xl font-bold text-white sm:text-3xl">
+          შენი სასწავლო არსენალი
         </h2>
+        <p className="mt-3 text-sm leading-relaxed text-gray-400 sm:text-base">
+          ყველა ინსტრუმენტი, რომელიც დაგჭირდება — ერთ სივრცეში
+        </p>
       </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 md:grid-cols-3">
-        {FEATURES.map((feature, idx) => (
-          <FeatureBentoCard key={feature.id} feature={feature} delayMs={90 * (idx + 1)} />
-        ))}
+      <div className="mx-auto max-w-6xl space-y-4 px-4">
+        <RevealOnScroll>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.7fr_1fr]">
+            <ToolTile
+              tool={{
+                id: "study-plan",
+                kicker: "მთავარი ინსტრუმენტი",
+                title: "სასწავლო გეგმა",
+                body: "კვირეული გეგმა შენი მიზნების მიხედვით, ავტომატურად განახლებადი — ხედავ ზუსტად რა გელოდება დღეს, კვირაში და გამოცდამდე.",
+                icon: Calendar,
+                color: "#a78bfa",
+                featured: true,
+              }}
+              className="min-h-[220px] bg-gradient-to-br from-purple-500/[0.1] via-[#121214]/40 to-[#121214]/40"
+            />
+            <div className="grid grid-cols-1 gap-4">
+              {SIDE_TOOLS.map((tool) => (
+                <ToolTile key={tool.id} tool={tool} />
+              ))}
+            </div>
+          </div>
+        </RevealOnScroll>
+
+        <RevealOnScroll delayMs={80}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {MID_TOOLS.map((tool) => (
+              <ToolTile key={tool.id} tool={tool} />
+            ))}
+          </div>
+        </RevealOnScroll>
+
+        <RevealOnScroll delayMs={140}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {SMALL_TOOLS.map((tool) => (
+              <ToolTile key={tool.id} tool={tool} />
+            ))}
+          </div>
+        </RevealOnScroll>
       </div>
 
       <div className="mt-12 flex justify-center">
         <Link
           href="/select-space"
-          className="group relative flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-sm font-semibold text-gray-200 backdrop-blur-md transition-all duration-300 hover:border-purple-500/40 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+          className="group relative flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-sm font-semibold text-gray-200 backdrop-blur-md transition-all duration-300 hover:border-purple-500/40 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]"
         >
           ყველა ფუნქციის ნახვა
           <MoveRight

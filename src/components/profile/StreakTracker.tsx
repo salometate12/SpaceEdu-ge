@@ -8,11 +8,11 @@ interface StreakTrackerProps {
 }
 
 const DAY_STYLE: Record<StreakDay["status"], string> = {
-  done: "border-[var(--accent-purple)] bg-[var(--bg-secondary)] text-[var(--text-primary)]",
+  done: "border-cyan-500/40 bg-cyan-500/10 text-cyan-200",
   today:
-    "border-[var(--accent-amber)] bg-[var(--accent-amber)] text-slate-950 shadow-[0_0_16px_color-mix(in_oklab,var(--accent-amber),transparent_45%)]",
-  missed: "border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-muted)]",
-  upcoming: "border-[var(--border)] bg-transparent text-[var(--text-muted)]",
+    "border-amber-400 bg-amber-400 text-slate-950 shadow-[0_0_16px_rgba(251,191,36,0.5)]",
+  missed: "border-white/[0.08] bg-white/[0.02] text-zinc-600",
+  upcoming: "border-white/[0.08] bg-transparent text-zinc-600",
 };
 
 export function StreakTracker({
@@ -23,26 +23,26 @@ export function StreakTracker({
   const isNewRecord = currentStreak > 0 && currentStreak >= personalBest;
 
   return (
-    <section className="card relative overflow-hidden">
+    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#13131A]/60 p-6 backdrop-blur-xl transition-colors hover:border-white/[0.15]">
       <div
-        className="pointer-events-none absolute -left-8 -top-8 h-28 w-28 rounded-full opacity-[0.14] blur-2xl"
-        style={{ background: "var(--accent-amber)" }}
+        className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full opacity-[0.16] blur-3xl"
+        style={{
+          background: "radial-gradient(circle, #F59E0B 0%, transparent 70%)",
+        }}
         aria-hidden
       />
       <div className="relative mb-4 flex items-center gap-2">
-        <Flame className="h-5 w-5 text-[var(--accent-amber)]" />
-        <h3 className="headline text-lg font-semibold">სტრიკი</h3>
+        <Flame className="h-5 w-5 text-amber-400" />
+        <h3 className="headline text-lg font-semibold text-white">სტრიკი</h3>
       </div>
 
       <div className="relative mb-5 flex items-end gap-3">
-        <span className="mono text-5xl font-bold leading-none text-[var(--accent-amber)]">
+        <span className="mono text-5xl font-bold leading-none text-amber-400">
           {currentStreak}
         </span>
         <div className="pb-1">
-          <p className="text-sm font-semibold text-[var(--text-primary)]">
-            დღიანი სტრიკი
-          </p>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-sm font-semibold text-white">დღიანი სტრიკი</p>
+          <p className="text-xs text-zinc-500">
             {isNewRecord ? "🏆 ეს შენი პირადი რეკორდია!" : `პირადი რეკორდი: ${personalBest}`}
           </p>
         </div>
@@ -57,14 +57,14 @@ export function StreakTracker({
             >
               {day.label}
             </div>
-            <p className="text-[10px] font-medium leading-none text-[var(--text-muted)]">
+            <p className="text-[10px] font-medium leading-none text-zinc-600">
               {day.fullLabel}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="relative mt-4 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+      <div className="relative mt-4 flex items-center gap-1.5 text-xs text-zinc-600">
         <span>↗</span>
         <span className="leading-none">დღიური პროგრესი აქტიურია</span>
       </div>
