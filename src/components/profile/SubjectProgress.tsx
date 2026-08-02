@@ -7,23 +7,23 @@ interface SubjectProgressProps {
 export function SubjectProgress({ subjects }: SubjectProgressProps) {
   return (
     <section className="card">
-      <h3 className="headline mb-4 text-lg font-semibold">საგნობრივი პროგრესი</h3>
-      <div className="space-y-3">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="headline text-lg font-semibold">საგნობრივი პროგრესი</h3>
+        <span className="text-xs text-[var(--text-muted)]">{subjects.length} საგანი</span>
+      </div>
+      <div className="space-y-4">
         {subjects.map((subject) => (
-          <div key={subject.name} className="group">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <p className="text-sm">
-                <span className="mr-1.5">{subject.icon}</span>
+          <div key={subject.name}>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-sm font-medium">
+                <span aria-hidden>{subject.icon}</span>
                 {subject.name}
               </p>
-              <span className="mono text-xs text-[var(--text-secondary)]">
+              <span className="mono text-xs font-semibold" style={{ color: subject.color }}>
                 {subject.progress}%
               </span>
             </div>
-            <div
-              className="h-2 overflow-hidden rounded-full bg-[var(--border)]"
-              title={`${subject.quizzesDone} quiz | ბოლო: ${subject.lastStudied}`}
-            >
+            <div className="h-2 overflow-hidden rounded-full bg-[var(--border)]">
               <div
                 className="animated-progress h-full rounded-full transition-all"
                 style={{
@@ -32,8 +32,8 @@ export function SubjectProgress({ subjects }: SubjectProgressProps) {
                 }}
               />
             </div>
-            <p className="mt-1 text-xs text-[var(--text-secondary)] opacity-0 transition-opacity group-hover:opacity-100">
-              {subject.quizzesDone} quiz | ბოლო: {subject.lastStudied}
+            <p className="mt-1.5 text-xs text-[var(--text-secondary)]">
+              {subject.quizzesDone} quiz გავლილი · ბოლო აქტივობა: {subject.lastStudied}
             </p>
           </div>
         ))}

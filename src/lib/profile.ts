@@ -48,6 +48,28 @@ export interface DailyGoal {
   type: "quiz" | "study" | "read" | "chat";
 }
 
+const SPACE_LABEL: Record<UserSpace, string> = {
+  school: "სკოლა",
+  abiturient: "აბიტურიენტი",
+  student: "სტუდენტი",
+};
+
+export function getSpaceLabel(space: UserSpace): string {
+  return SPACE_LABEL[space];
+}
+
+/**
+ * Days remaining until the user's exam date. Never negative — once the
+ * exam date has passed we treat it as "0" so the UI can show a
+ * congratulatory / reset state instead of a nonsensical countdown.
+ */
+export function getDaysUntilExam(examDate: string): number {
+  return Math.max(
+    0,
+    Math.ceil((new Date(examDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+  );
+}
+
 export async function getProfileData(): Promise<{
   user: UserProfile;
   subjects: SubjectProgress[];
@@ -66,7 +88,7 @@ export async function getProfileData(): Promise<{
       avgQuizScore: 84,
       weekSessions: 6,
       weekDiff: 2,
-      examDate: "2026-07-15",
+      examDate: "2027-06-21",
       quizImprovement: 7,
       personalBestStreak: 14,
     },
