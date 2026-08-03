@@ -1,9 +1,7 @@
-import Image from "next/image";
 import { Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { DECOR_3D_ICON_PX, decor3dIconClassName } from "@/lib/decor-3d-icon";
 
 export interface SpaceOption {
   id: "school" | "abiturient" | "student";
@@ -15,7 +13,7 @@ export interface SpaceOption {
   borderColor: string;
   bgColor: string;
   accentColor: string;
-  iconSrc?: string;
+  illustration?: ReactNode;
   icon?: ReactNode;
   badgeIcon?: LucideIcon;
 }
@@ -80,16 +78,9 @@ export function SpaceCard({ space, onClick, animationDelayMs = 0 }: SpaceCardPro
         </div>
       )}
 
-      {space.iconSrc && (
-        <div className="pointer-events-none absolute -bottom-3 -right-2 z-0">
-          <Image
-            src={space.iconSrc}
-            alt=""
-            width={DECOR_3D_ICON_PX}
-            height={DECOR_3D_ICON_PX}
-            aria-hidden
-            className={`${decor3dIconClassName} opacity-95 mix-blend-screen`}
-          />
+      {space.illustration && (
+        <div className="pointer-events-none absolute -bottom-3 -right-2 z-0 h-28 w-28 drop-shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+          {space.illustration}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f99] to-transparent" />
         </div>
       )}

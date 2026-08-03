@@ -9,6 +9,11 @@ import {
   DASHBOARD_STUDENT_HREF,
 } from "@/lib/dashboard-routes";
 import { SpaceCard, type SpaceOption } from "./SpaceCard";
+import {
+  AbiturientIllustration,
+  SchoolIllustration,
+  StudentIllustration,
+} from "./SpaceIllustrations";
 
 interface SpaceSelectorModalProps {
   onSelect: (id: SpaceOption["id"]) => void;
@@ -25,7 +30,7 @@ const SPACES: SpaceOption[] = [
     borderColor: "#7C3AED",
     bgColor: "#1a0a2e",
     accentColor: "#a78bfa",
-    iconSrc: "/3d-icons/school-kid.png",
+    illustration: <SchoolIllustration className="h-full w-full" />,
     icon: <GraduationCap className="h-5 w-5 stroke-[1.75]" />,
     badgeIcon: Clock,
   },
@@ -39,7 +44,7 @@ const SPACES: SpaceOption[] = [
     borderColor: "#22d3ee",
     bgColor: "#042f3d",
     accentColor: "#22d3ee",
-    iconSrc: "/3d-icons/abiturient-desk.png",
+    illustration: <AbiturientIllustration className="h-full w-full" />,
     icon: <Target className="h-5 w-5 stroke-[1.75]" />,
   },
   {
@@ -52,7 +57,7 @@ const SPACES: SpaceOption[] = [
     borderColor: "#22c55e",
     bgColor: "#052e16",
     accentColor: "#86efac",
-    iconSrc: "/3d-icons/study-books.png",
+    illustration: <StudentIllustration className="h-full w-full" />,
     icon: <BookOpen className="h-5 w-5 stroke-[1.75]" />,
   },
 ];
