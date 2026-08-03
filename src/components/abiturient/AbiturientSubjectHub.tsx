@@ -108,14 +108,14 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
           href={subjectId === "georgian" ? quizHrefForGeorgianSubject() : "/quiz"}
           className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#16161a]/40 p-5 backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-white/[0.15]"
         >
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10">
-            <PlayCircle className="h-5 w-5 text-cyan-300" strokeWidth={1.5} />
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.05]">
+            <PlayCircle className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
           </div>
           <h2 className="text-lg font-semibold text-white">კითხვების პანელი</h2>
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">
             გაიმეორე ბანკის კითხვები და შეამოწმე პასუხები.
           </p>
-          <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-cyan-400">
+          <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-zinc-300 transition-colors group-hover:text-white">
             გაგრძელება
             <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
           </span>
