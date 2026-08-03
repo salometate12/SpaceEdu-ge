@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronRight, Layers, PlayCircle } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
 import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
 import { quizHrefForGeorgianSubject } from "@/lib/space-back-navigation";
+import { SubjectSpacePremiumCard } from "./SubjectSpacePremiumCard";
 
 interface AbiturientSubjectHubProps {
   subjectId: string;
@@ -92,9 +93,7 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
               className="border-l-2 py-0.5 pl-3"
               style={{ borderColor: subject.theme.glow }}
             >
-              <p className="text-xs uppercase tracking-wide text-zinc-500">
-                {subjectId === "georgian" ? "საგნის სფეისი" : "საგნის ცენტრი"}
-              </p>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">საგნის სფეისი</p>
               <h1 className="text-2xl font-bold text-white">{subject.title}</h1>
               <p className="mt-0.5 text-sm text-zinc-400">
                 {subject.answered}/{subject.total} კითხვა • {percent}%
@@ -144,7 +143,11 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
         </Link>
       </section>
 
-      {premiumSlot && <section className="mt-6">{premiumSlot}</section>}
+      <section className="mt-6">
+        {premiumSlot ?? (
+          <SubjectSpacePremiumCard theme={subject.theme} href={`/subject/${subjectId}/space`} />
+        )}
+      </section>
     </main>
   );
 }
