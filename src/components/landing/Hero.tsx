@@ -58,10 +58,6 @@ const HERO_CARDS = [
 export function Hero() {
   return (
     <section className="relative mx-auto w-full max-w-7xl overflow-hidden px-4 py-16 sm:px-6 lg:py-20">
-      <div
-        className="landing-starfield pointer-events-none absolute inset-0 -z-10 h-[700px]"
-        aria-hidden
-      />
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
         <div className="relative mx-auto w-full max-w-5xl">
           <div

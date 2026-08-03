@@ -564,6 +564,52 @@ html.dark .tool-chip-active {
   }
 }
 
+/* Landing page — twinkling / drifting starfield (rendered as real DOM dots) */
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes star-drift {
+  0% {
+    opacity: 0.2;
+    transform: translate(0, 0) scale(0.85);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translate(7px, -9px) scale(1.15);
+  }
+  100% {
+    opacity: 0.2;
+    transform: translate(0, 0) scale(0.85);
+  }
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle var(--star-duration, 4s) ease-in-out infinite;
+  animation-delay: var(--star-delay, 0s);
+}
+
+.animate-star-drift {
+  animation: star-drift var(--star-duration, 6s) ease-in-out infinite;
+  animation-delay: var(--star-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-star-twinkle,
+  .animate-star-drift {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
 @keyframes marquee-scroll {
   from {
     transform: translateX(0%);

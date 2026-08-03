@@ -5,12 +5,14 @@ import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { PricingCards } from "@/components/landing/PricingCards";
+import { Starfield } from "@/components/landing/Starfield";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { WhoItsFor } from "@/components/landing/WhoItsFor";
 
 export default function LandingPage() {
   return (
     <div id="hero" className="landing-dark-bg relative min-h-dvh overflow-hidden">
+      <Starfield />
       <div className="relative z-10">
         <Hero />
         <HowItWorks />
