@@ -11,6 +11,8 @@ import { FooterByPath } from "@/components/layout/FooterByPath";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { SiteThemeAccess } from "@/components/layout/SiteThemeAccess";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AIChatPanelProvider } from "@/contexts/AIChatPanelContext";
+import { AIChatSidePanel } from "@/components/AITeacher/AIChatSidePanel";
 import { ka } from "@/lib/i18n";
 import "./globals.css";
 
@@ -63,13 +65,16 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[var(--bg-primary)] font-sans text-[var(--text-primary)]">
         <ThemeProvider>
-          <div className="flex min-h-screen flex-col">
-            <HeaderByPath />
-            <SiteShell>{children}</SiteShell>
-            <FooterByPath />
-            <MobileGlassDockByPath />
-          </div>
-          <SiteThemeAccess />
+          <AIChatPanelProvider>
+            <div className="flex min-h-screen flex-col">
+              <HeaderByPath />
+              <AIChatSidePanel />
+              <SiteShell>{children}</SiteShell>
+              <FooterByPath />
+              <MobileGlassDockByPath />
+            </div>
+            <SiteThemeAccess />
+          </AIChatPanelProvider>
         </ThemeProvider>
       </body>
     </html>

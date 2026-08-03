@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import {
   isDockItemActive,
   mobileDockHidden,
@@ -19,6 +20,7 @@ export function MobileGlassDock() {
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+  const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
 
   const items = mobileDockItems(pathname);
   const hidden = mobileDockHidden(pathname) || items.length === 0;
@@ -72,6 +74,26 @@ export function MobileGlassDock() {
       <div className="mx-auto flex max-w-md items-center justify-between gap-1 rounded-2xl border border-white/20 bg-white/70 px-2 py-2 shadow-[0_8px_32px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-[#0a0a0f]/75 dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
         {items.map((item) => {
           const Icon = item.icon;
+          if (item.href === "/ai-teacher") {
+            return (
+              <button
+                key={item.href}
+                type="button"
+                onClick={toggleAiChat}
+                aria-label={item.label}
+                aria-pressed={aiChatOpen}
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium transition-colors ${
+                  aiChatOpen
+                    ? "bg-violet-500/15 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+                    : "text-slate-600 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-300"
+                }`}
+              >
+                <Icon className="h-5 w-5 shrink-0 stroke-[1.75]" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          }
+
           const active = pathname ? isDockItemActive(pathname, item) : false;
           return (
             <Link

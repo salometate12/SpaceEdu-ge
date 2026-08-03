@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { Bell, Flame, LayoutDashboard, MessageSquare, Rocket, UserRound } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { AvatarDropdown } from "./AvatarDropdown";
 import { SpaceChip } from "./SpaceChip";
 
@@ -20,9 +21,9 @@ export function DashboardHeader({
   const [spaceLabel, setSpaceLabel] = useState<"school" | "abiturient" | "student">(
     "student",
   );
+  const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
 
-  useMemo(() => {
-    if (typeof window === "undefined") return;
+  useEffect(() => {
     const saved = window.localStorage.getItem("spaceedu_space");
     if (saved === "school" || saved === "abiturient" || saved === "student") {
       setSpaceLabel(saved);
@@ -59,16 +60,33 @@ export function DashboardHeader({
         </div>
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) =>
+            item.href === "/ai-teacher" ? (
+              <button
+                key={item.href}
+                type="button"
+                onClick={toggleAiChat}
+                aria-pressed={aiChatOpen}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                  aiChatOpen
+                    ? "bg-[#1a0a2e] text-[#a78bfa]"
+                    : "text-[var(--text-secondary)] hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </button>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ),
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
