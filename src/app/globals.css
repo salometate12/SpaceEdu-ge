@@ -610,6 +610,46 @@ html.dark .tool-chip-active {
   }
 }
 
+/* Glowing icon + ambient card blob — used on audience/space-selector cards */
+@keyframes icon-glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px var(--icon-glow-color, rgba(168, 85, 247, 0.35)));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--icon-glow-color, rgba(168, 85, 247, 0.6)));
+    transform: scale(1.06);
+  }
+}
+
+.animate-icon-glow {
+  animation: icon-glow-pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes card-blob-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+.animate-card-blob {
+  animation: card-blob-pulse 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-icon-glow,
+  .animate-card-blob {
+    animation: none;
+  }
+}
+
 @keyframes marquee-scroll {
   from {
     transform: translateX(0%);

@@ -1,7 +1,7 @@
 import { Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import type { CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
 
 export interface SpaceOption {
   id: "school" | "abiturient" | "student";
@@ -13,7 +13,6 @@ export interface SpaceOption {
   borderColor: string;
   bgColor: string;
   accentColor: string;
-  illustration?: ReactNode;
   icon?: ReactNode;
   badgeIcon?: LucideIcon;
 }
@@ -27,12 +26,6 @@ interface SpaceCardProps {
 export function SpaceCard({ space, onClick, animationDelayMs = 0 }: SpaceCardProps) {
   const isLocked = !space.available;
   const BadgeIcon = space.badgeIcon;
-  const glowClass =
-    space.id === "abiturient"
-      ? "hover:shadow-[0_0_38px_rgba(6,182,212,0.22)]"
-      : space.id === "student"
-        ? "hover:shadow-[0_0_38px_rgba(16,185,129,0.22)]"
-        : "hover:shadow-[0_0_30px_rgba(124,58,237,0.18)]";
 
   return (
     <motion.button
@@ -43,32 +36,22 @@ export function SpaceCard({ space, onClick, animationDelayMs = 0 }: SpaceCardPro
         isLocked
           ? undefined
           : {
-              scale: 1.025,
               y: -6,
             }
       }
       transition={{ duration: 0.24, ease: "easeOut" }}
-      className={`stagger-in group relative flex min-h-[250px] flex-col items-stretch overflow-hidden rounded-3xl border p-6 pb-6 text-left backdrop-blur-xl transition-all duration-250 ${
+      className={`stagger-in group relative flex min-h-[230px] flex-col overflow-hidden rounded-2xl border p-7 text-left backdrop-blur-xl transition-all duration-300 ${
         isLocked
-          ? "cursor-not-allowed border-white/10 bg-[#12121A]/60 opacity-65"
-          : `cursor-pointer border-white/10 bg-[#12121A]/60 ${glowClass}`
+          ? "cursor-not-allowed border-white/[0.06] bg-gradient-to-b from-[#17131f]/60 to-[#121214]/30 opacity-65"
+          : "cursor-pointer border-white/[0.06] bg-gradient-to-b from-[#17131f]/80 to-[#121214]/40 hover:border-white/[0.14]"
       }`}
-      style={{
-        animationDelay: `${animationDelayMs}ms`,
-        borderColor: isLocked ? undefined : `${space.borderColor}25`,
-      }}
+      style={{ animationDelay: `${animationDelayMs}ms` }}
     >
+      {/* ambient pulsing glow blob */}
       <div
-        className="pointer-events-none absolute inset-x-3 top-0 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent 0%, ${space.borderColor}AA 40%, ${space.borderColor}DD 50%, ${space.borderColor}AA 60%, transparent 100%)`,
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `linear-gradient(180deg, ${space.borderColor}18 0%, transparent 60%)`,
-        }}
+        className="animate-card-blob pointer-events-none absolute -top-8 left-6 -z-0 h-32 w-32 rounded-full blur-[60px]"
+        style={{ backgroundColor: `${space.borderColor}30` }}
+        aria-hidden
       />
 
       {isLocked && (
@@ -78,53 +61,32 @@ export function SpaceCard({ space, onClick, animationDelayMs = 0 }: SpaceCardPro
         </div>
       )}
 
-      {space.illustration && (
-        <div className="pointer-events-none absolute -bottom-3 -right-2 z-0 h-28 w-28 drop-shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
-          {space.illustration}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f99] to-transparent" />
-        </div>
-      )}
-
-      <div className="relative z-[1] flex flex-1 flex-col justify-between">
-        <div className="max-w-[calc(100%-4.5rem)]">
-          <div
-            className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border"
-            style={{
-              borderColor: `${space.borderColor}45`,
-              backgroundColor: `${space.borderColor}14`,
+      <div className="relative z-[1] flex flex-1 flex-col">
+        <div
+          className="animate-icon-glow mb-5 flex h-12 w-12 items-center justify-center"
+          style={
+            {
               color: space.accentColor,
-            }}
-          >
-            {space.icon}
-          </div>
-
-          <p
-            className="headline mb-1.5 text-base font-bold tracking-wide"
-            style={{ color: space.accentColor }}
-          >
-            {space.title}
-          </p>
-
-          <p className="text-xs leading-relaxed tracking-wide text-[var(--text-secondary)]">
-            {space.description}
-          </p>
+              "--icon-glow-color": `${space.accentColor}88`,
+            } as CSSProperties
+          }
+        >
+          {space.icon}
         </div>
+
+        <h3 className="mb-2 text-lg font-semibold text-white">{space.title}</h3>
+        <p className="mb-5 flex-1 text-sm leading-relaxed text-gray-400">
+          {space.description}
+        </p>
 
         <span
-          className="mt-5 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold tracking-wide transition-all duration-200"
-          style={
-            space.available
-              ? {
-                  background: "rgba(10,10,15,0.8)",
-                  color: space.accentColor,
-                  border: `1px solid ${space.borderColor}99`,
-                }
-              : {
-                  background: "rgba(19,13,37,0.8)",
-                  color: "#c4b5fd",
-                  border: "1px solid rgba(167,139,250,0.35)",
-                }
-          }
+          className="inline-flex w-fit items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200"
+          style={{
+            borderColor: `${space.borderColor}40`,
+            backgroundColor: `${space.borderColor}12`,
+            color: space.accentColor,
+            border: "1px solid",
+          }}
         >
           {space.available ? (
             <Sparkles className="h-3 w-3" />
