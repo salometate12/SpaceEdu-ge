@@ -21,6 +21,16 @@ interface ChatMessage {
   content: string;
 }
 
+interface SuggestionOption {
+  label: string;
+  prompt: string;
+}
+
+interface PendingSuggestions {
+  accent: Accent;
+  items: SuggestionOption[];
+}
+
 type Accent = "emerald" | "cyan" | "violet" | "amber";
 
 const ACCENTS: Record<
@@ -60,56 +70,77 @@ const ACCENTS: Record<
 const QUICK_ACTIONS: {
   emoji: string;
   title: string;
-  prompt: string;
   subject: string;
   accent: Accent;
+  greeting: string;
+  suggestions: SuggestionOption[];
 }[] = [
   {
     emoji: "🧬",
     title: "ბიოლოგია",
-    prompt: "ამიხსენი უჯრედის ორგანოიდები მარტივად.",
     subject: "ბიოლოგია",
     accent: "emerald",
+    greeting: "გისმენთ! მზად ვარ დაგეხმაროთ ბიოლოგიაში 🧬 რომელი თემა გაინტერესებთ?",
+    suggestions: [
+      { label: "უჯრედის აგებულება", prompt: "ამიხსენი უჯრედის აგებულება და ორგანოიდები." },
+      { label: "გენეტიკის საფუძვლები", prompt: "ამიხსენი გენეტიკის ძირითადი პრინციპები მარტივად." },
+    ],
   },
   {
     emoji: "📐",
     title: "ფორმულა",
-    prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში.",
     subject: "მათემატიკა",
     accent: "cyan",
+    greeting: "გისმენთ! დაგეხმარებით მათემატიკაში 📐 საიდან დავიწყოთ?",
+    suggestions: [
+      { label: "კვადრატული განტოლება", prompt: "ამიხსენი კვადრატული განტოლების ამოხსნის წესი მაგალითით." },
+      { label: "წარმოებულები", prompt: "ამიხსენი წარმოებულის ცნება და მისი გამოთვლის წესები." },
+    ],
   },
   {
     emoji: "📚",
     title: "ლიტერატურა",
-    prompt: "მოკლედ ამიხსენი 'ვეფხისტყაოსნის' მთავარი იდეა.",
-    subject: "ქართული ლიტერატურა",
+    subject: "ქართული ენა და ლიტერატურა",
     accent: "violet",
+    greeting: "გისმენთ! დაგეხმარებით ქართულ ენასა და ლიტერატურაში 📚 რა გაინტერესებთ?",
+    suggestions: [
+      { label: "ლიტერატურული ანალიზი", prompt: "დამეხმარე ვეფხისტყაოსნის მთავარი გმირების ანალიზში." },
+      { label: "გრამატიკის წესები", prompt: "ამიხსენი ქართული ენის სინტაქსური წესები მაგალითებით." },
+    ],
   },
   {
     emoji: "🌍",
     title: "ისტორია",
-    prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები მარტივი ენით.",
     subject: "ისტორია",
     accent: "amber",
+    greeting: "გისმენთ! დაგეხმარებით ისტორიაში 🌍 რომელი პერიოდი გაინტერესებთ?",
+    suggestions: [
+      { label: "საქართველოს ისტორია", prompt: "ამიხსენი საქართველოს გაერთიანების ისტორია მოკლედ." },
+      { label: "მსოფლიო ისტორია", prompt: "ამიხსენი პირველი მსოფლიო ომის მთავარი მიზეზები." },
+    ],
   },
 ];
-
-function accentForSubject(subject: string): Accent {
-  const match = QUICK_ACTIONS.find((action) => action.subject === subject);
-  return match?.accent ?? "emerald";
-}
 
 /**
  * Persistent AI-teacher chat panel. Slides in on desktop (pushing dashboard
  * content aside — see SiteShell's md:mr-*) and takes over the full screen on
  * mobile where there's no room to split.
+ *
+ * The AI itself is never gated behind a subject: typing a question straight
+ * away answers it directly. Clicking a subject card only shows a friendly
+ * greeting + two one-tap follow-ups — nothing is sent to the model until the
+ * user actually picks or types something.
  */
 export function AIChatSidePanel() {
   const { isOpen, close } = useAIChatPanel();
 
-  const [subject, setSubject] = useState("ბიოლოგია");
+  const [subject, setSubject] = useState<string | null>(null);
+  const [subjectAccent, setSubjectAccent] = useState<Accent>("emerald");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [pendingSuggestions, setPendingSuggestions] = useState<PendingSuggestions | null>(
+    null,
+  );
   const [friendlyError, setFriendlyError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
@@ -119,7 +150,6 @@ export function AIChatSidePanel() {
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
-  const accent = ACCENTS[accentForSubject(subject)];
 
   const adjustTextareaHeight = useCallback(() => {
     const element = textareaRef.current;
@@ -136,7 +166,7 @@ export function AIChatSidePanel() {
     const element = feedRef.current;
     if (!element) return;
     element.scrollTop = element.scrollHeight;
-  }, [messages, isLoading]);
+  }, [messages, isLoading, pendingSuggestions]);
 
   useEffect(() => {
     if (isOpen) {
@@ -149,6 +179,7 @@ export function AIChatSidePanel() {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
 
+    setPendingSuggestions(null);
     setFriendlyError(null);
     setMessages((prev) => [
       ...prev,
@@ -164,7 +195,9 @@ export function AIChatSidePanel() {
       const text = await fetchAiTextStream(
         {
           pageType: "ai-teacher",
-          payload: { subject, message: trimmed },
+          // No subject = the model just answers the question directly,
+          // instead of being artificially framed around an unrelated topic.
+          payload: subject ? { subject, message: trimmed } : { message: trimmed },
         },
         (partial) => {
           setMessages((prev) =>
@@ -206,10 +239,25 @@ export function AIChatSidePanel() {
 
   const startNewChat = () => {
     setMessages([]);
+    setPendingSuggestions(null);
     setFriendlyError(null);
     setInput("");
     setIsLoading(false);
+    setSubject(null);
   };
+
+  const pickSubject = (action: (typeof QUICK_ACTIONS)[number]) => {
+    setSubject(action.subject);
+    setSubjectAccent(action.accent);
+    setFriendlyError(null);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "assistant", content: action.greeting },
+    ]);
+    setPendingSuggestions({ accent: action.accent, items: action.suggestions });
+  };
+
+  const activeAccent = ACCENTS[subjectAccent];
 
   return (
     <div
@@ -241,11 +289,15 @@ export function AIChatSidePanel() {
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-zinc-100">AI მასწავლებელი</p>
-            <span
-              className={`mt-0.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${accent.border} ${accent.bg} ${accent.text}`}
-            >
-              {subject}
-            </span>
+            {subject ? (
+              <span
+                className={`mt-0.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${activeAccent.border} ${activeAccent.bg} ${activeAccent.text}`}
+              >
+                {subject}
+              </span>
+            ) : (
+              <p className="truncate text-[11px] text-zinc-500">ნებისმიერ თემაზე მკითხე</p>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -282,7 +334,7 @@ export function AIChatSidePanel() {
               გამარჯობა, რით დაგეხმარო?
             </h2>
             <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-              აირჩიე თემა ან დაწერე შენი კითხვა ქვემოთ
+              დამისვი ნებისმიერი კითხვა პირდაპირ, ან აირჩიე თემა სწრაფი დასაწყისისთვის
             </p>
             <div className="mt-6 grid grid-cols-2 gap-2.5">
               {QUICK_ACTIONS.map((action) => {
@@ -291,10 +343,7 @@ export function AIChatSidePanel() {
                   <button
                     key={action.title}
                     type="button"
-                    onClick={() => {
-                      setSubject(action.subject);
-                      void sendMessage(action.prompt);
-                    }}
+                    onClick={() => pickSubject(action)}
                     className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]"
                     onMouseEnter={(event) => {
                       event.currentTarget.style.boxShadow = `0 8px 24px -8px ${a.glow}`;
@@ -324,6 +373,24 @@ export function AIChatSidePanel() {
             {messages.map((message) => (
               <MessageBubble key={message.id} role={message.role} content={message.content} />
             ))}
+
+            {pendingSuggestions && !isLoading ? (
+              <div className="flex flex-wrap gap-2 pl-12">
+                {pendingSuggestions.items.map((option) => {
+                  const a = ACCENTS[pendingSuggestions.accent];
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      onClick={() => void sendMessage(option.prompt)}
+                      className={`rounded-full border px-3.5 py-2 text-xs font-medium transition-all hover:-translate-y-0.5 ${a.border} ${a.bg} ${a.text}`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         )}
       </div>

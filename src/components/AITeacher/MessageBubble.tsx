@@ -33,10 +33,16 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
       <div className="relative min-w-0 max-w-[88%] pt-1">
         <GeneratingIndicator visible={!showContent} />
         {showContent ? (
-          <div className="ai-message-reveal text-sm leading-relaxed text-zinc-100">
+          <div className="ai-message-reveal text-[15px] leading-[1.75] text-zinc-100">
             <MarkdownContent
               content={content}
-              className="[&_h1]:text-zinc-50 [&_h2]:border-zinc-700 [&_h2]:text-zinc-50 [&_h3]:text-zinc-100 [&_li]:text-zinc-200 [&_p]:my-2 [&_p]:text-zinc-200 [&_strong]:text-zinc-50"
+              className="[&_h1]:mb-2.5 [&_h1]:mt-1 [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-white
+                [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:border-none [&_h2]:pb-0 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-white
+                [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-zinc-100
+                [&_p]:my-2.5 [&_p]:leading-[1.75] [&_p]:text-zinc-200
+                [&_ul]:my-2.5 [&_ul]:space-y-2 [&_ol]:my-2.5 [&_ol]:space-y-2
+                [&_li]:leading-[1.7] [&_li]:text-zinc-200
+                [&_strong]:font-semibold [&_strong]:text-white"
             />
           </div>
         ) : null}
