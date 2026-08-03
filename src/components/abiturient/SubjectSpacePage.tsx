@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { ArrowRight, ChevronLeft, Layers, PlayCircle, Sparkles } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
-import { subjectHubHref, type SubjectTheme } from "@/lib/abiturient-subjects";
+import { getSecondaryTheme, subjectHubHref, type SubjectTheme } from "@/lib/abiturient-subjects";
 
 interface SubjectSpacePageProps {
   subjectId: string;
@@ -21,36 +21,22 @@ interface ModuleCardProps {
   href: string;
   btnText: string;
   theme: SubjectTheme;
-  /**
-   * "theme" ties the card to the subject's own brand color (used for the
-   * module that should feel like "this subject's space"). "neutral" keeps a
-   * plain white/gray accent so it doesn't visually duplicate the subject
-   * color — avoids every card on a page looking like one flat color block
-   * when the subject's theme happens to also be blue/cyan (e.g. math).
-   */
-  accent?: "theme" | "neutral";
+  /** Which pre-set CSS custom property (set on the page wrapper) supplies this card's glow color. */
+  glowVar: "--subject-glow-color" | "--secondary-glow-color";
 }
 
-function ModuleCard({ title, description, icon, href, btnText, theme, accent = "theme" }: ModuleCardProps) {
-  const isNeutral = accent === "neutral";
-  const ringClass = isNeutral ? "border-white/[0.12] bg-white/[0.05]" : theme.iconRing;
-  const ctaClass = isNeutral ? "text-zinc-300 group-hover:text-white" : theme.ctaText;
-  const hoverBorderClass = isNeutral ? "hover:border-white/[0.18]" : theme.hoverBorder;
-  const glowBackground = isNeutral
-    ? "radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 70%)"
-    : "radial-gradient(circle, var(--subject-glow-color) 0%, transparent 70%)";
-
+function ModuleCard({ title, description, icon, href, btnText, theme, glowVar }: ModuleCardProps) {
   return (
     <article
-      className={`group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${hoverBorderClass}`}
+      className={`group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${theme.hoverBorder}`}
     >
       <div
-        className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-[0.08] blur-2xl transition-all duration-300 group-hover:opacity-[0.16]"
-        style={{ background: glowBackground }}
+        className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-[0.1] blur-2xl transition-all duration-300 group-hover:opacity-[0.18]"
+        style={{ background: `radial-gradient(circle, var(${glowVar}) 0%, transparent 70%)` }}
         aria-hidden
       />
       <div className="relative z-[1]">
-        <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border ${ringClass}`}>
+        <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border ${theme.iconRing}`}>
           {icon}
         </div>
         <h2 className="text-lg font-bold text-white">{title}</h2>
@@ -58,7 +44,7 @@ function ModuleCard({ title, description, icon, href, btnText, theme, accent = "
       </div>
       <Link
         href={href}
-        className={`relative z-[1] mt-4 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-medium transition-all active:scale-[0.98] ${ringClass} ${ctaClass}`}
+        className={`relative z-[1] mt-4 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-medium transition-all active:scale-[0.98] ${theme.iconRing} ${theme.ctaText}`}
       >
         {btnText}
         <ArrowRight className="h-4 w-4 stroke-[1.5] transition-transform group-hover:translate-x-0.5" />
@@ -73,6 +59,10 @@ function ModuleCard({ title, description, icon, href, btnText, theme, accent = "
  * other subject gets this themed placeholder — real modules for reading
  * comprehension / text editing / essays etc. will replace the "coming soon"
  * block once those exercise types exist for each subject.
+ *
+ * Each subject gets two colors here — its own brand theme plus a playful
+ * complementary "secondary" accent — so the two module cards read as
+ * distinct, coordinated colors instead of one flat block repeated everywhere.
  */
 export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
   const subject = getSubjectHub(subjectId);
@@ -87,12 +77,18 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
 
   const Icon = subject.icon;
   const theme = subject.theme;
+  const secondaryTheme = getSecondaryTheme(subject.id);
   const cardsHref = flashcardHref(subject.deckId);
 
   return (
     <div
       className="relative min-h-full bg-transparent"
-      style={{ ["--subject-glow-color" as string]: theme.glow } as CSSProperties}
+      style={
+        {
+          "--subject-glow-color": theme.glow,
+          "--secondary-glow-color": secondaryTheme.glow,
+        } as CSSProperties
+      }
     >
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
         <Link
@@ -123,11 +119,11 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
           <ModuleCard
             title="ტესტების ბანკი"
             description="გაიარე სრული სატესტო ბანკი და თვალი ადევნე პროგრესს რეალურ დროში."
-            icon={<PlayCircle className="h-6 w-6 stroke-[1.5] text-zinc-300" />}
+            icon={<PlayCircle className={`h-6 w-6 stroke-[1.5] ${secondaryTheme.iconText}`} />}
             href="/quiz"
             btnText="დაწყება"
-            theme={theme}
-            accent="neutral"
+            theme={secondaryTheme}
+            glowVar="--secondary-glow-color"
           />
           <ModuleCard
             title="ფლეშ ბარათები"
@@ -136,6 +132,7 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
             href={cardsHref}
             btnText="დაწყება"
             theme={theme}
+            glowVar="--subject-glow-color"
           />
         </section>
 

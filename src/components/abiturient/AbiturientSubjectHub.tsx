@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Layers, PlayCircle } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
+import { getSecondaryTheme } from "@/lib/abiturient-subjects";
 import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
 import { quizHrefForGeorgianSubject } from "@/lib/space-back-navigation";
 import { SubjectSpacePremiumCard } from "./SubjectSpacePremiumCard";
@@ -59,6 +60,7 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
   }
 
   const cardsHref = flashcardHref(subject.id, subject.deckId);
+  const secondaryTheme = getSecondaryTheme(subjectId);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -106,16 +108,26 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <Link
           href={subjectId === "georgian" ? quizHrefForGeorgianSubject() : "/quiz"}
-          className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#16161a]/40 p-5 backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-white/[0.15]"
+          className={`group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#16161a]/40 p-5 backdrop-blur-xl transition-all hover:-translate-y-0.5 ${secondaryTheme.hoverBorder}`}
+          style={{ ["--secondary-glow-color" as string]: secondaryTheme.glow } as CSSProperties}
         >
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.05]">
-            <PlayCircle className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
+          <div
+            className="pointer-events-none absolute -right-14 -top-14 h-32 w-32 rounded-full opacity-[0.1] blur-2xl transition-all duration-300 group-hover:opacity-[0.18]"
+            style={{ background: "radial-gradient(circle, var(--secondary-glow-color) 0%, transparent 70%)" }}
+            aria-hidden
+          />
+          <div
+            className={`relative z-[1] mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border ${secondaryTheme.iconRing}`}
+          >
+            <PlayCircle className={`h-5 w-5 ${secondaryTheme.iconText}`} strokeWidth={1.5} />
           </div>
-          <h2 className="text-lg font-semibold text-white">კითხვების პანელი</h2>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+          <h2 className="relative z-[1] text-lg font-semibold text-white">კითხვების პანელი</h2>
+          <p className="relative z-[1] mt-1 text-xs leading-relaxed text-zinc-400">
             გაიმეორე ბანკის კითხვები და შეამოწმე პასუხები.
           </p>
-          <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-zinc-300 transition-colors group-hover:text-white">
+          <span
+            className={`relative z-[1] mt-4 inline-flex items-center gap-1 text-xs font-medium ${secondaryTheme.ctaText}`}
+          >
             გაგრძელება
             <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
           </span>

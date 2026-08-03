@@ -97,6 +97,80 @@ export const SUBJECT_THEMES: Record<string, SubjectTheme> = {
   },
 };
 
+/**
+ * A small playful accent palette used as each subject's *secondary* color —
+ * for cards that live alongside the subject's own brand color (from
+ * SUBJECT_THEMES) so a subject page isn't just one color repeated on every
+ * card. Picked to pair nicely (warm/cool complements) with each subject's
+ * primary theme rather than clash with it.
+ */
+export const ACCENT_PALETTE: Record<string, SubjectTheme> = {
+  gold: {
+    glow: "#F59E0B",
+    progressStroke: "stroke-amber-400",
+    progressLabel: "text-amber-300",
+    iconRing: "border-amber-500/30 bg-amber-500/10",
+    iconText: "text-amber-300",
+    ctaText: "text-amber-400",
+    hoverBorder: "hover:border-amber-500/25",
+    badgeBg: "bg-amber-500",
+  },
+  sky: {
+    glow: "#38BDF8",
+    progressStroke: "stroke-sky-400",
+    progressLabel: "text-sky-300",
+    iconRing: "border-sky-500/30 bg-sky-500/10",
+    iconText: "text-sky-300",
+    ctaText: "text-sky-400",
+    hoverBorder: "hover:border-sky-500/25",
+    badgeBg: "bg-sky-500",
+  },
+  pink: {
+    glow: "#F472B6",
+    progressStroke: "stroke-pink-400",
+    progressLabel: "text-pink-300",
+    iconRing: "border-pink-500/30 bg-pink-500/10",
+    iconText: "text-pink-300",
+    ctaText: "text-pink-400",
+    hoverBorder: "hover:border-pink-500/25",
+    badgeBg: "bg-pink-500",
+  },
+  teal: {
+    glow: "#2DD4BF",
+    progressStroke: "stroke-teal-400",
+    progressLabel: "text-teal-300",
+    iconRing: "border-teal-500/30 bg-teal-500/10",
+    iconText: "text-teal-300",
+    ctaText: "text-teal-400",
+    hoverBorder: "hover:border-teal-500/25",
+    badgeBg: "bg-teal-500",
+  },
+  lime: {
+    glow: "#A3E635",
+    progressStroke: "stroke-lime-400",
+    progressLabel: "text-lime-300",
+    iconRing: "border-lime-500/30 bg-lime-500/10",
+    iconText: "text-lime-300",
+    ctaText: "text-lime-400",
+    hoverBorder: "hover:border-lime-500/25",
+    badgeBg: "bg-lime-500",
+  },
+};
+
+const SUBJECT_SECONDARY_THEMES: Record<string, SubjectTheme> = {
+  history: ACCENT_PALETTE.gold,
+  english: ACCENT_PALETTE.sky,
+  math: ACCENT_PALETTE.pink,
+  georgian: ACCENT_PALETTE.gold,
+  geography: ACCENT_PALETTE.sky,
+  civics: ACCENT_PALETTE.teal,
+  chemistry: ACCENT_PALETTE.lime,
+};
+
+export function getSecondaryTheme(subjectId: string): SubjectTheme {
+  return SUBJECT_SECONDARY_THEMES[subjectId] ?? ACCENT_PALETTE.sky;
+}
+
 export interface AbiturientLastActive {
   id: string;
   title: string;
