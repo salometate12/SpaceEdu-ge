@@ -10,7 +10,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowUp, Plus, Sparkles, X } from "lucide-react";
+import { ArrowLeft, ArrowUp, Maximize2, Minimize2, Plus, Sparkles, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { AI_PANEL_WIDTH_PX, useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { MessageBubble } from "./MessageBubble";
@@ -121,6 +121,8 @@ const QUICK_ACTIONS: {
   },
 ];
 
+type View = "home" | "chat";
+
 /**
  * Persistent AI-teacher chat panel. Slides in on desktop (pushing dashboard
  * content aside — see SiteShell's md:mr-*) and takes over the full screen on
@@ -129,11 +131,13 @@ const QUICK_ACTIONS: {
  * The AI itself is never gated behind a subject: typing a question straight
  * away answers it directly. Clicking a subject card only shows a friendly
  * greeting + two one-tap follow-ups — nothing is sent to the model until the
- * user actually picks or types something.
+ * user actually picks or types something. "Home" (back arrow) just switches
+ * which screen is showing — it never clears the conversation, only "+" does.
  */
 export function AIChatSidePanel() {
-  const { isOpen, close } = useAIChatPanel();
+  const { isOpen, close, isExpanded, toggleExpanded } = useAIChatPanel();
 
+  const [view, setView] = useState<View>("home");
   const [subject, setSubject] = useState<string | null>(null);
   const [subjectAccent, setSubjectAccent] = useState<Accent>("emerald");
   const [input, setInput] = useState("");
@@ -150,6 +154,7 @@ export function AIChatSidePanel() {
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
+  const showHome = view === "home";
 
   const adjustTextareaHeight = useCallback(() => {
     const element = textareaRef.current;
@@ -166,7 +171,7 @@ export function AIChatSidePanel() {
     const element = feedRef.current;
     if (!element) return;
     element.scrollTop = element.scrollHeight;
-  }, [messages, isLoading, pendingSuggestions]);
+  }, [messages, isLoading, pendingSuggestions, view]);
 
   useEffect(() => {
     if (isOpen) {
@@ -179,6 +184,7 @@ export function AIChatSidePanel() {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
 
+    setView("chat");
     setPendingSuggestions(null);
     setFriendlyError(null);
     setMessages((prev) => [
@@ -244,12 +250,16 @@ export function AIChatSidePanel() {
     setInput("");
     setIsLoading(false);
     setSubject(null);
+    setView("home");
   };
+
+  const goHome = () => setView("home");
 
   const pickSubject = (action: (typeof QUICK_ACTIONS)[number]) => {
     setSubject(action.subject);
     setSubjectAccent(action.accent);
     setFriendlyError(null);
+    setView("chat");
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "assistant", content: action.greeting },
@@ -261,12 +271,12 @@ export function AIChatSidePanel() {
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#0A0A0F] transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-12 md:z-30 md:w-[420px] md:border-l md:border-white/[0.06] md:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
+      className={`fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#0A0A0F] transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-12 md:z-30 md:border-l md:border-white/[0.06] md:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
         isOpen
           ? "translate-x-0"
           : "pointer-events-none -translate-x-full md:translate-x-full"
       }`}
-      style={{ width: `min(100%, ${AI_PANEL_WIDTH_PX}px)` }}
+      style={{ width: isExpanded ? "100%" : `min(100%, ${AI_PANEL_WIDTH_PX}px)` }}
       aria-hidden={!isOpen}
     >
       {/* ambient glow, purely decorative */}
@@ -281,6 +291,16 @@ export function AIChatSidePanel() {
 
       <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
+          {!showHome && hasMessages ? (
+            <button
+              type="button"
+              onClick={goHome}
+              aria-label="მთავარ გვერდზე დაბრუნება"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            </button>
+          ) : null}
           <span
             className="animate-icon-glow relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-[#0A0A0F]"
             style={{ "--icon-glow-color": "rgba(45,212,191,0.55)" } as CSSProperties}
@@ -303,6 +323,18 @@ export function AIChatSidePanel() {
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
+            onClick={toggleExpanded}
+            aria-label={isExpanded ? "დავიწროება" : "მთელ ეკრანზე გაშლა"}
+            className="hidden h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100 md:inline-flex"
+          >
+            {isExpanded ? (
+              <Minimize2 className="h-4 w-4" strokeWidth={2} />
+            ) : (
+              <Maximize2 className="h-4 w-4" strokeWidth={2} />
+            )}
+          </button>
+          <button
+            type="button"
             onClick={startNewChat}
             aria-label="ახალი ჩატი"
             className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-emerald-300"
@@ -323,9 +355,9 @@ export function AIChatSidePanel() {
 
       <div
         ref={feedRef}
-        className="scrollbar-thin relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-5"
+        className="scrollbar-thin relative z-[1] mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto px-4 pb-4 pt-5"
       >
-        {!hasMessages ? (
+        {showHome ? (
           <div className="flex h-full flex-col justify-center px-1 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-cyan-500/20">
               <Sparkles className="h-5 w-5 text-emerald-300" strokeWidth={1.75} />
@@ -336,6 +368,18 @@ export function AIChatSidePanel() {
             <p className="mt-2 text-xs leading-relaxed text-zinc-500">
               დამისვი ნებისმიერი კითხვა პირდაპირ, ან აირჩიე თემა სწრაფი დასაწყისისთვის
             </p>
+
+            {hasMessages ? (
+              <button
+                type="button"
+                onClick={() => setView("chat")}
+                className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-400/30 hover:bg-white/[0.07] hover:text-emerald-200"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 rotate-180" strokeWidth={2} />
+                გააგრძელე წინა საუბარი
+              </button>
+            ) : null}
+
             <div className="mt-6 grid grid-cols-2 gap-2.5">
               {QUICK_ACTIONS.map((action) => {
                 const a = ACCENTS[action.accent];
@@ -395,7 +439,7 @@ export function AIChatSidePanel() {
         )}
       </div>
 
-      <div className="relative z-[1] shrink-0 bg-[#0A0A0F] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 bg-[#0A0A0F] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
         {friendlyError ? (
           <div className="mb-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
             {friendlyError}

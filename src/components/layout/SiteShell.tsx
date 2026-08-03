@@ -11,13 +11,14 @@ interface SiteShellProps {
 export function SiteShell({ children }: SiteShellProps) {
   const pathname = usePathname();
   const dockVisible = !mobileDockHidden(pathname);
-  const { isOpen } = useAIChatPanel();
+  const { isOpen, isExpanded } = useAIChatPanel();
+  const pushed = isOpen && !isExpanded;
 
   return (
     <div
       className={`flex min-h-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${
         dockVisible ? "pb-28 md:pb-0" : ""
-      } ${isOpen ? "md:mr-[420px]" : "md:mr-0"}`}
+      } ${pushed ? "md:mr-[420px]" : "md:mr-0"}`}
     >
       {children}
     </div>

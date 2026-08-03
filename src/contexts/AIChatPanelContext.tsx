@@ -17,6 +17,8 @@ interface AIChatPanelContextValue {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  isExpanded: boolean;
+  toggleExpanded: () => void;
 }
 
 const AIChatPanelContext = createContext<AIChatPanelContextValue | null>(null);
@@ -41,6 +43,7 @@ function shouldForceClosePanel(pathname: string | null): boolean {
 
 export function AIChatPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
 
   // Derived during render (not synced via effect) so the panel is simply
@@ -50,10 +53,18 @@ export function AIChatPanelProvider({ children }: { children: ReactNode }) {
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
+  const toggleExpanded = useCallback(() => setIsExpanded((prev) => !prev), []);
 
   return (
     <AIChatPanelContext.Provider
-      value={{ isOpen: effectiveIsOpen, open, close, toggle }}
+      value={{
+        isOpen: effectiveIsOpen,
+        open,
+        close,
+        toggle,
+        isExpanded: effectiveIsOpen && isExpanded,
+        toggleExpanded,
+      }}
     >
       {children}
     </AIChatPanelContext.Provider>
