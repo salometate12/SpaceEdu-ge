@@ -180,6 +180,17 @@ export function AIChatSidePanel() {
     }
   }, [isOpen]);
 
+  // While fullscreen-expanded, the panel visually covers the whole viewport —
+  // lock body scroll so the dashboard behind it can't scroll/reflow underneath.
+  useEffect(() => {
+    if (!isExpanded) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isExpanded]);
+
   const sendMessage = async (rawMessage: string) => {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
@@ -271,7 +282,7 @@ export function AIChatSidePanel() {
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#0A0A0F] transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-12 md:z-30 md:border-l md:border-white/[0.06] md:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
+      className={`fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#0A0A0F] transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-12 md:z-[45] md:border-l md:border-white/[0.06] md:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
         isOpen
           ? "translate-x-0"
           : "pointer-events-none -translate-x-full md:translate-x-full"
