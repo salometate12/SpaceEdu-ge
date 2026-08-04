@@ -1004,3 +1004,25 @@ html.dark .tool-chip-active {
     animation: none !important;
   }
 }
+
+/* Study plan — staggered day-card entrance */
+@keyframes calendar-day-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.calendar-day-in {
+  animation: calendar-day-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-day-in {
+    animation: none !important;
+  }
+}
