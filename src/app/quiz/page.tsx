@@ -33,10 +33,14 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const QUESTION_COUNT_OPTIONS = [5, 10, 15, 20];
+
 export default function QuizPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [questionCount, setQuestionCount] = useState(5);
+  const [isCustomCount, setIsCustomCount] = useState(false);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(
@@ -104,6 +108,7 @@ export default function QuizPage() {
     try {
       const formData = new FormData();
       formData.append("file", file, file.name);
+      formData.append("questionCount", String(questionCount));
 
       const response = await fetch("/api/quiz", {
         method: "POST",
@@ -245,6 +250,62 @@ export default function QuizPage() {
               </div>
             )}
           </label>
+
+          <div className="space-y-2">
+            <p className="text-sm text-slate-600 dark:text-zinc-400">კითხვების რაოდენობა</p>
+            <div className="flex flex-wrap gap-2">
+              {QUESTION_COUNT_OPTIONS.map((count) => {
+                const isActive = !isCustomCount && questionCount === count;
+                return (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => {
+                      setIsCustomCount(false);
+                      setQuestionCount(count);
+                    }}
+                    aria-pressed={isActive}
+                    className={`min-w-[3.25rem] rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
+                      isActive
+                        ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-purple-500/20 dark:hover:text-white"
+                    }`}
+                  >
+                    {count}
+                  </button>
+                );
+              })}
+
+              <label
+                className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
+                  isCustomCount
+                    ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
+                    : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-violet-300 hover:text-violet-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-purple-500/20 dark:hover:text-white"
+                }`}
+              >
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={3}
+                  max={25}
+                  placeholder="სხვა"
+                  value={isCustomCount ? questionCount : ""}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    if (!raw) {
+                      setIsCustomCount(false);
+                      return;
+                    }
+                    const value = Number(raw);
+                    if (Number.isNaN(value)) return;
+                    setIsCustomCount(true);
+                    setQuestionCount(Math.min(25, Math.max(3, Math.round(value))));
+                  }}
+                  className="w-12 bg-transparent text-center outline-none [appearance:textfield] placeholder:text-slate-400 dark:placeholder:text-zinc-600 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+              </label>
+            </div>
+          </div>
 
           <button
             type="button"

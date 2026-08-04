@@ -6,23 +6,37 @@ import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const QuizResponseSchema = z.object({
-  questions: z
-    .array(
-      z.object({
-        id: z.number(),
-        questionText: z.string(),
-        options: z.array(z.string()).length(4),
-        correctAnswerIndex: z.number().min(0).max(3),
-        explanation: z.string(),
-      }),
-    )
-    .length(5),
-});
+const MIN_QUESTION_COUNT = 3;
+const MAX_QUESTION_COUNT = 25;
+const DEFAULT_QUESTION_COUNT = 5;
 
-const QUIZ_SYSTEM_PROMPT = `You are SpaceEdu's expert AI Examiner.
+function buildQuizResponseSchema(count: number) {
+  return z.object({
+    questions: z
+      .array(
+        z.object({
+          id: z.number(),
+          questionText: z.string(),
+          options: z.array(z.string()).length(4),
+          correctAnswerIndex: z.number().min(0).max(3),
+          explanation: z.string(),
+        }),
+      )
+      .length(count),
+  });
+}
+
+function parseQuestionCount(raw: FormDataEntryValue | null): number {
+  if (typeof raw !== "string") return DEFAULT_QUESTION_COUNT;
+  const value = Number.parseInt(raw, 10);
+  if (Number.isNaN(value)) return DEFAULT_QUESTION_COUNT;
+  return Math.min(MAX_QUESTION_COUNT, Math.max(MIN_QUESTION_COUNT, value));
+}
+
+function buildQuizSystemPrompt(count: number): string {
+  return `You are SpaceEdu's expert AI Examiner.
 You will receive PLAIN TEXT already extracted from a PDF document (not binary data, not a file stream).
-Read only that text and generate exactly 5 highly conceptual multiple-choice active recall questions.
+Read only that text and generate exactly ${count} highly conceptual multiple-choice active recall questions.
 Return ONLY a valid JSON object matching this contract:
 {
   "questions": [
@@ -35,8 +49,10 @@ Return ONLY a valid JSON object matching this contract:
     }
   ]
 }
+The "questions" array MUST contain exactly ${count} items — not more, not fewer.
 All questionText, options, and explanation fields MUST be in beautiful Georgian.
 Base every question strictly on facts present in the provided text.`;
+}
 
 function buildQuizPrompt(fileName: string, extractedText: string): string {
   return [
@@ -105,9 +121,11 @@ export async function POST(request: Request) {
       ? await extractTextFromTextFile(fileEntry)
       : await extractTextFromPdfFile(fileEntry);
 
+    const questionCount = parseQuestionCount(formData.get("questionCount"));
+
     const object = await generateGeminiObject({
-      schema: QuizResponseSchema,
-      system: QUIZ_SYSTEM_PROMPT,
+      schema: buildQuizResponseSchema(questionCount),
+      system: buildQuizSystemPrompt(questionCount),
       prompt: buildQuizPrompt(fileEntry.name, extractedText),
       temperature: 0.35,
     });
