@@ -132,14 +132,18 @@ export async function generateGeminiObject({
 export async function generateLlmText({
   system,
   prompt,
+  messages,
   temperature = 0.35,
 }: {
   system?: string;
-  prompt: string;
+  prompt?: string;
+  messages?: ModelMessage[];
   temperature?: number;
 }): Promise<string> {
   requireAtLeastOneLlmProvider();
   const providers = getConfiguredProviders();
+  const promptOrMessages =
+    messages && messages.length > 0 ? { messages } : { prompt: prompt ?? "" };
 
   return runWithProviderFallback(
     providers,
@@ -147,8 +151,8 @@ export async function generateLlmText({
       const { text } = await generateText({
         model: provider.getModel(),
         system,
-        prompt,
         temperature,
+        ...promptOrMessages,
       });
       return text;
     },

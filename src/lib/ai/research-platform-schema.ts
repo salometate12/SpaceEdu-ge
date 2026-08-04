@@ -4,6 +4,8 @@ export const ResearchTogglesSchema = z.object({
   theses: z.boolean().optional(),
   methodology: z.boolean().optional(),
   literature: z.boolean().optional(),
+  criticalAnalysis: z.boolean().optional(),
+  conclusions: z.boolean().optional(),
 });
 
 export type ResearchToggles = z.infer<typeof ResearchTogglesSchema>;
@@ -34,6 +36,8 @@ export const ResearchResponseSchema = z.object({
   theses: z.array(z.string()).optional(),
   methodology: z.string().optional(),
   literatureReview: z.string().optional(),
+  criticalAnalysis: z.string().optional(),
+  conclusions: z.string().optional(),
 });
 
 export type ResearchResponse = z.infer<typeof ResearchResponseSchema>;

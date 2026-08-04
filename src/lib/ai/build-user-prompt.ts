@@ -27,6 +27,8 @@ export function buildUserPrompt(
       if (toggles?.theses) focus.push("ძირითადი თეზისები");
       if (toggles?.methodology) focus.push("მეთოდოლოგია");
       if (toggles?.literature) focus.push("ლიტერატურის მიმოხილვა");
+      if (toggles?.criticalAnalysis) focus.push("კრიტიკული ანალიზი (ძლიერი/სუსტი მხარეები)");
+      if (toggles?.conclusions) focus.push("დასკვნები და რეკომენდაციები");
       return [
         payload.fileName ? `დოკუმენტი: ${asString(payload.fileName)}` : "",
         "შიგთავსი: უკვე ამოღებული ტექსტი (არა ბინარული ნაკადი).",

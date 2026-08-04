@@ -1,23 +1,69 @@
 "use client";
 
 import { Suspense, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
+import {
+  BookMarked,
+  CheckCircle2,
+  FileText,
+  FlaskConical,
+  Image as ImageIcon,
+  Lightbulb,
+  ListChecks,
+  Scale,
+  Sparkles,
+  UploadCloud,
+} from "lucide-react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { ResearchResponse } from "@/lib/ai/research-platform-schema";
 
 type AnalysisTab = "summary" | "sources" | "quotes";
-type ToggleKey = "theses" | "methodology" | "literature";
+type ToggleKey =
+  | "theses"
+  | "methodology"
+  | "literature"
+  | "criticalAnalysis"
+  | "conclusions";
 
 interface ToggleOption {
   key: ToggleKey;
   label: string;
+  description: string;
+  icon: typeof ListChecks;
 }
 
 const TOGGLES: ToggleOption[] = [
-  { key: "theses", label: "გამოყავი ძირითადი თეზისები" },
-  { key: "methodology", label: "მეთოდოლოგიის ანალიზი" },
-  { key: "literature", label: "ლიტერატურის მიმოხილვა" },
+  {
+    key: "theses",
+    label: "ძირითადი თეზისები",
+    description: "ტექსტის მთავარი აზრები, გამოკვეთილად.",
+    icon: ListChecks,
+  },
+  {
+    key: "methodology",
+    label: "მეთოდოლოგიის ანალიზი",
+    description: "როგორ არის აგებული კვლევა/მსჯელობა.",
+    icon: FlaskConical,
+  },
+  {
+    key: "literature",
+    label: "ლიტერატურის მიმოხილვა",
+    description: "წყაროებთან და კონტექსტთან კავშირი.",
+    icon: BookMarked,
+  },
+  {
+    key: "criticalAnalysis",
+    label: "კრიტიკული ანალიზი",
+    description: "ძლიერი და სუსტი მხარეები.",
+    icon: Scale,
+  },
+  {
+    key: "conclusions",
+    label: "დასკვნები და რჩევები",
+    description: "პრაქტიკული დასკვნა და შემდეგი ნაბიჯები.",
+    icon: Lightbulb,
+  },
 ];
 
 const TAB_LABELS: Record<AnalysisTab, string> = {
@@ -27,19 +73,26 @@ const TAB_LABELS: Record<AnalysisTab, string> = {
 };
 
 const TEXT_EXTENSIONS = [".txt", ".md"];
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif"];
 
 function isPdfFile(file: File): boolean {
-  return (
-    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
-  );
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 }
 
 function isTextFile(file: File): boolean {
   const lower = file.name.toLowerCase();
-  return (
-    file.type.startsWith("text/") ||
-    TEXT_EXTENSIONS.some((ext) => lower.endsWith(ext))
-  );
+  return file.type.startsWith("text/") || TEXT_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function isImageFile(file: File): boolean {
+  const lower = file.name.toLowerCase();
+  return file.type.startsWith("image/") || IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function fileKindLabel(file: File): { label: string; icon: typeof FileText } {
+  if (isPdfFile(file)) return { label: "PDF დოკუმენტი", icon: FileText };
+  if (isImageFile(file)) return { label: "ფოტო", icon: ImageIcon };
+  return { label: "ტექსტური ფაილი", icon: FileText };
 }
 
 export function ResearchPlatform() {
@@ -52,6 +105,8 @@ export function ResearchPlatform() {
     theses: true,
     methodology: false,
     literature: false,
+    criticalAnalysis: false,
+    conclusions: false,
   });
   const [activeTab, setActiveTab] = useState<AnalysisTab>("summary");
   const [analysisStarted, setAnalysisStarted] = useState(false);
@@ -63,8 +118,8 @@ export function ResearchPlatform() {
   );
 
   const handleFile = (file: File) => {
-    if (!isPdfFile(file) && !isTextFile(file)) {
-      setError("მხარდაჭერა: PDF, TXT ან MD ფაილები.");
+    if (!isPdfFile(file) && !isTextFile(file) && !isImageFile(file)) {
+      setError("მხარდაჭერა: PDF, TXT, MD ან ფოტო (JPG / PNG / WEBP).");
       return;
     }
 
@@ -89,7 +144,7 @@ export function ResearchPlatform() {
 
   const startAnalysis = async () => {
     if (!documentFile) {
-      setError("გთხოვ, ჯერ ატვირთე დოკუმენტი.");
+      setError("გთხოვ, ჯერ ატვირთე მასალა.");
       return;
     }
 
@@ -98,8 +153,10 @@ export function ResearchPlatform() {
     setAnalysisStarted(true);
     setResult(null);
 
+    const usesMultipart = isPdfFile(documentFile) || isImageFile(documentFile);
+
     try {
-      const data = isPdfFile(documentFile)
+      const data = usesMultipart
         ? await fetchAiMultipartJson<ResearchResponse>({
             pageType: "research-platform-abit",
             file: documentFile,
@@ -129,6 +186,8 @@ export function ResearchPlatform() {
   };
 
   const isPdf = documentFile ? isPdfFile(documentFile) : false;
+  const isImage = documentFile ? isImageFile(documentFile) : false;
+  const uploadedKind = documentFile ? fileKindLabel(documentFile) : null;
 
   return (
     <section className="space-y-6">
@@ -137,18 +196,19 @@ export function ResearchPlatform() {
           <SpaceBackLink className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-colors hover:text-white" />
         </Suspense>
         <div className="min-w-0 flex-1">
-          <h1 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-zinc-100">
+          <h1 className="headline flex items-center gap-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-zinc-100">
+            <Sparkles className="h-6 w-6 text-violet-500 dark:text-purple-300" strokeWidth={1.75} />
             კვლევის პლატფორმა
           </h1>
           <p className="mt-1 max-w-4xl text-sm text-slate-600 dark:text-zinc-400">
-            ატვირთე სამეცნიერო ნაშრომი ან PDF და გამოიყენე AI ღრმა ანალიზისთვის.
+            ჩააგდე PDF, ფოტო, ტექსტი — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
           </p>
         </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <aside className="space-y-4 lg:col-span-1">
-          <div className="dashboard-section p-5 backdrop-blur-md">
+          <div className="rounded-3xl border border-slate-200/70 bg-white/70 p-5 shadow-sm backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121214]/60">
             <label
               onDragOver={(event) => {
                 event.preventDefault();
@@ -156,77 +216,136 @@ export function ResearchPlatform() {
               }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={onDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-4 py-12 text-center transition-all ${
+              className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2.5 overflow-hidden rounded-2xl border border-dashed px-4 py-10 text-center transition-all duration-300 ${
                 isDragging
-                  ? "border-violet-400/60 bg-violet-50 dark:border-purple-500/40 dark:bg-purple-500/10"
-                  : "border-slate-200 hover:border-violet-400/60 dark:border-white/10 dark:hover:border-purple-500/30"
+                  ? "scale-[1.01] border-violet-400/70 bg-violet-50 dark:border-purple-400/50 dark:bg-purple-500/10"
+                  : "border-slate-200 hover:border-violet-400/50 hover:bg-violet-50/40 dark:border-white/10 dark:hover:border-purple-500/30 dark:hover:bg-purple-500/[0.04]"
               }`}
             >
               <input
                 type="file"
-                accept=".pdf,.txt,.md"
+                accept=".pdf,.txt,.md,image/png,image/jpeg,image/webp,image/heic,image/heif"
                 className="hidden"
                 onChange={onFileChange}
               />
-              <p className="text-sm text-slate-800 dark:text-zinc-200">
-                ჩააგდე ფაილი ან დააწკაპუნე ატვირთვისთვის
+              <span
+                className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 ${
+                  isDragging
+                    ? "border-violet-400/60 bg-violet-100 dark:border-purple-400/50 dark:bg-purple-500/20"
+                    : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.03]"
+                }`}
+              >
+                <UploadCloud
+                  className="h-5 w-5 text-violet-500 transition-transform duration-300 group-hover:-translate-y-0.5 dark:text-purple-300"
+                  strokeWidth={1.75}
+                />
+              </span>
+              <p className="text-sm font-medium text-slate-800 dark:text-zinc-200">
+                ჩააგდე ფაილი ან დააწკაპუნე
               </p>
-              <p className="text-xs text-slate-500 dark:text-zinc-500">PDF / TXT / MD</p>
+              <p className="text-xs text-slate-500 dark:text-zinc-500">
+                PDF · TXT · MD · ფოტო (JPG / PNG / WEBP)
+              </p>
             </label>
 
-            {fileName && (
-              <div className="mt-3 rounded-xl border border-violet-300/50 bg-violet-50 px-3 py-2 text-xs text-violet-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300">
-                ატვირთულია: {fileName}
+            {fileName && uploadedKind && (
+              <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-violet-300/50 bg-violet-50 px-3 py-2.5 text-xs text-violet-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300">
+                <uploadedKind.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                <span className="min-w-0 flex-1 truncate">{fileName}</span>
+                <span className="shrink-0 rounded-full bg-white/60 px-2 py-0.5 text-[10px] font-medium text-violet-600 dark:bg-black/20 dark:text-purple-200">
+                  {uploadedKind.label}
+                </span>
               </div>
             )}
 
             <div className="mt-5 space-y-2">
-              {TOGGLES.map((item) => (
-                <label
-                  key={item.key}
-                  className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-purple-500/25 dark:hover:text-white"
-                >
-                  <input
-                    type="checkbox"
-                    checked={toggles[item.key]}
-                    onChange={(event) =>
-                      setToggles((prev) => ({
-                        ...prev,
-                        [item.key]: event.target.checked,
-                      }))
+              <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+                რა გამოვყოთ?
+              </p>
+              {TOGGLES.map((item) => {
+                const active = toggles[item.key];
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() =>
+                      setToggles((prev) => ({ ...prev, [item.key]: !prev[item.key] }))
                     }
-                    className="h-4 w-4 accent-purple-500"
-                  />
-                  {item.label}
-                </label>
-              ))}
+                    aria-pressed={active}
+                    className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                      active
+                        ? "border-violet-400/60 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15)] dark:border-purple-500/40 dark:bg-purple-500/[0.08]"
+                        : "border-slate-200 bg-white hover:border-violet-300 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-purple-500/25"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
+                        active
+                          ? "bg-violet-500 text-white dark:bg-purple-500"
+                          : "bg-slate-100 text-slate-500 group-hover:text-violet-500 dark:bg-white/[0.05] dark:text-zinc-500 dark:group-hover:text-purple-300"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`block text-sm font-medium transition-colors ${
+                          active
+                            ? "text-violet-800 dark:text-purple-200"
+                            : "text-slate-700 dark:text-zinc-300"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                      <span className="block truncate text-[11px] text-slate-500 dark:text-zinc-500">
+                        {item.description}
+                      </span>
+                    </span>
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${
+                        active
+                          ? "scale-100 border-violet-500 bg-violet-500 text-white opacity-100 dark:border-purple-400 dark:bg-purple-500"
+                          : "scale-90 border-slate-300 bg-transparent text-transparent opacity-0 group-hover:scale-100 group-hover:opacity-100 dark:border-white/15"
+                      }`}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             <button
               type="button"
               onClick={() => void startAnalysis()}
               disabled={isLoading}
-              className="mt-5 w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500 hover:shadow-purple-500/20 active:scale-[0.98] disabled:opacity-60"
+              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500 hover:shadow-purple-500/20 active:scale-[0.98] disabled:opacity-60"
             >
               {isLoading
                 ? isPdf
                   ? "PDF-ის დამუშავება მიმდინარეობა..."
-                  : "იტვირთება..."
+                  : isImage
+                    ? "ფოტოს წაკითხვა მიმდინარეობა..."
+                    : "იტვირთება..."
                 : "ანალიზის დაწყება"}
             </button>
           </div>
         </aside>
 
-        <section className="dashboard-section p-6 backdrop-blur-md lg:col-span-2">
+        <section className="rounded-3xl border border-slate-200/70 bg-white/70 p-6 shadow-sm backdrop-blur-md dark:border-white/[0.07] dark:bg-[#121214]/60 lg:col-span-2">
           {error && (
             <div className="mb-4 rounded-xl border border-rose-300/50 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
               {error}
             </div>
           )}
           {!analysisStarted ? (
-            <div className="flex min-h-[420px] items-center justify-center text-center">
-              <p className="text-sm text-slate-500 dark:text-gray-500">
-                მკვლევრის სივრცე მზად არის. ატვირთე დოკუმენტი მარცხენა პანელიდან.
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-50 text-violet-400 dark:bg-purple-500/10 dark:text-purple-300/70">
+                <Sparkles className="h-5 w-5" strokeWidth={1.5} />
+              </span>
+              <p className="max-w-xs text-sm text-slate-500 dark:text-gray-500">
+                მკვლევრის სივრცე მზად არის. ატვირთე მასალა მარცხენა პანელიდან.
               </p>
             </div>
           ) : isLoading ? (
@@ -234,6 +353,11 @@ export function ResearchPlatform() {
               {isPdf && (
                 <p className="text-sm text-violet-600 dark:text-purple-300/90">
                   PDF-ის დამუშავება მიმდინარეობა...
+                </p>
+              )}
+              {isImage && (
+                <p className="text-sm text-violet-600 dark:text-purple-300/90">
+                  ფოტოზე ტექსტის ამოცნობა მიმდინარეობა...
                 </p>
               )}
               <AiSkeletonLoader rows={4} />
@@ -297,6 +421,22 @@ export function ResearchPlatform() {
                           ლიტერატურის მიმოხილვა
                         </p>
                         <p className="whitespace-pre-wrap">{result.literatureReview}</p>
+                      </div>
+                    )}
+                    {toggles.criticalAnalysis && result.criticalAnalysis && (
+                      <div>
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                          კრიტიკული ანალიზი
+                        </p>
+                        <p className="whitespace-pre-wrap">{result.criticalAnalysis}</p>
+                      </div>
+                    )}
+                    {toggles.conclusions && result.conclusions && (
+                      <div>
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                          დასკვნები და რჩევები
+                        </p>
+                        <p className="whitespace-pre-wrap">{result.conclusions}</p>
                       </div>
                     )}
                   </div>

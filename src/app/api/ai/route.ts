@@ -17,6 +17,10 @@ import {
   PDF_TEXT_EMPTY_ERROR,
   PdfExtractError,
 } from "@/lib/ai/extract-pdf-text";
+import {
+  extractTextFromImageFile,
+  ImageExtractError,
+} from "@/lib/ai/extract-image-text";
 import { isAiPageType } from "@/lib/ai/page-types";
 import { getSystemPromptForPageType } from "@/lib/ai/page-prompts";
 import {
@@ -135,9 +139,11 @@ Return ONLY valid JSON (all text in Georgian):
   "quotes": [{ "quote": "ციტატა", "context": "კონტექსტი", "location": "გვერდი/თავი" }],
   "theses": ["თეზისი 1"],
   "methodology": "მეთოდოლოგიის ანალიზი",
-  "literatureReview": "ლიტერატურის მიმოხილვა"
+  "literatureReview": "ლიტერატურის მიმოხილვა",
+  "criticalAnalysis": "ძლიერი და სუსტი მხარეების კრიტიკული შეფასება",
+  "conclusions": "დასკვნები და პრაქტიკული რეკომენდაციები"
 }
-Include theses/methodology/literatureReview ONLY when requested in analysis focus.
+Include theses/methodology/literatureReview/criticalAnalysis/conclusions ONLY when requested in analysis focus.
 Base all content strictly on the document text between markers.`;
 
 const MULTIPART_PAGE_TYPES = ["syllabus", "research-platform-abit"] as const;
@@ -207,12 +213,17 @@ async function handleMultipartPost(request: Request) {
   const file = formData.get("file");
   if (!(file instanceof File)) {
     return Response.json(
-      { error: true, message: "PDF ფაილი არ არის მიმაგრებული." },
+      { error: true, message: "ფაილი არ არის მიმაგრებული." },
       { status: 400 },
     );
   }
 
-  const textBody = await extractTextFromPdfFile(file);
+  const isImageFile =
+    pageType === "research-platform-abit" && file.type.toLowerCase().startsWith("image/");
+
+  const textBody = isImageFile
+    ? await extractTextFromImageFile(file)
+    : await extractTextFromPdfFile(file);
 
   if (pageType === "syllabus") {
     let options: z.infer<typeof SyllabusOptionsSchema> | undefined;
@@ -243,7 +254,7 @@ export async function POST(request: Request) {
       try {
         return await handleMultipartPost(request);
       } catch (error) {
-        if (error instanceof PdfExtractError) {
+        if (error instanceof PdfExtractError || error instanceof ImageExtractError) {
           return Response.json(
             { error: true, message: error.message },
             { status: 400 },
