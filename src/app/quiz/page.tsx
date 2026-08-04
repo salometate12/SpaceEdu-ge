@@ -11,7 +11,7 @@ import {
   type DragEvent,
 } from "react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
-import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
+import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 
 export interface QuizQuestion {
@@ -323,13 +323,15 @@ export default function QuizPage() {
       )}
 
       {phase === "loading" && (
-        <div className="space-y-4">
-          <p className="text-center text-sm text-slate-600 dark:text-zinc-400">
-            {file && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))
-              ? "PDF-ის დამუშავება მიმდინარეობს..."
-              : "მასალის დამუშავება მიმდინარეობს..."}
-          </p>
-          <AiSkeletonLoader rows={4} />
+        <div className="dashboard-section p-6 backdrop-blur-xl sm:p-8">
+          <QuizThinkingLoader
+            questionCount={questionCount}
+            hint={
+              file && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))
+                ? "PDF-ის დამუშავება მიმდინარეობს..."
+                : "მასალის დამუშავება მიმდინარეობს..."
+            }
+          />
         </div>
       )}
 
