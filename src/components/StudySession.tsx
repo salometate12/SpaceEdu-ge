@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ka } from "@/lib/i18n";
 import { markCardLearned } from "@/lib/progress";
+import { recordDailyActivity } from "@/lib/daily-streak";
 import type { Deck, StudySessionResult } from "@/lib/types";
 import { FlashcardFlip } from "./FlashcardFlip";
 import { Navbar } from "./Navbar";
@@ -49,6 +50,7 @@ export function StudySession({ deck }: StudySessionProps) {
 
       if (cardIndex + 1 >= total) {
         setIsComplete(true);
+        recordDailyActivity();
       } else {
         setCardIndex((i) => i + 1);
       }

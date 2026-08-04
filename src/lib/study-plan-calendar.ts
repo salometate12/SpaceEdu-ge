@@ -1,3 +1,5 @@
+import { recordDailyActivity } from "./daily-streak";
+
 export interface StudyPlanCalendarDay {
   date: string;
   day_name: string;
@@ -63,6 +65,9 @@ export function toggleStudyPlanDayDone(date: string): void {
   const next: SavedStudyPlan = { ...current, doneDates: nextDoneDates };
   window.localStorage.setItem(STUDY_PLAN_CALENDAR_KEY, JSON.stringify(next));
   notifyStudyPlanCalendarUpdated();
+  if (!isDone) {
+    recordDailyActivity();
+  }
 }
 
 export function clearSavedStudyPlan(): void {

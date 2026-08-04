@@ -6,8 +6,6 @@ interface DashboardGreetingBannerProps {
   badge?: ReactNode;
   title: string;
   subtitle?: string;
-  streak?: number;
-  countdown?: number;
 }
 
 export function DashboardGreetingBanner({
@@ -15,8 +13,6 @@ export function DashboardGreetingBanner({
   badge,
   title,
   subtitle,
-  streak,
-  countdown,
 }: DashboardGreetingBannerProps) {
   return (
     <section className="dashboard-hero flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
@@ -29,11 +25,7 @@ export function DashboardGreetingBanner({
           <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">{subtitle}</p>
         ) : null}
       </div>
-      <DashboardBannerStats
-        workspace={workspace}
-        streak={streak}
-        countdown={countdown}
-      />
+      <DashboardBannerStats workspace={workspace} />
     </section>
   );
 }

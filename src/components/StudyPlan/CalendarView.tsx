@@ -6,6 +6,7 @@ import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
 import { DayCard } from "./DayCard";
 import { FOCUS_LEVEL_CONFIG } from "./focus-level-config";
 import { saveStudyPlanToDashboard } from "@/lib/study-plan-calendar";
+import { recordDailyActivity } from "@/lib/daily-streak";
 
 interface StudyDay {
   date: string;
@@ -150,12 +151,13 @@ export function CalendarView({ plan, totalDays, advice, subject }: CalendarViewP
 
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
                   setDoneDays((prev) => ({
                     ...prev,
                     [key]: !done,
-                  }))
-                }
+                  }));
+                  if (!done) recordDailyActivity();
+                }}
                 aria-label={done ? "მონიშნე დაუსრულებლად" : "მონიშნე დასრულებულად"}
                 aria-pressed={done}
                 className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all active:scale-90 ${

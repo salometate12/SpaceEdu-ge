@@ -12,6 +12,7 @@ import {
 } from "react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
+import { recordDailyActivity } from "@/lib/daily-streak";
 
 export interface QuizQuestion {
   id: number;
@@ -152,6 +153,9 @@ export default function QuizPage() {
   };
 
   const goNext = () => {
+    if (currentQuestionIndex + 1 >= questions.length) {
+      recordDailyActivity();
+    }
     setCurrentQuestionIndex((prev) => prev + 1);
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
