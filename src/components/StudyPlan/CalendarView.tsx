@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, Clock } from "lucide-react";
+import { CalendarDays, CalendarPlus, Check, Clock } from "lucide-react";
 import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
 import { DayCard } from "./DayCard";
 import { FOCUS_LEVEL_CONFIG } from "./focus-level-config";
+import { saveStudyPlanToDashboard } from "@/lib/study-plan-calendar";
 
 interface StudyDay {
   date: string;
@@ -19,10 +20,17 @@ interface CalendarViewProps {
   plan: StudyDay[];
   totalDays: number;
   advice: string;
+  subject?: string;
 }
 
-export function CalendarView({ plan, totalDays, advice }: CalendarViewProps) {
+export function CalendarView({ plan, totalDays, advice, subject }: CalendarViewProps) {
   const [doneDays, setDoneDays] = useState<Record<string, boolean>>({});
+  const [savedToDashboard, setSavedToDashboard] = useState(false);
+
+  const handleSaveToDashboard = () => {
+    saveStudyPlanToDashboard(subject?.trim() || "სასწავლო გეგმა", plan, totalDays);
+    setSavedToDashboard(true);
+  };
 
   const compactPlan = useMemo(() => plan.slice(0, 14), [plan]);
 
@@ -46,9 +54,33 @@ export function CalendarView({ plan, totalDays, advice }: CalendarViewProps) {
             კალენდარული გეგმა
           </h2>
         </div>
-        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-600 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-400">
-          {totalDays} დღე
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-600 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-400">
+            {totalDays} დღე
+          </span>
+          <button
+            type="button"
+            onClick={handleSaveToDashboard}
+            disabled={savedToDashboard}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] ${
+              savedToDashboard
+                ? "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:border-emerald-500/35 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "border-violet-300/60 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-200 dark:hover:bg-purple-500/20"
+            }`}
+          >
+            {savedToDashboard ? (
+              <>
+                <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                დამატებულია დეშბორდზე
+              </>
+            ) : (
+              <>
+                <CalendarPlus className="h-3.5 w-3.5" strokeWidth={2} />
+                გადატანა კალენდარში
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-violet-200/60 bg-violet-50/50 px-3 py-2.5 dark:border-purple-500/20 dark:bg-purple-500/[0.06]">

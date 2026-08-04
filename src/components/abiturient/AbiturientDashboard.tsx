@@ -2,6 +2,7 @@
 
 import { AbiturientSubjects } from "./AbiturientSubjects";
 import { AbiturientTools } from "./AbiturientTools";
+import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardTopUtility } from "@/components/dashboard/DashboardTopUtility";
@@ -43,6 +44,8 @@ export function AbiturientDashboard() {
           </section>
 
           <AbiturientTools />
+
+          <AbiturientStudyCalendar />
 
           <AbiturientLibrary />
         </div>

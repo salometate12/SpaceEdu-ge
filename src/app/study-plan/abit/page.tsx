@@ -14,6 +14,7 @@ import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
 export default function AbitStudyPlanPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<StudyPlanResponse | null>(null);
+  const [subjectTitle, setSubjectTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const generatePlan = async (values: StudyPlanFormValues) => {
@@ -26,6 +27,7 @@ export default function AbitStudyPlanPage() {
         responseMode: "json",
       });
       setResult(data);
+      setSubjectTitle(values.subject);
     } catch (err) {
       setError(
         err instanceof Error
@@ -75,6 +77,7 @@ export default function AbitStudyPlanPage() {
               plan={result.plan}
               totalDays={result.total_days}
               advice={result.advice}
+              subject={subjectTitle}
             />
           ) : (
             <div className="flex h-full flex-col">
