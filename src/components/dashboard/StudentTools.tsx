@@ -55,8 +55,8 @@ const TOOLS = [
   },
   {
     id: "research",
-    title: "კვლევის პლატფორმა",
-    description: "PDF ანალიზი, სილაბუსი, მკვლევარი",
+    title: "მასალა → ანალიზი",
+    description: "PDF, ფოტო, ტექსტი, აუდიო — ერთად გაანალიზე",
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,

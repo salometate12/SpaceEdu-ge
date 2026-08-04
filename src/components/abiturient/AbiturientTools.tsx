@@ -41,8 +41,8 @@ const TOOLS = [
   },
   {
     id: "research",
-    title: "კვლევის პლატფორმა",
-    description: "სახელმძღვანელოები და სასწავლო მასალები",
+    title: "მასალა → ანალიზი",
+    description: "PDF, ფოტო, ტექსტი, აუდიო — ერთად გაანალიზე",
     href: researchPlatformHref("abit"),
     icon: FileSearch,
     accent: DASHBOARD_TOOL_ACCENTS.research,

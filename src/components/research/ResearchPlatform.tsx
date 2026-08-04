@@ -236,7 +236,7 @@ export function ResearchPlatform() {
           </span>
           <div className="min-w-0">
             <h1 className="headline text-xl font-bold leading-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-zinc-100">
-              კვლევის პლატფორმა
+              მასალა → ანალიზი
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-zinc-400">
               ჩააგდე PDF, ფოტო, ტექსტი ან აუდიო — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
