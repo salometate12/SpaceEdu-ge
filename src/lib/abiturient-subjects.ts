@@ -171,6 +171,25 @@ export function getSecondaryTheme(subjectId: string): SubjectTheme {
   return SUBJECT_SECONDARY_THEMES[subjectId] ?? ACCENT_PALETTE.sky;
 }
 
+/**
+ * A third, distinct accent used only for the "Premium Space" card, so on any
+ * given subject page the three colored blocks (quiz card / flashcard card /
+ * premium card) are always three different colors — never two the same.
+ */
+const SUBJECT_TERTIARY_THEMES: Record<string, SubjectTheme> = {
+  history: ACCENT_PALETTE.sky,
+  english: ACCENT_PALETTE.pink,
+  math: ACCENT_PALETTE.gold,
+  georgian: ACCENT_PALETTE.teal,
+  geography: ACCENT_PALETTE.pink,
+  civics: ACCENT_PALETTE.gold,
+  chemistry: ACCENT_PALETTE.gold,
+};
+
+export function getTertiaryTheme(subjectId: string): SubjectTheme {
+  return SUBJECT_TERTIARY_THEMES[subjectId] ?? ACCENT_PALETTE.pink;
+}
+
 export interface AbiturientLastActive {
   id: string;
   title: string;

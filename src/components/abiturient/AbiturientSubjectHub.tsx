@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Layers, PlayCircle } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
-import { getSecondaryTheme } from "@/lib/abiturient-subjects";
+import { getSecondaryTheme, getTertiaryTheme } from "@/lib/abiturient-subjects";
 import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
 import { quizHrefForGeorgianSubject } from "@/lib/space-back-navigation";
 import { SubjectSpacePremiumCard } from "./SubjectSpacePremiumCard";
@@ -157,7 +157,10 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
 
       <section className="mt-6">
         {premiumSlot ?? (
-          <SubjectSpacePremiumCard theme={subject.theme} href={`/subject/${subjectId}/space`} />
+          <SubjectSpacePremiumCard
+            theme={getTertiaryTheme(subjectId)}
+            href={`/subject/${subjectId}/space`}
+          />
         )}
       </section>
     </main>
