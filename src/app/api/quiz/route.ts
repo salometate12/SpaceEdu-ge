@@ -41,12 +41,36 @@ Base every question strictly on facts present in the provided text.`;
 function buildQuizPrompt(fileName: string, extractedText: string): string {
   return [
     `Source document: ${fileName}`,
-    "Content type: plain text extracted from PDF (UTF-8).",
+    "Content type: plain text already extracted (UTF-8).",
     "--- BEGIN EXTRACTED TEXT ---",
     extractedText,
     "--- END EXTRACTED TEXT ---",
     "Generate the quiz JSON only from the text between the markers above.",
   ].join("\n\n");
+}
+
+const MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024;
+const MIN_TEXT_CHARS = 50;
+
+function isTextFile(file: File): boolean {
+  const lower = file.name.toLowerCase();
+  return (
+    file.type.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md")
+  );
+}
+
+async function extractTextFromTextFile(file: File): Promise<string> {
+  if (file.size > MAX_TEXT_FILE_BYTES) {
+    throw new PdfExtractError("ტექსტური ფაილი ძალიან დიდია. მაქსიმუმ 2 MB.");
+  }
+
+  const raw = (await file.text()).replace(/\s+/g, " ").trim();
+
+  if (raw.length < MIN_TEXT_CHARS) {
+    throw new PdfExtractError("ფაილი ცარიელია ან ტექსტი ძალიან მოკლეა.");
+  }
+
+  return raw.slice(0, 120_000);
 }
 
 export async function POST(request: Request) {
@@ -71,13 +95,15 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error: true,
-          message: "გთხოვ, ატვირთე PDF ფაილი.",
+          message: "გთხოვ, ატვირთე PDF ან ტექსტური ფაილი.",
         },
         { status: 400 },
       );
     }
 
-    const extractedText = await extractTextFromPdfFile(fileEntry);
+    const extractedText = isTextFile(fileEntry)
+      ? await extractTextFromTextFile(fileEntry)
+      : await extractTextFromPdfFile(fileEntry);
 
     const object = await generateGeminiObject({
       schema: QuizResponseSchema,

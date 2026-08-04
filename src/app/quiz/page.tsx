@@ -60,13 +60,14 @@ export default function QuizPage() {
       ? ((currentQuestionIndex + 1) / questions.length) * 100
       : 0;
 
-  const applyPdfFile = (nextFile: File) => {
-    const isPdf =
-      nextFile.type === "application/pdf" ||
-      nextFile.name.toLowerCase().endsWith(".pdf");
+  const applyFile = (nextFile: File) => {
+    const lower = nextFile.name.toLowerCase();
+    const isPdf = nextFile.type === "application/pdf" || lower.endsWith(".pdf");
+    const isText =
+      nextFile.type.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md");
 
-    if (!isPdf) {
-      setError("მხოლოდ PDF ფორმატის ფაილია დაშვებული.");
+    if (!isPdf && !isText) {
+      setError("მხოლოდ PDF, TXT ან MD ფორმატის ფაილია დაშვებული.");
       return;
     }
 
@@ -76,19 +77,19 @@ export default function QuizPage() {
 
   const onFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0];
-    if (nextFile) applyPdfFile(nextFile);
+    if (nextFile) applyFile(nextFile);
   };
 
   const onDrop = (event: DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
     setIsDragActive(false);
     const dropped = event.dataTransfer.files?.[0];
-    if (dropped) applyPdfFile(dropped);
+    if (dropped) applyFile(dropped);
   };
 
   const handleQuizGeneration = async () => {
     if (!file) {
-      setError("გთხოვ, ჯერ აირჩიე PDF ფაილი.");
+      setError("გთხოვ, ჯერ აირჩიე ფაილი.");
       return;
     }
 
@@ -178,7 +179,7 @@ export default function QuizPage() {
             Active Recall Quiz
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-gray-400">
-            ატვირთე PDF და მიიღე ღრმა გაგებაზე ორიენტირებული ქვიზი
+            ატვირთე PDF ან ტექსტი და მიიღე ღრმა გაგებაზე ორიენტირებული ქვიზი
           </p>
         </div>
         {questions.length > 0 && phase !== "loading" && (
@@ -219,7 +220,7 @@ export default function QuizPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,application/pdf"
+              accept=".pdf,application/pdf,.txt,.md,text/plain,text/markdown"
               className="hidden"
               onChange={onFileInputChange}
             />
@@ -229,10 +230,10 @@ export default function QuizPage() {
             </div>
 
             <p className="text-sm font-medium text-slate-800 dark:text-zinc-200">
-              ჩააგდე PDF ან დააწკაპუნე ასარჩევად
+              ჩააგდე ფაილი ან დააწკაპუნე ასარჩევად
             </p>
             <p className="mt-2 text-xs text-slate-500 dark:text-zinc-500">
-              მხარდაჭერილი ფორმატი: PDF (მაქს. 15 MB)
+              მხარდაჭერილი ფორმატი: PDF (მაქს. 15 MB) · TXT / MD (მაქს. 2 MB)
             </p>
 
             {file && (
@@ -259,7 +260,9 @@ export default function QuizPage() {
       {phase === "loading" && (
         <div className="space-y-4">
           <p className="text-center text-sm text-slate-600 dark:text-zinc-400">
-            PDF-ის დამუშავება მიმდინარეობს...
+            {file && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))
+              ? "PDF-ის დამუშავება მიმდინარეობს..."
+              : "მასალის დამუშავება მიმდინარეობს..."}
           </p>
           <AiSkeletonLoader rows={4} />
         </div>
