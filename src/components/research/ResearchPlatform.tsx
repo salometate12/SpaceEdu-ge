@@ -201,18 +201,22 @@ export function ResearchPlatform() {
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-start gap-3">
+      <header className="space-y-3 sm:space-y-4">
         <Suspense fallback={null}>
-          <SpaceBackLink className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-colors hover:text-white" />
+          <SpaceBackLink className="inline-flex items-center gap-1.5 text-xs text-gray-400 transition-colors hover:text-white" />
         </Suspense>
-        <div className="min-w-0 flex-1">
-          <h1 className="headline flex items-center gap-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-zinc-100">
-            <Sparkles className="h-6 w-6 text-violet-500 dark:text-purple-300" strokeWidth={1.75} />
-            კვლევის პლატფორმა
-          </h1>
-          <p className="mt-1 max-w-4xl text-sm text-slate-600 dark:text-zinc-400">
-            ჩააგდე PDF, ფოტო, ტექსტი ან აუდიო — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-500 sm:h-11 sm:w-11 dark:border-purple-500/25 dark:bg-purple-500/10 dark:text-purple-300">
+            <Sparkles className="h-5 w-5" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0">
+            <h1 className="headline text-xl font-bold leading-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-zinc-100">
+              კვლევის პლატფორმა
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-zinc-400">
+              ჩააგდე PDF, ფოტო, ტექსტი ან აუდიო — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
+            </p>
+          </div>
         </div>
       </header>
 
