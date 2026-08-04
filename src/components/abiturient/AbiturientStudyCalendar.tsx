@@ -2,15 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Clock, PartyPopper, Rocket } from "lucide-react";
+import { CalendarDays, Check, Clock, PartyPopper, Rocket } from "lucide-react";
 import {
   getSavedStudyPlan,
+  toggleStudyPlanDayDone,
   STUDY_PLAN_CALENDAR_UPDATED_EVENT,
   type SavedStudyPlan,
 } from "@/lib/study-plan-calendar";
 import { FOCUS_LEVEL_CONFIG } from "@/components/StudyPlan/focus-level-config";
-
-const UPCOMING_LIMIT = 6;
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -36,21 +35,17 @@ export function AbiturientStudyCalendar() {
     if (!plan) return [];
     return [...plan.days]
       .filter((day) => day.date >= today)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, UPCOMING_LIMIT);
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [plan, today]);
 
-  const elapsedCount = useMemo(() => {
-    if (!plan) return 0;
-    return plan.days.filter((day) => day.date < today).length;
-  }, [plan, today]);
+  const doneCount = plan?.doneDates.length ?? 0;
 
   const progressPct =
     plan && plan.totalDays > 0
-      ? Math.min(100, Math.round((elapsedCount / plan.totalDays) * 100))
+      ? Math.min(100, Math.round((doneCount / plan.totalDays) * 100))
       : 0;
 
-  const finished = Boolean(plan) && upcoming.length === 0 && elapsedCount > 0;
+  const finished = Boolean(plan) && upcoming.length === 0 && doneCount > 0;
 
   return (
     <section className="dashboard-section p-5 sm:p-6">
@@ -94,7 +89,7 @@ export function AbiturientStudyCalendar() {
             <div className="flex-1">
               <div className="flex items-center justify-between text-xs font-medium text-violet-700 dark:text-purple-200">
                 <span>
-                  {elapsedCount}/{plan.totalDays} დღე გავლილია
+                  {doneCount}/{plan.totalDays} დღე შესრულებული
                 </span>
                 <span>{progressPct}%</span>
               </div>
@@ -115,43 +110,65 @@ export function AbiturientStudyCalendar() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-200 dark:[&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-track]:bg-transparent">
               {upcoming.map((day) => {
                 const level = FOCUS_LEVEL_CONFIG[day.focus_level];
                 const LevelIcon = level.icon;
                 const isToday = day.date === today;
+                const done = Boolean(plan?.doneDates.includes(day.date));
                 return (
                   <div
                     key={`${day.date}-${day.day_name}`}
-                    className={`flex items-start gap-3 rounded-xl border border-l-4 ${level.accent} border-slate-200/80 bg-gradient-to-r from-white to-violet-50/30 p-3 dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80`}
+                    className={`flex w-[190px] shrink-0 snap-start flex-col gap-2 rounded-xl border-t-4 ${level.accent} border-slate-200/80 bg-gradient-to-b from-white to-violet-50/30 p-3 transition-opacity dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
+                      done ? "opacity-60" : ""
+                    }`}
                   >
-                    <span
-                      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
-                      aria-hidden
-                    >
-                      <LevelIcon className="h-4 w-4" strokeWidth={2} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        {isToday ? (
-                          <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-purple-500">
-                            დღეს
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-white/[0.06] dark:text-zinc-400">
-                            {day.day_name}
-                          </span>
-                        )}
-                        <span className="text-xs text-slate-500 dark:text-zinc-500">{day.date}</span>
-                      </div>
-                      <p className="mt-1 truncate text-sm font-medium text-slate-900 dark:text-zinc-100">
-                        {day.topics.join(", ")}
-                      </p>
-                      <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400">
-                        <Clock className="h-3 w-3" strokeWidth={2} />
-                        {day.hours} საათი
-                      </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
+                        aria-hidden
+                      >
+                        <LevelIcon className="h-4 w-4" strokeWidth={2} />
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleStudyPlanDayDone(day.date)}
+                        aria-label={done ? "მონიშნე დაუსრულებლად" : "მონიშნე დასრულებულად"}
+                        aria-pressed={done}
+                        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all active:scale-90 ${
+                          done
+                            ? "border-emerald-400/60 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"
+                            : "border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:text-violet-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-purple-400/40 dark:hover:text-purple-300"
+                        }`}
+                      >
+                        <Check className="h-4 w-4" strokeWidth={2.5} />
+                      </button>
                     </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {isToday ? (
+                        <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-purple-500">
+                          დღეს
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-white/[0.06] dark:text-zinc-400">
+                          {day.day_name}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-500 dark:text-zinc-500">{day.date}</span>
+
+                    <p
+                      className={`line-clamp-2 text-sm font-medium text-slate-900 dark:text-zinc-100 ${
+                        done ? "line-through decoration-slate-400 dark:decoration-zinc-500" : ""
+                      }`}
+                    >
+                      {day.topics.join(", ")}
+                    </p>
+                    <p className="mt-auto inline-flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400">
+                      <Clock className="h-3 w-3" strokeWidth={2} />
+                      {day.hours} საათი
+                    </p>
                   </div>
                 );
               })}
