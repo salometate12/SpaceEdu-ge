@@ -43,7 +43,7 @@ export function CalendarView({ plan, totalDays, advice }: CalendarViewProps) {
           return (
             <div
               key={key}
-              className="flex items-start justify-between gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white to-violet-50/30 p-3 dark:border-white/[0.08] dark:bg-[#17181b]/50"
+              className="flex items-start justify-between gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white to-violet-50/30 p-3 dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80"
             >
               <div className="min-w-0">
                 <p className="text-xs text-slate-500 dark:text-zinc-500">

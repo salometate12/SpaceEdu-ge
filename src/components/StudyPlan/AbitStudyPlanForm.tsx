@@ -19,6 +19,7 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
   const [customTopic, setCustomTopic] = useState("");
   const [examDate, setExamDate] = useState("");
   const [hoursPerDay, setHoursPerDay] = useState(2);
+  const [isCustomHours, setIsCustomHours] = useState(false);
 
   const subject = useMemo(
     () => STUDY_PLAN_SUBJECTS.find((item) => item.id === subjectId) ?? null,
@@ -207,17 +208,21 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
 
       <div className="space-y-2">
         <p className="text-sm text-slate-600 dark:text-zinc-400">დღეში სასწავლო დრო</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="flex flex-wrap gap-2">
           {HOURS_OPTIONS.map((hour) => {
-            const isActive = hoursPerDay === hour;
+            const isActive = !isCustomHours && hoursPerDay === hour;
             return (
               <button
                 key={hour}
                 type="button"
-                onClick={() => setHoursPerDay(hour)}
-                className={`rounded-xl border px-2 py-2 text-sm font-medium transition-all ${
+                onClick={() => {
+                  setIsCustomHours(false);
+                  setHoursPerDay(hour);
+                }}
+                aria-pressed={isActive}
+                className={`min-w-[3.25rem] rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
                   isActive
-                    ? "border-violet-400/60 bg-gradient-to-br from-violet-50 to-indigo-50 text-violet-700 shadow-md shadow-violet-100 dark:border-purple-500/40 dark:bg-purple-500/20 dark:text-purple-200 dark:shadow-[0_0_0_1px_rgba(168,85,247,0.4),0_10px_24px_rgba(168,85,247,0.22)]"
+                    ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
                     : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-purple-500/20 dark:hover:text-white"
                 }`}
               >
@@ -225,7 +230,40 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
               </button>
             );
           })}
+
+          <label
+            className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
+              isCustomHours
+                ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
+                : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-violet-300 hover:text-violet-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-purple-500/20 dark:hover:text-white"
+            }`}
+          >
+            <input
+              type="number"
+              inputMode="numeric"
+              min={5}
+              max={8}
+              placeholder="5+"
+              value={isCustomHours ? hoursPerDay : ""}
+              onChange={(event) => {
+                const raw = event.target.value;
+                if (!raw) {
+                  setIsCustomHours(false);
+                  return;
+                }
+                const value = Number(raw);
+                if (Number.isNaN(value)) return;
+                setIsCustomHours(true);
+                setHoursPerDay(Math.min(8, Math.max(1, Math.round(value))));
+              }}
+              className="w-8 bg-transparent text-center outline-none [appearance:textfield] placeholder:text-slate-400 dark:placeholder:text-zinc-600 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <span>სთ</span>
+          </label>
         </div>
+        <p className="text-xs text-slate-500 dark:text-zinc-500">
+          გინდა 5-6 საათი ან მეტი? ჩაწერე ხელით ბოლო ველში.
+        </p>
       </div>
 
       <button
