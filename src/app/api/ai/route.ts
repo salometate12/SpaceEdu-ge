@@ -21,6 +21,10 @@ import {
   extractTextFromImageFile,
   ImageExtractError,
 } from "@/lib/ai/extract-image-text";
+import {
+  extractTextFromAudioFile,
+  AudioExtractError,
+} from "@/lib/ai/extract-audio-text";
 import { isAiPageType } from "@/lib/ai/page-types";
 import { getSystemPromptForPageType } from "@/lib/ai/page-prompts";
 import {
@@ -218,12 +222,16 @@ async function handleMultipartPost(request: Request) {
     );
   }
 
-  const isImageFile =
-    pageType === "research-platform-abit" && file.type.toLowerCase().startsWith("image/");
+  const lowerType = file.type.toLowerCase();
+  const isResearchUpload = pageType === "research-platform-abit";
+  const isImageFile = isResearchUpload && lowerType.startsWith("image/");
+  const isAudioFile = isResearchUpload && lowerType.startsWith("audio/");
 
   const textBody = isImageFile
     ? await extractTextFromImageFile(file)
-    : await extractTextFromPdfFile(file);
+    : isAudioFile
+      ? await extractTextFromAudioFile(file)
+      : await extractTextFromPdfFile(file);
 
   if (pageType === "syllabus") {
     let options: z.infer<typeof SyllabusOptionsSchema> | undefined;
@@ -254,7 +262,11 @@ export async function POST(request: Request) {
       try {
         return await handleMultipartPost(request);
       } catch (error) {
-        if (error instanceof PdfExtractError || error instanceof ImageExtractError) {
+        if (
+          error instanceof PdfExtractError ||
+          error instanceof ImageExtractError ||
+          error instanceof AudioExtractError
+        ) {
           return Response.json(
             { error: true, message: error.message },
             { status: 400 },

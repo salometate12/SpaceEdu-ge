@@ -962,3 +962,45 @@ html.dark .tool-chip-active {
 .ai-message-reveal {
   animation: ai-message-reveal 0.45s ease-out both;
 }
+
+/* Research platform — playful "AI is thinking" loader */
+@keyframes research-icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-12deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes research-caption-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.research-thinking-icon {
+  animation: research-icon-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.research-thinking-caption {
+  animation: research-caption-fade 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .research-thinking-icon,
+  .research-thinking-caption {
+    animation: none !important;
+  }
+}

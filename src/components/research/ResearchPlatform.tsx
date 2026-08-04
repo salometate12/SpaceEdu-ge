@@ -2,6 +2,7 @@
 
 import { Suspense, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
 import {
+  AudioLines,
   BookMarked,
   CheckCircle2,
   FileText,
@@ -14,9 +15,9 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
-import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { ResearchResponse } from "@/lib/ai/research-platform-schema";
+import { ResearchThinkingLoader } from "./ResearchThinkingLoader";
 
 type AnalysisTab = "summary" | "sources" | "quotes";
 type ToggleKey =
@@ -74,6 +75,7 @@ const TAB_LABELS: Record<AnalysisTab, string> = {
 
 const TEXT_EXTENSIONS = [".txt", ".md"];
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif"];
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".aac", ".ogg", ".webm", ".flac"];
 
 function isPdfFile(file: File): boolean {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -89,9 +91,15 @@ function isImageFile(file: File): boolean {
   return file.type.startsWith("image/") || IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
+function isAudioFile(file: File): boolean {
+  const lower = file.name.toLowerCase();
+  return file.type.startsWith("audio/") || AUDIO_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
 function fileKindLabel(file: File): { label: string; icon: typeof FileText } {
   if (isPdfFile(file)) return { label: "PDF დოკუმენტი", icon: FileText };
   if (isImageFile(file)) return { label: "ფოტო", icon: ImageIcon };
+  if (isAudioFile(file)) return { label: "აუდიო", icon: AudioLines };
   return { label: "ტექსტური ფაილი", icon: FileText };
 }
 
@@ -118,8 +126,8 @@ export function ResearchPlatform() {
   );
 
   const handleFile = (file: File) => {
-    if (!isPdfFile(file) && !isTextFile(file) && !isImageFile(file)) {
-      setError("მხარდაჭერა: PDF, TXT, MD ან ფოტო (JPG / PNG / WEBP).");
+    if (!isPdfFile(file) && !isTextFile(file) && !isImageFile(file) && !isAudioFile(file)) {
+      setError("მხარდაჭერა: PDF, TXT, MD, ფოტო (JPG / PNG / WEBP) ან აუდიო (MP3 / WAV / M4A).");
       return;
     }
 
@@ -153,7 +161,8 @@ export function ResearchPlatform() {
     setAnalysisStarted(true);
     setResult(null);
 
-    const usesMultipart = isPdfFile(documentFile) || isImageFile(documentFile);
+    const usesMultipart =
+      isPdfFile(documentFile) || isImageFile(documentFile) || isAudioFile(documentFile);
 
     try {
       const data = usesMultipart
@@ -187,6 +196,7 @@ export function ResearchPlatform() {
 
   const isPdf = documentFile ? isPdfFile(documentFile) : false;
   const isImage = documentFile ? isImageFile(documentFile) : false;
+  const isAudio = documentFile ? isAudioFile(documentFile) : false;
   const uploadedKind = documentFile ? fileKindLabel(documentFile) : null;
 
   return (
@@ -201,7 +211,7 @@ export function ResearchPlatform() {
             კვლევის პლატფორმა
           </h1>
           <p className="mt-1 max-w-4xl text-sm text-slate-600 dark:text-zinc-400">
-            ჩააგდე PDF, ფოტო, ტექსტი — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
+            ჩააგდე PDF, ფოტო, ტექსტი ან აუდიო — მონიშნე რა გამოვყოთ, AI დანარჩენს გააკეთებს.
           </p>
         </div>
       </header>
@@ -224,7 +234,7 @@ export function ResearchPlatform() {
             >
               <input
                 type="file"
-                accept=".pdf,.txt,.md,image/png,image/jpeg,image/webp,image/heic,image/heif"
+                accept=".pdf,.txt,.md,image/png,image/jpeg,image/webp,image/heic,image/heif,audio/mpeg,audio/wav,audio/mp4,audio/aac,audio/ogg,audio/webm,audio/flac,.mp3,.wav,.m4a,.aac,.ogg,.flac"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -244,7 +254,7 @@ export function ResearchPlatform() {
                 ჩააგდე ფაილი ან დააწკაპუნე
               </p>
               <p className="text-xs text-slate-500 dark:text-zinc-500">
-                PDF · TXT · MD · ფოტო (JPG / PNG / WEBP)
+                PDF · TXT · MD · ფოტო · აუდიო
               </p>
             </label>
 
@@ -327,7 +337,9 @@ export function ResearchPlatform() {
                   ? "PDF-ის დამუშავება მიმდინარეობა..."
                   : isImage
                     ? "ფოტოს წაკითხვა მიმდინარეობა..."
-                    : "იტვირთება..."
+                    : isAudio
+                      ? "აუდიოს გადაწერა მიმდინარეობა..."
+                      : "იტვირთება..."
                 : "ანალიზის დაწყება"}
             </button>
           </div>
@@ -349,19 +361,17 @@ export function ResearchPlatform() {
               </p>
             </div>
           ) : isLoading ? (
-            <div className="space-y-3">
-              {isPdf && (
-                <p className="text-sm text-violet-600 dark:text-purple-300/90">
-                  PDF-ის დამუშავება მიმდინარეობა...
-                </p>
-              )}
-              {isImage && (
-                <p className="text-sm text-violet-600 dark:text-purple-300/90">
-                  ფოტოზე ტექსტის ამოცნობა მიმდინარეობა...
-                </p>
-              )}
-              <AiSkeletonLoader rows={4} />
-            </div>
+            <ResearchThinkingLoader
+              hint={
+                isPdf
+                  ? "PDF-ის დამუშავება მიმდინარეობა..."
+                  : isImage
+                    ? "ფოტოზე ტექსტის ამოცნობა მიმდინარეობა..."
+                    : isAudio
+                      ? "აუდიოს გადაწერა მიმდინარეობა, შეიძლება ცოტა ხანს გასტანოს..."
+                      : undefined
+              }
+            />
           ) : result ? (
             <div className="space-y-5">
               <div className="flex flex-wrap gap-2">
