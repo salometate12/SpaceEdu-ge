@@ -394,7 +394,7 @@ export function ResearchPlatform() {
                 })}
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-violet-50/30 p-5 dark:border-white/[0.06] dark:bg-[#101114]/55">
+              <div className="rounded-2xl border-2 border-violet-300/70 bg-gradient-to-br from-white to-violet-50/30 p-5 shadow-[0_0_24px_rgba(139,92,246,0.08)] dark:border-purple-500/45 dark:bg-none dark:bg-[#121018] dark:shadow-[0_0_28px_rgba(139,92,246,0.12)]">
                 <p className="text-xs text-slate-500 dark:text-zinc-500">
                   ანალიზის პროფილი • აქტიური ოპციები: {selectedCount}
                 </p>
@@ -403,14 +403,14 @@ export function ResearchPlatform() {
                 </h2>
 
                 {activeTab === "summary" && (
-                  <div className="mt-3 space-y-4 text-sm leading-7 text-slate-700 dark:text-zinc-300">
+                  <div className="mt-3 space-y-4 text-base leading-8 text-slate-700 dark:text-zinc-200">
                     <p className="whitespace-pre-wrap">{result.summary}</p>
                     {toggles.theses && result.theses && result.theses.length > 0 && (
                       <div>
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
                           ძირითადი თეზისები
                         </p>
-                        <ul className="list-disc space-y-1 pl-5">
+                        <ul className="list-disc space-y-1.5 pl-5">
                           {result.theses.map((thesis) => (
                             <li key={thesis}>{thesis}</li>
                           ))}
@@ -457,10 +457,10 @@ export function ResearchPlatform() {
                     {result.sources.map((source, index) => (
                       <li
                         key={`${source.citation}-${index}`}
-                        className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-white/[0.06] dark:bg-white/[0.02]"
+                        className="rounded-xl border border-violet-200 bg-white p-4 text-base dark:border-purple-500/25 dark:bg-white/[0.02]"
                       >
                         <p className="font-medium text-slate-900 dark:text-zinc-100">{source.citation}</p>
-                        <p className="mt-2 leading-6 text-slate-600 dark:text-zinc-400">{source.relevance}</p>
+                        <p className="mt-2 leading-7 text-slate-600 dark:text-zinc-300">{source.relevance}</p>
                       </li>
                     ))}
                   </ul>
@@ -471,12 +471,12 @@ export function ResearchPlatform() {
                     {result.quotes.map((item, index) => (
                       <li
                         key={`${item.quote.slice(0, 24)}-${index}`}
-                        className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4 text-sm dark:border-purple-500/15 dark:bg-purple-500/[0.03]"
+                        className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4 text-base dark:border-purple-500/25 dark:bg-purple-500/[0.05]"
                       >
-                        <p className="italic leading-7 text-slate-800 dark:text-zinc-200">
+                        <p className="italic leading-8 text-slate-800 dark:text-zinc-200">
                           &ldquo;{item.quote}&rdquo;
                         </p>
-                        <p className="mt-2 text-slate-600 dark:text-zinc-400">{item.context}</p>
+                        <p className="mt-2 text-slate-600 dark:text-zinc-300">{item.context}</p>
                         {item.location && (
                           <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">{item.location}</p>
                         )}
