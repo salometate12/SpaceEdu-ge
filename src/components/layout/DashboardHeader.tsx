@@ -32,7 +32,7 @@ export function DashboardHeader({
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard-abit", icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
-    { label: "გეგმა", href: "/study-plan", icon: <Rocket className="h-3.5 w-3.5" /> },
+    { label: "გეგმა", href: "/study-plan/abit", icon: <Rocket className="h-3.5 w-3.5" /> },
     { label: "Quiz", href: "/quiz", icon: <Flame className="h-3.5 w-3.5" /> },
     { label: "AI", href: "/ai-teacher", icon: <MessageSquare className="h-3.5 w-3.5" /> },
     { label: "პროფილი", href: "/profile", icon: <UserRound className="h-3.5 w-3.5" /> },
