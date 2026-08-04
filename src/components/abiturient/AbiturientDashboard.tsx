@@ -7,8 +7,11 @@ import { AbiturientLibrary } from "./AbiturientLibrary";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardTopUtility } from "@/components/dashboard/DashboardTopUtility";
 import { PreviewModeProvider } from "@/contexts/PreviewModeContext";
+import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 
 export function AbiturientDashboard() {
+  const firstName = useCurrentUserFirstName();
+
   return (
     <PreviewModeProvider>
       <div className="relative flex min-h-full flex-col overflow-x-hidden">
@@ -22,7 +25,7 @@ export function AbiturientDashboard() {
                 Abiturient Workspace
               </span>
             }
-            title="გამარჯობა, აბიტურიენტო!"
+            title={firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა, აბიტურიენტო!"}
             subtitle="საგნები, სასწავლო ინსტრუმენტები და ბიბლიოთეკა ერთ სივრცეში."
           />
 
