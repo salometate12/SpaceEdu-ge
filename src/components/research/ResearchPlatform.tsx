@@ -17,6 +17,7 @@ import {
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { fetchAiJson, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { ResearchResponse } from "@/lib/ai/research-platform-schema";
+import { ReadAloudButton } from "./ReadAloudButton";
 import { ResearchThinkingLoader } from "./ResearchThinkingLoader";
 
 type AnalysisTab = "summary" | "sources" | "quotes";
@@ -124,6 +125,30 @@ export function ResearchPlatform() {
     () => Object.values(toggles).filter(Boolean).length,
     [toggles],
   );
+
+  const readableText = useMemo(() => {
+    if (!result) return "";
+
+    if (activeTab === "sources") {
+      return result.sources
+        .map((source) => `${source.citation}. ${source.relevance}`)
+        .join(" ");
+    }
+
+    if (activeTab === "quotes") {
+      return result.quotes
+        .map((item) => `${item.quote}. ${item.context}`)
+        .join(" ");
+    }
+
+    const parts = [result.summary];
+    if (toggles.theses && result.theses?.length) parts.push(result.theses.join(". "));
+    if (toggles.methodology && result.methodology) parts.push(result.methodology);
+    if (toggles.literature && result.literatureReview) parts.push(result.literatureReview);
+    if (toggles.criticalAnalysis && result.criticalAnalysis) parts.push(result.criticalAnalysis);
+    if (toggles.conclusions && result.conclusions) parts.push(result.conclusions);
+    return parts.filter(Boolean).join(" ");
+  }, [result, activeTab, toggles]);
 
   const handleFile = (file: File) => {
     if (!isPdfFile(file) && !isTextFile(file) && !isImageFile(file) && !isAudioFile(file)) {
@@ -378,24 +403,27 @@ export function ResearchPlatform() {
             />
           ) : result ? (
             <div className="space-y-5">
-              <div className="flex flex-wrap gap-2">
-                {(Object.keys(TAB_LABELS) as AnalysisTab[]).map((tab) => {
-                  const active = activeTab === tab;
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className={`rounded-full px-3 py-1.5 text-xs transition ${
-                        active
-                          ? "border border-violet-400/50 bg-violet-50 text-violet-700 dark:border-purple-500/35 dark:bg-purple-500/10 dark:text-purple-300"
-                          : "border border-slate-200 bg-white text-slate-600 hover:text-violet-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
-                      }`}
-                    >
-                      {TAB_LABELS[tab]}
-                    </button>
-                  );
-                })}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(TAB_LABELS) as AnalysisTab[]).map((tab) => {
+                    const active = activeTab === tab;
+                    return (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setActiveTab(tab)}
+                        className={`rounded-full px-3 py-1.5 text-xs transition ${
+                          active
+                            ? "border border-violet-400/50 bg-violet-50 text-violet-700 dark:border-purple-500/35 dark:bg-purple-500/10 dark:text-purple-300"
+                            : "border border-slate-200 bg-white text-slate-600 hover:text-violet-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
+                        }`}
+                      >
+                        {TAB_LABELS[tab]}
+                      </button>
+                    );
+                  })}
+                </div>
+                <ReadAloudButton key={readableText} text={readableText} />
               </div>
 
               <div className="rounded-2xl border-2 border-violet-300/70 bg-gradient-to-br from-white to-violet-50/30 p-5 shadow-[0_0_24px_rgba(139,92,246,0.08)] dark:border-purple-500/45 dark:bg-none dark:bg-[#121018] dark:shadow-[0_0_28px_rgba(139,92,246,0.12)]">
