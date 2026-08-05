@@ -44,6 +44,12 @@ export async function signUpWithEmail(args: SignUpArgs) {
   return { userId: data.user?.id ?? `pending-${Date.now()}` };
 }
 
+export async function signOutUser() {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+  await supabase.auth.signOut();
+}
+
 export async function signInWithOAuthProvider(space: RegisterSpace, provider: "google" | "github") {
   const supabase = getSupabaseClient();
   if (!supabase) return;
