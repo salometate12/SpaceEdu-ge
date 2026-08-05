@@ -3,6 +3,7 @@ import { ChartNoAxesColumn, Pencil } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
 import { getProfileData, getSpaceLabel, type DailyGoal } from "@/lib/profile";
 import { buildWeekStreak } from "@/lib/streak";
+import { getCurrentServerUserName } from "@/lib/auth-server";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
 import { DiaryLog } from "@/components/profile/DiaryLog";
@@ -21,6 +22,17 @@ const INITIAL_GOALS: DailyGoal[] = [
 
 export default async function ProfilePage() {
   const { user, subjects, diary } = await getProfileData();
+  const serverUserName = await getCurrentServerUserName();
+  if (serverUserName) {
+    const fullName = [serverUserName.firstName, serverUserName.lastName]
+      .filter(Boolean)
+      .join(" ");
+    if (fullName) user.name = fullName;
+    const initials = `${serverUserName.firstName.charAt(0)}${serverUserName.lastName.charAt(0)}`
+      .trim()
+      .toUpperCase();
+    if (initials) user.initials = initials;
+  }
   const week = buildWeekStreak(user.currentStreak);
   const spaceLabel = getSpaceLabel(user.space);
 

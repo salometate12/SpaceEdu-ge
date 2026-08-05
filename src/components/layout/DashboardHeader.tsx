@@ -5,6 +5,13 @@ import { Bell, Flame, LayoutDashboard, MessageSquare, Rocket, UserRound } from "
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
+import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
+import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
+import {
+  ensureDailyStudyPlanNotification,
+  getUnreadCount,
+  NOTIFICATIONS_UPDATED_EVENT,
+} from "@/lib/notifications";
 import { AvatarDropdown } from "./AvatarDropdown";
 import { SpaceChip } from "./SpaceChip";
 
@@ -21,13 +28,40 @@ export function DashboardHeader({
   const [spaceLabel, setSpaceLabel] = useState<"school" | "abiturient" | "student">(
     "student",
   );
+  const [streak, setStreak] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
+  const firstName = useCurrentUserFirstName();
+  const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
 
   useEffect(() => {
     const saved = window.localStorage.getItem("spaceedu_space");
     if (saved === "school" || saved === "abiturient" || saved === "student") {
       setSpaceLabel(saved);
     }
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setStreak(getCurrentStreak());
+    sync();
+    window.addEventListener(STREAK_UPDATED_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(STREAK_UPDATED_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    ensureDailyStudyPlanNotification();
+    const sync = () => setUnreadCount(getUnreadCount());
+    sync();
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   const navItems = [
@@ -93,22 +127,24 @@ export function DashboardHeader({
           <ThemeToggle />
           <span className="hidden items-center gap-1 rounded-full border border-[#f59e0b] bg-[#2d1a00] px-2.5 py-1 text-xs text-[#fcd34d] sm:inline-flex dark:border-[#f59e0b] dark:bg-[#2d1a00]">
             <Flame className="h-3.5 w-3.5" />
-            12 სტრიქი
+            {streak} სტრიქი
           </span>
-          <button
-            type="button"
+          <Link
+            href="/notifications"
             className="relative rounded-lg border border-[var(--border)] p-2 text-[var(--text-secondary)] hover:text-white"
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
-          </button>
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
+            )}
+          </Link>
           <div className="relative">
             <button
               type="button"
               onClick={() => setAvatarOpen((prev) => !prev)}
               className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
             >
-              გ
+              {avatarInitial}
             </button>
             <AvatarDropdown open={avatarOpen} />
           </div>

@@ -19,6 +19,7 @@ import {
 import { AbiturientDashboard } from "./abiturient/AbiturientDashboard";
 import { PreviewModeProvider, usePreviewMode } from "@/contexts/PreviewModeContext";
 import { isLivePreviewMode } from "@/lib/dashboard-preview-layout";
+import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 
 interface DashboardProps {
   initialSpace?: SmartSpace;
@@ -57,6 +58,8 @@ const STUDENT_METRICS = [
 function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
   const { previewMode } = usePreviewMode();
   const isLive = isLivePreviewMode(previewMode);
+  const firstName = useCurrentUserFirstName();
+  const fallbackGreeting = activeSpace === "university" ? "პროფი!" : "სტუდენტო!";
 
   return (
     <div className="relative flex min-h-full flex-col overflow-x-hidden">
@@ -72,7 +75,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
                 სტუდენტის სივრცე
               </span>
             }
-            title={`გამარჯობა, ${activeSpace === "university" ? "პროფი!" : "სტუდენტო!"}`}
+            title={firstName ? `გამარჯობა, ${firstName}!` : `გამარჯობა, ${fallbackGreeting}`}
             subtitle="დღეს გეგმაში: მონაცემთა სტრუქტურები — 2.5 საათი"
           />
 
