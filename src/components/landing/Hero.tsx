@@ -65,12 +65,18 @@ export function Hero() {
             aria-hidden
           />
 
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/[0.06] px-4 py-1.5 text-xs font-medium text-purple-300">
+          <span
+            className="stagger-in mb-6 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/[0.06] px-4 py-1.5 text-xs font-medium text-purple-300"
+            style={{ animationDelay: "0ms" }}
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-purple-400" aria-hidden />
             სასწავლო პლატფორმა შენთვის
           </span>
 
-          <h1 className="headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white">
+          <h1
+            className="stagger-in headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white"
+            style={{ animationDelay: "90ms" }}
+          >
             <span className="block text-white">
               ისწავლე{" "}
               <span className="animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent">
@@ -82,10 +88,16 @@ export function Hero() {
             </span>
           </h1>
         </div>
-        <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-400 sm:text-base md:text-lg">
+        <p
+          className="stagger-in mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-400 sm:text-base md:text-lg"
+          style={{ animationDelay: "200ms" }}
+        >
           {SUBTITLE_TEXT}
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <div
+          className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-4"
+          style={{ animationDelay: "300ms" }}
+        >
           <Link
             href="/select-space"
             className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-[length:200%_auto] px-8 py-4 text-base font-semibold text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-500 animate-shimmer hover:scale-[1.03] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] active:scale-[0.98]"
@@ -107,13 +119,17 @@ export function Hero() {
       </div>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-3">
-        {HERO_CARDS.map((card) => {
+        {HERO_CARDS.map((card, index) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
-              className="relative overflow-hidden rounded-2xl border p-5"
-              style={{ background: card.bg, borderColor: `${card.border}55` }}
+              className="stagger-in relative overflow-hidden rounded-2xl border p-5 transition-transform duration-300 hover:-translate-y-1"
+              style={{
+                background: card.bg,
+                borderColor: `${card.border}55`,
+                animationDelay: `${380 + index * 90}ms`,
+              }}
             >
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-xl border bg-white/10"
@@ -129,10 +145,11 @@ export function Hero() {
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        {PILLS.map((pill) => (
+        {PILLS.map((pill, index) => (
           <span
             key={pill.label}
-            className={`rounded-full border-2 px-5 py-2 text-sm font-semibold leading-none shadow-[0_6px_20px_rgba(3,7,18,0.45)] ${pill.cls}`}
+            className={`stagger-in rounded-full border-2 px-5 py-2 text-sm font-semibold leading-none shadow-[0_6px_20px_rgba(3,7,18,0.45)] ${pill.cls}`}
+            style={{ animationDelay: `${700 + index * 55}ms` }}
           >
             {pill.label}
           </span>
