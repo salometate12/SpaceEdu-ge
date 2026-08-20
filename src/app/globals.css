@@ -1026,3 +1026,73 @@ html.dark .tool-chip-active {
     animation: none !important;
   }
 }
+
+/* Hero headline — word-by-word blur/pop reveal on page load */
+@keyframes headline-word-in {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.88);
+    filter: blur(12px);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  70% {
+    transform: translateY(-4px) scale(1.045);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.headline-word-in {
+  display: inline-block;
+  opacity: 0;
+  animation: headline-word-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes headline-cursor-blink {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  30%,
+  50%,
+  70% {
+    opacity: 1;
+  }
+  20%,
+  40%,
+  60% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.headline-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  margin-left: 4px;
+  border-radius: 2px;
+  background: #22d3ee;
+  vertical-align: -0.1em;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+  animation: headline-cursor-blink 2.1s ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headline-word-in {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .headline-cursor {
+    display: none !important;
+  }
+}

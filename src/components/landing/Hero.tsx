@@ -73,30 +73,53 @@ export function Hero() {
             სასწავლო პლატფორმა შენთვის
           </span>
 
-          <h1
-            className="stagger-in headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white"
-            style={{ animationDelay: "90ms" }}
-          >
+          <h1 className="headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white">
             <span className="block text-white">
-              ისწავლე{" "}
-              <span className="animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent">
-                უფრო ჭკვიანურად,
+              <span className="headline-word-in" style={{ animationDelay: "120ms" }}>
+                ისწავლე
+              </span>{" "}
+              <span
+                className="headline-word-in animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent"
+                style={{ animationDelay: "230ms" }}
+              >
+                უფრო
+              </span>{" "}
+              <span
+                className="headline-word-in animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent"
+                style={{ animationDelay: "340ms" }}
+              >
+                ჭკვიანურად,
               </span>
             </span>
             <span className="block text-white">
-              შექმენი შენი სასწავლო <span className="text-[#22d3ee]">Space-ი</span>
+              <span className="headline-word-in" style={{ animationDelay: "450ms" }}>
+                შექმენი
+              </span>{" "}
+              <span className="headline-word-in" style={{ animationDelay: "550ms" }}>
+                შენი
+              </span>{" "}
+              <span className="headline-word-in" style={{ animationDelay: "650ms" }}>
+                სასწავლო
+              </span>{" "}
+              <span
+                className="headline-word-in text-[#22d3ee]"
+                style={{ animationDelay: "750ms" }}
+              >
+                Space-ი
+              </span>
+              <span className="headline-cursor" style={{ animationDelay: "1150ms" }} aria-hidden />
             </span>
           </h1>
         </div>
         <p
           className="stagger-in mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-400 sm:text-base md:text-lg"
-          style={{ animationDelay: "200ms" }}
+          style={{ animationDelay: "950ms" }}
         >
           {SUBTITLE_TEXT}
         </p>
         <div
           className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-4"
-          style={{ animationDelay: "300ms" }}
+          style={{ animationDelay: "1050ms" }}
         >
           <Link
             href="/select-space"
@@ -128,7 +151,7 @@ export function Hero() {
               style={{
                 background: card.bg,
                 borderColor: `${card.border}55`,
-                animationDelay: `${380 + index * 90}ms`,
+                animationDelay: `${1150 + index * 100}ms`,
               }}
             >
               <div
@@ -149,7 +172,7 @@ export function Hero() {
           <span
             key={pill.label}
             className={`stagger-in rounded-full border-2 px-5 py-2 text-sm font-semibold leading-none shadow-[0_6px_20px_rgba(3,7,18,0.45)] ${pill.cls}`}
-            style={{ animationDelay: `${700 + index * 55}ms` }}
+            style={{ animationDelay: `${1500 + index * 60}ms` }}
           >
             {pill.label}
           </span>
