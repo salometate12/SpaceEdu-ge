@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { ArrowUpRight, Bot, Clock, Lock } from "lucide-react";
 
 const SUBTITLE_TEXT =
@@ -147,7 +148,7 @@ export function Hero() {
           return (
             <div
               key={card.title}
-              className="stagger-in relative overflow-hidden rounded-2xl border p-5 transition-transform duration-300 hover:-translate-y-1"
+              className="stagger-in landing-wow group relative overflow-hidden rounded-2xl border p-5"
               style={{
                 background: card.bg,
                 borderColor: `${card.border}55`,
@@ -155,13 +156,33 @@ export function Hero() {
               }}
             >
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl border bg-white/10"
-                style={{ borderColor: `${card.border}66` }}
+                className="animate-card-blob pointer-events-none absolute -top-8 -right-8 h-28 w-28 rounded-full blur-2xl"
+                style={{ background: card.border, animationDelay: `${index * 0.7}s` }}
+                aria-hidden
+              />
+              <span
+                className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+                aria-hidden
+              />
+              <div
+                className="animate-float-soft relative"
+                style={{ animationDelay: `${index * 1.3}s` }}
               >
-                <Icon className={`h-4 w-4 stroke-[1.75] ${card.text}`} aria-hidden />
+                <div
+                  className="animate-icon-glow flex h-9 w-9 items-center justify-center rounded-xl border bg-white/10 transition-transform duration-300 group-hover:scale-110"
+                  style={
+                    {
+                      borderColor: `${card.border}66`,
+                      "--icon-glow-color": `${card.border}99`,
+                      animationDelay: `${index * 0.5}s`,
+                    } as CSSProperties
+                  }
+                >
+                  <Icon className={`h-4 w-4 stroke-[1.75] ${card.text}`} aria-hidden />
+                </div>
+                <p className={`headline mt-4 text-2xl font-bold ${card.text}`}>{card.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/70">{card.desc}</p>
               </div>
-              <p className={`headline mt-4 text-2xl font-bold ${card.text}`}>{card.title}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-white/70">{card.desc}</p>
             </div>
           );
         })}
