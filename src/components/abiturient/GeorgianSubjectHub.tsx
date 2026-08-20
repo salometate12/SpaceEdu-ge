@@ -8,8 +8,8 @@ import {
   BookText,
   ChevronLeft,
   ClipboardList,
-  GraduationCap,
   PenTool,
+  Sparkles,
 } from "lucide-react";
 
 const GEORGIAN_SUBJECT_HREF = "/subject/georgian";
@@ -202,38 +202,24 @@ export function GeorgianSubjectHub() {
           />
         </section>
 
-        <section className="mt-8" aria-label="გრამატიკის შემოსახაზები">
-          <article className="group relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] border-l-2 border-l-amber-500/50 bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-500/20 hover:border-l-amber-400/70 md:max-w-md">
-            <div
-              className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.06] blur-2xl transition-all duration-300 group-hover:opacity-[0.12]"
-              style={{
-                background: "radial-gradient(circle, #F59E0B 0%, transparent 70%)",
-              }}
-              aria-hidden
-            />
-            <div className="relative z-[1] flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10 text-amber-400">
-                <GraduationCap className="h-6 w-6 stroke-[1.5]" />
+        <section className="mt-8" aria-label="სასწავლო ინსტრუმენტები">
+          <article className="group relative flex min-h-[168px] max-w-sm flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/40 hover:shadow-[0_0_20px_rgba(168,85,247,0.18)]">
+            <div className="relative z-[1]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-500/25 bg-purple-500/10">
+                <Sparkles className="h-5 w-5 stroke-[1.5] text-purple-400" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-bold text-white">გრამატიკის შემოსახაზები</h2>
-                  <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
-                    დამხმარე
-                  </span>
-                </div>
-                <p className="text-xs leading-relaxed text-gray-400">
-                  დამატებითი სავარჯიშოები გრამატიკული წესების განსამტკიცებლად და სწორი
-                  ფორმების სწრაფად ამოსაცნობად.
-                </p>
-              </div>
+              <h2 className="mt-3 text-lg font-semibold text-white">ლიტერატურული ასისტენტი</h2>
+              <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                AI გეხმარება კონსპექტების მომზადებაში — შეარჩიე თემა და მიიღე სტრუქტურირებული
+                მასალა სასწავლად.
+              </p>
             </div>
             <Link
               href="/lit-assistant"
-              className={`relative z-[1] mt-5 flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-medium transition-all active:scale-[0.98] ${CTA_STYLES.ghost}`}
+              className="relative z-[1] mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-purple-400 transition group-hover:text-purple-300"
             >
-              გადასვლა
-              <ArrowRight className="h-3.5 w-3.5 stroke-[1.5]" />
+              გახსნა
+              <ArrowRight className="h-3.5 w-3.5 stroke-[1.5] transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </article>
         </section>
