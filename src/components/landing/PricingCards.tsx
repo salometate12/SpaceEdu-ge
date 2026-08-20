@@ -21,6 +21,59 @@ function tierCtaHref(role: PricingRole): string {
   return registrationHref(role);
 }
 
+const ROLE_ACCENT: Record<
+  PricingRole,
+  {
+    border: string;
+    borderHover: string;
+    glow: string;
+    glowHover: string;
+    overlay: string;
+    badgeBorder: string;
+    badgeBg: string;
+    badgeShadow: string;
+    check: string;
+    buttonGradient: string;
+    buttonGradientHover: string;
+    buttonShadow: string;
+    plainHover: string;
+    plainButtonHover: string;
+  }
+> = {
+  abiturient: {
+    border: "border-purple-500/35",
+    borderHover: "hover:border-purple-500/50",
+    glow: "shadow-[0_0_40px_rgba(124,58,237,0.12)]",
+    glowHover: "hover:shadow-[0_0_48px_rgba(124,58,237,0.18)]",
+    overlay: "from-purple-600/[0.08]",
+    badgeBorder: "border-purple-500/30",
+    badgeBg: "bg-purple-600",
+    badgeShadow: "shadow-purple-600/25",
+    check: "text-purple-400",
+    buttonGradient: "from-purple-600 to-indigo-600",
+    buttonGradientHover: "hover:from-purple-500 hover:to-indigo-500",
+    buttonShadow: "shadow-[0_0_20px_rgba(124,58,237,0.35)]",
+    plainHover: "hover:border-purple-500/40",
+    plainButtonHover: "hover:!border-purple-500/40",
+  },
+  student: {
+    border: "border-cyan-500/35",
+    borderHover: "hover:border-cyan-500/50",
+    glow: "shadow-[0_0_40px_rgba(8,145,178,0.14)]",
+    glowHover: "hover:shadow-[0_0_48px_rgba(8,145,178,0.2)]",
+    overlay: "from-cyan-600/[0.08]",
+    badgeBorder: "border-cyan-500/30",
+    badgeBg: "bg-cyan-600",
+    badgeShadow: "shadow-cyan-600/25",
+    check: "text-cyan-400",
+    buttonGradient: "from-cyan-600 to-blue-600",
+    buttonGradientHover: "hover:from-cyan-500 hover:to-blue-500",
+    buttonShadow: "shadow-[0_0_20px_rgba(8,145,178,0.35)]",
+    plainHover: "hover:border-cyan-500/40",
+    plainButtonHover: "hover:!border-cyan-500/40",
+  },
+};
+
 function PricingTierCard({
   tier,
   role,
@@ -31,23 +84,26 @@ function PricingTierCard({
   delayMs: number;
 }) {
   const popular = tier.popular === true;
+  const accent = ROLE_ACCENT[role];
 
   return (
     <RevealOnScroll delayMs={delayMs}>
       <article
         className={`relative flex min-h-[420px] flex-col justify-between rounded-2xl border p-8 backdrop-blur-xl transition-all duration-300 ${
           popular
-            ? "border-purple-500/35 bg-[#121214]/50 shadow-[0_0_40px_rgba(124,58,237,0.12)] hover:border-purple-500/50 hover:shadow-[0_0_48px_rgba(124,58,237,0.18)]"
-            : "border-white/[0.08] bg-[#121214]/40 hover:border-purple-500/40"
+            ? `${accent.border} bg-[#121214]/50 ${accent.glow} ${accent.borderHover} ${accent.glowHover}`
+            : `border-white/[0.08] bg-[#121214]/40 ${accent.plainHover}`
         }`}
       >
         {popular && (
           <>
             <div
-              className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-purple-600/[0.08] via-transparent to-transparent"
+              className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b ${accent.overlay} via-transparent to-transparent`}
               aria-hidden
             />
-            <span className="absolute -top-3 left-1/2 z-[1] -translate-x-1/2 whitespace-nowrap rounded-full border border-purple-500/30 bg-purple-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-purple-600/25">
+            <span
+              className={`absolute -top-3 left-1/2 z-[1] -translate-x-1/2 whitespace-nowrap rounded-full border ${accent.badgeBorder} ${accent.badgeBg} px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg ${accent.badgeShadow}`}
+            >
               ყველაზე პოპულარული
             </span>
           </>
@@ -69,7 +125,7 @@ function PricingTierCard({
               >
                 <Check
                   className={`mt-0.5 h-4 w-4 shrink-0 stroke-[2] ${
-                    popular ? "text-purple-400" : "text-gray-500"
+                    popular ? accent.check : "text-gray-500"
                   }`}
                   aria-hidden
                 />
@@ -84,8 +140,8 @@ function PricingTierCard({
             variant={popular ? "primary" : "ghost"}
             className={`w-full !rounded-full ${
               popular
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 shadow-[0_0_20px_rgba(124,58,237,0.35)] hover:from-purple-500 hover:to-indigo-500"
-                : "!border-white/[0.12] !bg-white/[0.03] hover:!border-purple-500/40"
+                ? `bg-gradient-to-r ${accent.buttonGradient} ${accent.buttonShadow} ${accent.buttonGradientHover}`
+                : `!border-white/[0.12] !bg-white/[0.03] ${accent.plainButtonHover}`
             }`}
           >
             {tier.cta}
