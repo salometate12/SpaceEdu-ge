@@ -78,6 +78,8 @@ export function mobileDockHidden(pathname: string | null): boolean {
   if (
     pathname === "/select-space" ||
     pathname === "/registration" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/admin") ||
     isPremiumAssistantPath(pathname)

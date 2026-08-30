@@ -44,6 +44,8 @@ export function HeaderByPath() {
     !pathname ||
     pathname === "/select-space" ||
     pathname === "/registration" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/admin") ||
     isPremiumAssistantPath(pathname)

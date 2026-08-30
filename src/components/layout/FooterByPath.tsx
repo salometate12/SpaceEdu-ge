@@ -6,6 +6,7 @@ import { SiteFooter } from "./SiteFooter";
 
 const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
 const CUSTOM_FOOTER_PATHS = new Set(["/"]);
+const NO_FOOTER_PATHS = new Set(["/privacy", "/terms"]);
 
 export function FooterByPath() {
   const pathname = usePathname();
@@ -13,6 +14,7 @@ export function FooterByPath() {
     isPremiumAssistantPath(pathname) ||
     FULL_BLEED_PATHS.has(pathname ?? "") ||
     CUSTOM_FOOTER_PATHS.has(pathname ?? "") ||
+    NO_FOOTER_PATHS.has(pathname ?? "") ||
     pathname?.startsWith("/admin")
   ) {
     return null;
