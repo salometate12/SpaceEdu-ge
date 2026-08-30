@@ -52,13 +52,16 @@ export async function signOutUser() {
   await supabase.auth.signOut();
 }
 
-export async function signInWithOAuthProvider(space: RegisterSpace, provider: "google" | "github") {
+export async function signInWithOAuthProvider(
+  role: "abiturient" | "student",
+  provider: "google" | "github",
+) {
   const supabase = getSupabaseClient();
   if (!supabase) return;
   await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/register/complete?space=${space}`,
+      redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
     },
   });
 }

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Loader2, Lock, Mail, MailCheck, Rocket, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
+import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import {
   devSkipRegistrationAllowed,
   isDevPortalBypass,
@@ -224,6 +225,14 @@ export function RegistrationForm() {
           </button>
         </div>
       )}
+
+      <GoogleAuthButton role={role} label="გააგრძელე Google-ით" />
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/[0.08]" />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">ან</span>
+        <div className="h-px flex-1 bg-white/[0.08]" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <FormField id="reg-name" label="სახელი და გვარი" icon={User} error={errors.name}>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { Loader2, Lock, Mail, Rocket } from "lucide-react";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
+import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import {
   devSkipRegistrationAllowed,
@@ -140,6 +141,19 @@ export function LoginForm() {
             Dev: პორტალის გადახედვა
           </button>
         </div>
+      )}
+
+      {role && (
+        <>
+          <GoogleAuthButton role={role} label="შესვლა Google-ით" />
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/[0.08]" />
+            <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+              ან
+            </span>
+            <div className="h-px flex-1 bg-white/[0.08]" />
+          </div>
+        </>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>

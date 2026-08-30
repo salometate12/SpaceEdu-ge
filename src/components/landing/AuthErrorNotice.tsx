@@ -30,6 +30,7 @@ function parseAuthError(): ParsedAuthError | null {
 const ERROR_MESSAGES: Record<string, string> = {
   otp_expired:
     "დადასტურების ბმულის ვადა ამოიწურა ან უკვე გამოყენებულია. დარეგისტრირდი თავიდან იმავე ელ-ფოსტით — ახალი ბმული გამოგეგზავნება.",
+  oauth_failed: "Google-ით შესვლა ვერ მოხერხდა. სცადე თავიდან ან გამოიყენე ელ-ფოსტით რეგისტრაცია.",
 };
 
 const DEFAULT_ERROR_MESSAGE =
