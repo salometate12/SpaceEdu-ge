@@ -1,4 +1,5 @@
 import { AbiturientCenter } from "@/components/landing/AbiturientCenter";
+import { AuthErrorNotice } from "@/components/landing/AuthErrorNotice";
 import { CTASection } from "@/components/landing/CTASection";
 import { Features } from "@/components/landing/Features";
 import { Hero } from "@/components/landing/Hero";
@@ -14,6 +15,7 @@ export default function LandingPage() {
     <div id="hero" className="landing-dark-bg relative min-h-dvh overflow-hidden">
       <Starfield />
       <div className="relative z-10">
+        <AuthErrorNotice />
         <Hero />
         <HowItWorks />
         <AbiturientCenter />

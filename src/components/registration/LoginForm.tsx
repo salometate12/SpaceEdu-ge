@@ -30,6 +30,8 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const roleSubtext = useMemo(() => {
     if (role) return registrationRoleSubtext(role);
@@ -46,9 +48,28 @@ export function LoginForm() {
     finishAuthRedirect(role);
   };
 
+  const handleResend = async () => {
+    const trimmedEmail = email.trim();
+    if (!isSupabaseBrowserConfigured() || !trimmedEmail) return;
+    setResendState("sending");
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: trimmedEmail,
+      });
+      if (resendError) throw resendError;
+      setResendState("sent");
+    } catch {
+      setResendState("error");
+    }
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    setUnconfirmed(false);
+    setResendState("idle");
 
     const activeRole = role ?? (isDevPortalBypass() ? "student" : null);
     if (!activeRole) {
@@ -89,6 +110,7 @@ export function LoginForm() {
         setError(
           "ელ-ფოსტა ჯერ არ არის დადასტურებული. შეამოწმე ინბოქსი და დააჭირე დადასტურების ბმულს.",
         );
+        setUnconfirmed(true);
       } else {
         setError("შესვლა ვერ მოხერხდა. შეამოწმე მონაცემები და სცადე თავიდან.");
       }
@@ -156,9 +178,31 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <p className="rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200/90">
-            {error}
-          </p>
+          <div className="rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200/90">
+            <p>{error}</p>
+            {unconfirmed && (
+              <div className="mt-2">
+                {resendState === "sent" ? (
+                  <span className="text-emerald-300/90">
+                    ახალი დადასტურების ბმული გამოგზავნილია — შეამოწმე ინბოქსი.
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void handleResend()}
+                    disabled={resendState === "sending"}
+                    className="font-medium text-purple-300 underline underline-offset-2 hover:text-purple-200 disabled:opacity-50"
+                  >
+                    {resendState === "sending"
+                      ? "იგზავნება..."
+                      : resendState === "error"
+                        ? "ვერ გაიგზავნა, სცადე თავიდან"
+                        : "ხელახლა გამოგზავნა"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         <button
