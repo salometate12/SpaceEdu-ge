@@ -293,7 +293,7 @@ export function RegistrationForm() {
             />
             <span className="text-xs leading-relaxed text-gray-400">
               ვეთანხმები SpaceEdu-ს{" "}
-              <Link href="/pricing" className="text-purple-400/90 hover:text-purple-300">
+              <Link href="/terms" className="text-purple-400/90 hover:text-purple-300">
                 წესებსა და პირობებს
               </Link>
             </span>
