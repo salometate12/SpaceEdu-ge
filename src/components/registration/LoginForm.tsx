@@ -78,12 +78,20 @@ export function LoginForm() {
       }
 
       finishAuthRedirect(activeRole);
-    } catch {
+    } catch (err) {
       if (isDevPortalBypass()) {
         finishAuthRedirect(activeRole);
         return;
       }
-      setError("შესვლა ვერ მოხერხდა. შეამოწმე მონაცემები და სცადე თავიდან.");
+      const code = (err as { code?: string } | null)?.code;
+      const message = err instanceof Error ? err.message.toLowerCase() : "";
+      if (code === "email_not_confirmed" || message.includes("not confirmed")) {
+        setError(
+          "ელ-ფოსტა ჯერ არ არის დადასტურებული. შეამოწმე ინბოქსი და დააჭირე დადასტურების ბმულს.",
+        );
+      } else {
+        setError("შესვლა ვერ მოხერხდა. შეამოწმე მონაცემები და სცადე თავიდან.");
+      }
     } finally {
       setIsLoading(false);
     }

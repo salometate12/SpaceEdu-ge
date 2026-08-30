@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Loader2, Lock, Mail, Rocket, User } from "lucide-react";
+import { Loader2, Lock, Mail, MailCheck, Rocket, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
 import {
   devSkipRegistrationAllowed,
@@ -70,6 +70,7 @@ export function RegistrationForm() {
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
   const roleSubtext = useMemo(
     () => (role ? registrationRoleSubtext(role) : null),
@@ -121,7 +122,7 @@ export function RegistrationForm() {
 
     setIsLoading(true);
     try {
-      await signUpWithEmail({
+      const { hasSession } = await signUpWithEmail({
         email: email.trim(),
         password,
         firstName,
@@ -129,7 +130,11 @@ export function RegistrationForm() {
         space,
       });
 
-      finishAuthRedirect(role);
+      if (hasSession) {
+        finishAuthRedirect(role);
+      } else {
+        setAwaitingConfirmation(true);
+      }
     } catch {
       if (isDevPortalBypass() && role) {
         finishAuthRedirect(role);
@@ -152,6 +157,30 @@ export function RegistrationForm() {
           className="inline-flex text-sm font-medium text-purple-400 transition-colors hover:text-purple-300"
         >
           სივრცის არჩევაზე გადასვლა
+        </Link>
+      </div>
+    );
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <div className="w-full max-w-md space-y-5 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 text-center shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-600/15">
+          <MailCheck className="h-6 w-6 stroke-[1.5] text-emerald-300" />
+        </div>
+        <div>
+          <h1 className="headline text-xl font-bold text-white">დაადასტურე ელ-ფოსტა</h1>
+          <p className="mt-2 text-sm leading-relaxed text-gray-400">
+            გამოგიგზავნეთ დადასტურების ბმული მისამართზე{" "}
+            <span className="font-medium text-white">{email.trim()}</span>. გახსენი ის და
+            დააჭირე ბმულს, რომ შესვლა შესაძლებელი გახდეს.
+          </p>
+        </div>
+        <Link
+          href={`/login?role=${role}`}
+          className="inline-flex w-full items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 text-sm font-medium text-white transition-all hover:border-purple-500/30 hover:bg-white/[0.06]"
+        >
+          შესვლის გვერდზე გადასვლა
         </Link>
       </div>
     );

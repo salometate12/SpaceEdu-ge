@@ -25,7 +25,7 @@ interface SignUpArgs {
 export async function signUpWithEmail(args: SignUpArgs) {
   const supabase = getSupabaseClient();
   if (!supabase) {
-    return { userId: `mock-${Date.now()}` };
+    return { userId: `mock-${Date.now()}`, hasSession: true };
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -41,7 +41,9 @@ export async function signUpWithEmail(args: SignUpArgs) {
   });
 
   if (error) throw error;
-  return { userId: data.user?.id ?? `pending-${Date.now()}` };
+  // If Supabase has "Confirm email" enabled, signUp succeeds but returns no
+  // active session until the user clicks the confirmation link in their inbox.
+  return { userId: data.user?.id ?? `pending-${Date.now()}`, hasSession: data.session !== null };
 }
 
 export async function signOutUser() {

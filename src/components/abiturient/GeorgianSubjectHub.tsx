@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ClipboardList,
   PenTool,
-  Sparkles,
 } from "lucide-react";
 
 const GEORGIAN_SUBJECT_HREF = "/subject/georgian";
@@ -200,28 +199,6 @@ export function GeorgianSubjectHub() {
             ctaVariant="rose"
             hoverBorder="hover:border-rose-500/25"
           />
-        </section>
-
-        <section className="mt-8" aria-label="სასწავლო ინსტრუმენტები">
-          <article className="group relative flex min-h-[168px] max-w-sm flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/40 hover:shadow-[0_0_20px_rgba(168,85,247,0.18)]">
-            <div className="relative z-[1]">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-500/25 bg-purple-500/10">
-                <Sparkles className="h-5 w-5 stroke-[1.5] text-purple-400" />
-              </div>
-              <h2 className="mt-3 text-lg font-semibold text-white">ლიტერატურული ასისტენტი</h2>
-              <p className="mt-1 text-xs leading-relaxed text-gray-400">
-                AI გეხმარება კონსპექტების მომზადებაში — შეარჩიე თემა და მიიღე სტრუქტურირებული
-                მასალა სასწავლად.
-              </p>
-            </div>
-            <Link
-              href="/lit-assistant"
-              className="relative z-[1] mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-purple-400 transition group-hover:text-purple-300"
-            >
-              გახსნა
-              <ArrowRight className="h-3.5 w-3.5 stroke-[1.5] transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
-          </article>
         </section>
       </main>
     </div>
