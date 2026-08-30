@@ -10,6 +10,7 @@ const PRODUCT_LINKS = [
 const COMPANY_LINKS = [
   { href: "/#hero", label: "ჩვენს შესახებ" },
   { href: "/#pricing", label: "კონტაქტი" },
+  { href: "/privacy", label: "კონფიდენციალურობა" },
 ];
 
 export function LandingFooter() {
