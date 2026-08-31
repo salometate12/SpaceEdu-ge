@@ -1132,10 +1132,8 @@ function ResultsScreen({
               return (
                 <li
                   key={record.questionId}
-                  className={`rounded-[24px] border-2 p-4 ${
-                    record.correct
-                      ? "border-emerald-500/25 bg-emerald-500/[0.03]"
-                      : "border-rose-500/25 bg-rose-500/[0.03]"
+                  className={`rounded-[28px] border-[3px] bg-transparent p-4 ${
+                    record.correct ? "border-emerald-400" : "border-rose-500"
                   }`}
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -1149,18 +1147,20 @@ function ResultsScreen({
                       {badge.label}
                     </span>
                     <span
-                      className={`ml-auto inline-flex items-center gap-1 text-[11px] font-semibold ${
-                        record.correct ? "text-emerald-300" : "text-rose-300"
+                      className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                        record.correct
+                          ? "bg-emerald-400 text-black"
+                          : "bg-rose-500 text-white"
                       }`}
                     >
                       {record.correct ? (
                         <>
-                          <Check className="h-3.5 w-3.5 stroke-[2]" /> სწორია
-                          <span className="text-cyan-300">+{record.pointsEarned}</span>
+                          <Check className="h-3.5 w-3.5 stroke-[2.5]" /> სწორია
+                          <span className="text-black/60">+{record.pointsEarned}</span>
                         </>
                       ) : (
                         <>
-                          <X className="h-3.5 w-3.5 stroke-[2]" /> არასწორია
+                          <X className="h-3.5 w-3.5 stroke-[2.5]" /> არასწორია
                         </>
                       )}
                     </span>
