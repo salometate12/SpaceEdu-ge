@@ -14,7 +14,6 @@ import {
 import { normalizeSmartSpace, type SmartSpace } from "@/lib/smart-space";
 import { DashboardDecorIcons } from "./dashboard/DashboardDecorIcons";
 import { DashboardGreetingBanner } from "./dashboard/DashboardGreetingBanner";
-import { DashboardTopUtility } from "./dashboard/DashboardTopUtility";
 import { DashboardSideRail } from "./dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "./dashboard/DashboardCalendarPanel";
 import { StudentTools } from "./dashboard/StudentTools";
@@ -157,7 +156,6 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
       <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 gap-5 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
         <DashboardSideRail />
         <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 sm:pt-12">
-          <DashboardTopUtility />
           <DashboardGreetingBanner
             workspace="student"
             badge={
