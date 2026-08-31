@@ -1136,3 +1136,58 @@ html.dark .tool-chip-active {
     animation: none !important;
   }
 }
+
+/* Gamified running-timer badge — ticking icon, digit pop each second, minute-mark pulse */
+@keyframes timer-icon-tick {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+.animate-timer-tick {
+  animation: timer-icon-tick 1s ease-in-out infinite;
+}
+
+@keyframes timer-digit-pop {
+  0% {
+    transform: scale(1.2);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-timer-tick-pop {
+  display: inline-block;
+  animation: timer-digit-pop 0.25s ease-out both;
+}
+
+@keyframes timer-ring-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+}
+
+.animate-timer-ring-pulse {
+  animation: timer-ring-pulse 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-timer-tick,
+  .animate-timer-tick-pop,
+  .animate-timer-ring-pulse {
+    animation: none !important;
+  }
+}

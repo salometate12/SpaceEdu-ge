@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeft,
   Copy,
   Sparkles,
+  Timer,
 } from "lucide-react";
 import {
   INITIAL_ATTEMPTS,
@@ -66,6 +67,37 @@ function TimerSwitch({
       </span>
       <span className="text-sm text-zinc-300">გამოაჩინე ტაიმერი</span>
     </button>
+  );
+}
+
+function TestTimerBadge({ seconds }: { seconds: number }) {
+  const minute = Math.floor(seconds / 60);
+  const m = minute.toString().padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  const isMinuteMark = seconds > 0 && seconds % 60 === 0;
+
+  return (
+    <div
+      className={`relative mb-4 inline-flex items-center gap-2 overflow-hidden rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-500 ${
+        isMinuteMark
+          ? "border-amber-400/60 bg-amber-500/10"
+          : "border-purple-500/25 bg-purple-500/[0.06]"
+      }`}
+    >
+      <span
+        key={`ring-${minute}`}
+        className="animate-timer-ring-pulse pointer-events-none absolute inset-0 rounded-full"
+        aria-hidden
+      />
+      <Timer className="animate-timer-tick h-3.5 w-3.5 shrink-0 text-purple-400" aria-hidden />
+      <span className="text-purple-300">ტაიმერი</span>
+      <span
+        key={seconds}
+        className="animate-timer-tick-pop font-mono font-semibold tabular-nums text-white"
+      >
+        {m}:{s}
+      </span>
+    </div>
   );
 }
 
@@ -133,14 +165,6 @@ export function TextEditingExercise() {
     setCorrectedText("");
   };
 
-  const timerLabel = useMemo(() => {
-    const m = Math.floor(elapsedSec / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (elapsedSec % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  }, [elapsedSec]);
-
   useEffect(() => {
     if (!isTesting || !showTimer) return;
     const id = window.setInterval(() => {
@@ -162,12 +186,7 @@ export function TextEditingExercise() {
             ტესტის შეწყვეტა
           </button>
 
-          {showTimer && (
-            <div className="mb-4 inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-400">
-              <span className="text-purple-400">ტაიმერი</span>
-              <span className="font-mono text-white">{timerLabel}</span>
-            </div>
-          )}
+          {showTimer && <TestTimerBadge seconds={elapsedSec} />}
 
           <div className="mb-2">
             <h2 className="text-sm font-medium text-gray-400">ტექსტი შეცდომებით</h2>
