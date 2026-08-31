@@ -249,29 +249,29 @@ html.dark .subject-icon-wrap-featured {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
 }
 
-/* Mobile-only bold color-block cards (student dashboard tools) — light mode only */
+/* Mobile-only bold color-block cards (student dashboard tools) — both light and dark mode */
 @media (max-width: 639px) {
-  html:not(.dark) .mobile-vivid-tool-card {
+  .mobile-vivid-tool-card {
     background: var(--accent-color) !important;
     border-color: transparent !important;
     box-shadow: 0 10px 24px rgb(15 23 42 / 0.18) !important;
   }
 
-  html:not(.dark) .mobile-vivid-tool-card:hover {
+  .mobile-vivid-tool-card:hover {
     box-shadow: 0 14px 28px rgb(15 23 42 / 0.22) !important;
   }
 
-  html:not(.dark) .mobile-vivid-tool-card::before {
+  .mobile-vivid-tool-card::before {
     display: none;
   }
 
-  html:not(.dark) .mobile-vivid-tool-card h3,
-  html:not(.dark) .mobile-vivid-tool-card p,
-  html:not(.dark) .mobile-vivid-tool-card span {
+  .mobile-vivid-tool-card h3,
+  .mobile-vivid-tool-card p,
+  .mobile-vivid-tool-card span {
     color: #ffffff !important;
   }
 
-  html:not(.dark) .mobile-vivid-tool-card .subject-icon-wrap {
+  .mobile-vivid-tool-card .subject-icon-wrap {
     border-color: rgb(255 255 255 / 0.9) !important;
     background: rgb(255 255 255 / 0.92) !important;
   }

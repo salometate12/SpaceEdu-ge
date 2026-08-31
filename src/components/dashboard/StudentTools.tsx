@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight,
+  ArrowUpRight,
   Brain,
   CalendarClock,
   ChevronRight,
@@ -155,22 +155,22 @@ export function StudentTools() {
                     <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                   </ToolIconWrap>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-extrabold">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black">
                       {tool.title}
                     </h3>
                     <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
                       {tool.description}
                     </p>
-                    <span className="mt-2 hidden max-[639px]:inline-flex max-[639px]:max-w-full max-[639px]:items-center max-[639px]:truncate max-[639px]:rounded-full max-[639px]:border max-[639px]:border-white/40 max-[639px]:px-3 max-[639px]:py-1 max-[639px]:text-[11px] max-[639px]:font-semibold">
+                    <p className="mt-1 hidden max-[639px]:block max-[639px]:truncate max-[639px]:text-[11px] max-[639px]:font-semibold max-[639px]:text-white/80">
                       {tool.description}
-                    </span>
+                    </p>
                   </div>
                   <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5" />
                   </span>
-                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-10 max-[639px]:w-10 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:border-2 max-[639px]:border-white/85 max-[639px]:bg-white/10 max-[639px]:backdrop-blur-sm">
-                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={1.75} />
+                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
+                    <ArrowUpRight className="h-4 w-4 text-white" strokeWidth={2} />
                   </span>
                 </>
               ) : (
@@ -179,22 +179,22 @@ export function StudentTools() {
                     <ToolIconWrap accent={tool.accent}>
                       <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                     </ToolIconWrap>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:text-xl max-[639px]:font-extrabold">
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:text-xl max-[639px]:font-black">
                       {tool.title}
                     </h3>
                     <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
                       {tool.description}
                     </p>
-                    <span className="mt-3 hidden max-[639px]:inline-flex max-[639px]:max-w-full max-[639px]:items-center max-[639px]:truncate max-[639px]:rounded-full max-[639px]:border max-[639px]:border-white/40 max-[639px]:px-3 max-[639px]:py-1 max-[639px]:text-[11px] max-[639px]:font-semibold">
+                    <p className="mt-1 hidden max-[639px]:block max-[639px]:truncate max-[639px]:text-[11px] max-[639px]:font-semibold max-[639px]:text-white/80">
                       {tool.description}
-                    </span>
+                    </p>
                   </div>
                   <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
                   </span>
-                  <span className="absolute right-6 top-6 hidden max-[639px]:flex max-[639px]:h-11 max-[639px]:w-11 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:border-2 max-[639px]:border-white/85 max-[639px]:bg-white/10 max-[639px]:backdrop-blur-sm">
-                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={1.75} />
+                  <span className="absolute right-4 top-4 hidden max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
+                    <ArrowUpRight className="h-4 w-4 text-white" strokeWidth={2} />
                   </span>
                 </>
               )}
