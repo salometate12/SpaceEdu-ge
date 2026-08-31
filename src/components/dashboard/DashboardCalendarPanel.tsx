@@ -45,25 +45,34 @@ const WEEKDAY_LABELS = ["ორშ", "სამ", "ოთხ", "ხუთ", "პ
 
 const TYPE_STYLE: Record<
   SyllabusMilestoneType,
-  { dot: string; icon: typeof GraduationCap; iconWrap: string; label: string }
+  {
+    dot: string;
+    icon: typeof GraduationCap;
+    iconWrap: string;
+    label: string;
+    mobileRow: string;
+  }
 > = {
   midterm: {
     dot: "bg-violet-400",
     icon: GraduationCap,
     iconWrap: "bg-violet-400/15 text-violet-500 dark:bg-violet-400/20 dark:text-violet-300",
     label: "შუალედური",
+    mobileRow: "mobile-vivid-violet",
   },
   quiz: {
     dot: "bg-sky-400",
     icon: Brain,
     iconWrap: "bg-sky-400/15 text-sky-600 dark:bg-sky-400/20 dark:text-sky-300",
     label: "Quiz",
+    mobileRow: "mobile-vivid-sky",
   },
   deadline: {
     dot: "bg-pink-400",
     icon: AlertCircle,
     iconWrap: "bg-pink-400/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-300",
     label: "დედლაინი",
+    mobileRow: "mobile-vivid-pink",
   },
 };
 
@@ -690,7 +699,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
               </AnimatePresence>
             </div>
 
-            <div className="rounded-[28px] border border-pink-200 bg-pink-50 p-5 dark:border-2 dark:border-pink-400/20 dark:bg-[#121214]">
+            <div className="mobile-vivid-schedule-card rounded-[28px] border border-pink-200 bg-pink-50 p-5 dark:border-2 dark:border-pink-400/20 dark:bg-[#121214]">
               <h3 className="mb-3 text-sm font-bold text-zinc-900 dark:text-white">
                 {isViewingToday ? "დღევანდელი განრიგი" : "განრიგი"}
               </h3>
@@ -699,7 +708,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                   ამ დღეს დაგეგმილი ღონისძიება არ არის.
                 </p>
               ) : (
-                <div className="space-y-2.5">
+                <div className="mobile-vivid-schedule-list space-y-2.5">
                   {selectedEvents.map((event) => {
                     const style = TYPE_STYLE[event.type];
                     const Icon = style.icon;
@@ -712,23 +721,23 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") openEditForm(event);
                         }}
-                        className="group flex w-full items-start gap-2.5 rounded-2xl p-1.5 text-left transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                        className={`mobile-vivid-schedule-row ${style.mobileRow} group flex w-full items-start gap-2.5 rounded-2xl p-1.5 text-left transition-all hover:bg-black/5 dark:hover:bg-white/5`}
                       >
                         <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style.iconWrap}`}
+                          className={`mobile-vivid-schedule-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style.iconWrap}`}
                         >
                           <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                          <p className="mobile-vivid-schedule-title truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                             {event.title}
                           </p>
-                          <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
+                          <p className="mobile-vivid-schedule-label text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
                             {style.label}
                             {event.time ? ` · ${formatTimeLabel(event.time)}` : ""}
                           </p>
                           {event.description && (
-                            <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
+                            <p className="mobile-vivid-schedule-label mt-0.5 line-clamp-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
                               {event.description}
                             </p>
                           )}
@@ -740,7 +749,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                             handleRemoveEvent(event.id);
                           }}
                           aria-label="წაშლა"
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 opacity-0 transition-all hover:bg-black/5 hover:text-zinc-600 group-hover:opacity-100 dark:text-zinc-600 dark:hover:bg-white/10 dark:hover:text-zinc-300"
+                          className="mobile-vivid-schedule-delete flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 opacity-0 transition-all hover:bg-black/5 hover:text-zinc-600 group-hover:opacity-100 dark:text-zinc-600 dark:hover:bg-white/10 dark:hover:text-zinc-300"
                         >
                           <X className="h-3 w-3" />
                         </button>

@@ -249,6 +249,119 @@ html.dark .subject-icon-wrap-featured {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
 }
 
+/* Mobile-only bold color-block cards (student dashboard tools) — light mode only */
+@media (max-width: 639px) {
+  html:not(.dark) .mobile-vivid-tool-card {
+    background: var(--accent-color) !important;
+    border-color: transparent !important;
+    box-shadow: 0 10px 24px rgb(15 23 42 / 0.18) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-tool-card:hover {
+    box-shadow: 0 14px 28px rgb(15 23 42 / 0.22) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-tool-card::before {
+    display: none;
+  }
+
+  html:not(.dark) .mobile-vivid-tool-card h3,
+  html:not(.dark) .mobile-vivid-tool-card p,
+  html:not(.dark) .mobile-vivid-tool-card span {
+    color: #ffffff !important;
+  }
+
+  html:not(.dark) .mobile-vivid-tool-card .subject-icon-wrap {
+    border-color: rgb(255 255 255 / 0.9) !important;
+    background: rgb(255 255 255 / 0.92) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-stat-pill {
+    border-color: transparent !important;
+  }
+
+  html:not(.dark) .mobile-vivid-stat-pill.mobile-vivid-orange {
+    background: #fb923c !important;
+    box-shadow: 0 8px 20px rgb(251 146 60 / 0.35) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-stat-pill.mobile-vivid-cyan {
+    background: #22d3ee !important;
+    box-shadow: 0 8px 20px rgb(34 211 238 / 0.35) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-stat-pill .mobile-vivid-stat-icon {
+    background: rgb(255 255 255 / 0.92) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-stat-pill .mobile-vivid-stat-value,
+  html:not(.dark) .mobile-vivid-stat-pill .mobile-vivid-stat-label {
+    color: #ffffff !important;
+    text-shadow: none !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-card {
+    border-color: rgb(226 232 240 / 0.8) !important;
+    background: #ffffff !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-list {
+    row-gap: 0.75rem !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row {
+    gap: 0.75rem !important;
+    border-radius: 1rem !important;
+    padding: 0.75rem !important;
+    box-shadow: 0 6px 16px rgb(15 23 42 / 0.12) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row:hover {
+    background: transparent !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row.mobile-vivid-violet {
+    background: #a78bfa !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row.mobile-vivid-sky {
+    background: #38bdf8 !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row.mobile-vivid-pink {
+    background: #f472b6 !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-icon {
+    height: 2.25rem !important;
+    width: 2.25rem !important;
+    background: rgb(255 255 255 / 0.92) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-title,
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-label {
+    color: #ffffff !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-title {
+    font-size: 0.8125rem !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-label {
+    color: rgb(255 255 255 / 0.85) !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-delete {
+    opacity: 0.75 !important;
+    color: #ffffff !important;
+  }
+
+  html:not(.dark) .mobile-vivid-schedule-row .mobile-vivid-schedule-delete:hover {
+    background: rgb(255 255 255 / 0.2) !important;
+    color: #ffffff !important;
+  }
+}
+
 .tool-icon-wrap {
   border-radius: 0.75rem;
   border: 1px solid rgb(203 213 225 / 0.6);

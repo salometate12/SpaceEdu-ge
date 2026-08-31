@@ -105,7 +105,7 @@ export function StudentTools() {
               accent={tool.accent}
               href={tool.href}
               layoutId={`student-tool-card-${tool.id}`}
-              className={cardClass}
+              className={`${cardClass} mobile-vivid-tool-card`}
             >
               {isLive ? (
                 <>
