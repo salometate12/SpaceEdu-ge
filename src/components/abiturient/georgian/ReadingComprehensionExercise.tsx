@@ -592,31 +592,31 @@ export function ReadingComprehensionExercise() {
                   className="mt-5 overflow-hidden"
                 >
                   <div
-                    className={`rounded-xl border p-4 ${
+                    className={`rounded-[28px] border-[3px] bg-transparent p-5 ${
                       selectedIndex === currentQuestion.correctIndex
-                        ? "border-emerald-500/25 bg-emerald-500/[0.04]"
-                        : "border-rose-500/25 bg-rose-500/[0.04]"
+                        ? "border-emerald-400"
+                        : "border-rose-500"
                     }`}
                   >
-                    <p
-                      className={`mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider ${
+                    <span
+                      className={`mb-3 -rotate-1 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider ${
                         selectedIndex === currentQuestion.correctIndex
-                          ? "text-emerald-300"
-                          : "text-rose-300"
+                          ? "bg-emerald-400 text-black"
+                          : "bg-rose-500 text-white"
                       }`}
                     >
                       {selectedIndex === currentQuestion.correctIndex ? (
                         <>
-                          <Check className="h-3.5 w-3.5 stroke-[2]" />
+                          <Check className="h-3.5 w-3.5 stroke-[2.5]" />
                           სწორია
                         </>
                       ) : (
                         <>
-                          <X className="h-3.5 w-3.5 stroke-[2]" />
+                          <X className="h-3.5 w-3.5 stroke-[2.5]" />
                           არასწორია
                         </>
                       )}
-                    </p>
+                    </span>
                     <p className="text-[13.5px] leading-relaxed text-zinc-200">
                       {currentQuestion.explanation}
                     </p>
@@ -631,7 +631,7 @@ export function ReadingComprehensionExercise() {
                   type="button"
                   onClick={revealAnswer}
                   disabled={selectedIndex === null}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   პასუხის შემოწმება
                 </button>
@@ -639,7 +639,7 @@ export function ReadingComprehensionExercise() {
                 <button
                   type="button"
                   onClick={goNext}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
                 >
                   {isLastQuestion ? "შედეგების ნახვა" : "შემდეგი კითხვა"}
                   <ArrowRight className="h-4 w-4 stroke-[1.75]" />
