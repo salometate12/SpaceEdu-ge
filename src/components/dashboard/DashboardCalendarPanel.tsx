@@ -103,8 +103,35 @@ function formatDateLabel(dateStr: string): string {
   return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const HOUR_OPTIONS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+const PERIOD_OPTIONS = ["AM", "PM"] as const;
+
+function to12Hour(hour24: number): { hour12: string; period: "AM" | "PM" } {
+  const period: "AM" | "PM" = hour24 >= 12 ? "PM" : "AM";
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return { hour12: String(hour12).padStart(2, "0"), period };
+}
+
+function to24Hour(hour12: string, period: "AM" | "PM"): string {
+  let h = parseInt(hour12, 10) % 12;
+  if (period === "PM") h += 12;
+  return String(h).padStart(2, "0");
+}
+
+function parseTimeParts(time: string): { hour12: string; minute: string; period: "AM" | "PM" } {
+  if (!time) return { hour12: "09", minute: "00", period: "AM" };
+  const [hh, mm] = time.split(":");
+  const { hour12, period } = to12Hour(parseInt(hh, 10) || 0);
+  return { hour12, minute: mm ?? "00", period };
+}
+
+function formatTimeLabel(time: string): string {
+  if (!time) return "დროის დამატება";
+  const { hour12, minute, period } = parseTimeParts(time);
+  return `${hour12}:${minute} ${period}`;
+}
 
 export function DashboardCalendarPanel() {
   const today = useMemo(() => new Date(), []);
@@ -241,7 +268,7 @@ export function DashboardCalendarPanel() {
     <motion.aside
       animate={{ width: expanded ? 300 : 76 }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="sticky top-24 hidden h-fit shrink-0 flex-col gap-4 overflow-hidden xl:flex"
+      className={`sticky top-24 hidden h-fit shrink-0 flex-col gap-4 xl:flex ${expanded ? "overflow-visible" : "overflow-hidden"}`}
     >
       {!expanded ? (
         <button
@@ -420,43 +447,43 @@ export function DashboardCalendarPanel() {
                           {showDatePicker && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
-                              <div className="absolute left-0 top-full z-50 mt-2 w-60 rounded-2xl border border-sky-200 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
-                                <div className="mb-2 flex items-center justify-between">
-                                  <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                              <div className="absolute left-0 top-full z-50 mt-2 w-[280px] rounded-2xl border border-sky-200 bg-white p-3.5 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
+                                <div className="mb-3 flex items-center justify-between">
+                                  <p className="text-sm font-bold text-zinc-900 dark:text-white">
                                     {MONTH_NAMES[pickerMonth.getMonth()]} {pickerMonth.getFullYear()}
                                   </p>
-                                  <div className="flex items-center gap-0.5">
+                                  <div className="flex items-center gap-1">
                                     <button
                                       type="button"
                                       onClick={() =>
                                         setPickerMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
                                       }
-                                      className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
+                                      className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
                                     >
-                                      <ChevronLeft className="h-3.5 w-3.5" />
+                                      <ChevronLeft className="h-4 w-4" />
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() =>
                                         setPickerMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
                                       }
-                                      className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
+                                      className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
                                     >
-                                      <ChevronRight className="h-3.5 w-3.5" />
+                                      <ChevronRight className="h-4 w-4" />
                                     </button>
                                   </div>
                                 </div>
-                                <div className="mb-1 grid grid-cols-7 gap-0.5">
+                                <div className="mb-1.5 grid grid-cols-7 gap-1">
                                   {WEEKDAY_LABELS.map((wd) => (
                                     <p
                                       key={wd}
-                                      className="text-center text-[9px] font-bold uppercase text-sky-500/70 dark:text-sky-300/60"
+                                      className="text-center text-[10px] font-bold uppercase text-sky-500/70 dark:text-sky-300/60"
                                     >
                                       {wd[0]}
                                     </p>
                                   ))}
                                 </div>
-                                <div className="grid grid-cols-7 gap-0.5">
+                                <div className="grid grid-cols-7 gap-1">
                                   {pickerCells.map((cell) => {
                                     const isSelected = cell.key === formDate;
                                     return (
@@ -467,13 +494,13 @@ export function DashboardCalendarPanel() {
                                           setFormDate(cell.key);
                                           setShowDatePicker(false);
                                         }}
-                                        className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold transition-all ${
+                                        className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all ${
                                           !cell.inMonth
                                             ? "text-zinc-300 dark:text-zinc-700"
                                             : isSelected
                                               ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
                                               : cell.isToday
-                                                ? "border border-sky-400 text-zinc-900 dark:border-sky-400 dark:text-white"
+                                                ? "border-2 border-sky-400 text-zinc-900 dark:border-sky-400 dark:text-white"
                                                 : "text-zinc-700 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
                                         }`}
                                       >
@@ -489,7 +516,7 @@ export function DashboardCalendarPanel() {
                                     setPickerMonth(new Date(today.getFullYear(), today.getMonth(), 1));
                                     setShowDatePicker(false);
                                   }}
-                                  className="mt-2 w-full rounded-full py-1 text-[10px] font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
+                                  className="mt-2.5 w-full rounded-full py-1.5 text-xs font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
                                 >
                                   დღეს
                                 </button>
@@ -508,44 +535,78 @@ export function DashboardCalendarPanel() {
                             className="flex w-full items-center gap-1.5 truncate rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] font-semibold text-zinc-900 transition-all hover:border-pink-300 dark:border-white/10 dark:bg-white/5 dark:text-white"
                           >
                             <Clock className="h-3.5 w-3.5 shrink-0 text-sky-500 dark:text-sky-300" />
-                            <span className="truncate">{formTime || "დროის დამატება"}</span>
+                            <span className="truncate">{formatTimeLabel(formTime)}</span>
                           </button>
                           {showTimePicker && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setShowTimePicker(false)} />
-                              <div className="absolute right-0 top-full z-50 mt-2 w-32 rounded-2xl border border-sky-200 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
-                                <div className="flex gap-1">
-                                  <div className="h-32 w-1/2 overflow-y-auto">
-                                    {HOUR_OPTIONS.map((h) => (
-                                      <button
-                                        key={h}
-                                        type="button"
-                                        onClick={() => setFormTime(`${h}:${formTime.split(":")[1] ?? "00"}`)}
-                                        className={`w-full rounded-lg py-1 text-center text-[11px] font-semibold transition-all ${
-                                          formTime.split(":")[0] === h
-                                            ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
-                                            : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
-                                        }`}
-                                      >
-                                        {h}
-                                      </button>
-                                    ))}
+                              <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-2xl border border-sky-200 bg-white p-2.5 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
+                                <div className="flex gap-1.5">
+                                  <div className="h-40 w-2/5 overflow-y-auto">
+                                    {HOUR_OPTIONS.map((h) => {
+                                      const parts = parseTimeParts(formTime);
+                                      const active = parts.hour12 === h;
+                                      return (
+                                        <button
+                                          key={h}
+                                          type="button"
+                                          onClick={() =>
+                                            setFormTime(`${to24Hour(h, parts.period)}:${parts.minute}`)
+                                          }
+                                          className={`w-full rounded-lg py-1.5 text-center text-sm font-semibold transition-all ${
+                                            active
+                                              ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                              : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                          }`}
+                                        >
+                                          {h}
+                                        </button>
+                                      );
+                                    })}
                                   </div>
-                                  <div className="h-32 w-1/2 overflow-y-auto">
-                                    {MINUTE_OPTIONS.map((m) => (
-                                      <button
-                                        key={m}
-                                        type="button"
-                                        onClick={() => setFormTime(`${formTime.split(":")[0] ?? "00"}:${m}`)}
-                                        className={`w-full rounded-lg py-1 text-center text-[11px] font-semibold transition-all ${
-                                          formTime.split(":")[1] === m
-                                            ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
-                                            : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
-                                        }`}
-                                      >
-                                        {m}
-                                      </button>
-                                    ))}
+                                  <div className="h-40 w-2/5 overflow-y-auto">
+                                    {MINUTE_OPTIONS.map((m) => {
+                                      const parts = parseTimeParts(formTime);
+                                      const active = parts.minute === m;
+                                      return (
+                                        <button
+                                          key={m}
+                                          type="button"
+                                          onClick={() =>
+                                            setFormTime(`${to24Hour(parts.hour12, parts.period)}:${m}`)
+                                          }
+                                          className={`w-full rounded-lg py-1.5 text-center text-sm font-semibold transition-all ${
+                                            active
+                                              ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                              : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                          }`}
+                                        >
+                                          {m}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="flex w-1/5 flex-col gap-1">
+                                    {PERIOD_OPTIONS.map((p) => {
+                                      const parts = parseTimeParts(formTime);
+                                      const active = parts.period === p;
+                                      return (
+                                        <button
+                                          key={p}
+                                          type="button"
+                                          onClick={() =>
+                                            setFormTime(`${to24Hour(parts.hour12, p)}:${parts.minute}`)
+                                          }
+                                          className={`rounded-lg py-1.5 text-center text-[11px] font-bold transition-all ${
+                                            active
+                                              ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                              : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                          }`}
+                                        >
+                                          {p}
+                                        </button>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                                 {formTime && (
@@ -555,7 +616,7 @@ export function DashboardCalendarPanel() {
                                       setFormTime("");
                                       setShowTimePicker(false);
                                     }}
-                                    className="mt-1 w-full rounded-full py-1 text-[10px] font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
+                                    className="mt-1.5 w-full rounded-full py-1 text-[10px] font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
                                   >
                                     გასუფთავება
                                   </button>
@@ -648,7 +709,7 @@ export function DashboardCalendarPanel() {
                           </p>
                           <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
                             {style.label}
-                            {event.time ? ` · ${event.time}` : ""}
+                            {event.time ? ` · ${formatTimeLabel(event.time)}` : ""}
                           </p>
                           {event.description && (
                             <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
