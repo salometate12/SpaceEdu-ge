@@ -176,11 +176,11 @@ export function DashboardSideRail() {
       <RailGroup title="ზოგადი" items={generalItems} expanded={expanded} />
 
       <div className="mt-4 border-t border-white/10 pt-4">
-        <RailGroup title="ანგარიში" items={accountItems} expanded={expanded} />
+        <RailGroup title="ხელსაწყოები" items={toolItems} expanded={expanded} />
       </div>
 
       <div className="mt-4 border-t border-white/10 pt-4">
-        <RailGroup title="ხელსაწყოები" items={toolItems} expanded={expanded} />
+        <RailGroup title="ანგარიში" items={accountItems} expanded={expanded} />
       </div>
 
       <div className="mt-4 border-t border-white/10 pt-4">
