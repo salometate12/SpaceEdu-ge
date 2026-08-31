@@ -893,7 +893,7 @@ function computeBadges({
     badges.push({
       icon: <Trophy className="h-3.5 w-3.5 stroke-[1.75]" />,
       label: "იდეალური შედეგი",
-      className: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+      className: "border-[3px] border-transparent bg-amber-400 text-black",
     });
   }
 
@@ -906,7 +906,7 @@ function computeBadges({
       badges.push({
         icon: <Sparkles className="h-3.5 w-3.5 stroke-[1.75]" />,
         label: "ტროპების ოსტატი",
-        className: "border-cyan-500/30 bg-cyan-500/10 text-cyan-300",
+        className: "border-[3px] border-cyan-400 bg-transparent text-cyan-300",
       });
     }
   }
@@ -915,7 +915,7 @@ function computeBadges({
     badges.push({
       icon: <Flame className="h-3.5 w-3.5 stroke-[1.75]" />,
       label: `სერია x${bestStreak}`,
-      className: "border-orange-500/30 bg-orange-500/10 text-orange-300",
+      className: "border-[3px] border-transparent bg-orange-500 text-white",
     });
   }
 
@@ -1050,18 +1050,29 @@ function ResultsScreen({
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <ResultStat label="სწორი პასუხი" value={`${correctCount} / ${total}`} tone="text-white" />
+            <ResultStat
+              label="სწორი პასუხი"
+              value={`${correctCount} / ${total}`}
+              tone="text-white"
+              accent="border-[3px] border-white/25 bg-transparent"
+              rotate="left"
+            />
             <ResultStat
               label="ჯამური ქულა"
               value={String(totalScore)}
-              tone="text-cyan-300"
-              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-cyan-300" />}
+              tone="text-black"
+              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-black" />}
+              accent="border-[3px] border-transparent bg-cyan-400"
+              labelClass="text-black/60"
+              rotate="right"
             />
             <ResultStat
               label="საუკეთესო სერია"
               value={`x${bestStreak}`}
               tone="text-orange-300"
               icon={<Flame className="h-3.5 w-3.5 stroke-[1.75] text-orange-300" />}
+              accent="border-[3px] border-orange-400 bg-transparent"
+              rotate="left"
             />
           </div>
 
@@ -1080,7 +1091,9 @@ function ResultsScreen({
                     initial={{ opacity: 0, scale: 0.85, y: 6 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.5 + index * 0.1, type: "spring", stiffness: 300, damping: 18 }}
-                    className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-semibold ${badge.className}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${
+                      index % 2 === 0 ? "-rotate-1" : "rotate-1"
+                    } ${badge.className}`}
                   >
                     {badge.icon}
                     {badge.label}
@@ -1177,21 +1190,33 @@ function ResultStat({
   tone,
   small,
   icon,
+  accent,
+  rotate,
+  labelClass,
 }: {
   label: string;
   value: string;
   tone: string;
   small?: boolean;
   icon?: ReactNode;
+  accent?: string;
+  rotate?: "left" | "right";
+  labelClass?: string;
 }) {
   return (
-    <div className="rounded-[24px] border-2 border-white/10 bg-white/[0.02] p-4">
-      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+    <div
+      className={`rounded-[24px] p-4 transition-transform duration-200 hover:scale-[1.02] ${
+        rotate === "right" ? "rotate-1" : rotate === "left" ? "-rotate-1" : ""
+      } ${accent ?? "border-2 border-white/10 bg-white/[0.02]"}`}
+    >
+      <p
+        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${labelClass ?? "text-zinc-500"}`}
+      >
         {icon}
         {label}
       </p>
       <p
-        className={`mt-1.5 font-bold tracking-tight ${tone} ${
+        className={`mt-1.5 font-black tracking-tight ${tone} ${
           small ? "text-base" : "text-2xl"
         }`}
       >
