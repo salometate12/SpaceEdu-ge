@@ -25,7 +25,7 @@ import { researchPlatformHref } from "@/lib/space-back-navigation";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 
-interface RailItem {
+export interface RailItem {
   id: string;
   label: string;
   href?: string;
@@ -34,20 +34,20 @@ interface RailItem {
   active?: boolean;
 }
 
-const GENERAL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
+export const GENERAL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "dashboard", label: "დეშბორდი", href: "/dashboard-student", icon: LayoutDashboard },
   { id: "study-plan", label: "სასწავლო გეგმა", href: "/study-plan", icon: CalendarClock },
   { id: "quiz", label: "ვიქტორინა", href: "/quiz", icon: Brain },
   { id: "profile", label: "პროფილი", href: "/profile", icon: User },
 ];
 
-const ACCOUNT_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
+export const ACCOUNT_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "stats", label: "სტატისტიკა", href: "/profile/stats", icon: BarChart3 },
   { id: "settings", label: "პარამეტრები", href: "/settings", icon: Settings },
   { id: "admin", label: "Admin Panel", href: "/admin", icon: Shield },
 ];
 
-const TOOL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
+export const TOOL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "ai-teacher", label: "AI მასწავლებელი", href: "/ai-teacher", icon: MessageSquareText },
   { id: "research", label: "მასალა → ანალიზი", href: researchPlatformHref("student"), icon: FileSearch },
   { id: "presentation", label: "AI პრეზენტაცია", href: "/presentation", icon: Sparkles },
@@ -55,7 +55,7 @@ const TOOL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "syllabus", label: "სილაბუსი", href: "/syllabus", icon: GraduationCap },
 ];
 
-function RailLink({ item, expanded }: { item: RailItem; expanded: boolean }) {
+export function RailLink({ item, expanded }: { item: RailItem; expanded: boolean }) {
   const Icon = item.icon;
   const className = `group relative flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm font-semibold transition-all duration-200 ${
     item.active ? "bg-white text-black" : "text-white/60 hover:bg-white/10 hover:text-white"
@@ -94,7 +94,7 @@ function RailLink({ item, expanded }: { item: RailItem; expanded: boolean }) {
   );
 }
 
-function RailGroup({
+export function RailGroup({
   title,
   items,
   expanded,

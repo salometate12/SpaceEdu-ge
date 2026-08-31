@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
+import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import {
+  DASHBOARD_MOBILE_MENU_HREF,
   isDockItemActive,
   mobileDockHidden,
   mobileDockItems,
@@ -21,6 +23,7 @@ export function MobileGlassDock() {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
+  const { open: openMobileMenu } = useMobileSideMenu();
 
   const items = mobileDockItems(pathname);
   const hidden = mobileDockHidden(pathname) || items.length === 0;
@@ -87,6 +90,21 @@ export function MobileGlassDock() {
                     ? "bg-violet-500/15 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
                     : "text-slate-600 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-300"
                 }`}
+              >
+                <Icon className="h-5 w-5 shrink-0 stroke-[1.75]" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          }
+
+          if (item.href === DASHBOARD_MOBILE_MENU_HREF) {
+            return (
+              <button
+                key={item.href}
+                type="button"
+                onClick={openMobileMenu}
+                aria-label={item.label}
+                className="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium text-slate-600 transition-colors hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-300"
               >
                 <Icon className="h-5 w-5 shrink-0 stroke-[1.75]" />
                 <span className="truncate">{item.label}</span>

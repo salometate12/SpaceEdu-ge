@@ -3,10 +3,12 @@ import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
 import type { LucideIcon } from "lucide-react";
 import {
   Calculator,
+  CalendarDays,
   Flame,
   Home,
   LayoutDashboard,
   LogIn,
+  Menu,
   MessageSquare,
   Rocket,
   Tag,
@@ -56,6 +58,33 @@ const APP_DOCK: MobileDockItem[] = [
   },
 ];
 
+export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
+export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
+
+const STUDENT_DASHBOARD_DOCK: MobileDockItem[] = [
+  {
+    href: DASHBOARD_CALENDAR_ANCHOR_HREF,
+    label: "კალენდარი",
+    icon: CalendarDays,
+  },
+  {
+    href: "/ai-teacher",
+    label: "AI",
+    icon: MessageSquare,
+  },
+  {
+    href: "/profile",
+    label: "პროფილი",
+    icon: UserRound,
+    match: (p) => p.startsWith("/profile"),
+  },
+  {
+    href: DASHBOARD_MOBILE_MENU_HREF,
+    label: "მენიუ",
+    icon: Menu,
+  },
+];
+
 const LANDING_DOCK: MobileDockItem[] = [
   { href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
   {
@@ -92,6 +121,7 @@ export function mobileDockHidden(pathname: string | null): boolean {
 export function mobileDockItems(pathname: string | null): MobileDockItem[] {
   if (!pathname || mobileDockHidden(pathname)) return [];
   if (pathname === "/" || pathname === "/pricing") return LANDING_DOCK;
+  if (pathname === "/dashboard-student") return STUDENT_DASHBOARD_DOCK;
   return APP_DOCK;
 }
 

@@ -359,7 +359,9 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
               </div>
             </article>
           </section>
-          <DashboardCalendarPanel variant="inline" />
+          <div id="dashboard-calendar-panel" className="scroll-mt-24">
+            <DashboardCalendarPanel variant="inline" />
+          </div>
         </div>
         <DashboardCalendarPanel />
       </main>
