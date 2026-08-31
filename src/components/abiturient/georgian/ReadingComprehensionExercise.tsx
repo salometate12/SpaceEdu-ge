@@ -658,12 +658,12 @@ export function ReadingComprehensionExercise() {
 /* -------------------------------------------------------------------------- */
 
 const TROPE_CHIPS: { label: string; className: string }[] = [
-  { label: "მეტაფორა", className: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300" },
-  { label: "გაპიროვნება", className: "border-violet-500/25 bg-violet-500/10 text-violet-300" },
-  { label: "ეპითეტი", className: "border-amber-500/25 bg-amber-500/10 text-amber-300" },
-  { label: "შედარება", className: "border-emerald-500/25 bg-emerald-500/10 text-emerald-300" },
-  { label: "ჰიპერბოლა", className: "border-rose-500/25 bg-rose-500/10 text-rose-300" },
-  { label: "ალეგორია", className: "border-blue-500/25 bg-blue-500/10 text-blue-300" },
+  { label: "მეტაფორა", className: "border-[3px] border-cyan-400 bg-transparent text-cyan-300" },
+  { label: "გაპიროვნება", className: "border-[3px] border-violet-400 bg-transparent text-violet-300" },
+  { label: "ეპითეტი", className: "border-[3px] border-transparent bg-amber-400 text-black" },
+  { label: "შედარება", className: "border-[3px] border-emerald-400 bg-transparent text-emerald-300" },
+  { label: "ჰიპერბოლა", className: "border-[3px] border-transparent bg-rose-500 text-white" },
+  { label: "ალეგორია", className: "border-[3px] border-transparent bg-blue-500 text-white" },
 ];
 
 function IntroScreen({
@@ -742,13 +742,14 @@ function IntroScreen({
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             ივარჯიშებ ამ მხატვრულ საშუალებებზე
           </p>
-          <div className="flex flex-wrap gap-2">
-            {TROPE_CHIPS.map((chip) => (
+          <div className="flex flex-wrap gap-3">
+            {TROPE_CHIPS.map((chip, index) => (
               <span
                 key={chip.label}
-                className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-medium transition-transform hover:-translate-y-0.5 ${chip.className}`}
+                className={`inline-flex items-center rounded-full px-5 py-2.5 text-sm font-bold transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.04] ${
+                  index % 2 === 0 ? "-rotate-1" : "rotate-1"
+                } ${chip.className}`}
               >
-                <Sparkles className="h-3 w-3 stroke-[2]" />
                 {chip.label}
               </span>
             ))}
