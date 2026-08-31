@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
   Brain,
+  Calendar,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Clock,
   FileText,
   GraduationCap,
   Plus,
@@ -75,6 +77,35 @@ function eventDateKey(dateStr: string): string {
   return toDateKey(d);
 }
 
+function buildMonthCells(viewDate: Date, today: Date) {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: totalCells }, (_, i) => {
+    const dayNumber = i - startOffset + 1;
+    const cellDate = new Date(year, month, dayNumber);
+    return {
+      key: toDateKey(cellDate),
+      label: cellDate.getDate(),
+      inMonth: cellDate.getMonth() === month,
+      isToday: toDateKey(cellDate) === toDateKey(today),
+    };
+  });
+}
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "თარიღის არჩევა";
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
+}
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+
 export function DashboardCalendarPanel() {
   const today = useMemo(() => new Date(), []);
   const [expanded, setExpanded] = useState(true);
@@ -88,6 +119,9 @@ export function DashboardCalendarPanel() {
   const [formTime, setFormTime] = useState("");
   const [formType, setFormType] = useState<SyllabusMilestoneType>("deadline");
   const [formDescription, setFormDescription] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [pickerMonth, setPickerMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
 
   useEffect(() => {
     const load = () => setEvents(getDashboardCalendarEvents());
@@ -111,25 +145,8 @@ export function DashboardCalendarPanel() {
     return map;
   }, [events]);
 
-  const cells = useMemo(() => {
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-    const firstOfMonth = new Date(year, month, 1);
-    const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
-
-    return Array.from({ length: totalCells }, (_, i) => {
-      const dayNumber = i - startOffset + 1;
-      const cellDate = new Date(year, month, dayNumber);
-      return {
-        key: toDateKey(cellDate),
-        label: cellDate.getDate(),
-        inMonth: cellDate.getMonth() === month,
-        isToday: toDateKey(cellDate) === toDateKey(today),
-      };
-    });
-  }, [viewDate, today]);
+  const cells = useMemo(() => buildMonthCells(viewDate, today), [viewDate, today]);
+  const pickerCells = useMemo(() => buildMonthCells(pickerMonth, today), [pickerMonth, today]);
 
   const selectedEvents = eventsByDate.get(selectedKey) ?? [];
   const isViewingToday = toDateKey(today) === selectedKey;
@@ -142,16 +159,23 @@ export function DashboardCalendarPanel() {
     setFormTime("");
     setFormType("deadline");
     setFormDescription("");
+    setPickerMonth(new Date(selectedKey));
+    setShowDatePicker(false);
+    setShowTimePicker(false);
     setShowAddForm(true);
   };
 
   const openEditForm = (event: DashboardCalendarEvent) => {
+    const dateKey = eventDateKey(event.date);
     setEditingId(event.id);
     setFormTitle(event.title);
-    setFormDate(eventDateKey(event.date));
+    setFormDate(dateKey);
     setFormTime(event.time ?? "");
     setFormType(event.type);
     setFormDescription(event.description ?? "");
+    setPickerMonth(new Date(dateKey));
+    setShowDatePicker(false);
+    setShowTimePicker(false);
     setShowAddForm(true);
   };
 
@@ -380,18 +404,166 @@ export function DashboardCalendarPanel() {
                         className="w-full rounded-full border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-pink-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-zinc-500"
                       />
                       <div className="flex gap-2">
-                        <input
-                          type="date"
-                          value={formDate}
-                          onChange={(e) => setFormDate(e.target.value)}
-                          className="w-1/2 rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-zinc-900 focus:border-pink-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        />
-                        <input
-                          type="time"
-                          value={formTime}
-                          onChange={(e) => setFormTime(e.target.value)}
-                          className="w-1/2 rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-zinc-900 focus:border-pink-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        />
+                        <div className="relative w-1/2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPickerMonth(new Date(formDate));
+                              setShowTimePicker(false);
+                              setShowDatePicker((v) => !v);
+                            }}
+                            className="flex w-full items-center gap-1.5 truncate rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] font-semibold text-zinc-900 transition-all hover:border-pink-300 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                          >
+                            <Calendar className="h-3.5 w-3.5 shrink-0 text-sky-500 dark:text-sky-300" />
+                            <span className="truncate">{formatDateLabel(formDate)}</span>
+                          </button>
+                          {showDatePicker && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
+                              <div className="absolute left-0 top-full z-50 mt-2 w-60 rounded-2xl border border-sky-200 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
+                                <div className="mb-2 flex items-center justify-between">
+                                  <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                                    {MONTH_NAMES[pickerMonth.getMonth()]} {pickerMonth.getFullYear()}
+                                  </p>
+                                  <div className="flex items-center gap-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setPickerMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+                                      }
+                                      className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
+                                    >
+                                      <ChevronLeft className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setPickerMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+                                      }
+                                      className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 hover:bg-sky-100 dark:text-zinc-400 dark:hover:bg-white/10"
+                                    >
+                                      <ChevronRight className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="mb-1 grid grid-cols-7 gap-0.5">
+                                  {WEEKDAY_LABELS.map((wd) => (
+                                    <p
+                                      key={wd}
+                                      className="text-center text-[9px] font-bold uppercase text-sky-500/70 dark:text-sky-300/60"
+                                    >
+                                      {wd[0]}
+                                    </p>
+                                  ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-0.5">
+                                  {pickerCells.map((cell) => {
+                                    const isSelected = cell.key === formDate;
+                                    return (
+                                      <button
+                                        key={cell.key}
+                                        type="button"
+                                        onClick={() => {
+                                          setFormDate(cell.key);
+                                          setShowDatePicker(false);
+                                        }}
+                                        className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold transition-all ${
+                                          !cell.inMonth
+                                            ? "text-zinc-300 dark:text-zinc-700"
+                                            : isSelected
+                                              ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                              : cell.isToday
+                                                ? "border border-sky-400 text-zinc-900 dark:border-sky-400 dark:text-white"
+                                                : "text-zinc-700 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                        }`}
+                                      >
+                                        {cell.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormDate(toDateKey(today));
+                                    setPickerMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                                    setShowDatePicker(false);
+                                  }}
+                                  className="mt-2 w-full rounded-full py-1 text-[10px] font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
+                                >
+                                  დღეს
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="relative w-1/2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowDatePicker(false);
+                              setShowTimePicker((v) => !v);
+                            }}
+                            className="flex w-full items-center gap-1.5 truncate rounded-full border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] font-semibold text-zinc-900 transition-all hover:border-pink-300 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                          >
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-sky-500 dark:text-sky-300" />
+                            <span className="truncate">{formTime || "დროის დამატება"}</span>
+                          </button>
+                          {showTimePicker && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setShowTimePicker(false)} />
+                              <div className="absolute right-0 top-full z-50 mt-2 w-32 rounded-2xl border border-sky-200 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
+                                <div className="flex gap-1">
+                                  <div className="h-32 w-1/2 overflow-y-auto">
+                                    {HOUR_OPTIONS.map((h) => (
+                                      <button
+                                        key={h}
+                                        type="button"
+                                        onClick={() => setFormTime(`${h}:${formTime.split(":")[1] ?? "00"}`)}
+                                        className={`w-full rounded-lg py-1 text-center text-[11px] font-semibold transition-all ${
+                                          formTime.split(":")[0] === h
+                                            ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                            : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                        }`}
+                                      >
+                                        {h}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <div className="h-32 w-1/2 overflow-y-auto">
+                                    {MINUTE_OPTIONS.map((m) => (
+                                      <button
+                                        key={m}
+                                        type="button"
+                                        onClick={() => setFormTime(`${formTime.split(":")[0] ?? "00"}:${m}`)}
+                                        className={`w-full rounded-lg py-1 text-center text-[11px] font-semibold transition-all ${
+                                          formTime.split(":")[1] === m
+                                            ? "bg-pink-400 text-white dark:bg-sky-400 dark:text-black"
+                                            : "text-zinc-600 hover:bg-sky-100 dark:text-zinc-300 dark:hover:bg-white/10"
+                                        }`}
+                                      >
+                                        {m}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                                {formTime && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setFormTime("");
+                                      setShowTimePicker(false);
+                                    }}
+                                    className="mt-1 w-full rounded-full py-1 text-[10px] font-bold text-pink-500 hover:bg-pink-50 dark:text-sky-300 dark:hover:bg-white/5"
+                                  >
+                                    გასუფთავება
+                                  </button>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-1.5">
                         {(Object.keys(TYPE_STYLE) as SyllabusMilestoneType[]).map((t) => (
