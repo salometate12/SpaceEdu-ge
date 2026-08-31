@@ -801,20 +801,38 @@ function IntroScreen({
           </h2>
           <ol className="relative space-y-3">
             {[
-              "სისტემა ბანკიდან შემთხვევით ამოირჩევს ერთ ტექსტს — მხატვრულს ან საინფორმაციოს.",
-              "მარცხნივ ნახავ ტექსტს, მარჯვნივ — მასთან დაკავშირებულ 3–4 კითხვას.",
-              "პასუხის შემოწმებისას მიიღებ დეტალურ განმარტებას და ქულებს — ზედიზედ სწორი პასუხები მეტ ქულას გაძლევს.",
-              "ბოლოს ნახავ ვარსკვლავურ შეფასებას, ჯამურ ქულასა და მოპოვებულ მიღწევებს.",
+              {
+                text: "სისტემა ბანკიდან შემთხვევით ამოირჩევს ერთ ტექსტს — მხატვრულს ან საინფორმაციოს.",
+                circle: "bg-violet-400 text-black",
+                border: "border-violet-500/30",
+              },
+              {
+                text: "მარცხნივ ნახავ ტექსტს, მარჯვნივ — მასთან დაკავშირებულ 3–4 კითხვას.",
+                circle: "bg-cyan-400 text-black",
+                border: "border-cyan-500/30",
+              },
+              {
+                text: "პასუხის შემოწმებისას მიიღებ დეტალურ განმარტებას და ქულებს — ზედიზედ სწორი პასუხები მეტ ქულას გაძლევს.",
+                circle: "bg-amber-400 text-black",
+                border: "border-amber-500/30",
+              },
+              {
+                text: "ბოლოს ნახავ ვარსკვლავურ შეფასებას, ჯამურ ქულასა და მოპოვებულ მიღწევებს.",
+                circle: "bg-emerald-400 text-black",
+                border: "border-emerald-500/30",
+              },
             ].map((step, index) => (
               <li
                 key={`step-${index}`}
-                className="relative z-[1] flex items-center gap-3 rounded-[24px] border-2 border-white/10 bg-white/[0.02] p-3"
+                className={`relative z-[1] flex items-center gap-3 rounded-[24px] border-2 bg-white/[0.02] p-3 transition-all duration-200 hover:-translate-y-0.5 ${step.border}`}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-[12px] font-bold text-cyan-300">
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-black ${step.circle}`}
+                >
                   {index + 1}
                 </span>
                 <span className="text-[13px] leading-relaxed text-zinc-300">
-                  {step}
+                  {step.text}
                 </span>
               </li>
             ))}
