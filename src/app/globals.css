@@ -2,6 +2,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@font-face {
+  font-family: "BPG Extra Square Mtavruli";
+  src: url("/fonts/bpg_extrasquare_mtavruli_2009.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.tool-card-font {
+  font-family: "BPG Extra Square Mtavruli", "BPG Arial", sans-serif;
+}
+
 /* დღის რეჟიმი (default light) */
 :root {
   --bg-primary: #f8fafc;
@@ -311,10 +323,19 @@ html.dark .subject-icon-wrap-featured {
     max-width: 100% !important;
   }
 
-  .mobile-widget-tools h3,
   .mobile-widget-tools p {
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  .mobile-widget-tools h3 {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    padding-right: 2.25rem !important;
   }
 
   html:not(.dark) .mobile-vivid-stat-pill {

@@ -165,10 +165,10 @@ export function StudentTools() {
                     </ToolIconWrap>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
+                    <h3 className="tool-card-font text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
+                    <p className="tool-card-font mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
                       {tool.description}
                     </p>
                   </div>
@@ -188,10 +188,10 @@ export function StudentTools() {
                         <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                       </ToolIconWrap>
                     </div>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
+                    <h3 className="tool-card-font mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
+                    <p className="tool-card-font mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
                       {tool.description}
                     </p>
                   </div>
