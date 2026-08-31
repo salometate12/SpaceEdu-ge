@@ -344,10 +344,10 @@ export function ReadingComprehensionExercise() {
           {/* --------------------------- game HUD --------------------------- */}
           <div className="flex items-center gap-2">
             <div
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors duration-300 ${
+              className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-semibold transition-colors duration-300 ${
                 streak > 0
                   ? "border-orange-500/30 bg-orange-500/10 text-orange-300"
-                  : "border-white/[0.06] bg-white/[0.03] text-zinc-500"
+                  : "border-white/10 bg-transparent text-zinc-500"
               }`}
               aria-label="მიმდინარე სერია"
             >
@@ -366,7 +366,7 @@ export function ReadingComprehensionExercise() {
             </div>
 
             <div
-              className="relative flex items-center gap-1.5 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-200"
+              className="relative flex items-center gap-1.5 rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-200"
               aria-label="ქულა"
             >
               <Gem className="h-3.5 w-3.5 stroke-[1.75]" />
@@ -685,14 +685,18 @@ function IntroScreen({
         </Link>
 
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)] ring-1 ring-cyan-500/20 animate-float-soft">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)] animate-float-soft">
             <BookText className="h-7 w-7 stroke-[1.5]" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-300/90">
+            <span className="relative -rotate-2 inline-flex items-center rounded-full border-2 border-cyan-500/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300/90">
               მეორე სავარჯიშო
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-white sm:text-3xl">
+              <span
+                className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+                aria-hidden
+              />
+            </span>
+            <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
               წაკითხულის გააზრება
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
@@ -713,21 +717,24 @@ function IntroScreen({
             value={`${libraryHighlights.passageCount}+`}
             hint="მხატვრული + საინფორმაციო"
             icon={<BookText className="h-4 w-4 stroke-[1.75] text-violet-300" />}
-            accent="border-violet-500/25 bg-violet-500/10"
+            accent="border-violet-500/30 text-violet-300"
+            dot="bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
           />
           <StatCard
             label="მხატვრული საშუალებები"
             value="6"
             hint="მეტაფორა, გაპიროვნება, ეპითეტი, შედარება, ჰიპერბოლა, ალეგორია"
             icon={<Sparkles className="h-4 w-4 stroke-[1.75] text-cyan-300" />}
-            accent="border-cyan-500/25 bg-cyan-500/10"
+            accent="border-cyan-500/30 text-cyan-300"
+            dot="bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
           />
           <StatCard
             label="კითხვის ტიპები"
             value="3"
             hint="მთავარი აზრი · ნაგულისხმევი · მხატვრული ხერხი"
             icon={<Trophy className="h-4 w-4 stroke-[1.75] text-amber-300" />}
-            accent="border-amber-500/25 bg-amber-500/10"
+            accent="border-amber-500/30 text-amber-300"
+            dot="bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]"
           />
         </section>
 
@@ -739,7 +746,7 @@ function IntroScreen({
             {TROPE_CHIPS.map((chip) => (
               <span
                 key={chip.label}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-transform hover:-translate-y-0.5 ${chip.className}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-medium transition-transform hover:-translate-y-0.5 ${chip.className}`}
               >
                 <Sparkles className="h-3 w-3 stroke-[2]" />
                 {chip.label}
@@ -748,9 +755,13 @@ function IntroScreen({
           </div>
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-[#0e1420] via-[#0a0d16] to-[#0e1420] p-6 backdrop-blur-xl sm:p-8">
+        <section className="relative mt-8 overflow-hidden rounded-[32px] border-2 border-cyan-500/25 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-8">
+          <span
+            className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+            aria-hidden
+          />
           <div className="flex flex-wrap items-start gap-5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
               <Shuffle className="h-5 w-5 stroke-[1.5]" />
             </div>
             <div className="min-w-0 flex-1">
@@ -765,14 +776,14 @@ function IntroScreen({
               <div className="relative mt-5 inline-block">
                 <motion.span
                   aria-hidden
-                  className="absolute inset-0 rounded-xl bg-cyan-400/30 blur-md"
+                  className="absolute inset-0 rounded-full bg-cyan-400/30 blur-md"
                   animate={{ opacity: [0.35, 0.7, 0.35], scale: [1, 1.06, 1] }}
                   transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <button
                   type="button"
                   onClick={onStart}
-                  className="relative z-[1] inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/15 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className="relative z-[1] inline-flex items-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/15 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
                 >
                   <Sparkles className="h-4 w-4 stroke-[1.75]" />
                   ტესტის დაწყება
@@ -787,7 +798,7 @@ function IntroScreen({
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
             როგორ მუშაობს
           </h2>
-          <ol className="relative space-y-3 before:absolute before:bottom-2 before:left-6 before:top-2 before:w-px before:bg-gradient-to-b before:from-cyan-500/40 before:via-white/10 before:to-transparent">
+          <ol className="relative space-y-3">
             {[
               "სისტემა ბანკიდან შემთხვევით ამოირჩევს ერთ ტექსტს — მხატვრულს ან საინფორმაციოს.",
               "მარცხნივ ნახავ ტექსტს, მარჯვნივ — მასთან დაკავშირებულ 3–4 კითხვას.",
@@ -796,9 +807,9 @@ function IntroScreen({
             ].map((step, index) => (
               <li
                 key={`step-${index}`}
-                className="relative z-[1] flex items-start gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3"
+                className="relative z-[1] flex items-center gap-3 rounded-[24px] border-2 border-white/10 bg-white/[0.02] p-3"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-cyan-500/25 bg-cyan-500/10 text-[11px] font-semibold text-cyan-300">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-[12px] font-bold text-cyan-300">
                   {index + 1}
                 </span>
                 <span className="text-[13px] leading-relaxed text-zinc-300">
@@ -819,18 +830,26 @@ function StatCard({
   hint,
   icon,
   accent,
+  dot,
 }: {
   label: string;
   value: string;
   hint: string;
   icon?: ReactNode;
   accent?: string;
+  dot?: string;
 }) {
   return (
-    <div className="group rounded-2xl border border-white/[0.06] bg-[#13131A]/60 p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+    <div className="group relative rounded-[28px] border-2 border-white/12 bg-white/[0.02] p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/20">
+      {dot && (
+        <span
+          className={`absolute -right-1.5 -top-1.5 h-3.5 w-3.5 rounded-full ${dot}`}
+          aria-hidden
+        />
+      )}
       {icon && (
         <div
-          className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg border ${accent ?? "border-white/10 bg-white/5"}`}
+          className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full border-2 ${accent ?? "border-white/15 text-white/70"}`}
         >
           {icon}
         </div>
@@ -977,19 +996,19 @@ function ResultsScreen({
           სავარჯიშოს გვერდზე დაბრუნება
         </button>
 
-        <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#13131A]/60 p-6 backdrop-blur-xl sm:p-8">
+        <section className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-8">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)]">
               <Trophy className="h-7 w-7 stroke-[1.5]" />
             </div>
             <div>
               <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-cyan-300/90">
                 სესიის შედეგი
                 <span
-                  className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal ${
+                  className={`relative inline-flex items-center rounded-full border-2 px-2.5 py-1 text-[9px] font-bold normal-case tracking-normal ${
                     passage.category === "მხატვრული"
-                      ? "border-purple-500/25 bg-purple-500/10 text-purple-300"
-                      : "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                      ? "border-purple-500/30 text-purple-300"
+                      : "border-emerald-500/30 text-emerald-300"
                   }`}
                 >
                   {passageCategoryLabel(passage.category)}
@@ -1002,7 +1021,7 @@ function ResultsScreen({
           </div>
 
           {/* animated star rating — the "level complete" moment */}
-          <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-white/[0.05] bg-white/[0.02] py-6">
+          <div className="mt-6 flex flex-col items-center gap-2 rounded-[28px] border-2 border-white/10 bg-white/[0.02] py-6">
             <div className="flex items-center gap-2">
               {[0, 1, 2].map((i) => (
                 <motion.div
@@ -1060,7 +1079,7 @@ function ResultsScreen({
                     initial={{ opacity: 0, scale: 0.85, y: 6 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.5 + index * 0.1, type: "spring", stiffness: 300, damping: 18 }}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${badge.className}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-semibold ${badge.className}`}
                   >
                     {badge.icon}
                     {badge.label}
@@ -1074,7 +1093,7 @@ function ResultsScreen({
             <button
               type="button"
               onClick={onRestartNew}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
             >
               <RefreshCw className="h-4 w-4 stroke-[1.75]" />
               ახალი ტესტი (სხვა ტექსტი)
@@ -1082,7 +1101,7 @@ function ResultsScreen({
             <button
               type="button"
               onClick={onExit}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-sm text-white/85 transition-all hover:border-white/[0.15] hover:bg-white/[0.06]"
+              className="rounded-full border-2 border-white/15 bg-transparent px-5 py-2.5 text-sm text-white/85 transition-all hover:border-white/30 hover:bg-white/[0.04]"
             >
               შესვლის ეკრანზე დაბრუნება
             </button>
@@ -1101,18 +1120,18 @@ function ResultsScreen({
               return (
                 <li
                   key={record.questionId}
-                  className={`rounded-xl border p-4 ${
+                  className={`rounded-[24px] border-2 p-4 ${
                     record.correct
-                      ? "border-emerald-500/20 bg-emerald-500/[0.03]"
-                      : "border-rose-500/20 bg-rose-500/[0.03]"
+                      ? "border-emerald-500/25 bg-emerald-500/[0.03]"
+                      : "border-rose-500/25 bg-rose-500/[0.03]"
                   }`}
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-semibold text-zinc-500">
-                      კითხვა {index + 1}
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white/15 text-[10px] font-bold text-zinc-400">
+                      {index + 1}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-0.5 text-[10px] font-semibold ${badge.className}`}
                     >
                       {badge.icon}
                       {badge.label}
@@ -1165,7 +1184,7 @@ function ResultStat({
   icon?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+    <div className="rounded-[24px] border-2 border-white/10 bg-white/[0.02] p-4">
       <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         {icon}
         {label}
