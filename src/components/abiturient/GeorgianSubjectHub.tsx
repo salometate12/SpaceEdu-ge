@@ -17,19 +17,26 @@ type BadgeType = "purple" | "blue" | "rose" | "amber";
 type CtaVariant = "purple" | "cyan" | "rose" | "ghost";
 
 const BADGE_STYLES: Record<BadgeType, string> = {
-  purple: "border border-purple-500/20 bg-purple-500/10 text-purple-400",
-  blue: "border border-cyan-500/20 bg-cyan-500/10 text-cyan-400",
-  rose: "border border-rose-500/20 bg-rose-500/10 text-rose-400",
-  amber: "border border-amber-500/20 bg-amber-500/10 text-amber-400",
+  purple: "border-2 border-purple-500/35 text-purple-300",
+  blue: "border-2 border-cyan-500/35 text-cyan-300",
+  rose: "border-2 border-rose-500/35 text-rose-300",
+  amber: "border-2 border-amber-500/35 text-amber-300",
+};
+
+const BADGE_DOT: Record<BadgeType, string> = {
+  purple: "bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.6)]",
+  blue: "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]",
+  rose: "bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.6)]",
+  amber: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]",
 };
 
 const CTA_STYLES: Record<CtaVariant, string> = {
   purple:
-    "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 text-white",
-  cyan: "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 text-white",
-  rose: "bg-gradient-to-r from-rose-600 to-violet-600 hover:from-rose-500 hover:to-violet-500 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/20 text-white",
+    "border-2 border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 text-white",
+  cyan: "border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 text-white",
+  rose: "border-2 border-transparent bg-gradient-to-r from-rose-600 to-violet-600 hover:from-rose-500 hover:to-violet-500 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/20 text-white",
   ghost:
-    "border border-white/[0.06] bg-white/[0.03] text-white/90 hover:border-amber-500/30 hover:bg-white/[0.06]",
+    "border-2 border-white/15 bg-transparent text-white/90 hover:border-amber-500/40 hover:bg-white/[0.04]",
 };
 
 interface SubjectExerciseCardProps {
@@ -59,7 +66,7 @@ function SubjectExerciseCard({
 }: SubjectExerciseCardProps) {
   return (
     <article
-      className={`group relative flex min-h-[440px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${hoverBorder}`}
+      className={`group relative flex min-h-[440px] flex-col justify-between overflow-hidden rounded-[32px] border-2 border-white/12 bg-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${hoverBorder}`}
     >
       <div
         className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-[0.08] blur-2xl transition-all duration-300 group-hover:opacity-[0.16]"
@@ -81,9 +88,13 @@ function SubjectExerciseCard({
           <h2 className="text-xl font-bold tracking-wide text-white">{title}</h2>
           {badgeText && (
             <span
-              className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium ${BADGE_STYLES[badgeType]}`}
+              className={`relative shrink-0 -rotate-1 rounded-full px-3.5 py-1.5 text-xs font-bold ${BADGE_STYLES[badgeType]}`}
             >
               {badgeText}
+              <span
+                className={`absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full ${BADGE_DOT[badgeType]}`}
+                aria-hidden
+              />
             </span>
           )}
         </div>
@@ -91,14 +102,14 @@ function SubjectExerciseCard({
       </div>
 
       <div className="relative z-[1] flex flex-1 items-center justify-center py-8">
-        <div className="flex h-28 w-28 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.02] ring-1 ring-white/[0.04] transition-all duration-300 group-hover:border-white/[0.1] group-hover:bg-white/[0.04]">
+        <div className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-white/12 bg-white/[0.02] transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/[0.04]">
           {icon}
         </div>
       </div>
 
       <Link
         href={href}
-        className={`relative z-[1] mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.98] ${CTA_STYLES[ctaVariant]}`}
+        className={`relative z-[1] mt-4 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-all active:scale-[0.98] ${CTA_STYLES[ctaVariant]}`}
       >
         {btnText}
         <ArrowRight className="h-4 w-4 stroke-[1.5] transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -120,7 +131,7 @@ export function GeorgianSubjectHub() {
         </Link>
 
         <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-300 shadow-[0_0_28px_rgba(139,92,246,0.22)] ring-1 ring-violet-500/20">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-violet-500/30 bg-violet-500/10 text-violet-300 shadow-[0_0_28px_rgba(139,92,246,0.22)]">
             <BookOpen className="h-7 w-7 stroke-[1.5]" />
           </div>
           <div>
