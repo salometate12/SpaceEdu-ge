@@ -1072,23 +1072,23 @@ function ResultsScreen({
               label="სწორი პასუხი"
               value={`${correctCount} / ${total}`}
               tone="text-white"
-              accent="border-2 border-white/15 bg-white/[0.03]"
+              accent="border-[3px] border-violet-400 bg-transparent"
             />
             <ResultStat
               label="ჯამური ქულა"
               value={String(totalScore)}
-              tone="text-white"
-              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-white" />}
-              accent="border-2 border-transparent bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20"
-              labelClass="text-cyan-50/70"
+              tone="text-black"
+              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-black" />}
+              accent="border-[3px] border-transparent bg-blue-500"
+              labelClass="text-black/60"
             />
             <ResultStat
               label="საუკეთესო სერია"
               value={`x${bestStreak}`}
-              tone="text-white"
-              icon={<Flame className="h-3.5 w-3.5 stroke-[1.75] text-white" />}
-              accent="border-2 border-transparent bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20"
-              labelClass="text-orange-50/70"
+              tone="text-black"
+              icon={<Flame className="h-3.5 w-3.5 stroke-[1.75] text-black" />}
+              accent="border-[3px] border-transparent bg-orange-500"
+              labelClass="text-black/60"
             />
           </div>
 
