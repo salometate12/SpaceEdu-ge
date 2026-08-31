@@ -161,7 +161,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           <DashboardGreetingBanner
             workspace="student"
             badge={
-              <span className="inline-flex rounded-full border border-violet-300/60 bg-gradient-to-r from-violet-50 to-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-violet-700 dark:border-[#7C3AED] dark:bg-[#2e1065] dark:text-[#c4b5fd]">
+              <span className="inline-flex rounded-full border border-amber-300/70 bg-amber-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-800 dark:border-amber-400/35 dark:bg-amber-400/10 dark:text-amber-300">
                 სტუდენტის სივრცე
               </span>
             }

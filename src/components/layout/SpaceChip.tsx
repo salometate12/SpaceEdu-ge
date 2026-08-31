@@ -34,7 +34,7 @@ const SPACE_STYLE: Record<
     label: "სტუდენტი",
     icon: <University className="h-3.5 w-3.5" />,
     className:
-      "border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200/70 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15",
+      "border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200/70 dark:border-amber-400/35 dark:bg-amber-400/10 dark:text-amber-300 dark:hover:bg-amber-400/15",
   },
 };
 
