@@ -99,6 +99,29 @@ export function addManualCalendarEvent(
   return next;
 }
 
+export function updateDashboardCalendarEvent(
+  id: string,
+  updates: ManualCalendarEventInput,
+): DashboardCalendarEvent[] {
+  const next = getDashboardCalendarEvents().map((event) =>
+    event.id === id
+      ? {
+          ...event,
+          title: updates.title,
+          date: updates.date,
+          time: updates.time,
+          description: updates.description,
+          type: updates.type,
+        }
+      : event,
+  );
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    notifyCalendarUpdated();
+  }
+  return next;
+}
+
 export function removeDashboardCalendarEvent(id: string): DashboardCalendarEvent[] {
   const next = getDashboardCalendarEvents().filter((event) => event.id !== id);
   if (typeof window !== "undefined") {
