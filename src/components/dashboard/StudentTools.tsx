@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useState, type CSSProperties, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -32,6 +32,7 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
+    gradient: "linear-gradient(160deg, #8b7cf6 0%, #b9b3fb 55%, #efe9ff 100%)",
   },
   {
     id: "quiz",
@@ -40,6 +41,7 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
+    gradient: "linear-gradient(160deg, #14b8a6 0%, #7fe3c9 55%, #eafff8 100%)",
   },
   {
     id: "ai-teacher",
@@ -48,6 +50,7 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
+    gradient: "linear-gradient(160deg, #22c55e 0%, #86efac 55%, #ecfdf5 100%)",
   },
   {
     id: "presentation",
@@ -56,6 +59,7 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
+    gradient: "linear-gradient(160deg, #f59e0b 0%, #fbbf24 55%, #fef3c7 100%)",
   },
   {
     id: "research",
@@ -64,6 +68,7 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
+    gradient: "linear-gradient(160deg, #f43f5e 0%, #fb7185 55%, #ffe4e9 100%)",
   },
   {
     id: "eli5",
@@ -72,6 +77,7 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
+    gradient: "linear-gradient(160deg, #6366f1 0%, #a5b4fc 55%, #eef2ff 100%)",
   },
 ] as const;
 
@@ -148,6 +154,7 @@ export function StudentTools() {
               layoutId={`student-tool-card-${tool.id}`}
               className={`${cardClass} mobile-vivid-tool-card`}
               onClick={(event) => handleMobileOpen(event, tool)}
+              style={{ "--tool-gradient": tool.gradient } as CSSProperties}
             >
               {isLive ? (
                 <>

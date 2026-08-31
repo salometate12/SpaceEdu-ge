@@ -48,6 +48,7 @@ interface DashboardGlowCardProps {
   as?: "link" | "article" | "div";
   layoutId?: string;
   onClick?: (event: MouseEvent) => void;
+  style?: CSSProperties;
 }
 
 function CardMotionShell({
@@ -97,9 +98,10 @@ export function DashboardGlowCard({
   as = "link",
   layoutId,
   onClick,
+  style: extraStyle,
 }: DashboardGlowCardProps) {
   const baseClass = glowCardClasses(accent, interactive, className);
-  const style = neonAccentVars(accent);
+  const style = { ...neonAccentVars(accent), ...extraStyle };
   const inner = <div className="relative z-[1] h-full">{children}</div>;
 
   if (as === "article") {

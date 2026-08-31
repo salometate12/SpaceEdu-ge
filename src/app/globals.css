@@ -249,10 +249,10 @@ html.dark .subject-icon-wrap-featured {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
 }
 
-/* Mobile-only bold color-block cards (student dashboard tools) — both light and dark mode */
+/* Mobile-only soft-gradient cards (student dashboard tools) — both light and dark mode */
 @media (max-width: 639px) {
   .mobile-vivid-tool-card {
-    background: var(--accent-color) !important;
+    background: var(--tool-gradient, var(--accent-color)) !important;
     border-color: transparent !important;
     box-shadow: 0 10px 24px rgb(15 23 42 / 0.18) !important;
     min-height: 0 !important;
