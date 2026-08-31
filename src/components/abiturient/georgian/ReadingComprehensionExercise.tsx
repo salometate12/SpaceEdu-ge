@@ -161,22 +161,25 @@ function HighlightedExcerpt({
 
 const TYPE_BADGE: Record<
   Question["type"],
-  { label: string; className: string; icon: ReactNode }
+  { label: string; className: string; icon: ReactNode; dot: string }
 > = {
   main_idea: {
     label: questionTypeLabel("main_idea"),
     className: "border-violet-500/25 bg-violet-500/10 text-violet-300",
     icon: <BookText className="h-3.5 w-3.5 stroke-[1.75]" />,
+    dot: "bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]",
   },
   implied_meaning: {
     label: questionTypeLabel("implied_meaning"),
     className: "border-amber-500/25 bg-amber-500/10 text-amber-300",
     icon: <Lightbulb className="h-3.5 w-3.5 stroke-[1.75]" />,
+    dot: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]",
   },
   literary_trope: {
     label: questionTypeLabel("literary_trope"),
     className: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
     icon: <Sparkles className="h-3.5 w-3.5 stroke-[1.75]" />,
+    dot: "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]",
   },
 };
 
@@ -390,7 +393,7 @@ export function ReadingComprehensionExercise() {
           {/* ---------------------- LEFT: reading panel ---------------------- */}
           <section
             aria-label="საკითხავი ტექსტი"
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#13131A]/60 p-6 backdrop-blur-xl sm:p-8"
+            className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-[#100f16]/70 p-6 backdrop-blur-xl sm:p-8"
             style={
               {
                 minHeight: "560px",
@@ -406,16 +409,22 @@ export function ReadingComprehensionExercise() {
               aria-hidden
             />
             <div className="relative z-[1]">
-              <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div
+                className={`relative mb-6 inline-flex -rotate-1 items-center gap-1.5 rounded-full border-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                  passage.category === "მხატვრული"
+                    ? "border-purple-500/30 text-purple-300"
+                    : "border-emerald-500/30 text-emerald-300"
+                }`}
+              >
+                {passageCategoryLabel(passage.category)}
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${
+                  className={`absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full ${
                     passage.category === "მხატვრული"
-                      ? "border-purple-500/25 bg-purple-500/10 text-purple-300"
-                      : "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                      ? "bg-purple-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
+                      : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
                   }`}
-                >
-                  {passageCategoryLabel(passage.category)}
-                </span>
+                  aria-hidden
+                />
               </div>
               <header className="mb-6">
                 <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">
@@ -445,49 +454,51 @@ export function ReadingComprehensionExercise() {
           <section
             ref={rightPanelRef}
             aria-label="კითხვების ვიზარდი"
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#13131A]/60 p-6 backdrop-blur-xl sm:p-8"
+            className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-[#100f16]/70 p-6 backdrop-blur-xl sm:p-8"
           >
-            <div className="mb-6">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-cyan-300/90">
-                  კითხვა {currentIndex + 1} / {totalQuestions}
-                </p>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold ${typeBadge.className}`}
-                >
-                  {typeBadge.icon}
-                  {typeBadge.label}
-                </span>
-              </div>
+            <div className="relative mb-8 inline-flex flex-col items-start">
+              <span className="-rotate-2 rounded-full border-2 border-white/20 bg-white/[0.03] px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
+                კითხვა {currentIndex + 1} / {totalQuestions}
+              </span>
+              <span
+                className={`-mt-2 ml-8 inline-flex rotate-1 items-center gap-1.5 rounded-full border-2 px-5 py-2 text-[11px] font-bold ${typeBadge.className}`}
+              >
+                {typeBadge.icon}
+                {typeBadge.label}
+              </span>
+              <span
+                className={`absolute left-14 top-6 h-3 w-3 rounded-full ${typeBadge.dot}`}
+                aria-hidden
+              />
+            </div>
 
-              {/* segmented "level path" progress — one pill per question */}
-              <div className="flex items-center gap-1.5" aria-hidden>
-                {questionQueue.map((q, i) => (
-                  <div
-                    key={q.id}
-                    className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 ${
-                      i < currentIndex
-                        ? "bg-cyan-400"
-                        : i === currentIndex
-                          ? "bg-white/10"
-                          : "bg-white/[0.06]"
-                    }`}
-                  >
-                    {i === currentIndex && (
-                      <motion.div
-                        key={`fill-${currentIndex}-${isRevealed}`}
-                        initial={{ width: "0%" }}
-                        animate={{ width: isRevealed ? "100%" : "45%" }}
-                        transition={{
-                          duration: isRevealed ? 0.4 : 1.1,
-                          ease: "easeOut",
-                        }}
-                        className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
+            {/* segmented "level path" progress — one pill per question */}
+            <div className="mb-6 flex items-center gap-1.5" aria-hidden>
+              {questionQueue.map((q, i) => (
+                <div
+                  key={q.id}
+                  className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 ${
+                    i < currentIndex
+                      ? "bg-cyan-400"
+                      : i === currentIndex
+                        ? "bg-white/10"
+                        : "bg-white/[0.06]"
+                  }`}
+                >
+                  {i === currentIndex && (
+                    <motion.div
+                      key={`fill-${currentIndex}-${isRevealed}`}
+                      initial={{ width: "0%" }}
+                      animate={{ width: isRevealed ? "100%" : "45%" }}
+                      transition={{
+                        duration: isRevealed ? 0.4 : 1.1,
+                        ease: "easeOut",
+                      }}
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
+                    />
+                  )}
+                </div>
+              ))}
             </div>
 
             <AnimatePresence mode="wait">
@@ -498,9 +509,15 @@ export function ReadingComprehensionExercise() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-                <h3 className="mb-6 text-[17px] font-semibold leading-relaxed text-white">
-                  {currentQuestion.questionText}
-                </h3>
+                <div className="relative mb-6 rounded-[28px] border-2 border-white/15 bg-white/[0.02] p-6">
+                  <span
+                    className={`absolute -right-2 -top-2 h-5 w-5 rounded-full ring-4 ring-[#100f16] ${typeBadge.dot}`}
+                    aria-hidden
+                  />
+                  <h3 className="text-[17px] font-semibold leading-relaxed text-white">
+                    {currentQuestion.questionText}
+                  </h3>
+                </div>
 
                 <div className="space-y-3">
                   {currentQuestion.options.map((option, optionIndex) => {
@@ -508,7 +525,12 @@ export function ReadingComprehensionExercise() {
                     const isCorrectOption =
                       optionIndex === currentQuestion.correctIndex;
 
-                    const stateClass = resolveOptionClass({
+                    const pillClass = resolveOptionPillClass({
+                      isSelected,
+                      isCorrectOption,
+                      isRevealed,
+                    });
+                    const circleClass = resolveOptionCircleClass({
                       isSelected,
                       isCorrectOption,
                       isRevealed,
@@ -534,22 +556,24 @@ export function ReadingComprehensionExercise() {
                           ease: "easeOut",
                           delay: isRevealed ? 0 : optionIndex * 0.06,
                         }}
-                        className={`group flex w-full items-start gap-3 rounded-xl border p-4 text-left text-sm leading-relaxed transition-all duration-200 ${stateClass}`}
+                        className="group flex w-full items-center gap-3 text-left text-sm leading-relaxed"
                       >
                         <span
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all ${resolveMarkerClass(
-                            { isSelected, isCorrectOption, isRevealed },
-                          )}`}
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-all duration-200 ${circleClass}`}
                         >
                           {isRevealed && isCorrectOption ? (
-                            <Check className="h-3.5 w-3.5 stroke-[2.25]" />
+                            <Check className="h-4 w-4 stroke-[2.5]" />
                           ) : isRevealed && isSelected && !isCorrectOption ? (
-                            <X className="h-3.5 w-3.5 stroke-[2.25]" />
+                            <X className="h-4 w-4 stroke-[2.5]" />
                           ) : (
                             String.fromCharCode(65 + optionIndex)
                           )}
                         </span>
-                        <span className="min-w-0 flex-1">{option}</span>
+                        <span
+                          className={`min-w-0 flex-1 rounded-full border-2 px-5 py-3.5 transition-all duration-200 ${pillClass}`}
+                        >
+                          {option}
+                        </span>
                       </motion.button>
                     );
                   })}
@@ -1161,7 +1185,7 @@ function ResultStat({
 /*                          OPTION STYLING HELPERS                            */
 /* -------------------------------------------------------------------------- */
 
-function resolveOptionClass({
+function resolveOptionPillClass({
   isSelected,
   isCorrectOption,
   isRevealed,
@@ -1172,20 +1196,20 @@ function resolveOptionClass({
 }): string {
   if (isRevealed) {
     if (isCorrectOption) {
-      return "border-emerald-500/45 bg-emerald-500/[0.06] text-emerald-100 shadow-[0_0_0_1px_rgba(16,185,129,0.15)]";
+      return "border-transparent bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20";
     }
     if (isSelected) {
-      return "border-rose-500/45 bg-rose-500/[0.06] text-rose-100";
+      return "border-transparent bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20";
     }
-    return "border-white/[0.06] bg-white/[0.015] text-zinc-500 opacity-70";
+    return "border-white/10 bg-transparent text-white/25";
   }
   if (isSelected) {
-    return "border-cyan-500/50 bg-cyan-500/[0.05] text-white";
+    return "border-transparent bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20";
   }
-  return "border-white/[0.06] bg-white/[0.02] text-zinc-200 hover:border-cyan-500/50 hover:bg-cyan-500/5";
+  return "border-white/15 bg-transparent text-zinc-200 group-hover:border-cyan-400/50 group-hover:bg-cyan-500/[0.03]";
 }
 
-function resolveMarkerClass({
+function resolveOptionCircleClass({
   isSelected,
   isCorrectOption,
   isRevealed,
@@ -1196,17 +1220,17 @@ function resolveMarkerClass({
 }): string {
   if (isRevealed) {
     if (isCorrectOption) {
-      return "border-emerald-500/50 bg-emerald-500/20 text-emerald-200";
+      return "border-transparent bg-gradient-to-br from-emerald-500 to-emerald-600 text-white";
     }
     if (isSelected) {
-      return "border-rose-500/50 bg-rose-500/20 text-rose-200";
+      return "border-transparent bg-gradient-to-br from-rose-500 to-rose-600 text-white";
     }
-    return "border-white/[0.08] bg-white/[0.02] text-zinc-500";
+    return "border-white/10 text-white/20";
   }
   if (isSelected) {
-    return "border-cyan-500/50 bg-cyan-500/15 text-cyan-100";
+    return "border-transparent bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-[0_0_16px_rgba(34,211,238,0.35)]";
   }
-  return "border-white/[0.08] bg-white/[0.03] text-zinc-400 group-hover:border-cyan-500/40 group-hover:text-cyan-200";
+  return "border-white/15 text-white/60 group-hover:border-cyan-400/50 group-hover:text-cyan-200";
 }
 
 /* -------------------------------------------------------------------------- */
