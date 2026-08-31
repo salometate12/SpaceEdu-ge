@@ -282,6 +282,25 @@ html.dark .subject-icon-wrap-featured {
     background: rgb(255 255 255 / 0.92) !important;
   }
 
+  /* Widget-style bento grid for student tools (wide + paired half cards) */
+  .mobile-widget-tools {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .mobile-widget-tool-item {
+    height: 100%;
+  }
+
+  .mobile-widget-tool-wide {
+    grid-column: 1 / -1;
+  }
+
+  .mobile-widget-tool-half .mobile-vivid-tool-card {
+    min-height: 128px !important;
+  }
+
   html:not(.dark) .mobile-vivid-stat-pill {
     border-color: transparent !important;
   }

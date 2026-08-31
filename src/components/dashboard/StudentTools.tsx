@@ -139,14 +139,15 @@ export function StudentTools() {
 
   return (
     <>
-    <DashboardMorphGrid variant="tools" className="mobile-stack-tools">
-      {TOOLS.map((tool) => {
+    <DashboardMorphGrid variant="tools" className="mobile-widget-tools">
+      {TOOLS.map((tool, index) => {
         const Icon = tool.icon;
+        const isWide = index % 3 === 0;
         return (
           <DashboardMorphItem
             key={tool.id}
             id={`student-tool-${tool.id}`}
-            className="mobile-stack-tool-item"
+            className={`mobile-widget-tool-item ${isWide ? "mobile-widget-tool-wide" : "mobile-widget-tool-half"}`}
           >
             <DashboardGlowCard
               accent={tool.accent}
