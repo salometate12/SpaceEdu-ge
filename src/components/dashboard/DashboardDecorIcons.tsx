@@ -3,18 +3,6 @@ import type { CSSProperties } from "react";
 
 const ICONS = [
   {
-    src: "/3d-icons/dashboard-cap.png",
-    cls: "left-4 top-[7.2rem] hidden xl:block w-20 2xl:w-24",
-    delay: "0s",
-    dur: "7.5s",
-  },
-  {
-    src: "/3d-icons/dashboard-globe.png",
-    cls: "right-4 top-[7.2rem] hidden xl:block w-20 2xl:w-24",
-    delay: "0.9s",
-    dur: "8.1s",
-  },
-  {
     src: "/3d-icons/dashboard-calculator.png",
     cls: "left-5 top-[21rem] hidden 2xl:block w-20",
     delay: "0.5s",
