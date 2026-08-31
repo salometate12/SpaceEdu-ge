@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bell, Flame, LayoutDashboard, MessageSquare, Rocket, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -33,6 +34,8 @@ export function DashboardHeader({
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
+  const pathname = usePathname();
+  const hasOwnNav = pathname === "/dashboard-student";
 
   useEffect(() => {
     const saved = window.localStorage.getItem("spaceedu_space");
@@ -93,35 +96,37 @@ export function DashboardHeader({
           <SpaceChip space={spaceLabel} />
         </div>
 
-        <nav className="hidden items-center gap-1 lg:flex">
-          {navItems.map((item) =>
-            item.href === "/ai-teacher" ? (
-              <button
-                key={item.href}
-                type="button"
-                onClick={toggleAiChat}
-                aria-pressed={aiChatOpen}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
-                  aiChatOpen
-                    ? "bg-[#1a0a2e] text-[#a78bfa]"
-                    : "text-[var(--text-secondary)] hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
-                }`}
-              >
-                {item.icon}
-                {item.label}
-              </button>
-            ) : (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ),
-          )}
-        </nav>
+        {!hasOwnNav && (
+          <nav className="hidden items-center gap-1 lg:flex">
+            {navItems.map((item) =>
+              item.href === "/ai-teacher" ? (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={toggleAiChat}
+                  aria-pressed={aiChatOpen}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                    aiChatOpen
+                      ? "bg-[#1a0a2e] text-[#a78bfa]"
+                      : "text-[var(--text-secondary)] hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ),
+            )}
+          </nav>
+        )}
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -138,16 +143,18 @@ export function DashboardHeader({
               <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
             )}
           </Link>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setAvatarOpen((prev) => !prev)}
-              className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
-            >
-              {avatarInitial}
-            </button>
-            <AvatarDropdown open={avatarOpen} />
-          </div>
+          {!hasOwnNav && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAvatarOpen((prev) => !prev)}
+                className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
+              >
+                {avatarInitial}
+              </button>
+              <AvatarDropdown open={avatarOpen} />
+            </div>
+          )}
         </div>
       </div>
 

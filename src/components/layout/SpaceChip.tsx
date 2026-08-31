@@ -7,7 +7,14 @@ type SpaceKind = "school" | "abiturient" | "student";
 
 const SPACE_STYLE: Record<
   SpaceKind,
-  { label: string; bg: string; border: string; color: string; icon: React.ReactNode }
+  {
+    label: string;
+    icon: React.ReactNode;
+    bg?: string;
+    border?: string;
+    color?: string;
+    className?: string;
+  }
 > = {
   school: {
     label: "სკოლა",
@@ -25,10 +32,9 @@ const SPACE_STYLE: Record<
   },
   student: {
     label: "სტუდენტი",
-    bg: "#042f3d",
-    border: "#22d3ee",
-    color: "#67e8f9",
     icon: <University className="h-3.5 w-3.5" />,
+    className:
+      "border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200/70 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15",
   },
 };
 
@@ -38,6 +44,19 @@ interface SpaceChipProps {
 
 export function SpaceChip({ space }: SpaceChipProps) {
   const ui = SPACE_STYLE[space];
+
+  if (ui.className) {
+    return (
+      <Link
+        href="/select-space"
+        className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${ui.className}`}
+      >
+        {ui.icon}
+        {ui.label}
+      </Link>
+    );
+  }
+
   return (
     <Link
       href="/select-space"
