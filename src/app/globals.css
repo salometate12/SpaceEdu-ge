@@ -124,9 +124,9 @@ body {
 /* Dashboard — day: white + soft gradients; night: neon glass */
 .dashboard-hero {
   border-radius: 1rem;
-  border: 1px solid rgb(226 232 240 / 0.9);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #ede9fe 100%);
-  box-shadow: 0 4px 24px rgb(124 58 237 / 0.08);
+  border: 1px solid rgb(228 216 189 / 0.9);
+  background: linear-gradient(135deg, #fdfaf2 0%, #f7f0dd 55%, #f2e6ca 100%);
+  box-shadow: 0 4px 24px rgb(217 160 6 / 0.08);
 }
 
 html.dark .dashboard-hero {
@@ -194,9 +194,9 @@ html.dark .dashboard-glass-card:hover {
 
 .dashboard-tool-card {
   border-radius: 1rem;
-  border: 1px solid rgb(226 232 240 / 0.85);
-  background: linear-gradient(160deg, #ffffff 0%, #f0fdfa 40%, #faf5ff 100%);
-  box-shadow: 0 4px 18px rgb(6 182 212 / 0.08);
+  border: 1px solid rgb(228 216 189 / 0.8);
+  background: linear-gradient(160deg, #fdfbf3 0%, #f7f1de 45%, #f4ecd8 100%);
+  box-shadow: 0 4px 18px rgb(180 130 20 / 0.07);
   backdrop-filter: blur(12px);
   transition: all 0.3s ease-in-out;
 }
@@ -224,8 +224,8 @@ html.dark .dashboard-book-card {
 /* Icon boxes — day: light gradient; night: original glass (no white bleed) */
 .subject-icon-wrap {
   border-radius: 0.75rem;
-  border: 1px solid rgb(226 232 240);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgb(228 216 189);
+  background: linear-gradient(135deg, #fefcf6 0%, #f6efdc 100%);
   transition: box-shadow 0.3s ease;
 }
 
