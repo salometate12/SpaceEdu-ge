@@ -6,7 +6,7 @@ interface TemplatePreviewProps {
 export function TemplatePreview({ bg, accent }: TemplatePreviewProps) {
   return (
     <div
-      className="relative h-24 w-full overflow-hidden rounded-lg border border-white/10"
+      className="relative h-24 w-full overflow-hidden rounded-lg border border-slate-200 dark:border-white/10"
       style={{ backgroundColor: bg }}
     >
       <div

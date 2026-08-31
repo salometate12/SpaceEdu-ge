@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { Download } from "lucide-react";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
@@ -177,28 +176,15 @@ export function CvGenerator() {
     if (step === 2) setStep(1);
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10";
+  const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
+
   return (
     <section className="space-y-6">
-      <header className="flex items-start gap-3">
-        <Link
-          href="/dashboard-student"
-          className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-zinc-300 transition hover:border-purple-400/30 hover:bg-purple-500/10 hover:text-white"
-          aria-label="Dashboard"
-        >
-          ←
-        </Link>
-        <div>
-          <h1 className="headline text-2xl font-bold text-white sm:text-3xl">AI CV გენერატორი</h1>
-          <p className="mt-1 max-w-4xl text-sm text-zinc-400">
-            შეავსე შენი მონაცემები და AI შეგირჩევს იდეალურ სტრუქტურას სტაჟირებებისა და
-            ვაკანსიებისთვის.
-          </p>
-        </div>
-      </header>
-
-      <div className="rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-5 backdrop-blur-md sm:p-6">
+      <div className="dashboard-tool-card rounded-[28px] p-5 sm:p-6">
         <div className="relative pb-4">
-          <div className="absolute left-5 right-5 top-5 h-px bg-white/[0.06]" />
+          <div className="absolute left-5 right-5 top-5 h-px bg-slate-200 dark:bg-white/[0.06]" />
           <div className="relative flex items-start justify-between gap-2 overflow-x-auto">
             {STEPS.map((item) => {
               const active = step === item.id;
@@ -209,25 +195,25 @@ export function CvGenerator() {
                     onClick={() => setStep(item.id)}
                     className={`mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                       active
-                        ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
-                        : "border border-white/[0.08] bg-[#161619] text-gray-500"
+                        ? "bg-violet-600 text-white dark:bg-violet-500 dark:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
+                        : "border border-slate-200 bg-white text-slate-400 dark:border-white/[0.08] dark:bg-[#161619] dark:text-gray-500"
                     }`}
                   >
                     {item.id}
                   </button>
-                  <p className="mt-2 text-xs text-zinc-400">{item.label}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-zinc-400">{item.label}</p>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-5">
+        <div className="dashboard-glass-card mt-4 rounded-2xl p-5">
           {step === 1 && (
             <div className="grid gap-4 lg:grid-cols-[120px_1fr]">
               <label className="cursor-pointer space-y-2">
-                <span className="block text-xs text-zinc-400">ფოტოს დამატება (არასავალდებულო)</span>
-                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-[#161619]/40 transition-all hover:border-purple-500/40">
+                <span className={`block ${labelClass}`}>ფოტოს დამატება (არასავალდებულო)</span>
+                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 transition-all hover:border-indigo-400 hover:bg-indigo-50 dark:border-white/20 dark:bg-white/[0.03] dark:hover:border-indigo-400/40 dark:hover:bg-indigo-500/10">
                   {photoPreview ? (
                     <img
                       src={photoPreview}
@@ -235,7 +221,7 @@ export function CvGenerator() {
                       className="h-full w-full rounded-xl object-cover"
                     />
                   ) : (
-                    <span className="text-xs text-zinc-500">ფოტო</span>
+                    <span className="text-xs text-slate-400 dark:text-zinc-500">ფოტო</span>
                   )}
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
@@ -243,35 +229,35 @@ export function CvGenerator() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1 text-sm sm:col-span-2">
-                  <span className="text-zinc-400">სრული სახელი</span>
+                  <span className={labelClass}>სრული სახელი</span>
                   <input
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1 text-sm">
-                  <span className="text-zinc-400">Email</span>
+                  <span className={labelClass}>Email</span>
                   <input
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1 text-sm">
-                  <span className="text-zinc-400">ტელეფონი</span>
+                  <span className={labelClass}>ტელეფონი</span>
                   <input
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1 text-sm sm:col-span-2">
-                  <span className="text-zinc-400">LinkedIn / Portfolio</span>
+                  <span className={labelClass}>LinkedIn / Portfolio</span>
                   <input
                     value={portfolio}
                     onChange={(event) => setPortfolio(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
               </div>
@@ -280,42 +266,44 @@ export function CvGenerator() {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white">განათლება & გამოცდილება</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-zinc-100">
+                განათლება & გამოცდილება
+              </h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="space-y-1 text-sm sm:col-span-2">
-                  <span className="text-zinc-400">University</span>
+                  <span className={labelClass}>University</span>
                   <input
                     value={university}
                     onChange={(event) => setUniversity(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1 text-sm">
-                  <span className="text-zinc-400">Graduation Year</span>
+                  <span className={labelClass}>Graduation Year</span>
                   <input
                     value={graduationYear}
                     onChange={(event) => setGraduationYear(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1 text-sm sm:col-span-3">
-                  <span className="text-zinc-400">Degree</span>
+                  <span className={labelClass}>Degree</span>
                   <input
                     value={degree}
                     onChange={(event) => setDegree(event.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                    className={inputClass}
                   />
                 </label>
               </div>
 
-              <div className="rounded-xl border border-purple-500/20 bg-purple-500/10 px-4 py-3 text-sm text-purple-200">
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-200">
                 🤖 მოკლედ აღწერე სად მუშაობდი ან რა პროექტები გაქვს გაკეთებული, AI მათ
                 პროფესიონალურ პუნქტებად გადააქცევს.
               </div>
               <textarea
                 value={experienceText}
                 onChange={(event) => setExperienceText(event.target.value)}
-                className="min-h-32 w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                className={`min-h-32 ${inputClass}`}
                 placeholder="მაგ: ვიმუშავე სტუდენტურ პროექტზე..."
               />
             </div>
@@ -323,16 +311,18 @@ export function CvGenerator() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white">უნარები & თულები</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-zinc-100">
+                უნარები & თულები
+              </h2>
               <label className="space-y-1 text-sm">
-                <span className="text-zinc-400">Software & Tools</span>
+                <span className={labelClass}>Software & Tools</span>
                 <input
                   value={toolInput}
                   onChange={(event) => setToolInput(event.target.value)}
                   onBlur={commitToolInput}
                   onKeyDown={onToolInputKeyDown}
                   placeholder="მაგ: Figma, Next.js, Tailwind, Cursor, Git"
-                  className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                  className={inputClass}
                 />
               </label>
 
@@ -343,7 +333,7 @@ export function CvGenerator() {
                       key={tool}
                       type="button"
                       onClick={() => setTools((prev) => prev.filter((item) => item !== tool))}
-                      className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-1 text-xs text-zinc-300 transition hover:text-white"
+                      className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
                     >
                       {tool} ✕
                     </button>
@@ -352,12 +342,12 @@ export function CvGenerator() {
               )}
 
               <label className="space-y-1 text-sm">
-                <span className="text-zinc-400">Personal Skills</span>
+                <span className={labelClass}>Personal Skills</span>
                 <textarea
                   value={softSkills}
                   onChange={(event) => setSoftSkills(event.target.value)}
                   placeholder="მაგ: კოლაბორაცია, პრობლემების გადაჭრა..."
-                  className="min-h-24 w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500/50"
+                  className={`min-h-24 ${inputClass}`}
                 />
               </label>
 
@@ -367,10 +357,10 @@ export function CvGenerator() {
                   onClick={() =>
                     setOptimizationPills((prev) => ({ ...prev, ats: !prev.ats }))
                   }
-                  className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                     optimizationPills.ats
-                      ? "border-purple-500/40 bg-purple-500/10 text-purple-300 shadow-sm"
-                      : "border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:text-white"
+                      ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-white"
                   }`}
                 >
                   + ATS ოპტიმიზაცია
@@ -380,10 +370,10 @@ export function CvGenerator() {
                   onClick={() =>
                     setOptimizationPills((prev) => ({ ...prev, internship: !prev.internship }))
                   }
-                  className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                     optimizationPills.internship
-                      ? "border-purple-500/40 bg-purple-500/10 text-purple-300 shadow-sm"
-                      : "border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:text-white"
+                      ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-white"
                   }`}
                 >
                   + სტაჟირებისთვის მორგება
@@ -394,8 +384,8 @@ export function CvGenerator() {
 
           {step === 4 && (
             <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-              <aside className="space-y-3 rounded-xl border border-white/[0.08] bg-[#141418]/60 p-3">
-                <p className="text-xs text-zinc-400">ტემპლეიტი</p>
+              <aside className="dashboard-glass-card space-y-3 rounded-2xl p-3">
+                <p className={labelClass}>ტემპლეიტი</p>
                 {TEMPLATES.map((template) => {
                   const active = selectedTemplate === template.id;
                   return (
@@ -403,30 +393,32 @@ export function CvGenerator() {
                       key={template.id}
                       type="button"
                       onClick={() => setSelectedTemplate(template.id)}
-                      className={`w-full rounded-xl border bg-gradient-to-br p-3 text-left transition ${
+                      className={`w-full rounded-xl border bg-gradient-to-br p-3 text-left transition ${template.previewClass} ${
                         active
-                          ? `${template.previewClass} border-purple-500/45`
-                          : `${template.previewClass} border-white/[0.08] hover:border-purple-500/25`
+                          ? "border-indigo-400 dark:border-indigo-400/50"
+                          : "border-slate-200 hover:border-indigo-200 dark:border-white/[0.08] dark:hover:border-indigo-400/25"
                       }`}
                     >
-                      <p className="text-sm font-semibold text-white">{template.title}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {template.title}
+                      </p>
                     </button>
                   );
                 })}
               </aside>
 
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0f1014]/65 p-4">
+              <div className="dashboard-tool-card rounded-2xl p-4">
                 <div className="mb-3 flex items-center justify-end">
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500"
+                    className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
                   >
                     <Download className="h-4 w-4" strokeWidth={1.5} />
                     PDF ექსპორტი
                   </button>
                 </div>
 
-                <div className="max-h-[560px] overflow-y-auto rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                <div className="max-h-[560px] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/[0.08] dark:bg-black/20">
                   <div className={`mx-auto min-h-[760px] w-full max-w-[760px] rounded-xl border border-white/[0.1] p-6 ${templateStyle.pageBg}`}>
                     <div className="flex items-start justify-between gap-4 border-b border-white/[0.12] pb-4">
                       <div>
@@ -511,18 +503,18 @@ export function CvGenerator() {
         </div>
 
         {cvError && (
-          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {cvError}
           </div>
         )}
         {cvLoading && step === 3 && <AiSkeletonLoader rows={2} className="mt-4" />}
 
-        <footer className="mt-6 flex items-center justify-between border-t border-white/[0.08] pt-4">
+        <footer className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-white/[0.08]">
           <button
             type="button"
             onClick={goBack}
-              disabled={step === 1 || cvLoading}
-            className="rounded-xl border border-white/[0.08] bg-[#161619] px-5 py-2.5 text-sm text-zinc-300 transition hover:text-white disabled:opacity-40"
+            disabled={step === 1 || cvLoading}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
           >
             უკან
           </button>
@@ -531,7 +523,7 @@ export function CvGenerator() {
               type="button"
               onClick={goNext}
               disabled={cvLoading}
-              className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500 disabled:opacity-60"
+              className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
             >
               {step === 3 ? (cvLoading ? "იტვირთება..." : "CV-ს გენერირება") : "შემდეგი"}
             </button>
@@ -547,7 +539,7 @@ export function CvGenerator() {
                 setHighlightedSkills([]);
                 setOptimizationTips([]);
               }}
-              className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500"
+              className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
             >
               ახალი CV
             </button>

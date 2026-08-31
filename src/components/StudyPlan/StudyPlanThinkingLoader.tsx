@@ -39,9 +39,9 @@ export function StudyPlanThinkingLoader() {
       className="flex min-h-[420px] flex-col items-center justify-center gap-5 text-center"
     >
       <div className="relative flex h-20 w-20 items-center justify-center">
-        <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/15 dark:bg-purple-500/15" />
-        <span className="absolute inset-0 rounded-full border border-violet-200 dark:border-purple-500/20" />
-        <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 shadow-[0_0_24px_rgba(139,92,246,0.35)]">
+        <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/15 dark:bg-violet-500/15" />
+        <span className="absolute inset-0 rounded-full border border-violet-200 dark:border-violet-500/20" />
+        <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 dark:bg-violet-500 dark:shadow-[0_0_24px_rgba(139,92,246,0.35)]">
           <StageIcon
             key={stageIndex}
             className="research-thinking-icon h-6 w-6 text-white"
@@ -63,7 +63,7 @@ export function StudyPlanThinkingLoader() {
             key={item.text}
             className={`h-1.5 rounded-full transition-all duration-500 ${
               index === stageIndex
-                ? "w-5 bg-violet-500 dark:bg-purple-400"
+                ? "w-5 bg-violet-500 dark:bg-violet-400"
                 : "w-1.5 bg-slate-200 dark:bg-white/10"
             }`}
           />

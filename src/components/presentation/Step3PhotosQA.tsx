@@ -1,5 +1,7 @@
 "use client";
 
+import { HelpCircle } from "lucide-react";
+
 interface Step3PhotosQAProps {
   qa: {
     goal: string;
@@ -27,12 +29,17 @@ export function Step3PhotosQA({
 }: Step3PhotosQAProps) {
   return (
     <section className="space-y-5">
-      <h2 className="headline text-xl font-semibold text-zinc-100">
-        Step 3 — ფოტოები & Q&A
-      </h2>
+      <div className="flex items-center gap-3">
+        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-amber-600 dark:text-amber-400">
+          <HelpCircle className="h-4 w-4" />
+        </span>
+        <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
+          Step 3 — ფოტოები & Q&A
+        </h2>
+      </div>
 
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-        <p className="text-sm text-zinc-400">
+      <div className="dashboard-glass-card rounded-2xl p-4">
+        <p className="text-sm text-slate-600 dark:text-zinc-400">
           Step 3 ამ ეტაპზე კონცენტრირებულია Q&A პარამეტრებზე.
         </p>
       </div>
@@ -57,11 +64,13 @@ export function Step3PhotosQA({
           onChange={(value) => onQaChange({ tone: value })}
         />
         <label className="space-y-1 text-sm">
-          <span className="text-zinc-400">რა არის ყველაზე მნიშვნელოვანი?</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+            რა არის ყველაზე მნიშვნელოვანი?
+          </span>
           <input
             value={qa.mainPoint}
             onChange={(e) => onQaChange({ mainPoint: e.target.value })}
-            className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-3 text-white outline-none transition-all focus:border-purple-500/50"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10"
             placeholder="შეიყვანე მთავარი პუნქტი..."
           />
         </label>
@@ -83,7 +92,9 @@ function QASelect({
 }) {
   return (
     <div className="space-y-2 text-sm">
-      <span className="text-zinc-400">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+        {label}
+      </span>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const active = value === opt;
@@ -92,10 +103,10 @@ function QASelect({
               key={opt}
               type="button"
               onClick={() => onChange(opt)}
-              className={`rounded-full border px-3 py-1 text-xs transition-all ${
+              className={`rounded-full border px-3 py-1 text-xs transition ${
                 active
-                  ? "border-purple-500/40 bg-purple-500/10 text-purple-400 shadow-sm"
-                  : "border-white/[0.06] bg-white/[0.02] text-gray-400 hover:text-white"
+                  ? "border-amber-200 bg-amber-50 text-amber-700 shadow-sm dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-400"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-amber-400/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-400"
               }`}
             >
               {opt}

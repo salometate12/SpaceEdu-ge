@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import type { PresentationForm } from "./PresentationWizard";
 
 interface Step1InfoProps {
@@ -19,6 +20,14 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
     ],
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10";
+  const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
+  const pillActive =
+    "border-amber-200 bg-amber-50 text-amber-700 shadow-sm dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-400";
+  const pillInactive =
+    "border-slate-200 bg-white text-slate-500 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-amber-400/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-400";
+
   const toggleTag = (tag: string) => {
     const hasTag = form.extraInstructions.includes(tag);
     if (hasTag) {
@@ -37,28 +46,35 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
 
   return (
     <section className="space-y-5">
-      <h2 className="headline text-xl font-semibold text-zinc-100">Step 1 — ინფორმაცია</h2>
+      <div className="flex items-center gap-3">
+        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-amber-600 dark:text-amber-400">
+          <FileText className="h-4 w-4" />
+        </span>
+        <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
+          Step 1 — ინფორმაცია
+        </h2>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1 text-sm">
-          <span className="text-zinc-400">თემა</span>
+          <span className={labelClass}>თემა</span>
           <input
             value={form.topic}
             onChange={(e) => onChange({ topic: e.target.value })}
-            className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-3 text-white outline-none transition-all focus:border-purple-500/50"
+            className={inputClass}
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-zinc-400">საგანი</span>
+          <span className={labelClass}>საგანი</span>
           <input
             value={form.subject}
             onChange={(e) => onChange({ subject: e.target.value })}
-            className="w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-3 text-white outline-none transition-all focus:border-purple-500/50"
+            className={inputClass}
           />
         </label>
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm text-zinc-400">სლაიდები</p>
+        <p className={labelClass}>სლაიდები</p>
         <div className="flex flex-wrap gap-2">
           {options.slideCount.map((count) => {
             const active = form.slideCount === count;
@@ -67,10 +83,8 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
                 key={count}
                 type="button"
                 onClick={() => onChange({ slideCount: count })}
-                className={`rounded-full px-3 py-1 text-xs transition-all ${
-                  active
-                    ? "border border-purple-500/40 bg-purple-500/10 text-purple-400 shadow-sm"
-                    : "border border-white/[0.06] bg-white/[0.02] text-gray-400 hover:text-white"
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  active ? pillActive : pillInactive
                 }`}
               >
                 {count} სლაიდი
@@ -81,7 +95,7 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm text-zinc-400">დონე</p>
+        <p className={labelClass}>დონე</p>
         <div className="flex flex-wrap gap-2">
           {options.level.map((level) => {
             const active = form.level === level;
@@ -90,10 +104,8 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
                 key={level}
                 type="button"
                 onClick={() => onChange({ level })}
-                className={`rounded-full px-3 py-1 text-xs transition-all ${
-                  active
-                    ? "border border-purple-500/40 bg-purple-500/10 text-purple-400 shadow-sm"
-                    : "border border-white/[0.06] bg-white/[0.02] text-gray-400 hover:text-white"
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  active ? pillActive : pillInactive
                 }`}
               >
                 {level}
@@ -104,7 +116,7 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm text-zinc-400">ენა</p>
+        <p className={labelClass}>ენა</p>
         <div className="flex flex-wrap gap-2">
           {options.language.map((language) => {
             const active = form.language === language.value;
@@ -113,10 +125,8 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
                 key={language.value}
                 type="button"
                 onClick={() => onChange({ language: language.value })}
-                className={`rounded-full px-3 py-1 text-xs transition-all ${
-                  active
-                    ? "border border-purple-500/40 bg-purple-500/10 text-purple-400 shadow-sm"
-                    : "border border-white/[0.06] bg-white/[0.02] text-gray-400 hover:text-white"
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  active ? pillActive : pillInactive
                 }`}
               >
                 {language.label}
@@ -126,11 +136,11 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
         </div>
       </div>
       <label className="space-y-1 text-sm">
-        <span className="text-zinc-400">დამატებითი მითითებები</span>
+        <span className={labelClass}>დამატებითი მითითებები</span>
         <textarea
           value={form.extraInstructions}
           onChange={(e) => onChange({ extraInstructions: e.target.value })}
-          className="min-h-24 w-full rounded-xl border border-white/[0.08] bg-[#121214]/60 px-4 py-3 text-white outline-none transition-all focus:border-purple-500/50"
+          className={`min-h-24 ${inputClass}`}
         />
       </label>
       <div className="flex flex-wrap gap-2">
@@ -140,10 +150,8 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
             <button
               key={tag}
               type="button"
-              className={`rounded-full border px-3 py-1 text-xs transition-all ${
-                active
-                  ? "border-purple-500/40 bg-purple-500/10 text-purple-400 shadow-sm"
-                  : "border-white/[0.06] bg-white/[0.02] text-gray-400 hover:text-white"
+              className={`rounded-full border px-3 py-1 text-xs transition ${
+                active ? pillActive : pillInactive
               }`}
               onClick={() => toggleTag(tag)}
             >

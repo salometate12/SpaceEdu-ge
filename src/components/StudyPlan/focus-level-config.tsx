@@ -13,8 +13,8 @@ export const FOCUS_LEVEL_CONFIG: Record<FocusLevel, FocusLevelConfig> = {
   high: {
     label: "ინტენსიური",
     icon: Flame,
-    iconWrap: "bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300",
-    accent: "border-l-orange-400 dark:border-l-orange-500/60",
+    iconWrap: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300",
+    accent: "border-l-violet-400 dark:border-l-violet-500/60",
   },
   medium: {
     label: "საშუალო",
@@ -25,7 +25,7 @@ export const FOCUS_LEVEL_CONFIG: Record<FocusLevel, FocusLevelConfig> = {
   review: {
     label: "გამეორება",
     icon: RotateCcw,
-    iconWrap: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
-    accent: "border-l-emerald-400 dark:border-l-emerald-500/60",
+    iconWrap: "bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300",
+    accent: "border-l-pink-400 dark:border-l-pink-500/60",
   },
 };

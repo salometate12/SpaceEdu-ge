@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
 import {
-  ArrowLeft,
+  AlertCircle,
   Bell,
+  Brain,
   CalendarDays,
   Check,
   CloudUpload,
+  GraduationCap,
   Plus,
 } from "lucide-react";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
@@ -31,24 +33,30 @@ const OPTIONS: Array<{ id: SyllabusOption; label: string }> = [
   { id: "quiz-weeks", label: "Quiz კვირები" },
 ];
 
-const BADGE_STYLES: Record<
+const TYPE_META: Record<
   SyllabusMilestoneType,
-  { label: string; className: string }
+  { label: string; icon: typeof GraduationCap; dot: string; badge: string }
 > = {
   midterm: {
     label: "შუალედური",
-    className:
-      "rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400",
+    icon: GraduationCap,
+    dot: "border-violet-400 dark:border-violet-400/60",
+    badge:
+      "border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-300",
   },
   quiz: {
     label: "ქვიზი",
-    className:
-      "rounded border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-medium text-purple-400",
+    icon: Brain,
+    dot: "border-sky-400 dark:border-sky-400/60",
+    badge:
+      "border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300",
   },
   deadline: {
     label: "დედლაინი",
-    className:
-      "rounded border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium text-rose-400",
+    icon: AlertCircle,
+    dot: "border-pink-400 dark:border-pink-400/60",
+    badge:
+      "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
   },
 };
 
@@ -81,17 +89,23 @@ export function SyllabusAnalyzer() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    clearLegacySyllabusMockData();
-    setGenerated(false);
-    setMilestones([]);
-    setAiInsight("");
-    setAddedIds(new Set());
+    const resetState = () => {
+      clearLegacySyllabusMockData();
+      setGenerated(false);
+      setMilestones([]);
+      setAiInsight("");
+      setAddedIds(new Set());
+    };
+    resetState();
   }, []);
 
   useEffect(() => {
     if (!generated) return;
-    const synced = new Set(getDashboardCalendarEvents().map((event) => event.id));
-    setAddedIds(synced);
+    const syncAddedIds = () => {
+      const synced = new Set(getDashboardCalendarEvents().map((event) => event.id));
+      setAddedIds(synced);
+    };
+    syncAddedIds();
   }, [generated]);
 
   const visibleMilestones = useMemo(
@@ -181,189 +195,175 @@ export function SyllabusAnalyzer() {
   };
 
   return (
-    <section className="space-y-6">
-      <header className="flex items-start gap-3">
-        <Link
-          href="/dashboard-student"
-          className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-zinc-300 transition hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-white"
-          aria-label="Dashboard"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          <h1 className="headline text-2xl font-bold text-white sm:text-3xl">
-            სილაბუსის AI ანალიზატორი
-          </h1>
-          <p className="mt-1 max-w-4xl text-sm text-zinc-400">
-            ჩააგდე საგნის სილაბუსის PDF ფაილი და გარდაქმენი ის ინტერაქციულ სემესტრულ გეგმად.
-          </p>
-        </div>
-      </header>
-
-      <div className="mt-6 flex w-full flex-col gap-6 lg:flex-row">
-        <aside className="w-full lg:w-[360px] lg:shrink-0">
-          <div className="rounded-2xl border border-white/[0.06] bg-[#121214]/40 p-5 backdrop-blur-md">
-            <label
-              onDragOver={(event) => {
-                event.preventDefault();
-                setDragActive(true);
-              }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={onDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-[#121214]/40 p-8 text-center transition-all ${
-                dragActive
-                  ? "border-emerald-500/40 bg-emerald-500/10"
-                  : "border-white/[0.08] hover:border-emerald-500/30"
-              }`}
-            >
-              <input
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={onFileChange}
-              />
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-                <CloudUpload className="h-3.5 w-3.5" />
-                PDF Upload
-              </div>
-              <p className="text-sm text-zinc-200">ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად</p>
-              <p className="text-xs text-zinc-500">მხარდაჭერა: მხოლოდ PDF</p>
-            </label>
-
-            {fileName && (
-              <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-                ატვირთული ფაილი: {fileName}
-              </div>
-            )}
-
-            <div className="mt-4 space-y-2">
-              {OPTIONS.map((item) => (
-                <label
-                  key={item.id}
-                  className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-sm text-zinc-300 transition hover:border-white/[0.12]"
-                >
-                  <input
-                    type="checkbox"
-                    checked={enabled[item.id]}
-                    onChange={(event) =>
-                      setEnabled((prev) => ({ ...prev, [item.id]: event.target.checked }))
-                    }
-                    className="h-4 w-4 accent-emerald-500"
-                  />
-                  {item.label}
-                </label>
-              ))}
+    <div className="flex w-full flex-col gap-6 lg:flex-row">
+      <aside className="w-full lg:w-[360px] lg:shrink-0">
+        <div className="dashboard-tool-card rounded-[28px] p-5">
+          <label
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={onDrop}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[rgb(228,216,189)] bg-[linear-gradient(135deg,#fefcf6_0%,#f6efdc_100%)] p-8 text-center transition-all dark:border-white/10 dark:bg-white/[0.02] ${
+              dragActive
+                ? "border-violet-300 bg-violet-50 dark:border-violet-400/40 dark:bg-violet-500/10"
+                : "hover:border-violet-300 dark:hover:border-violet-400/40"
+            }`}
+          >
+            <input
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={onFileChange}
+            />
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300">
+              <CloudUpload className="h-3.5 w-3.5" />
+              PDF Upload
             </div>
+            <p className="text-sm text-slate-700 dark:text-zinc-200">ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-500">მხარდაჭერა: მხოლოდ PDF</p>
+          </label>
 
-            <button
-              type="button"
-              onClick={() => void handleGenerate()}
-              disabled={isLoading || !syllabusFile}
-              className="mt-4 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3 text-sm font-medium text-white shadow-lg shadow-emerald-500/10 transition-all hover:from-emerald-500 hover:to-teal-500 disabled:opacity-60"
-            >
-              {isLoading ? "PDF-ის დამუშავება მიმდინარეობს..." : "კალენდრის გენერაცია"}
-            </button>
-            {error && (
-              <p className="mt-3 text-xs text-rose-300">{error}</p>
-            )}
+          {fileName && (
+            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/10 dark:text-rose-300">
+              ატვირთული ფაილი: {fileName}
+            </div>
+          )}
+
+          <div className="mt-4 space-y-2">
+            {OPTIONS.map((item) => (
+              <label
+                key={item.id}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 transition hover:border-rose-200 hover:bg-rose-50/50 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-white/[0.12] dark:hover:bg-white/[0.04]"
+              >
+                <input
+                  type="checkbox"
+                  checked={enabled[item.id]}
+                  onChange={(event) =>
+                    setEnabled((prev) => ({ ...prev, [item.id]: event.target.checked }))
+                  }
+                  className="h-4 w-4 accent-rose-500"
+                />
+                {item.label}
+              </label>
+            ))}
           </div>
-        </aside>
 
-        <section className="min-h-[520px] flex-1 rounded-2xl border border-white/[0.06] bg-[#121214]/20 p-5 backdrop-blur-md">
-          {isLoading ? (
-            <div className="space-y-3">
-              <p className="text-sm text-emerald-300/90">
-                PDF-ის დამუშავება მიმდინარეობს...
-              </p>
-              <AiSkeletonLoader rows={4} />
-            </div>
-          ) : !generated ? (
-            <div className="flex h-full min-h-[480px] flex-col items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-[#0f1420]/30 p-8 text-center">
-              <p className="max-w-sm text-sm text-zinc-500">
-                ატვირთე სილაბუსი სემესტრული კალენდრის დასაგენერირებლად.
-              </p>
-            </div>
-          ) : (
-            <div className="fade-in flex h-full flex-col rounded-2xl border border-white/[0.06] bg-[#121214]/40 p-5 backdrop-blur-md">
-              <div className="mb-5">
-                <div className="mb-1 flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-emerald-400" strokeWidth={1.5} />
-                  <h2 className="text-lg font-semibold text-white">
-                    სილაბუსიდან გენერირებული თარიღები
-                  </h2>
-                </div>
-                <p className="text-sm text-zinc-400">
+          <button
+            type="button"
+            onClick={() => void handleGenerate()}
+            disabled={isLoading || !syllabusFile}
+            className="mt-4 w-full rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+          >
+            {isLoading ? "PDF-ის დამუშავება მიმდინარეობს..." : "კალენდრის გენერაცია"}
+          </button>
+          {error && (
+            <p className="mt-3 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+          )}
+        </div>
+      </aside>
+
+      <div className="dashboard-tool-card min-h-[520px] flex-1 rounded-[28px] p-5">
+        {isLoading ? (
+          <div className="space-y-3">
+            <p className="text-sm text-rose-600 dark:text-rose-400">
+              PDF-ის დამუშავება მიმდინარეობს...
+            </p>
+            <AiSkeletonLoader rows={4} />
+          </div>
+        ) : !generated ? (
+          <div className="flex h-full min-h-[480px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
+            <p className="max-w-sm text-sm text-slate-500 dark:text-zinc-500">
+              ატვირთე სილაბუსი სემესტრული კალენდრის დასაგენერირებლად.
+            </p>
+          </div>
+        ) : (
+          <div className="fade-in flex h-full flex-col">
+            <div className="mb-5 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl subject-icon-wrap">
+                <CalendarDays className="h-5 w-5 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  სილაბუსიდან გენერირებული თარიღები
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-zinc-400">
                   მონიშნე მნიშვნელოვანი დღეები დეშბორდის კალენდარში დასამატებლად.
                 </p>
               </div>
-
-              {aiInsight && (
-                <div className="mb-5 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.03] p-4 text-xs leading-relaxed text-zinc-400">
-                  {aiInsight}
-                </div>
-              )}
-
-              <div className="relative space-y-0 pl-6">
-                <div
-                  className="absolute bottom-2 left-[7px] top-2 w-px bg-gradient-to-b from-emerald-500/40 via-white/10 to-transparent"
-                  aria-hidden
-                />
-                {visibleMilestones.map((item, index) => {
-                  const added =
-                    addedIds.has(item.id) || isMilestoneOnDashboard(item.id);
-                  const badge = BADGE_STYLES[item.type];
-                  return (
-                    <article
-                      key={item.id}
-                      className={`stagger-in relative pb-4 ${index === visibleMilestones.length - 1 ? "pb-0" : ""}`}
-                      style={{ animationDelay: `${index * 70}ms` }}
-                    >
-                      <span
-                        className="absolute -left-6 top-4 h-3 w-3 rounded-full border-2 border-emerald-500/50 bg-[#121214] shadow-[0_0_12px_rgba(16,185,129,0.35)]"
-                        aria-hidden
-                      />
-                      <div className="relative flex items-start justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#17181b]/55 py-3 pl-4 pr-28 transition hover:border-white/[0.12]">
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 flex flex-wrap items-center gap-2">
-                            <span className={badge.className}>[ {badge.label} ]</span>
-                          </div>
-                          <p className="text-sm font-medium text-zinc-100">{item.title}</p>
-                          <p className="mt-0.5 text-xs text-zinc-400">{item.date}</p>
-                        </div>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          {added ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400">
-                              <Check className="h-3.5 w-3.5" />
-                              დამატებულია
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleAddToCalendar(item)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs text-white/90 transition-all hover:border-purple-500/40 hover:bg-white/[0.08]"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                              {index % 2 === 0 ? "დაამატე კალენდარში" : "მოინიშნე ეს დღე"}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              <Link
-                href="/study-plan"
-                className="mt-5 inline-flex items-center gap-2 text-xs text-emerald-400 transition hover:text-emerald-300"
-              >
-                <Bell className="h-3.5 w-3.5" />
-                გახსენი სრული კალენდარი სასწავლო გეგმაში
-              </Link>
             </div>
-          )}
-        </section>
+
+            {aiInsight && (
+              <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50/60 p-4 text-xs leading-relaxed text-slate-600 dark:border-rose-400/15 dark:bg-rose-500/[0.04] dark:text-zinc-400">
+                {aiInsight}
+              </div>
+            )}
+
+            <div className="relative space-y-0 pl-6">
+              <div
+                className="absolute bottom-2 left-[7px] top-2 w-px bg-gradient-to-b from-rose-300 via-slate-200 to-transparent dark:from-rose-400/40 dark:via-white/10 dark:to-transparent"
+                aria-hidden
+              />
+              {visibleMilestones.map((item, index) => {
+                const added =
+                  addedIds.has(item.id) || isMilestoneOnDashboard(item.id);
+                const meta = TYPE_META[item.type];
+                return (
+                  <article
+                    key={item.id}
+                    className={`stagger-in relative pb-4 ${index === visibleMilestones.length - 1 ? "pb-0" : ""}`}
+                    style={{ animationDelay: `${index * 70}ms` }}
+                  >
+                    <span
+                      className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 bg-white dark:bg-[#121214] ${meta.dot}`}
+                      aria-hidden
+                    />
+                    <div className="dashboard-glass-card relative flex items-start justify-between gap-3 rounded-2xl py-3 pl-4 pr-28">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.badge}`}
+                          >
+                            {meta.label}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{item.title}</p>
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">{item.date}</p>
+                      </div>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {added ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            <Check className="h-3.5 w-3.5" />
+                            დამატებულია
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleAddToCalendar(item)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            {index % 2 === 0 ? "დაამატე კალენდარში" : "მოინიშნე ეს დღე"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <Link
+              href="/study-plan"
+              className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              გახსენი სრული კალენდარი სასწავლო გეგმაში
+            </Link>
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 }

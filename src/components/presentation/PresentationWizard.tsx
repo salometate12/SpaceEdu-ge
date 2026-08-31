@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { PresentationResponse } from "@/lib/ai/presentation-schema";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
@@ -151,10 +150,10 @@ export function PresentationWizard() {
         {[1, 2, 3, 4].map((n) => (
           <span
             key={n}
-            className={`rounded-full px-3 py-1 text-xs font-medium ${
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
               step === n
-                ? "bg-purple-500 text-white shadow-md shadow-purple-500/20"
-                : "border border-white/[0.06] bg-[#161619] text-gray-500"
+                ? "bg-amber-500 text-white dark:bg-amber-400 dark:text-zinc-950"
+                : "border border-slate-200 bg-white text-slate-500 dark:border-white/[0.06] dark:bg-[#161619] dark:text-gray-500"
             }`}
           >
             Step {n}
@@ -162,69 +161,71 @@ export function PresentationWizard() {
         ))}
       </div>
 
-      <section className="mt-6 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 backdrop-blur-md">
-        {step === 1 && (
-          <Step1Info
-            form={form}
-            onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
-          />
-        )}
-        {step === 2 && (
-          <Step2Templates
-            templates={TEMPLATES}
-            selectedTemplateId={selectedTemplateId}
-            onSelect={setSelectedTemplateId}
-          />
-        )}
-        {step === 3 && (
-          <Step3PhotosQA
-            qa={qa}
-            onQaChange={(next) => setQa((prev) => ({ ...prev, ...next }))}
-          />
-        )}
-        {step === 4 && generated && (
-          <Step4Result
-            title={generated.title}
-            slides={generated.slides}
-            template={selectedTemplate}
-            onReset={reset}
-          />
-        )}
+      <section className="dashboard-tool-card mt-6 rounded-[28px] p-5 sm:p-8">
+        <div className="dashboard-glass-card rounded-2xl p-5 sm:p-6">
+          {step === 1 && (
+            <Step1Info
+              form={form}
+              onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
+            />
+          )}
+          {step === 2 && (
+            <Step2Templates
+              templates={TEMPLATES}
+              selectedTemplateId={selectedTemplateId}
+              onSelect={setSelectedTemplateId}
+            />
+          )}
+          {step === 3 && (
+            <Step3PhotosQA
+              qa={qa}
+              onQaChange={(next) => setQa((prev) => ({ ...prev, ...next }))}
+            />
+          )}
+          {step === 4 && generated && (
+            <Step4Result
+              title={generated.title}
+              slides={generated.slides}
+              template={selectedTemplate}
+              onReset={reset}
+            />
+          )}
 
-        {error && (
-          <div className="mt-5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-            {error}
-            <button className="ml-3 underline" onClick={generate}>
-              კვლავ სცადე
-            </button>
-          </div>
-        )}
+          {error && (
+            <div className="mt-5 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+              {error}
+              <button className="ml-3 underline" onClick={generate}>
+                კვლავ სცადე
+              </button>
+            </div>
+          )}
 
-        {loading && (
-          <div className="mt-5 space-y-3">
-            <AiSkeletonLoader rows={3} />
-            <p className="text-sm text-zinc-400">
-              {activeLoading[0]} — {activeLoading[1]}
-            </p>
-          </div>
-        )}
+          {loading && (
+            <div className="mt-5 space-y-3">
+              <AiSkeletonLoader rows={3} />
+              <p className="text-sm text-slate-600 dark:text-zinc-400">
+                {activeLoading[0]} — {activeLoading[1]}
+              </p>
+            </div>
+          )}
+        </div>
 
         {step < 4 && (
-          <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-5">
-            <Button
-              variant="ghost"
+          <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-white/[0.08]">
+            <button
+              type="button"
               disabled={step === 1 || loading}
               onClick={() => setStep((s) => Math.max(1, s - 1))}
-              className="px-5 py-2.5"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
             >
               უკან
-            </Button>
+            </button>
             {step < 3 && (
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => setStep((s) => Math.min(3, s + 1))}
-                className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2.5 font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500"
+                className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
               >
                 შემდეგი →
               </button>
@@ -234,7 +235,7 @@ export function PresentationWizard() {
                 type="button"
                 disabled={loading}
                 onClick={generate}
-                className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-2.5 font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500"
+                className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
               >
                 გენერაცია
               </button>

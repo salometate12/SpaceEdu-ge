@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { StudyPlanForm, type StudyPlanFormValues } from "@/components/StudyPlan/StudyPlanForm";
 import { CalendarView } from "@/components/StudyPlan/CalendarView";
 import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
+import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
 
@@ -39,36 +39,22 @@ export default function StudyPlanPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex items-start gap-3">
-        <Link
-          href="/dashboard-student"
-          className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-purple-400/30 dark:hover:bg-purple-500/10 dark:hover:text-white"
-          aria-label="Dashboard"
-        >
-          ←
-        </Link>
-        <div>
-          <h1 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-zinc-100">
-            სასწავლო გეგმის გენერატორი
-          </h1>
-          <p className="mt-1 max-w-4xl text-sm text-slate-600 dark:text-zinc-400">
-            შეიყვანე საგნის საკითხები და ხელოვნური ინტელექტი დღეებზე გაგიწერს
-            მომზადების გრაფიკს
-          </p>
-        </div>
-      </div>
+      <ToolPageHeader
+        title="სასწავლო გეგმის გენერატორი"
+        subtitle="შეიყვანე საგნის საკითხები და ხელოვნური ინტელექტი დღეებზე გაგიწერს მომზადების გრაფიკს"
+      />
 
       <section className="mt-6 flex w-full flex-col items-stretch gap-6 lg:flex-row">
         <div className="w-full flex-shrink-0 lg:w-[380px]">
           <StudyPlanForm loading={loading} onSubmit={generatePlan} />
           {error && (
-            <div className="mt-4 rounded-xl border border-rose-300/50 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            <div className="mt-4 rounded-2xl border border-rose-300/50 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
               {error}
             </div>
           )}
         </div>
 
-        <div className="dashboard-section min-h-[500px] flex-1 p-6">
+        <div className="dashboard-tool-card min-h-[500px] flex-1 rounded-[28px] p-6">
           {loading ? (
             <AiSkeletonLoader rows={4} />
           ) : result ? (
