@@ -285,12 +285,17 @@ html.dark .subject-icon-wrap-featured {
   /* Widget-style bento grid for student tools (wide + paired half cards) */
   .mobile-widget-tools {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.75rem;
+    width: 100%;
+    max-width: 100%;
   }
 
   .mobile-widget-tool-item {
     height: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .mobile-widget-tool-wide {
@@ -299,6 +304,17 @@ html.dark .subject-icon-wrap-featured {
 
   .mobile-widget-tool-half .mobile-vivid-tool-card {
     min-height: 128px !important;
+  }
+
+  .mobile-widget-tools .mobile-vivid-tool-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .mobile-widget-tools h3,
+  .mobile-widget-tools p {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
   }
 
   html:not(.dark) .mobile-vivid-stat-pill {
