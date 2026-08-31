@@ -154,6 +154,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
   const [formDescription, setFormDescription] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [formAnimDone, setFormAnimDone] = useState(false);
   const [pickerMonth, setPickerMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     setPickerMonth(new Date(selectedKey));
     setShowDatePicker(false);
     setShowTimePicker(false);
+    setFormAnimDone(false);
     setShowAddForm(true);
   };
 
@@ -209,6 +211,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     setPickerMonth(new Date(dateKey));
     setShowDatePicker(false);
     setShowTimePicker(false);
+    setFormAnimDone(false);
     setShowAddForm(true);
   };
 
@@ -416,7 +419,8 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
+                    onAnimationComplete={() => setFormAnimDone(true)}
+                    className={formAnimDone ? "overflow-visible" : "overflow-hidden"}
                   >
                     <div className="mt-4 space-y-2.5 rounded-2xl border border-pink-200 bg-white p-3.5 dark:border-pink-400/20 dark:bg-white/[0.04]">
                       <div className="flex items-center justify-between">
@@ -459,7 +463,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                           {showDatePicker && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
-                              <div className="absolute left-0 top-full z-50 mt-2 w-[280px] rounded-2xl border border-sky-200 bg-white p-3.5 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
+                              <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-sky-200 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-[#1a1a1f]">
                                 <div className="mb-3 flex items-center justify-between">
                                   <p className="text-sm font-bold text-zinc-900 dark:text-white">
                                     {MONTH_NAMES[pickerMonth.getMonth()]} {pickerMonth.getFullYear()}
@@ -506,7 +510,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                                           setFormDate(cell.key);
                                           setShowDatePicker(false);
                                         }}
-                                        className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${
                                           !cell.inMonth
                                             ? "text-zinc-300 dark:text-zinc-700"
                                             : isSelected
