@@ -33,20 +33,36 @@ function TimerSwitch({
       role="switch"
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
-      className="flex items-center gap-3 text-left"
+      className="group flex items-center gap-3 text-left"
     >
-      <span
-        className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors ${
-          enabled
-            ? "border-purple-500/50 bg-purple-600/40"
-            : "border-white/[0.12] bg-white/[0.06]"
-        }`}
-      >
+      <span className="relative inline-flex shrink-0">
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            enabled ? "translate-x-5" : "translate-x-0.5"
+          className={`relative h-6 w-11 shrink-0 rounded-full border transition-all duration-300 ${
+            enabled
+              ? "border-purple-500/60 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-[0_0_14px_rgba(168,85,247,0.55)]"
+              : "border-white/[0.12] bg-white/[0.06]"
           }`}
-        />
+        >
+          <span
+            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active:scale-90 ${
+              enabled ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </span>
+        {enabled && (
+          <span
+            key="pulse"
+            className="animate-toggle-track-pulse pointer-events-none absolute inset-0 rounded-full"
+            aria-hidden
+          />
+        )}
+        {enabled && (
+          <Sparkles
+            key="sparkle"
+            className="animate-toggle-sparkle pointer-events-none absolute -right-1.5 -top-2.5 h-3.5 w-3.5 text-amber-300"
+            aria-hidden
+          />
+        )}
       </span>
       <span className="text-sm text-zinc-300">გამოაჩინე ტაიმერი</span>
     </button>
