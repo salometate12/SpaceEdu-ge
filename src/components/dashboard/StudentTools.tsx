@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowRight,
   Brain,
   CalendarClock,
   ChevronRight,
@@ -127,7 +128,7 @@ export function StudentTools() {
     });
     window.setTimeout(() => {
       router.push(tool.href);
-    }, 480);
+    }, 780);
   };
 
   return (
@@ -154,16 +155,22 @@ export function StudentTools() {
                     <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                   </ToolIconWrap>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-extrabold">
                       {tool.title}
                     </h3>
-                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
                       {tool.description}
                     </p>
+                    <span className="mt-2 hidden max-[639px]:inline-flex max-[639px]:max-w-full max-[639px]:items-center max-[639px]:truncate max-[639px]:rounded-full max-[639px]:border max-[639px]:border-white/40 max-[639px]:px-3 max-[639px]:py-1 max-[639px]:text-[11px] max-[639px]:font-semibold">
+                      {tool.description}
+                    </span>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-10 max-[639px]:w-10 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-[#0b0b0e] max-[639px]:shadow-lg">
+                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={2} />
                   </span>
                 </>
               ) : (
@@ -172,16 +179,22 @@ export function StudentTools() {
                     <ToolIconWrap accent={tool.accent}>
                       <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                     </ToolIconWrap>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:text-xl max-[639px]:font-extrabold">
                       {tool.title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70">
+                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
                       {tool.description}
                     </p>
+                    <span className="mt-3 hidden max-[639px]:inline-flex max-[639px]:max-w-full max-[639px]:items-center max-[639px]:truncate max-[639px]:rounded-full max-[639px]:border max-[639px]:border-white/40 max-[639px]:px-3 max-[639px]:py-1 max-[639px]:text-[11px] max-[639px]:font-semibold">
+                      {tool.description}
+                    </span>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white">
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                  </span>
+                  <span className="absolute bottom-5 right-5 hidden max-[639px]:flex max-[639px]:h-11 max-[639px]:w-11 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-[#0b0b0e] max-[639px]:shadow-lg">
+                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={2} />
                   </span>
                 </>
               )}
@@ -199,12 +212,12 @@ export function StudentTools() {
           initial={{ clipPath: `circle(0px at ${opening.x}px ${opening.y}px)` }}
           animate={{ clipPath: `circle(150% at ${opening.x}px ${opening.y}px)` }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.48, ease: [0.65, 0, 0.35, 1] }}
+          transition={{ duration: 0.78, ease: [0.65, 0, 0.35, 1] }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.16, duration: 0.25 }}
+            transition={{ delay: 0.3, duration: 0.35 }}
             className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/90"
           >
             <opening.icon className="h-7 w-7" style={{ color: opening.accent.accent }} strokeWidth={1.75} />
@@ -212,7 +225,7 @@ export function StudentTools() {
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.22, duration: 0.25 }}
+            transition={{ delay: 0.4, duration: 0.35 }}
             className="text-base font-bold text-white"
           >
             {opening.title}

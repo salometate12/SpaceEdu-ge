@@ -375,7 +375,11 @@ html.dark .subject-icon-wrap-featured {
   }
 
   .mobile-stack-tool-item:not(:first-child) {
-    margin-top: -16px;
+    margin-top: -44px;
+  }
+
+  .mobile-stack-tool-item {
+    transition: margin-top 0.2s ease;
   }
 
   .mobile-stack-tool-item .mobile-vivid-tool-card {
