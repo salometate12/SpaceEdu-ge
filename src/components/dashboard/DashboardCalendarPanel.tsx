@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Brain, ChevronLeft, ChevronRight, GraduationCap, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertCircle,
+  Brain,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  Plus,
+} from "lucide-react";
 import {
   CALENDAR_UPDATED_EVENT,
   getDashboardCalendarEvents,
@@ -63,6 +72,7 @@ function eventDateKey(dateStr: string): string {
 
 export function DashboardCalendarPanel() {
   const today = useMemo(() => new Date(), []);
+  const [expanded, setExpanded] = useState(true);
   const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedKey, setSelectedKey] = useState(() => toDateKey(today));
   const [events, setEvents] = useState<DashboardCalendarEvent[]>([]);
@@ -111,15 +121,56 @@ export function DashboardCalendarPanel() {
 
   const selectedEvents = eventsByDate.get(selectedKey) ?? [];
   const isViewingToday = toDateKey(today) === selectedKey;
+  const hasEventsToday = (eventsByDate.get(toDateKey(today))?.length ?? 0) > 0;
 
   return (
-    <aside className="sticky top-24 hidden h-fit w-[300px] shrink-0 flex-col gap-4 xl:flex">
+    <motion.aside
+      animate={{ width: expanded ? 300 : 76 }}
+      transition={{ type: "spring", stiffness: 320, damping: 32 }}
+      className="sticky top-24 hidden h-fit shrink-0 flex-col gap-4 overflow-hidden xl:flex"
+    >
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-label="კალენდრის გამოწევა"
+          className="flex w-[76px] flex-col items-center gap-3 rounded-[28px] border border-amber-200 bg-amber-50 py-5 transition-all hover:border-amber-300 dark:border-2 dark:border-white/10 dark:bg-[#121214] dark:hover:border-white/20"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+            <ChevronLeft className="h-4 w-4" />
+          </span>
+          <CalendarDays className="h-5 w-5 text-amber-600 dark:text-white/70" />
+          <span className="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-amber-400 text-sm font-bold text-zinc-900 dark:border-white/40 dark:text-white">
+            {today.getDate()}
+            {hasEventsToday && (
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 dark:bg-cyan-400" />
+            )}
+          </span>
+        </button>
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            key="calendar-expanded"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex w-[300px] flex-col gap-4"
+          >
       <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-5 dark:border-2 dark:border-white/10 dark:bg-[#121214]">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm font-bold text-zinc-900 dark:text-white">
             {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
           </p>
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="mr-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-zinc-600 transition-all hover:bg-black/10 hover:text-zinc-900 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20 dark:hover:text-white"
+              aria-label="კალენდრის ჩაკეცვა"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
             <button
               type="button"
               onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
@@ -216,6 +267,9 @@ export function DashboardCalendarPanel() {
           </div>
         )}
       </div>
-    </aside>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </motion.aside>
   );
 }
