@@ -9,8 +9,10 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  FileText,
   GraduationCap,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import {
   CALENDAR_UPDATED_EVENT,
@@ -226,13 +228,30 @@ export function DashboardCalendarPanel() {
           })}
         </div>
 
-        <Link
-          href="/syllabus"
-          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full bg-zinc-900 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-zinc-800 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-white/90"
-        >
-          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-          ღონისძიების დამატება
-        </Link>
+        <div className="mt-4 flex items-center gap-2">
+          <Link
+            href="/syllabus"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-zinc-900 px-4 py-3 text-xs font-bold text-white transition-all hover:bg-zinc-800 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-white/90"
+          >
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+            ღონისძიების დამატება
+          </Link>
+          <button
+            type="button"
+            onClick={() => setEvents(getDashboardCalendarEvents())}
+            aria-label="განახლება"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-zinc-500 transition-all hover:border-amber-300 hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white"
+          >
+            <RefreshCw className="h-4 w-4 stroke-[1.75]" />
+          </button>
+          <Link
+            href="/syllabus"
+            aria-label="ექსპორტი"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-zinc-500 transition-all hover:border-amber-300 hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white"
+          >
+            <FileText className="h-4 w-4 stroke-[1.75]" />
+          </Link>
+        </div>
       </div>
 
       <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-5 dark:border-2 dark:border-white/10 dark:bg-[#121214]">
