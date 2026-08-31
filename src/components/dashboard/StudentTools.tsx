@@ -164,10 +164,10 @@ export function StudentTools() {
                     </ToolIconWrap>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-3xl max-[639px]:font-black max-[639px]:tracking-tight">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-white/80">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
                       {tool.description}
                     </p>
                   </div>
@@ -176,7 +176,7 @@ export function StudentTools() {
                     <ChevronRight className="h-3.5 w-3.5" />
                   </span>
                   <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
-                    <ArrowUpRight className="h-4 w-4 text-white" strokeWidth={2} />
+                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               ) : (
@@ -187,10 +187,10 @@ export function StudentTools() {
                         <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                       </ToolIconWrap>
                     </div>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-3xl max-[639px]:font-black max-[639px]:tracking-tight">
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-white/80">
+                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
                       {tool.description}
                     </p>
                   </div>
@@ -199,7 +199,7 @@ export function StudentTools() {
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
                   </span>
                   <span className="absolute right-4 top-4 hidden max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
-                    <ArrowUpRight className="h-4 w-4 text-white" strokeWidth={2} />
+                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               )}

@@ -268,9 +268,13 @@ html.dark .subject-icon-wrap-featured {
   }
 
   .mobile-vivid-tool-card h3,
-  .mobile-vivid-tool-card p,
-  .mobile-vivid-tool-card span {
-    color: #ffffff !important;
+  .mobile-vivid-tool-card span,
+  .mobile-vivid-tool-card svg {
+    color: #18181b !important;
+  }
+
+  .mobile-vivid-tool-card p {
+    color: rgb(24 24 27 / 0.72) !important;
   }
 
   .mobile-vivid-tool-card .subject-icon-wrap {
