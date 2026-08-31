@@ -261,18 +261,20 @@ html.dark .subject-icon-wrap-featured {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
 }
 
-/* Mobile-only soft-gradient cards (student dashboard tools) — both light and dark mode */
+/* Mobile-only outline cards (student dashboard tools) — cream fill, accent-colored border, both modes */
 @media (max-width: 639px) {
   .mobile-vivid-tool-card {
-    background: var(--tool-gradient, var(--accent-color)) !important;
-    border-color: transparent !important;
-    box-shadow: 0 10px 24px rgb(15 23 42 / 0.18) !important;
+    background: #fdfaf2 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 6px 16px rgb(15 23 42 / 0.1) !important;
     min-height: 0 !important;
     padding: 1.25rem !important;
   }
 
   .mobile-vivid-tool-card:hover {
-    box-shadow: 0 14px 28px rgb(15 23 42 / 0.22) !important;
+    box-shadow: 0 8px 20px rgb(15 23 42 / 0.14) !important;
   }
 
   .mobile-vivid-tool-card::before {
@@ -477,30 +479,44 @@ html.dark .subject-icon-wrap-featured {
     box-shadow: 0 8px 20px rgb(0 0 0 / 0.15) !important;
   }
 
+  .mobile-vivid-metric-yellow,
+  .mobile-vivid-metric-pink,
+  .mobile-vivid-metric-blue,
+  .mobile-vivid-metric-emerald {
+    background: #fdfaf2 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+  }
+
   .mobile-vivid-metric-yellow {
-    background: #facc15 !important;
-    border-color: transparent !important;
+    border-color: #eab308 !important;
   }
 
   .mobile-vivid-metric-pink {
-    background: #f472b6 !important;
-    border-color: transparent !important;
+    border-color: #ec4899 !important;
   }
 
   .mobile-vivid-metric-blue {
-    background: #3b82f6 !important;
-    border-color: transparent !important;
+    border-color: #3b82f6 !important;
   }
 
+  .mobile-vivid-metric-yellow p,
+  .mobile-vivid-metric-yellow span,
+  .mobile-vivid-metric-yellow svg,
+  .mobile-vivid-metric-pink p,
+  .mobile-vivid-metric-pink span,
+  .mobile-vivid-metric-pink svg,
   .mobile-vivid-metric-blue p,
   .mobile-vivid-metric-blue span,
-  .mobile-vivid-metric-blue svg {
-    color: #ffffff !important;
+  .mobile-vivid-metric-blue svg,
+  .mobile-vivid-metric-emerald p,
+  .mobile-vivid-metric-emerald span,
+  .mobile-vivid-metric-emerald svg {
+    color: #18181b !important;
   }
 
   .mobile-vivid-metric-emerald {
-    background: #34d399 !important;
-    border-color: transparent !important;
+    border-color: #10b981 !important;
   }
 }
 
