@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState, type MouseEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Brain,
   CalendarClock,
@@ -90,22 +93,60 @@ function ToolIconWrap({
   );
 }
 
+interface OpeningTool {
+  href: string;
+  accent: NeonSubjectAccent;
+  icon: (typeof TOOLS)[number]["icon"];
+  title: string;
+  x: number;
+  y: number;
+}
+
 export function StudentTools() {
   const { previewMode } = usePreviewMode();
   const isLive = isLivePreviewMode(previewMode);
   const cardClass = getToolCardClass(previewMode);
+  const router = useRouter();
+  const [opening, setOpening] = useState<OpeningTool | null>(null);
+
+  const handleMobileOpen = (
+    event: MouseEvent,
+    tool: (typeof TOOLS)[number],
+  ) => {
+    if (typeof window === "undefined" || window.innerWidth >= 640) return;
+    event.preventDefault();
+    if (opening) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setOpening({
+      href: tool.href,
+      accent: tool.accent,
+      icon: tool.icon,
+      title: tool.title,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+    window.setTimeout(() => {
+      router.push(tool.href);
+    }, 480);
+  };
 
   return (
-    <DashboardMorphGrid variant="tools">
+    <>
+    <DashboardMorphGrid variant="tools" className="mobile-stack-tools">
       {TOOLS.map((tool) => {
         const Icon = tool.icon;
         return (
-          <DashboardMorphItem key={tool.id} id={`student-tool-${tool.id}`}>
+          <DashboardMorphItem
+            key={tool.id}
+            id={`student-tool-${tool.id}`}
+            className="mobile-stack-tool-item"
+          >
             <DashboardGlowCard
               accent={tool.accent}
               href={tool.href}
               layoutId={`student-tool-card-${tool.id}`}
               className={`${cardClass} mobile-vivid-tool-card`}
+              onClick={(event) => handleMobileOpen(event, tool)}
             >
               {isLive ? (
                 <>
@@ -149,5 +190,36 @@ export function StudentTools() {
         );
       })}
     </DashboardMorphGrid>
+
+    <AnimatePresence>
+      {opening && (
+        <motion.div
+          className="fixed inset-0 z-[95] flex flex-col items-center justify-center gap-4"
+          style={{ background: opening.accent.accent }}
+          initial={{ clipPath: `circle(0px at ${opening.x}px ${opening.y}px)` }}
+          animate={{ clipPath: `circle(150% at ${opening.x}px ${opening.y}px)` }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.48, ease: [0.65, 0, 0.35, 1] }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.16, duration: 0.25 }}
+            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/90"
+          >
+            <opening.icon className="h-7 w-7" style={{ color: opening.accent.accent }} strokeWidth={1.75} />
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22, duration: 0.25 }}
+            className="text-base font-bold text-white"
+          >
+            {opening.title}
+          </motion.p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

@@ -362,6 +362,27 @@ html.dark .subject-icon-wrap-featured {
   }
 }
 
+/* Mobile-only stacked/overlapping card layout (student dashboard tools) — layout only, both themes */
+@media (max-width: 639px) {
+  .mobile-stack-tools {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  .mobile-stack-tool-item {
+    position: relative;
+  }
+
+  .mobile-stack-tool-item:not(:first-child) {
+    margin-top: -16px;
+  }
+
+  .mobile-stack-tool-item .mobile-vivid-tool-card {
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.15) !important;
+  }
+}
+
 .tool-icon-wrap {
   border-radius: 0.75rem;
   border: 1px solid rgb(203 213 225 / 0.6);

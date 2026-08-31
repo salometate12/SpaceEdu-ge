@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import Link from "next/link";
 import type { NeonSubjectAccent } from "@/lib/abiturient-neon-accents";
 import { LAYOUT_SPRING } from "@/lib/dashboard-preview-layout";
@@ -47,6 +47,7 @@ interface DashboardGlowCardProps {
   className?: string;
   as?: "link" | "article" | "div";
   layoutId?: string;
+  onClick?: (event: MouseEvent) => void;
 }
 
 function CardMotionShell({
@@ -95,6 +96,7 @@ export function DashboardGlowCard({
   className = "",
   as = "link",
   layoutId,
+  onClick,
 }: DashboardGlowCardProps) {
   const baseClass = glowCardClasses(accent, interactive, className);
   const style = neonAccentVars(accent);
@@ -119,7 +121,13 @@ export function DashboardGlowCard({
   if (/^https?:\/\//i.test(href)) {
     return (
       <CardMotionShell interactive={interactive} className={`block ${baseClass}`} style={style} layoutId={layoutId}>
-        <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block h-full"
+          onClick={onClick}
+        >
           {inner}
         </a>
       </CardMotionShell>
@@ -128,7 +136,7 @@ export function DashboardGlowCard({
 
   return (
     <CardMotionShell interactive={interactive} className={`block h-full ${baseClass}`} style={style} layoutId={layoutId}>
-      <Link href={href} className="block h-full">
+      <Link href={href} className="block h-full" onClick={onClick}>
         {inner}
       </Link>
     </CardMotionShell>
