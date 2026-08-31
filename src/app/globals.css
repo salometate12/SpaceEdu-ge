@@ -385,6 +385,39 @@ html.dark .subject-icon-wrap-featured {
   .mobile-stack-tool-item .mobile-vivid-tool-card {
     box-shadow: 0 8px 20px rgb(0 0 0 / 0.15) !important;
   }
+
+  .mobile-stack-tool-item .mobile-vivid-metric-yellow,
+  .mobile-stack-tool-item .mobile-vivid-metric-pink,
+  .mobile-stack-tool-item .mobile-vivid-metric-blue,
+  .mobile-stack-tool-item .mobile-vivid-metric-emerald {
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.15) !important;
+  }
+
+  .mobile-vivid-metric-yellow {
+    background: #facc15 !important;
+    border-color: transparent !important;
+  }
+
+  .mobile-vivid-metric-pink {
+    background: #f472b6 !important;
+    border-color: transparent !important;
+  }
+
+  .mobile-vivid-metric-blue {
+    background: #3b82f6 !important;
+    border-color: transparent !important;
+  }
+
+  .mobile-vivid-metric-blue p,
+  .mobile-vivid-metric-blue span,
+  .mobile-vivid-metric-blue svg {
+    color: #ffffff !important;
+  }
+
+  .mobile-vivid-metric-emerald {
+    background: #34d399 !important;
+    border-color: transparent !important;
+  }
 }
 
 .tool-icon-wrap {

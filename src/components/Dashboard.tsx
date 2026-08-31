@@ -60,6 +60,7 @@ const STUDENT_METRICS = [
     sub: "+2 | გასულ კვირაზე",
     color: "text-green-400",
     card: "border border-amber-200 bg-amber-100 dark:border-transparent dark:bg-yellow-400",
+    mobileVivid: "mobile-vivid-metric-yellow",
     text: "text-zinc-900 dark:text-black",
     subText: "text-zinc-500 dark:text-black/60",
     chart: "bars" as const,
@@ -71,6 +72,7 @@ const STUDENT_METRICS = [
     sub: "+5% ამ თვეში",
     color: "text-purple-300",
     card: "border border-pink-200 bg-pink-100 dark:border-transparent dark:bg-pink-400",
+    mobileVivid: "mobile-vivid-metric-pink",
     text: "text-zinc-900 dark:text-black",
     subText: "text-zinc-500 dark:text-black/60",
     chart: "line" as const,
@@ -82,6 +84,7 @@ const STUDENT_METRICS = [
     sub: "ამ სემესტრში",
     color: "text-slate-300",
     card: "border border-sky-200 bg-sky-100 dark:border-transparent dark:bg-blue-500",
+    mobileVivid: "mobile-vivid-metric-blue",
     text: "text-zinc-900 dark:text-white",
     subText: "text-zinc-500 dark:text-white/70",
     chart: "none" as const,
@@ -93,6 +96,7 @@ const STUDENT_METRICS = [
     sub: "განაახლე",
     color: "text-amber-300",
     card: "border border-emerald-200 bg-emerald-100 dark:border-transparent dark:bg-emerald-400",
+    mobileVivid: "mobile-vivid-metric-emerald",
     text: "text-zinc-900 dark:text-black",
     subText: "text-zinc-500 dark:text-black/60",
     chart: "none" as const,
@@ -167,44 +171,53 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
             subtitle="დღეს გეგმაში: მონაცემთა სტრუქტურები — 2.5 საათი"
           />
 
-          <DashboardMorphGrid variant="metrics">
-            {STUDENT_METRICS.map(({ label, value, sub, color, card, text, subText, chart, chartColor }) => (
-              <DashboardMorphItem key={label} id={`student-metric-${label}`}>
-                <article
-                  className={
-                    isLive
-                      ? "flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-3 transition-all duration-300 ease-in-out"
-                      : `relative flex flex-col justify-between overflow-hidden rounded-[28px] ${card} px-5 py-5 transition-all duration-300 ease-in-out hover:-translate-y-1`
-                  }
+          <DashboardMorphGrid variant="metrics" className="mobile-stack-tools">
+            {STUDENT_METRICS.map(
+              ({ label, value, sub, color, card, mobileVivid, text, subText, chart, chartColor }) => (
+                <DashboardMorphItem
+                  key={label}
+                  id={`student-metric-${label}`}
+                  className="mobile-stack-tool-item"
                 >
-                  {isLive ? (
-                    <>
-                      <div>
-                        <p className="text-xs text-[var(--text-secondary)]">{label}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="headline text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-                        <p className={`mt-0.5 text-xs ${color}`}>{sub}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className={`text-xs font-bold uppercase tracking-wide ${subText}`}>{label}</p>
-                      <div>
-                        <p className={`mt-3 text-3xl font-black tracking-tight ${text}`}>{value}</p>
-                        <p className={`mt-1 text-xs font-semibold ${subText}`}>{sub}</p>
-                      </div>
-                      {chart === "bars" && (
-                        <MiniBars className={`absolute bottom-5 right-5 h-6 w-11 ${chartColor}`} />
-                      )}
-                      {chart === "line" && (
-                        <MiniLine className={`absolute bottom-6 right-4 h-6 w-14 ${chartColor}`} />
-                      )}
-                    </>
-                  )}
-                </article>
-              </DashboardMorphItem>
-            ))}
+                  <article
+                    className={
+                      isLive
+                        ? "flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-3 transition-all duration-300 ease-in-out"
+                        : `relative flex flex-col justify-between overflow-hidden rounded-[28px] ${card} ${mobileVivid} px-5 py-5 transition-all duration-300 ease-in-out hover:-translate-y-1`
+                    }
+                  >
+                    {isLive ? (
+                      <>
+                        <div>
+                          <p className="text-xs text-[var(--text-secondary)]">{label}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="headline text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+                          <p className={`mt-0.5 text-xs ${color}`}>{sub}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className={`text-xs font-bold uppercase tracking-wide ${subText}`}>{label}</p>
+                        <div>
+                          <p className={`mt-3 text-3xl font-black tracking-tight ${text}`}>{value}</p>
+                          <p className={`mt-1 text-xs font-semibold ${subText}`}>{sub}</p>
+                        </div>
+                        {chart === "bars" && (
+                          <MiniBars className={`absolute bottom-5 right-5 h-6 w-11 ${chartColor}`} />
+                        )}
+                        {chart === "line" && (
+                          <MiniLine className={`absolute bottom-6 right-4 h-6 w-14 ${chartColor}`} />
+                        )}
+                        <span className="absolute right-4 top-4 hidden max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
+                          <ArrowUpRight className={`h-4 w-4 ${text}`} strokeWidth={2} />
+                        </span>
+                      </>
+                    )}
+                  </article>
+                </DashboardMorphItem>
+              ),
+            )}
           </DashboardMorphGrid>
 
           <StudentTools />
