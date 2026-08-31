@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
   ChevronLeft,
   Copy,
@@ -20,6 +21,8 @@ import {
 } from "@/lib/georgian-text-editing";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
+const TYPEWRITER_ROLL_UP_MS = 850;
+const TYPING_IDLE_MS = 700;
 
 function TimerSwitch({
   enabled,
@@ -101,6 +104,86 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
   );
 }
 
+function TypewriterInput({
+  value,
+  onChange,
+  isRollingUp,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  isRollingUp: boolean;
+}) {
+  const [isActive, setIsActive] = useState(false);
+  const idleTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (idleTimer.current) window.clearTimeout(idleTimer.current);
+    };
+  }, []);
+
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(event.target.value);
+    setIsActive(true);
+    if (idleTimer.current) window.clearTimeout(idleTimer.current);
+    idleTimer.current = window.setTimeout(() => setIsActive(false), TYPING_IDLE_MS);
+  };
+
+  return (
+    <div className="typewriter-wrap relative mx-auto w-full max-w-2xl select-none [perspective:900px]">
+      <div className="relative rounded-t-2xl border border-white/10 bg-gradient-to-b from-zinc-800 to-zinc-900 px-5 pt-4 pb-5 shadow-lg">
+        <div className="flex items-center justify-center gap-3">
+          <span
+            className={`h-5 w-5 rounded-full border-2 border-zinc-500 bg-zinc-700 ${isActive ? "animate-roller-spin" : isRollingUp ? "animate-roller-spin-fast" : ""}`}
+            aria-hidden
+          />
+          <span
+            className={`h-2 max-w-[160px] flex-1 rounded-full bg-purple-500/60 ${isActive ? "animate-feed-glow" : ""}`}
+            aria-hidden
+          />
+          <span
+            className={`h-5 w-5 rounded-full border-2 border-zinc-500 bg-zinc-700 ${isActive ? "animate-roller-spin" : isRollingUp ? "animate-roller-spin-fast" : ""}`}
+            aria-hidden
+          />
+        </div>
+        {isActive && (
+          <span
+            className="animate-type-blink pointer-events-none absolute left-1/2 top-1.5 h-1.5 w-1.5 rounded-full bg-purple-400"
+            aria-hidden
+          />
+        )}
+      </div>
+
+      <div
+        className={`typewriter-paper relative -mt-1 border border-amber-100/10 bg-[#f4ecd8] px-5 pt-6 pb-5 shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${isRollingUp ? "animate-paper-roll-up" : ""}`}
+      >
+        <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-zinc-500">
+          <span>spaceedu.txt</span>
+          <span>{value.length} სიმბოლო</span>
+        </div>
+        <textarea
+          value={value}
+          onChange={handleChange}
+          disabled={isRollingUp}
+          placeholder="აქ ჩაწერე შესწორებული ტექსტი..."
+          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+        />
+      </div>
+
+      <div className="flex justify-center gap-1 rounded-b-2xl border border-t-0 border-white/10 bg-zinc-900 px-4 py-2.5">
+        {Array.from({ length: 24 }).map((_, index) => (
+          <span
+            key={index}
+            className={`h-1.5 w-1.5 rounded-full bg-zinc-700 ${isActive ? "animate-key-bounce" : ""}`}
+            style={{ animationDelay: `${(index % 6) * 0.05}s` }}
+            aria-hidden
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TextEditingExercise() {
   const [isTesting, setIsTesting] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
@@ -109,12 +192,14 @@ export function TextEditingExercise() {
   const [correctedText, setCorrectedText] = useState("");
   const [evaluation, setEvaluation] = useState<TextEditingEvaluation | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [isRollingUp, setIsRollingUp] = useState(false);
 
   const startTest = () => {
     setSourceText(pickRandomSourceText());
     setCorrectedText("");
     setEvaluation(null);
     setElapsedSec(0);
+    setIsRollingUp(false);
     setIsTesting(true);
   };
 
@@ -122,6 +207,7 @@ export function TextEditingExercise() {
     setIsTesting(false);
     setEvaluation(null);
     setCorrectedText("");
+    setIsRollingUp(false);
   };
 
   const copySourceToEditor = async () => {
@@ -134,8 +220,13 @@ export function TextEditingExercise() {
   };
 
   const submitForEvaluation = () => {
+    if (isRollingUp) return;
     const result = evaluateTextEditing(sourceText, correctedText);
-    setEvaluation(result);
+    setIsRollingUp(true);
+    window.setTimeout(() => {
+      setEvaluation(result);
+      setIsRollingUp(false);
+    }, TYPEWRITER_ROLL_UP_MS);
   };
 
   const finishExercise = () => {
@@ -208,25 +299,28 @@ export function TextEditingExercise() {
             რედაქტორში გადმოყვანა
           </button>
 
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-white">თქვენი შესწორებული ტექსტი</h2>
-          </div>
-          <textarea
-            value={correctedText}
-            onChange={(event) => setCorrectedText(event.target.value)}
-            placeholder="აქ ჩაწერე შესწორებული ტექსტი..."
-            className="min-h-[220px] w-full rounded-xl border border-white/[0.08] bg-black/20 p-4 font-sans text-sm text-white transition-all placeholder:text-zinc-600 focus:border-purple-500/50 focus:bg-black/40 focus:outline-none"
-          />
-
           {!evaluation && (
-            <button
-              type="button"
-              onClick={submitForEvaluation}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/15 transition-all hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] sm:w-auto sm:px-8"
-            >
-              <Sparkles className="h-4 w-4 stroke-[1.5]" />
-              გაგზავნა AI შეფასებისთვის
-            </button>
+            <>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-medium text-white">თქვენი შესწორებული ტექსტი</h2>
+              </div>
+
+              <TypewriterInput
+                value={correctedText}
+                onChange={setCorrectedText}
+                isRollingUp={isRollingUp}
+              />
+
+              <button
+                type="button"
+                onClick={submitForEvaluation}
+                disabled={isRollingUp}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/15 transition-all hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+              >
+                <Sparkles className="h-4 w-4 stroke-[1.5]" />
+                {isRollingUp ? "ფურცელი იხვევა..." : "გაგზავნა AI შეფასებისთვის"}
+              </button>
+            </>
           )}
 
           {evaluation && (
