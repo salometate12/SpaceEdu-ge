@@ -182,6 +182,10 @@ function TypewriterInput({
               <stop offset="0%" stopColor="#8f8865" />
               <stop offset="100%" stopColor="#746c50" />
             </linearGradient>
+            <radialGradient id="tw-key" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stopColor="#f4ecd8" />
+              <stop offset="100%" stopColor="#c9c2a0" />
+            </radialGradient>
           </defs>
 
           {/* paper guide tabs */}
@@ -262,22 +266,21 @@ function TypewriterInput({
           {/* lower keyboard deck */}
           <rect x="8" y="132" width="624" height="48" rx="16" fill="url(#tw-deck)" />
 
-          {/* keys */}
+          {/* keys: stem + rimmed domed keycap */}
           {keys.map((key) => (
-            <circle
+            <g
               key={key.index}
-              cx={key.x}
-              cy="156"
-              r="6.5"
-              fill="#efe9d2"
-              stroke="#8f8865"
-              strokeWidth="1.2"
-              className={isActive ? "animate-key-bounce" : ""}
+              className={isActive ? "animate-key-press" : ""}
               style={{
-                transformOrigin: `${key.x}px 156px`,
+                transformOrigin: `${key.x}px 134px`,
                 animationDelay: `${(key.index % 6) * 0.05}s`,
               }}
-            />
+            >
+              <rect x={key.x - 1.5} y="110" width="3" height="26" rx="1.5" fill="#403c30" />
+              <circle cx={key.x} cy="104" r="9" fill="#2f2b22" />
+              <circle cx={key.x} cy="104" r="7" fill="url(#tw-key)" stroke="#8f8865" strokeWidth="1" />
+              <circle cx={key.x - 2} cy="101" r="2" fill="#ffffff" opacity="0.5" />
+            </g>
           ))}
         </svg>
       </div>
