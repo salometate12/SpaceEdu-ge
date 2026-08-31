@@ -1054,25 +1054,23 @@ function ResultsScreen({
               label="სწორი პასუხი"
               value={`${correctCount} / ${total}`}
               tone="text-white"
-              accent="border-[3px] border-white/25 bg-transparent"
-              rotate="left"
+              accent="border-2 border-white/15 bg-white/[0.03]"
             />
             <ResultStat
               label="ჯამური ქულა"
               value={String(totalScore)}
-              tone="text-black"
-              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-black" />}
-              accent="border-[3px] border-transparent bg-cyan-400"
-              labelClass="text-black/60"
-              rotate="right"
+              tone="text-white"
+              icon={<Gem className="h-3.5 w-3.5 stroke-[1.75] text-white" />}
+              accent="border-2 border-transparent bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20"
+              labelClass="text-cyan-50/70"
             />
             <ResultStat
               label="საუკეთესო სერია"
               value={`x${bestStreak}`}
-              tone="text-orange-300"
-              icon={<Flame className="h-3.5 w-3.5 stroke-[1.75] text-orange-300" />}
-              accent="border-[3px] border-orange-400 bg-transparent"
-              rotate="left"
+              tone="text-white"
+              icon={<Flame className="h-3.5 w-3.5 stroke-[1.75] text-white" />}
+              accent="border-2 border-transparent bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20"
+              labelClass="text-orange-50/70"
             />
           </div>
 
@@ -1191,7 +1189,6 @@ function ResultStat({
   small,
   icon,
   accent,
-  rotate,
   labelClass,
 }: {
   label: string;
@@ -1200,14 +1197,11 @@ function ResultStat({
   small?: boolean;
   icon?: ReactNode;
   accent?: string;
-  rotate?: "left" | "right";
   labelClass?: string;
 }) {
   return (
     <div
-      className={`rounded-[24px] p-4 transition-transform duration-200 hover:scale-[1.02] ${
-        rotate === "right" ? "rotate-1" : rotate === "left" ? "-rotate-1" : ""
-      } ${accent ?? "border-2 border-white/10 bg-white/[0.02]"}`}
+      className={`rounded-2xl p-4 transition-transform duration-200 hover:-translate-y-0.5 ${accent ?? "border-2 border-white/10 bg-white/[0.02]"}`}
     >
       <p
         className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${labelClass ?? "text-zinc-500"}`}
