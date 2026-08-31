@@ -11,8 +11,10 @@ export interface DashboardCalendarEvent {
   id: string;
   title: string;
   date: string;
+  time?: string;
+  description?: string;
   type: SyllabusMilestoneType;
-  source: "syllabus";
+  source: "syllabus" | "manual";
 }
 
 const SYLLABUS_MILESTONES_KEY = "spaceedu-syllabus-generated-milestones";
@@ -66,6 +68,44 @@ export function addMilestoneToDashboardCalendar(
 
 export function isMilestoneOnDashboard(id: string): boolean {
   return getDashboardCalendarEvents().some((event) => event.id === id);
+}
+
+export interface ManualCalendarEventInput {
+  title: string;
+  date: string;
+  time?: string;
+  description?: string;
+  type: SyllabusMilestoneType;
+}
+
+export function addManualCalendarEvent(
+  input: ManualCalendarEventInput,
+): DashboardCalendarEvent[] {
+  const existing = getDashboardCalendarEvents();
+  const event: DashboardCalendarEvent = {
+    id: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: input.title,
+    date: input.date,
+    time: input.time,
+    description: input.description,
+    type: input.type,
+    source: "manual",
+  };
+  const next = [...existing, event];
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    notifyCalendarUpdated();
+  }
+  return next;
+}
+
+export function removeDashboardCalendarEvent(id: string): DashboardCalendarEvent[] {
+  const next = getDashboardCalendarEvents().filter((event) => event.id !== id);
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    notifyCalendarUpdated();
+  }
+  return next;
 }
 
 export const CALENDAR_UPDATED_EVENT = "spaceedu-calendar-updated";
