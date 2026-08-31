@@ -169,8 +169,8 @@ export function StudentTools() {
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5" />
                   </span>
-                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-10 max-[639px]:w-10 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-[#0b0b0e] max-[639px]:shadow-lg">
-                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={2} />
+                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-10 max-[639px]:w-10 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:border-2 max-[639px]:border-white/85 max-[639px]:bg-white/10 max-[639px]:backdrop-blur-sm">
+                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={1.75} />
                   </span>
                 </>
               ) : (
@@ -193,8 +193,8 @@ export function StudentTools() {
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
                   </span>
-                  <span className="absolute bottom-5 right-5 hidden max-[639px]:flex max-[639px]:h-11 max-[639px]:w-11 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-[#0b0b0e] max-[639px]:shadow-lg">
-                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={2} />
+                  <span className="absolute right-6 top-6 hidden max-[639px]:flex max-[639px]:h-11 max-[639px]:w-11 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:border-2 max-[639px]:border-white/85 max-[639px]:bg-white/10 max-[639px]:backdrop-blur-sm">
+                    <ArrowRight className="h-4 w-4 text-white" strokeWidth={1.75} />
                   </span>
                 </>
               )}
