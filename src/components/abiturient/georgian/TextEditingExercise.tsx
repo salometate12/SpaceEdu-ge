@@ -182,10 +182,6 @@ function TypewriterInput({
               <stop offset="0%" stopColor="#8f8865" />
               <stop offset="100%" stopColor="#746c50" />
             </linearGradient>
-            <radialGradient id="tw-key" cx="35%" cy="30%" r="75%">
-              <stop offset="0%" stopColor="#f4ecd8" />
-              <stop offset="100%" stopColor="#c9c2a0" />
-            </radialGradient>
           </defs>
 
           {/* paper guide tabs */}
@@ -266,21 +262,22 @@ function TypewriterInput({
           {/* lower keyboard deck */}
           <rect x="8" y="132" width="624" height="48" rx="16" fill="url(#tw-deck)" />
 
-          {/* keys: stem + rimmed domed keycap */}
+          {/* keys */}
           {keys.map((key) => (
-            <g
+            <circle
               key={key.index}
-              className={isActive ? "animate-key-press" : ""}
+              cx={key.x}
+              cy="156"
+              r="6.5"
+              fill="#efe9d2"
+              stroke="#8f8865"
+              strokeWidth="1.2"
+              className={isActive ? "animate-key-bounce" : ""}
               style={{
-                transformOrigin: `${key.x}px 134px`,
+                transformOrigin: `${key.x}px 156px`,
                 animationDelay: `${(key.index % 6) * 0.05}s`,
               }}
-            >
-              <rect x={key.x - 1.5} y="110" width="3" height="26" rx="1.5" fill="#403c30" />
-              <circle cx={key.x} cy="104" r="9" fill="#2f2b22" />
-              <circle cx={key.x} cy="104" r="7" fill="url(#tw-key)" stroke="#8f8865" strokeWidth="1" />
-              <circle cx={key.x - 2} cy="101" r="2" fill="#ffffff" opacity="0.5" />
-            </g>
+            />
           ))}
         </svg>
       </div>
@@ -495,28 +492,36 @@ export function TextEditingExercise() {
           {attempts.length === 0 ? (
             <p className="text-sm text-zinc-500">ჯერ არ გაქვს დასრულებული მცდელობა.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-5">
               {attempts.map((attempt) => (
-                <li
-                  key={attempt.id}
-                  className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-[#121214]/40 p-4 backdrop-blur-md transition-all hover:border-white/[0.1] sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500">{attempt.dateLabel}</p>
-                    <p className="mt-1 truncate text-sm text-zinc-300">{attempt.preview}</p>
+                <li key={attempt.id} className="group relative">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-3 left-0 z-0 w-9"
+                  >
+                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-gradient-to-br from-purple-800/70 to-indigo-900/70 shadow-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-6 group-hover:-translate-y-1 group-hover:-rotate-[10deg]" />
+                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#e8ddb8] shadow-md transition-all delay-75 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-9 group-hover:translate-y-0.5 group-hover:rotate-[6deg]" />
+                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#f2e2c8] shadow-md transition-all delay-150 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-4 group-hover:translate-y-1.5 group-hover:-rotate-[3deg]" />
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-3">
-                    <span
-                      className={`rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-1 text-sm ${scoreBadgeClass(attempt.score, attempt.maxScore)}`}
-                    >
-                      {attempt.score}/{attempt.maxScore}
-                    </span>
-                    <button
-                      type="button"
-                      className="text-xs text-purple-400 transition hover:text-purple-300 hover:underline"
-                    >
-                      დეტალების ნახვა →
-                    </button>
+
+                  <div className="relative z-10 flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-[#121214]/70 p-4 backdrop-blur-md transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:border-purple-400/25 group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-gray-500">{attempt.dateLabel}</p>
+                      <p className="mt-1 truncate text-sm text-zinc-300">{attempt.preview}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-3">
+                      <span
+                        className={`rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-1 text-sm ${scoreBadgeClass(attempt.score, attempt.maxScore)}`}
+                      >
+                        {attempt.score}/{attempt.maxScore}
+                      </span>
+                      <button
+                        type="button"
+                        className="text-xs text-purple-400 transition hover:text-purple-300 hover:underline"
+                      >
+                        დეტალების ნახვა →
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}

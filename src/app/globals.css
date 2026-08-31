@@ -1287,31 +1287,11 @@ html.dark .tool-chip-active {
   animation: typewriter-roller-spin-fast 0.85s cubic-bezier(0.55, 0, 0.85, 0.35) forwards;
 }
 
-@keyframes typewriter-key-press-pop {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  25% {
-    transform: translateY(2.5px) scale(0.92);
-  }
-  55% {
-    transform: translateY(-4px) scale(1.08);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-  }
-}
-
-.animate-key-press {
-  animation: typewriter-key-press-pop 0.6s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-roller-spin,
   .animate-feed-glow,
   .animate-type-blink,
   .animate-key-bounce,
-  .animate-key-press,
   .animate-roller-spin-fast {
     animation: none !important;
   }
