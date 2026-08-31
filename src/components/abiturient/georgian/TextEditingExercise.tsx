@@ -383,7 +383,11 @@ export function TextEditingExercise() {
           <div className="mb-2">
             <h2 className="text-sm font-medium text-gray-400">ტექსტი შეცდომებით</h2>
           </div>
-          <div className="select-none rounded-xl border border-white/[0.06] bg-[#16161a]/80 p-5 font-mono text-sm leading-relaxed text-white/90">
+          <div className="select-none rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-zinc-800 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+            <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-zinc-500">
+              <span>wyaro.txt</span>
+              <span>{sourceText.length} სიმბოლო</span>
+            </div>
             {sourceText.split("\n\n").map((paragraph, index) => (
               <p key={`p-${index}`} className="mb-4 last:mb-0">
                 {paragraph}
