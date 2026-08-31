@@ -32,7 +32,7 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
-    gradient: "linear-gradient(160deg, #8b7cf6 0%, #b9b3fb 55%, #efe9ff 100%)",
+    gradient: "linear-gradient(160deg, #c3b8f2 0%, #ded8f9 55%, #f5f2ff 100%)",
   },
   {
     id: "quiz",
@@ -41,7 +41,7 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
-    gradient: "linear-gradient(160deg, #14b8a6 0%, #7fe3c9 55%, #eafff8 100%)",
+    gradient: "linear-gradient(160deg, #a7ddd2 0%, #cdeee6 55%, #f0fbf8 100%)",
   },
   {
     id: "ai-teacher",
@@ -50,7 +50,7 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
-    gradient: "linear-gradient(160deg, #22c55e 0%, #86efac 55%, #ecfdf5 100%)",
+    gradient: "linear-gradient(160deg, #a8dab5 0%, #cdeed4 55%, #f1faf3 100%)",
   },
   {
     id: "presentation",
@@ -59,7 +59,7 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
-    gradient: "linear-gradient(160deg, #f59e0b 0%, #fbbf24 55%, #fef3c7 100%)",
+    gradient: "linear-gradient(160deg, #f3cf8e 0%, #f8e2b8 55%, #fdf6e6 100%)",
   },
   {
     id: "research",
@@ -68,7 +68,7 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
-    gradient: "linear-gradient(160deg, #f43f5e 0%, #fb7185 55%, #ffe4e9 100%)",
+    gradient: "linear-gradient(160deg, #f0a8b4 0%, #f6c8d0 55%, #fdedf0 100%)",
   },
   {
     id: "eli5",
@@ -77,7 +77,7 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
-    gradient: "linear-gradient(160deg, #6366f1 0%, #a5b4fc 55%, #eef2ff 100%)",
+    gradient: "linear-gradient(160deg, #b3b8ee 0%, #d3d6f5 55%, #f1f2fc 100%)",
   },
 ] as const;
 
