@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import {
   ChevronLeft,
+  ClipboardList,
   Copy,
   Sparkles,
   Timer,
@@ -15,7 +16,6 @@ import {
   buildAttemptPreview,
   evaluateTextEditing,
   pickRandomSourceText,
-  scoreBadgeClass,
   type TextEditingAttempt,
   type TextEditingEvaluation,
 } from "@/lib/georgian-text-editing";
@@ -23,6 +23,14 @@ import {
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 const TYPEWRITER_ROLL_UP_MS = 850;
 const TYPING_IDLE_MS = 700;
+
+/** Bold Readymag-style pill color per score ratio, paired with scoreBadgeClass's text color. */
+function scoreBadgePillClass(score: number, maxScore: number): string {
+  const ratio = maxScore > 0 ? score / maxScore : 0;
+  if (ratio >= 0.94) return "border-transparent bg-emerald-400 text-black";
+  if (ratio >= 0.75) return "border-[3px] border-purple-400 bg-transparent text-purple-300";
+  return "border-[3px] border-amber-400 bg-transparent text-amber-300";
+}
 
 function TimerSwitch({
   enabled,
@@ -471,20 +479,32 @@ export function TextEditingExercise() {
           ქართულის ცენტრში დაბრუნება
         </Link>
 
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">ტექსტის რედაქტირება</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
-            ეროვნული გამოცდის სტანდარტის მიხედვით შეასწორე ტექსტი და მიიღე შეფასება
-            16-ბალიანი სკალით.
-          </p>
+        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-purple-500/30 bg-purple-500/10 text-purple-300 shadow-[0_0_28px_rgba(168,85,247,0.22)]">
+            <ClipboardList className="h-7 w-7 stroke-[1.5]" />
+          </div>
+          <div>
+            <span className="relative -rotate-2 inline-flex items-center rounded-full border-2 border-purple-500/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-300/90">
+              პირველი სავარჯიშო
+              <span
+                className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.6)]"
+                aria-hidden
+              />
+            </span>
+            <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">ტექსტის რედაქტირება</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
+              ეროვნული გამოცდის სტანდარტის მიხედვით შეასწორე ტექსტი და მიიღე შეფასება
+              16-ბალიანი სკალით.
+            </p>
+          </div>
         </header>
 
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="flex flex-col gap-4 rounded-[28px] border-2 border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between">
           <TimerSwitch enabled={showTimer} onChange={setShowTimer} />
           <button
             type="button"
             onClick={startTest}
-            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
           >
             ტესტის დაწყება
             <ChevronLeft className="h-4 w-4 rotate-180 stroke-[1.5]" />
@@ -508,22 +528,22 @@ export function TextEditingExercise() {
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#f2e2c8] shadow-md transition-all delay-150 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-4 group-hover:translate-y-1.5 group-hover:-rotate-[3deg]" />
                   </div>
 
-                  <div className="relative z-10 flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-[#121214]/70 p-4 backdrop-blur-md transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:border-purple-400/25 group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] sm:flex-row sm:items-center sm:justify-between">
+                  <div className="relative z-10 flex flex-col gap-3 rounded-[24px] border-2 border-white/10 bg-[#121214]/70 p-4 backdrop-blur-md transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:border-purple-400/30 group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 flex-1">
                       <p className="text-xs text-gray-500">{attempt.dateLabel}</p>
                       <p className="mt-1 truncate text-sm text-zinc-300">{attempt.preview}</p>
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-3">
                       <span
-                        className={`rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-1 text-sm ${scoreBadgeClass(attempt.score, attempt.maxScore)}`}
+                        className={`rounded-full px-3.5 py-1.5 text-sm font-bold ${scoreBadgePillClass(attempt.score, attempt.maxScore)}`}
                       >
                         {attempt.score}/{attempt.maxScore}
                       </span>
                       <button
                         type="button"
-                        className="text-xs text-purple-400 transition hover:text-purple-300 hover:underline"
+                        className="rounded-full border-[3px] border-transparent bg-purple-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-400"
                       >
-                        დეტალების ნახვა →
+                        დეტალები →
                       </button>
                     </div>
                   </div>
