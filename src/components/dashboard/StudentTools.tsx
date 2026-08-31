@@ -151,17 +151,16 @@ export function StudentTools() {
             >
               {isLive ? (
                 <>
-                  <ToolIconWrap accent={tool.accent} compact>
-                    <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
-                  </ToolIconWrap>
+                  <div className="max-[639px]:hidden">
+                    <ToolIconWrap accent={tool.accent} compact>
+                      <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
+                    </ToolIconWrap>
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-3xl max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
-                      {tool.description}
-                    </p>
-                    <p className="mt-1 hidden max-[639px]:block max-[639px]:truncate max-[639px]:text-[11px] max-[639px]:font-semibold max-[639px]:text-white/80">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-white/80">
                       {tool.description}
                     </p>
                   </div>
@@ -176,16 +175,15 @@ export function StudentTools() {
               ) : (
                 <>
                   <div>
-                    <ToolIconWrap accent={tool.accent}>
-                      <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
-                    </ToolIconWrap>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:text-xl max-[639px]:font-black">
+                    <div className="max-[639px]:hidden">
+                      <ToolIconWrap accent={tool.accent}>
+                        <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
+                      </ToolIconWrap>
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-3xl max-[639px]:font-black max-[639px]:tracking-tight">
                       {tool.title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:hidden">
-                      {tool.description}
-                    </p>
-                    <p className="mt-1 hidden max-[639px]:block max-[639px]:truncate max-[639px]:text-[11px] max-[639px]:font-semibold max-[639px]:text-white/80">
+                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-white/80">
                       {tool.description}
                     </p>
                   </div>
