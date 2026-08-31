@@ -129,33 +129,20 @@ function TypewriterInput({
     idleTimer.current = window.setTimeout(() => setIsActive(false), TYPING_IDLE_MS);
   };
 
-  return (
-    <div className="typewriter-wrap relative mx-auto w-full max-w-2xl select-none [perspective:900px]">
-      <div className="relative rounded-t-2xl border border-white/10 bg-gradient-to-b from-zinc-800 to-zinc-900 px-5 pt-4 pb-5 shadow-lg">
-        <div className="flex items-center justify-center gap-3">
-          <span
-            className={`h-5 w-5 rounded-full border-2 border-zinc-500 bg-zinc-700 ${isActive ? "animate-roller-spin" : isRollingUp ? "animate-roller-spin-fast" : ""}`}
-            aria-hidden
-          />
-          <span
-            className={`h-2 max-w-[160px] flex-1 rounded-full bg-purple-500/60 ${isActive ? "animate-feed-glow" : ""}`}
-            aria-hidden
-          />
-          <span
-            className={`h-5 w-5 rounded-full border-2 border-zinc-500 bg-zinc-700 ${isActive ? "animate-roller-spin" : isRollingUp ? "animate-roller-spin-fast" : ""}`}
-            aria-hidden
-          />
-        </div>
-        {isActive && (
-          <span
-            className="animate-type-blink pointer-events-none absolute left-1/2 top-1.5 h-1.5 w-1.5 rounded-full bg-purple-400"
-            aria-hidden
-          />
-        )}
-      </div>
+  const keys = Array.from({ length: 22 }, (_, index) => ({
+    index,
+    x: 46 + index * ((596 - 46) / 21),
+  }));
+  const knobClass = isActive
+    ? "animate-roller-spin"
+    : isRollingUp
+      ? "animate-roller-spin-fast"
+      : "";
 
+  return (
+    <div className="typewriter-wrap relative mx-auto w-full max-w-2xl select-none">
       <div
-        className={`typewriter-paper relative -mt-1 border border-amber-100/10 bg-[#f4ecd8] px-5 pt-6 pb-5 shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${isRollingUp ? "animate-paper-roll-up" : ""}`}
+        className={`typewriter-paper relative z-0 rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pt-6 pb-16 shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${isRollingUp ? "animate-paper-roll-up" : ""}`}
       >
         <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-zinc-500">
           <span>spaceedu.txt</span>
@@ -170,15 +157,129 @@ function TypewriterInput({
         />
       </div>
 
-      <div className="flex justify-center gap-1 rounded-b-2xl border border-t-0 border-white/10 bg-zinc-900 px-4 py-2.5">
-        {Array.from({ length: 24 }).map((_, index) => (
+      <div className="relative z-10 -mt-12 drop-shadow-[0_20px_28px_rgba(0,0,0,0.5)]">
+        {isActive && (
           <span
-            key={index}
-            className={`h-1.5 w-1.5 rounded-full bg-zinc-700 ${isActive ? "animate-key-bounce" : ""}`}
-            style={{ animationDelay: `${(index % 6) * 0.05}s` }}
+            className="animate-type-blink pointer-events-none absolute left-1/2 top-3 z-20 h-1.5 w-1.5 rounded-full bg-purple-400"
             aria-hidden
           />
-        ))}
+        )}
+        <svg viewBox="-10 -20 660 212" className="block w-full" aria-hidden>
+          <defs>
+            <linearGradient id="tw-body" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#cdc6a1" />
+              <stop offset="100%" stopColor="#a99f79" />
+            </linearGradient>
+            <radialGradient id="tw-knob" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stopColor="#a49c78" />
+              <stop offset="100%" stopColor="#6f6950" />
+            </radialGradient>
+            <linearGradient id="tw-platen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8f8865" />
+              <stop offset="100%" stopColor="#6b6349" />
+            </linearGradient>
+            <linearGradient id="tw-deck" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8f8865" />
+              <stop offset="100%" stopColor="#746c50" />
+            </linearGradient>
+          </defs>
+
+          {/* paper guide tabs */}
+          <rect x="108" y="-8" width="6" height="18" rx="3" fill="#8f8865" />
+          <rect x="526" y="-8" width="6" height="18" rx="3" fill="#8f8865" />
+
+          {/* platen roller bar */}
+          <rect
+            x="96"
+            y="6"
+            width="448"
+            height="36"
+            rx="18"
+            fill="url(#tw-platen)"
+            className={isActive ? "animate-feed-glow" : ""}
+          />
+
+          {/* carriage return lever */}
+          <g transform="rotate(-35 582 24)">
+            <rect x="578" y="-16" width="8" height="30" rx="4" fill="#5f5a44" />
+            <rect x="571" y="-22" width="22" height="8" rx="4" fill="#403c30" />
+          </g>
+
+          {/* left knob */}
+          <g style={{ transformOrigin: "58px 24px" }} className={knobClass}>
+            <circle cx="58" cy="24" r="28" fill="url(#tw-knob)" />
+            <circle cx="50" cy="16" r="7" fill="#e8e2c9" opacity="0.55" />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <line
+                key={i}
+                x1="58"
+                y1="4"
+                x2="58"
+                y2="10"
+                stroke="#403c30"
+                strokeWidth="2"
+                transform={`rotate(${i * 60} 58 24)`}
+              />
+            ))}
+          </g>
+
+          {/* right knob */}
+          <g style={{ transformOrigin: "582px 24px" }} className={knobClass}>
+            <circle cx="582" cy="24" r="28" fill="url(#tw-knob)" />
+            <circle cx="574" cy="16" r="7" fill="#e8e2c9" opacity="0.55" />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <line
+                key={i}
+                x1="582"
+                y1="4"
+                x2="582"
+                y2="10"
+                stroke="#403c30"
+                strokeWidth="2"
+                transform={`rotate(${i * 60} 582 24)`}
+              />
+            ))}
+          </g>
+
+          {/* main chassis body */}
+          <rect x="8" y="42" width="624" height="100" rx="20" fill="url(#tw-body)" />
+
+          {/* brand plate */}
+          <rect x="270" y="54" width="100" height="18" rx="4" fill="#efe9d2" />
+          <text
+            x="320"
+            y="67"
+            textAnchor="middle"
+            fontSize="9"
+            fontFamily="monospace"
+            fontWeight="700"
+            letterSpacing="1"
+            fill="#5f5a44"
+          >
+            SPACEEDU
+          </text>
+
+          {/* lower keyboard deck */}
+          <rect x="8" y="132" width="624" height="48" rx="16" fill="url(#tw-deck)" />
+
+          {/* keys */}
+          {keys.map((key) => (
+            <circle
+              key={key.index}
+              cx={key.x}
+              cy="156"
+              r="6.5"
+              fill="#efe9d2"
+              stroke="#8f8865"
+              strokeWidth="1.2"
+              className={isActive ? "animate-key-bounce" : ""}
+              style={{
+                transformOrigin: `${key.x}px 156px`,
+                animationDelay: `${(key.index % 6) * 0.05}s`,
+              }}
+            />
+          ))}
+        </svg>
       </div>
     </div>
   );
