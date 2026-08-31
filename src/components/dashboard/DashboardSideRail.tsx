@@ -160,7 +160,7 @@ export function DashboardSideRail() {
     <motion.aside
       animate={{ width: expanded ? 232 : 76 }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 self-start overflow-y-auto overflow-x-hidden rounded-[28px] bg-[#0b0b0e] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.35)] lg:flex lg:flex-col"
+      className="sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 self-start overflow-y-auto overflow-x-hidden rounded-[28px] bg-[#0b0b0e] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.35)] md:flex md:flex-col"
     >
       <button
         type="button"

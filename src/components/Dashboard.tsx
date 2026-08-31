@@ -153,7 +153,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
     <div className="relative flex min-h-full flex-col overflow-x-hidden">
       <DashboardDecorIcons />
 
-      <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 gap-5 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
+      <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8 lg:py-10 xl:flex-row">
         <DashboardSideRail />
         <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 sm:pt-12">
           <DashboardGreetingBanner
@@ -359,6 +359,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
               </div>
             </article>
           </section>
+          <DashboardCalendarPanel variant="inline" />
         </div>
         <DashboardCalendarPanel />
       </main>

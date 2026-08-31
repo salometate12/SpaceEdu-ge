@@ -143,18 +143,16 @@ export function DashboardHeader({
               <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
             )}
           </Link>
-          {!hasOwnNav && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setAvatarOpen((prev) => !prev)}
-                className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
-              >
-                {avatarInitial}
-              </button>
-              <AvatarDropdown open={avatarOpen} />
-            </div>
-          )}
+          <div className={`relative ${hasOwnNav ? "md:hidden" : ""}`}>
+            <button
+              type="button"
+              onClick={() => setAvatarOpen((prev) => !prev)}
+              className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
+            >
+              {avatarInitial}
+            </button>
+            <AvatarDropdown open={avatarOpen} />
+          </div>
         </div>
       </div>
 

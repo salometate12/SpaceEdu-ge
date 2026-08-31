@@ -133,9 +133,15 @@ function formatTimeLabel(time: string): string {
   return `${hour12}:${minute} ${period}`;
 }
 
-export function DashboardCalendarPanel() {
+interface DashboardCalendarPanelProps {
+  variant?: "sidebar" | "inline";
+}
+
+export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalendarPanelProps = {}) {
+  const isSidebar = variant === "sidebar";
   const today = useMemo(() => new Date(), []);
-  const [expanded, setExpanded] = useState(true);
+  const [expandedState, setExpanded] = useState(true);
+  const expanded = isSidebar ? expandedState : true;
   const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedKey, setSelectedKey] = useState(() => toDateKey(today));
   const [events, setEvents] = useState<DashboardCalendarEvent[]>([]);
@@ -266,9 +272,13 @@ export function DashboardCalendarPanel() {
 
   return (
     <motion.aside
-      animate={{ width: expanded ? 300 : 76 }}
+      animate={isSidebar ? { width: expanded ? 300 : 76 } : {}}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className={`sticky top-24 hidden h-fit shrink-0 flex-col gap-4 xl:flex ${expanded ? "overflow-visible" : "overflow-hidden"}`}
+      className={
+        isSidebar
+          ? `sticky top-24 hidden h-fit shrink-0 flex-col gap-4 xl:flex ${expanded ? "overflow-visible" : "overflow-hidden"}`
+          : "flex w-full flex-col gap-4 xl:hidden"
+      }
     >
       {!expanded ? (
         <button
@@ -296,7 +306,7 @@ export function DashboardCalendarPanel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="flex w-[300px] flex-col gap-4"
+            className={isSidebar ? "flex w-[300px] flex-col gap-4" : "flex w-full flex-col gap-4"}
           >
             <div className="rounded-[28px] border border-sky-200 bg-sky-50 p-5 dark:border-2 dark:border-sky-400/20 dark:bg-[#121214]">
               <div className="mb-4 flex items-center justify-between">
@@ -304,14 +314,16 @@ export function DashboardCalendarPanel() {
                   {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
                 </p>
                 <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(false)}
-                    className="mr-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-zinc-600 transition-all hover:bg-black/10 hover:text-zinc-900 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20 dark:hover:text-white"
-                    aria-label="კალენდრის ჩაკეცვა"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
+                  {isSidebar && (
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(false)}
+                      className="mr-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-zinc-600 transition-all hover:bg-black/10 hover:text-zinc-900 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20 dark:hover:text-white"
+                      aria-label="კალენდრის ჩაკეცვა"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
