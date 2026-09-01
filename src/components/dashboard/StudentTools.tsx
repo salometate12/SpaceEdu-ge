@@ -31,8 +31,8 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
-    fillColor: "#f9a8d4",
-    textColor: "#ffffff",
+    fillColor: "#f472b6",
+    textColor: "#18181b",
   },
   {
     id: "quiz",
@@ -41,7 +41,7 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
-    fillColor: "#93c5fd",
+    fillColor: "#3b82f6",
     textColor: "#ffffff",
   },
   {
@@ -51,8 +51,8 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
-    fillColor: "#fde047",
-    textColor: "#1c1917",
+    fillColor: "#facc15",
+    textColor: "#18181b",
   },
   {
     id: "presentation",
@@ -61,8 +61,8 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
-    fillColor: "#6ee7b7",
-    textColor: "#ffffff",
+    fillColor: "#34d399",
+    textColor: "#18181b",
   },
   {
     id: "research",
@@ -71,7 +71,7 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
-    fillColor: "#93c5fd",
+    fillColor: "#3b82f6",
     textColor: "#ffffff",
   },
   {
@@ -81,8 +81,8 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
-    fillColor: "#f9a8d4",
-    textColor: "#ffffff",
+    fillColor: "#f472b6",
+    textColor: "#18181b",
   },
 ] as const;
 
