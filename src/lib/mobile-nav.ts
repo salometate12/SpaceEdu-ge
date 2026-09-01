@@ -1,5 +1,7 @@
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
-import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
+import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { profileHrefForSpace } from "@/lib/access-control";
+import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Calculator,
@@ -22,41 +24,43 @@ export interface MobileDockItem {
   match?: (pathname: string) => boolean;
 }
 
-const APP_DOCK: MobileDockItem[] = [
-  {
-    href: DASHBOARD_ABIT_HREF,
-    label: "დეშბორდი",
-    icon: LayoutDashboard,
-    match: (p) =>
-      p.startsWith("/dashboard") ||
-      p === "/school" ||
-      p.startsWith("/subject"),
-  },
-  {
-    href: "/exam-calculator",
-    label: "კალკულატორი",
-    icon: Calculator,
-    match: (p) => p.startsWith("/exam-calculator"),
-  },
-  {
-    href: "/quiz",
-    label: "Quiz",
-    icon: Flame,
-    match: (p) => p === "/quiz",
-  },
-  {
-    href: "/ai-teacher",
-    label: "AI",
-    icon: MessageSquare,
-    match: (p) => p === "/ai-teacher",
-  },
-  {
-    href: "/profile",
-    label: "პროფილი",
-    icon: UserRound,
-    match: (p) => p.startsWith("/profile"),
-  },
-];
+function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
+  return [
+    {
+      href: dashboardHrefForSpace(space),
+      label: "დეშბორდი",
+      icon: LayoutDashboard,
+      match: (p) =>
+        p.startsWith("/dashboard") ||
+        p === "/school" ||
+        p.startsWith("/subject"),
+    },
+    {
+      href: "/exam-calculator",
+      label: "კალკულატორი",
+      icon: Calculator,
+      match: (p) => p.startsWith("/exam-calculator"),
+    },
+    {
+      href: "/quiz",
+      label: "Quiz",
+      icon: Flame,
+      match: (p) => p === "/quiz",
+    },
+    {
+      href: "/ai-teacher",
+      label: "AI",
+      icon: MessageSquare,
+      match: (p) => p === "/ai-teacher",
+    },
+    {
+      href: profileHrefForSpace(space),
+      label: "პროფილი",
+      icon: UserRound,
+      match: (p) => p.startsWith("/profile"),
+    },
+  ];
+}
 
 export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
 export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
@@ -118,11 +122,14 @@ export function mobileDockHidden(pathname: string | null): boolean {
   return false;
 }
 
-export function mobileDockItems(pathname: string | null): MobileDockItem[] {
+export function mobileDockItems(
+  pathname: string | null,
+  space: SpaceeduSpace | null = null,
+): MobileDockItem[] {
   if (!pathname || mobileDockHidden(pathname)) return [];
   if (pathname === "/" || pathname === "/pricing") return LANDING_DOCK;
   if (pathname === "/dashboard-student") return STUDENT_DASHBOARD_DOCK;
-  return APP_DOCK;
+  return appDock(space);
 }
 
 export function isDockItemActive(pathname: string, item: MobileDockItem): boolean {

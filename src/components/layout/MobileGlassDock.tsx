@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
+import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
+import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import {
   DASHBOARD_MOBILE_MENU_HREF,
   isDockItemActive,
@@ -24,8 +26,18 @@ export function MobileGlassDock() {
   const ticking = useRef(false);
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
   const { open: openMobileMenu } = useMobileSideMenu();
+  const { space: accountSpace } = useCurrentUserAccess();
+  const [localSpace, setLocalSpace] = useState<SpaceeduSpace | null>(null);
 
-  const items = mobileDockItems(pathname);
+  useEffect(() => {
+    const saved = window.localStorage.getItem("spaceedu_space");
+    if (saved === "school" || saved === "abiturient" || saved === "student") {
+      setLocalSpace(saved);
+    }
+  }, []);
+
+  const effectiveSpace = accountSpace ?? localSpace;
+  const items = mobileDockItems(pathname, effectiveSpace);
   const hidden = mobileDockHidden(pathname) || items.length === 0;
 
   const handleScroll = useCallback(() => {

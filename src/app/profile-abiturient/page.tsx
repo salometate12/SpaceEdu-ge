@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { ChartNoAxesColumn, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
 import { getProfileData, INITIAL_DAILY_GOALS } from "@/lib/profile";
 import { buildWeekStreak } from "@/lib/streak";
 import { getCurrentServerUserName } from "@/lib/auth-server";
+import { AbiturientProfileHero } from "@/components/profile/AbiturientProfileHero";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
 import { DiaryLog } from "@/components/profile/DiaryLog";
 import { MetricCards } from "@/components/profile/MetricCards";
 import { ProfileCard } from "@/components/profile/ProfileCard";
-import { ProfileChallengeHero } from "@/components/profile/ProfileChallengeHero";
 import { StreakTracker } from "@/components/profile/StreakTracker";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
 
-export default async function ProfilePage() {
+export default async function AbiturientProfilePage() {
   const { user, subjects, diary } = await getProfileData();
   const serverUserName = await getCurrentServerUserName();
   if (serverUserName) {
@@ -35,15 +35,8 @@ export default async function ProfilePage() {
         <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">პროფილი</h1>
         <div className="flex gap-2">
           <Link
-            href="/profile/stats"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-violet-400 hover:text-violet-600"
-          >
-            <ChartNoAxesColumn className="h-4 w-4 stroke-[1.75]" />
-            სტატისტიკა
-          </Link>
-          <Link
             href="/profile/edit"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-violet-400 hover:text-violet-600"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-emerald-400 hover:text-emerald-600"
           >
             <Pencil className="h-4 w-4 stroke-[1.75]" />
             რედაქტირება
@@ -51,13 +44,13 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <div className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm text-[var(--text-secondary)] dark:border-cyan-500/20 dark:bg-cyan-500/[0.04]">
-        შენი სფეისი: <span className="headline font-semibold text-violet-700 dark:text-cyan-300">სტუდენტი</span>
+      <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-[var(--text-secondary)] dark:border-emerald-500/20 dark:bg-emerald-500/[0.04]">
+        შენი სფეისი: <span className="headline font-semibold text-emerald-700 dark:text-emerald-300">აბიტურიენტი</span>
       </div>
 
-      <ProfileChallengeHero user={user} week={week} goalsRemaining={goalsRemaining} />
+      <AbiturientProfileHero user={user} week={week} goalsRemaining={goalsRemaining} />
 
-      <DailyGoals initialGoals={INITIAL_DAILY_GOALS} showDashboardToggle />
+      <DailyGoals initialGoals={INITIAL_DAILY_GOALS} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <ProfileCard user={user} />

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
+import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
 import {
   ensureDailyStudyPlanNotification,
@@ -15,6 +16,8 @@ import {
 } from "@/lib/notifications";
 import { AvatarDropdown } from "./AvatarDropdown";
 import { SpaceChip } from "./SpaceChip";
+import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -36,6 +39,7 @@ export function DashboardHeader({
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
   const pathname = usePathname();
   const hasOwnNav = pathname === "/dashboard-student";
+  const { space: accountSpace, isAdmin } = useCurrentUserAccess();
 
   useEffect(() => {
     const saved = window.localStorage.getItem("spaceedu_space");
@@ -43,6 +47,10 @@ export function DashboardHeader({
       setSpaceLabel(saved);
     }
   }, []);
+
+  // The account's real space (from Supabase) is the source of truth once
+  // it's loaded; localStorage is only a fallback for anonymous/dev use.
+  const effectiveSpace = accountSpace ?? spaceLabel;
 
   useEffect(() => {
     const sync = () => setStreak(getCurrentStreak());
@@ -68,11 +76,11 @@ export function DashboardHeader({
   }, []);
 
   const navItems = [
-    { label: "Dashboard", href: "/dashboard-abit", icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
-    { label: "გეგმა", href: "/study-plan/abit", icon: <Rocket className="h-3.5 w-3.5" /> },
+    { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace), icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
+    { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace), icon: <Rocket className="h-3.5 w-3.5" /> },
     { label: "Quiz", href: "/quiz", icon: <Flame className="h-3.5 w-3.5" /> },
     { label: "AI", href: "/ai-teacher", icon: <MessageSquare className="h-3.5 w-3.5" /> },
-    { label: "პროფილი", href: "/profile", icon: <UserRound className="h-3.5 w-3.5" /> },
+    { label: "პროფილი", href: profileHrefForSpace(effectiveSpace), icon: <UserRound className="h-3.5 w-3.5" /> },
   ];
 
   return (
@@ -93,7 +101,7 @@ export function DashboardHeader({
               SpaceEdu
             </span>
           </Link>
-          <SpaceChip space={spaceLabel} />
+          <SpaceChip space={effectiveSpace} />
         </div>
 
         {!hasOwnNav && (
@@ -151,7 +159,11 @@ export function DashboardHeader({
             >
               {avatarInitial}
             </button>
-            <AvatarDropdown open={avatarOpen} />
+            <AvatarDropdown
+              open={avatarOpen}
+              isAdmin={isAdmin}
+              profileHref={profileHrefForSpace(effectiveSpace)}
+            />
           </div>
         </div>
       </div>

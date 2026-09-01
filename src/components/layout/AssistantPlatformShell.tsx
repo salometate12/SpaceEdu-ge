@@ -137,12 +137,12 @@ export function AssistantPlatformShell({ children }: { children: ReactNode }) {
   const [space, setSpace] = useState<SmartSpace>("exam");
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("spaceedu-active-space");
+    const saved = window.localStorage.getItem("spaceedu-assistant-topic-space");
     setSpace(normalizeSmartSpace(saved ?? undefined));
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("spaceedu-active-space", space);
+    window.localStorage.setItem("spaceedu-assistant-topic-space", space);
   }, [space]);
 
   const activeSubject =
