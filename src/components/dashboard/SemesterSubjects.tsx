@@ -1,54 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Layers, Plus, X } from "lucide-react";
-
-const STORAGE_KEY = "spaceedu-semester-subjects";
-
-interface Subject {
-  id: string;
-  name: string;
-}
-
-const DEFAULT_SUBJECTS: Subject[] = [
-  { id: "default-1", name: "მონაცემთა სტრუქტურები" },
-  { id: "default-2", name: "ალგორითმები" },
-  { id: "default-3", name: "მათემატიკა" },
-  { id: "default-4", name: "სტატისტიკა" },
-];
-
-const TAG_COLORS = [
-  { bg: "#efe9fe", text: "#5b21b6" },
-  { bg: "#dbeafe", text: "#1e3a8a" },
-  { bg: "#fef3c7", text: "#92400e" },
-  { bg: "#d1fae5", text: "#065f46" },
-  { bg: "#fce7f3", text: "#9d174d" },
-  { bg: "#cffafe", text: "#0e7490" },
-];
+import { Check, Layers, Plus, X } from "lucide-react";
+import {
+  DEFAULT_SEMESTER_SUBJECTS,
+  SEMESTER_SUBJECTS_STORAGE_KEY,
+  SUBJECT_TAG_COLORS as TAG_COLORS,
+  readSemesterSubjects,
+  type SemesterSubject,
+} from "@/lib/semester-subjects";
+import { getActiveSubject, setActiveSubject } from "@/lib/activity";
 
 export function SemesterSubjects() {
-  const [subjects, setSubjects] = useState<Subject[]>(DEFAULT_SUBJECTS);
+  const [subjects, setSubjects] = useState<SemesterSubject[]>(DEFAULT_SEMESTER_SUBJECTS);
   const [semesterLabel, setSemesterLabel] = useState("2026 შემოდგომის სემესტრი");
   const [newSubject, setNewSubject] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [activeSubject, setActiveSubjectState] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as { subjects?: Subject[]; semesterLabel?: string };
-        if (Array.isArray(parsed.subjects)) setSubjects(parsed.subjects);
-        if (parsed.semesterLabel) setSemesterLabel(parsed.semesterLabel);
-      }
-    } catch {
-      // ignore malformed storage, fall back to defaults
-    }
+    const saved = readSemesterSubjects();
+    setSubjects(saved.subjects);
+    if (saved.semesterLabel) setSemesterLabel(saved.semesterLabel);
+    setActiveSubjectState(getActiveSubject());
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ subjects, semesterLabel }));
+    window.localStorage.setItem(
+      SEMESTER_SUBJECTS_STORAGE_KEY,
+      JSON.stringify({ subjects, semesterLabel }),
+    );
   }, [subjects, semesterLabel, hydrated]);
 
   const addSubject = () => {
@@ -58,8 +41,18 @@ export function SemesterSubjects() {
     setNewSubject("");
   };
 
-  const removeSubject = (id: string) => {
+  const removeSubject = (id: string, name: string) => {
     setSubjects((prev) => prev.filter((subject) => subject.id !== id));
+    if (activeSubject === name) {
+      setActiveSubject(null);
+      setActiveSubjectState(null);
+    }
+  };
+
+  const toggleActive = (name: string) => {
+    const next = activeSubject === name ? null : name;
+    setActiveSubject(next);
+    setActiveSubjectState(next);
   };
 
   return (
@@ -82,22 +75,37 @@ export function SemesterSubjects() {
         value={semesterLabel}
         onChange={(e) => setSemesterLabel(e.target.value)}
         placeholder="სემესტრის დასახელება..."
-        className="mt-2 mb-4 w-full max-w-xs border-b border-dashed border-[var(--border)] bg-transparent pb-1 text-sm font-semibold text-[var(--text-secondary)] outline-none focus:border-[var(--accent-primary)]"
+        className="mt-2 w-full max-w-xs border-b border-dashed border-[var(--border)] bg-transparent pb-1 text-sm font-semibold text-[var(--text-secondary)] outline-none focus:border-[var(--accent-primary)]"
       />
+
+      <p className="mt-3 mb-3 text-xs text-[var(--text-muted)]">
+        დააჭირე საგანს, რომელსაც ახლა სწავლობ — ასე დავითვლით შენს აქტივობას საგნების
+        მიხედვით და სტატისტიკაში ნახავ, რომელ საგანზე მუშაობ ყველაზე ხშირად.
+      </p>
 
       <div className="flex flex-wrap gap-2">
         {subjects.map((subject, idx) => {
           const color = TAG_COLORS[idx % TAG_COLORS.length];
+          const isActive = activeSubject === subject.name;
           return (
             <span
               key={subject.id}
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold"
+              className="inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-1.5 text-sm font-semibold"
               style={{ background: color.bg, color: color.text }}
             >
-              {subject.name}
               <button
                 type="button"
-                onClick={() => removeSubject(subject.id)}
+                onClick={() => toggleActive(subject.name)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all ${
+                  isActive ? "bg-white/70 shadow-sm dark:bg-black/25" : ""
+                }`}
+              >
+                {isActive && <Check className="h-3 w-3" strokeWidth={3} />}
+                {subject.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeSubject(subject.id, subject.name)}
                 aria-label={`${subject.name} წაშლა`}
                 className="flex h-4 w-4 items-center justify-center rounded-full opacity-60 transition-opacity hover:opacity-100"
               >
@@ -110,6 +118,17 @@ export function SemesterSubjects() {
           <p className="text-sm text-[var(--text-muted)]">ჯერ არცერთი საგანი არ დამატებულა.</p>
         )}
       </div>
+
+      <p className="mt-3 text-xs font-semibold text-[var(--text-secondary)]">
+        {activeSubject ? (
+          <>
+            ამჟამად სწავლობ:{" "}
+            <span className="text-[var(--accent-primary)]">{activeSubject}</span>
+          </>
+        ) : (
+          "საგანი არჩეული არ არის — დააჭირე რომელიმეს ზემოთ."
+        )}
+      </p>
 
       <div className="mt-4 flex gap-2">
         <input
