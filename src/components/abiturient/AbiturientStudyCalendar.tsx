@@ -145,10 +145,11 @@ export function AbiturientStudyCalendar() {
                           setExpandedDate((prev) => (prev === day.date ? null : day.date));
                         }
                       }}
-                      className={`flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 rounded-xl border-t-4 ${level.accent} border-slate-200/80 bg-gradient-to-b from-white to-violet-50/30 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
+                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-violet-50/30 p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
                         done ? "opacity-60" : ""
                       } ${isExpanded ? "ring-2 ring-violet-500 ring-offset-2 ring-offset-white dark:ring-purple-400 dark:ring-offset-[#0c0d10]" : ""}`}
                     >
+                      <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${level.bar}`} />
                       <div className="flex items-start justify-between gap-2">
                         <span
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
@@ -228,8 +229,9 @@ export function AbiturientStudyCalendar() {
                       const isToday = expandedDay.date === today;
                       return (
                         <div
-                          className={`mt-3 rounded-2xl border-l-4 ${level.accent} border-slate-200/80 bg-violet-50/40 p-4 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5`}
+                          className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-violet-50/40 p-4 pl-5 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5 sm:pl-6"
                         >
+                          <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
                           <div className="flex flex-wrap items-center gap-2">
                             <span
                               className={`flex h-9 w-9 items-center justify-center rounded-full ${level.iconWrap}`}

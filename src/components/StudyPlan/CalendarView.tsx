@@ -115,10 +115,11 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
             <div
               key={key}
               style={{ animationDelay: `${idx * 40}ms` }}
-              className={`calendar-day-in flex items-start gap-3 rounded-2xl border border-l-4 ${level.accent} border-slate-200/80 bg-white p-3 transition-opacity dark:border-white/[0.08] dark:bg-[#17181b]/80 ${
+              className={`calendar-day-in relative flex items-start gap-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 pl-4 transition-opacity dark:border-white/[0.08] dark:bg-[#17181b]/80 ${
                 done ? "opacity-60" : ""
               }`}
             >
+              <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
               <span
                 className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
                 aria-hidden

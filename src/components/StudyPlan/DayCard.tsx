@@ -19,9 +19,8 @@ export function DayCard({ day }: DayCardProps) {
   const LevelIcon = level.icon;
 
   return (
-    <article
-      className={`rounded-2xl border border-l-4 ${level.accent} border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]`}
-    >
+    <article className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 pl-4 dark:border-white/10 dark:bg-white/[0.03]">
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{day.day_name}</h3>
         <span

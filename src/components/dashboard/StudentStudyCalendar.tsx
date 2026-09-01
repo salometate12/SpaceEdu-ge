@@ -145,10 +145,11 @@ export function StudentStudyCalendar() {
                           setExpandedDate((prev) => (prev === day.date ? null : day.date));
                         }
                       }}
-                      className={`flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 rounded-[20px] border-t-4 ${level.accent} border-[var(--border)] bg-[var(--bg-card)] p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--bg-card)] p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
                         done ? "opacity-60" : ""
                       } ${isExpanded ? "ring-2 ring-[var(--accent-primary)] ring-offset-2 ring-offset-[var(--bg-card)]" : ""}`}
                     >
+                      <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${level.bar}`} />
                       <div className="flex items-start justify-between gap-2">
                         <span
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
@@ -228,8 +229,9 @@ export function StudentStudyCalendar() {
                       const isToday = expandedDay.date === today;
                       return (
                         <div
-                          className={`mt-3 rounded-[22px] border-l-4 ${level.accent} border-[var(--border)] bg-[var(--bg-secondary)] p-4 sm:p-5`}
+                          className="relative mt-3 overflow-hidden rounded-[22px] border border-[var(--border)] bg-[var(--bg-secondary)] p-4 pl-5 sm:p-5 sm:pl-6"
                         >
+                          <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
                           <div className="flex flex-wrap items-center gap-2">
                             <span
                               className={`flex h-9 w-9 items-center justify-center rounded-full ${level.iconWrap}`}
