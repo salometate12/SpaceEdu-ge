@@ -134,7 +134,7 @@ export function DailyGoals({ initialGoals, title = "თქვენი გეგ
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${(doneCount / goals.length) * 100}%`,
-              background: "linear-gradient(90deg, #f97316, #ec4899)",
+              background: "var(--accent-primary)",
             }}
           />
         </div>
@@ -145,7 +145,7 @@ export function DailyGoals({ initialGoals, title = "თქვენი გეგ
           type="button"
           onClick={generateAiGoals}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:from-orange-400 hover:to-pink-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-primary)] px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Sparkles className="h-4 w-4 stroke-[1.75]" />
           {loading ? "გენერირდება..." : "AI მიზნების გენერაცია"}
@@ -235,7 +235,7 @@ export function DailyGoals({ initialGoals, title = "თქვენი გეგ
         <button
           type="button"
           onClick={addGoal}
-          className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 text-sm font-semibold text-white shadow-md transition-all hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98]"
+          className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-green)] px-4 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4 stroke-[1.75]" />
           დამატება
