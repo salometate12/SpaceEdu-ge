@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+
+export const metadata: Metadata = {
+  title: "კონფიდენციალურობის პოლიტიკა",
+  description: "SpaceEdu-ს კონფიდენციალურობის პოლიტიკა — როგორ ვაგროვებთ და ვიყენებთ თქვენს მონაცემებს.",
+  alternates: { canonical: "/privacy" },
+  robots: { index: false, follow: true },
+};
 
 const LAST_UPDATED = "2026 წლის 30 აგვისტო";
 
@@ -12,7 +20,7 @@ const SECTIONS: Section[] = [
   {
     title: "1. შესავალი",
     body: [
-      "SpaceEdu („ჩვენ“, „პლატფორმა“) პატივს სცემს მომხმარებელთა პირად მონაცემებს. ეს დოკუმენტი განმარტავს, თუ რა ინფორმაციას ვაგროვებთ, როგორ ვიყენებთ მას და რა უფლებები გაქვთ საკუთარ მონაცემებთან დაკავშირებით საიტის (spaceedu-ge-olive.vercel.app) გამოყენებისას.",
+      "SpaceEdu („ჩვენ“, „პლატფორმა“) პატივს სცემს მომხმარებელთა პირად მონაცემებს. ეს დოკუმენტი განმარტავს, თუ რა ინფორმაციას ვაგროვებთ, როგორ ვიყენებთ მას და რა უფლებები გაქვთ საკუთარ მონაცემებთან დაკავშირებით საიტის (spaceedu.ge) გამოყენებისას.",
     ],
   },
   {

@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+
+export const metadata: Metadata = {
+  title: "წესები და პირობები",
+  description: "SpaceEdu-ს გამოყენების წესები და პირობები.",
+  alternates: { canonical: "/terms" },
+  robots: { index: false, follow: true },
+};
 
 const LAST_UPDATED = "2026 წლის 30 აგვისტო";
 
@@ -12,7 +20,7 @@ const SECTIONS: Section[] = [
   {
     title: "1. შესავალი",
     body: [
-      "ეს დოკუმენტი წარმოადგენს შეთანხმებას თქვენსა და SpaceEdu-ს („ჩვენ“, „პლატფორმა“) შორის, საიტის (spaceedu-ge-olive.vercel.app) გამოყენებასთან დაკავშირებით. პლატფორმაზე რეგისტრაციით ან სარგებლობით თქვენ ეთანხმებით ამ პირობებს.",
+      "ეს დოკუმენტი წარმოადგენს შეთანხმებას თქვენსა და SpaceEdu-ს („ჩვენ“, „პლატფორმა“) შორის, საიტის (spaceedu.ge) გამოყენებასთან დაკავშირებით. პლატფორმაზე რეგისტრაციით ან სარგებლობით თქვენ ეთანხმებით ამ პირობებს.",
     ],
   },
   {

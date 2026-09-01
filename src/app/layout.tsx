@@ -42,9 +42,57 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
+const SITE_URL = "https://www.spaceedu.ge";
+
 export const metadata: Metadata = {
-  title: "SpaceEdu — ერთიანი საგანმანათლებლო პლატფორმა",
-  description: ka.metaDescription,
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "SpaceEdu — AI სასწავლო პლატფორმა აბიტურიენტებისთვის და სტუდენტებისთვის",
+    template: "%s | SpaceEdu",
+  },
+  description:
+    "SpaceEdu — ქართული AI სასწავლო პლატფორმა: მოემზადე ეროვნული გამოცდებისთვის, ისწავლე უნივერსიტეტში და მიიღე პერსონალური სასწავლო გეგმა, AI მასწავლებელი, ქვიზები და კონსპექტები ერთ სივრცეში.",
+  keywords: [
+    "SpaceEdu",
+    "სასწავლო პლატფორმა",
+    "აბიტურიენტი",
+    "აბიტურიენტის დამხმარე საიტი",
+    "ეროვნული გამოცდები",
+    "ეროვნულების მოსამზადებელი",
+    "საგამოცდო მასალები",
+    "Mock exam საქართველო",
+    "უნივერსიტეტის სასწავლო პლატფორმა",
+    "AI მასწავლებელი",
+    "სასწავლო გეგმა",
+    "ონლაინ სწავლება საქართველოში",
+  ],
+  applicationName: "SpaceEdu",
+  authors: [{ name: "SpaceEdu" }],
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: "website",
+    locale: "ka_GE",
+    url: SITE_URL,
+    siteName: "SpaceEdu",
+    title: "SpaceEdu — AI სასწავლო პლატფორმა აბიტურიენტებისთვის და სტუდენტებისთვის",
+    description:
+      "მოემზადე ეროვნული გამოცდებისთვის და ისწავლე უნივერსიტეტში AI-ით მართული სასწავლო გეგმით, ქვიზებით და AI მასწავლებელთან ერთად.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SpaceEdu — AI სასწავლო პლატფორმა",
+    description: ka.metaDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

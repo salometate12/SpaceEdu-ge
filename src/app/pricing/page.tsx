@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingCards } from "@/components/landing/PricingCards";
 import { Button } from "@/components/ui/Button";
+
+export const metadata: Metadata = {
+  title: "ფასები",
+  description:
+    "SpaceEdu-ს ფასების პაკეტები აბიტურიენტებისთვის და სტუდენტებისთვის — აირჩიე შენთვის შესაფერისი გეგმა ეროვნული გამოცდებისთვის მოსამზადებლად ან უნივერსიტეტში სასწავლებლად.",
+  alternates: { canonical: "/pricing" },
+};
 
 export default function PricingPage() {
   return (
