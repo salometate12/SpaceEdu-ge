@@ -50,6 +50,8 @@ export interface DailyGoal {
   type: "quiz" | "study" | "read" | "chat";
 }
 
+export const DASHBOARD_GOALS_STORAGE_KEY = "spaceedu-dashboard-goals-enabled";
+
 export const INITIAL_DAILY_GOALS: DailyGoal[] = [
   { id: "goal-1", text: "ბიოლოგიის 1 quiz", done: true, type: "quiz" },
   { id: "goal-2", text: "ქიმიის კონსპექტის გამეორება", done: false, type: "read" },

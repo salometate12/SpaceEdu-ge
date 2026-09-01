@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   BookOpen,
   Check,
+  LayoutDashboard,
   ListChecks,
   MessageCircle,
   PartyPopper,
@@ -16,11 +17,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { generateDailyGoals } from "@/lib/goals";
-import type { DailyGoal } from "@/lib/profile";
+import { DASHBOARD_GOALS_STORAGE_KEY, type DailyGoal } from "@/lib/profile";
 
 interface DailyGoalsProps {
   initialGoals: DailyGoal[];
   title?: string;
+  showDashboardToggle?: boolean;
 }
 
 const TYPE_ICON: Record<DailyGoal["type"], LucideIcon> = {
@@ -44,12 +46,28 @@ const TYPE_STYLE: Record<DailyGoal["type"], { bg: string; text: string; pill: st
   chat: { bg: "#d1fae5", text: "#065f46", pill: "#6ee7b7" },
 };
 
-export function DailyGoals({ initialGoals, title = "თქვენი გეგმა" }: DailyGoalsProps) {
+export function DailyGoals({
+  initialGoals,
+  title = "თქვენი გეგმა",
+  showDashboardToggle = false,
+}: DailyGoalsProps) {
   const [goals, setGoals] = useState(initialGoals);
   const [newGoal, setNewGoal] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [onDashboard, setOnDashboard] = useState(false);
+
+  useEffect(() => {
+    if (!showDashboardToggle) return;
+    setOnDashboard(window.localStorage.getItem(DASHBOARD_GOALS_STORAGE_KEY) === "1");
+  }, [showDashboardToggle]);
+
+  const toggleDashboard = () => {
+    const next = !onDashboard;
+    setOnDashboard(next);
+    window.localStorage.setItem(DASHBOARD_GOALS_STORAGE_KEY, next ? "1" : "0");
+  };
 
   const doneCount = goals.filter((goal) => goal.done).length;
   const allDone = goals.length > 0 && doneCount === goals.length;
@@ -121,11 +139,36 @@ export function DailyGoals({ initialGoals, title = "თქვენი გეგ
         </div>
       )}
 
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="headline text-lg font-bold text-[var(--text-primary)]">{title}</h3>
-        <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
-          {doneCount} / {goals.length} შესრულებული
-        </span>
+        <div className="flex items-center gap-2">
+          {showDashboardToggle && (
+            <button
+              type="button"
+              onClick={toggleDashboard}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+                onDashboard
+                  ? "border-transparent bg-[var(--accent-primary)] text-white"
+                  : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
+              }`}
+            >
+              {onDashboard ? (
+                <>
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  დეშბორდზეა
+                </>
+              ) : (
+                <>
+                  <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  გადაიტანე დეშბორდზე
+                </>
+              )}
+            </button>
+          )}
+          <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
+            {doneCount} / {goals.length} შესრულებული
+          </span>
+        </div>
       </div>
 
       {goals.length > 0 && (
