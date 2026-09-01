@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { DEFAULT_BADGES, getBadgeColor } from "@/lib/badges";
 import type { UserProfile } from "@/lib/profile";
 import type { StreakDay } from "@/lib/streak";
@@ -10,7 +11,7 @@ interface ProfileChallengeHeroProps {
 
 const DAY_PILL_STYLE: Record<StreakDay["status"], string> = {
   done: "border-transparent bg-[#1c1917] text-white",
-  today: "border-transparent bg-[#1c1917] text-white shadow-[0_4px_14px_rgba(28,25,23,0.35)]",
+  today: "border-transparent bg-[#1c1917] text-white shadow-[0_8px_20px_rgba(28,25,23,0.35)]",
   missed: "border-[#e4d8bd] bg-white/70 text-[#8a7a52]",
   upcoming: "border-[#e4d8bd] bg-white/70 text-[#8a7a52]",
 };
@@ -50,11 +51,14 @@ export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChal
             {unlockedBadges.map((badge) => (
               <span
                 key={badge.id}
-                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 text-base shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 shadow-sm"
                 style={{ background: `color-mix(in oklab, ${getBadgeColor(badge.color)}, white 70%)` }}
                 title={badge.name}
               >
-                {badge.icon}
+                <badge.icon
+                  className="h-4 w-4 stroke-[2.25]"
+                  style={{ color: getBadgeColor(badge.color) }}
+                />
               </span>
             ))}
             {extraBadges > 0 && (
@@ -67,20 +71,22 @@ export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChal
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2.5 overflow-x-auto pb-1 sm:gap-3">
         {week.map((day, idx) => (
           <div
             key={`${day.fullLabel}-${idx}`}
-            className={`flex shrink-0 flex-col items-center gap-1 rounded-[20px] border px-3.5 py-2.5 transition-colors ${DAY_PILL_STYLE[day.status]}`}
+            className={`flex min-w-[4.25rem] shrink-0 flex-col items-center gap-2.5 rounded-[26px] border px-4 py-5 transition-colors sm:min-w-[5rem] sm:py-6 ${DAY_PILL_STYLE[day.status]}`}
             title={day.fullLabel}
           >
-            <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">
-              {day.label}
+            <span className="text-sm font-bold uppercase tracking-wide opacity-80">
+              {day.fullLabel}
             </span>
             {day.status === "done" ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden />
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400">
+                <Check className="h-4 w-4 text-[#1c1917]" strokeWidth={3} />
+              </span>
             ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-transparent" aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full bg-current opacity-30" aria-hidden />
             )}
           </div>
         ))}

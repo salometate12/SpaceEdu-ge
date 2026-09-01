@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import {
+  AlertTriangle,
   BookOpen,
   Check,
   ListChecks,
   MessageCircle,
+  PartyPopper,
   Plus,
   Sparkles,
   Target,
@@ -113,8 +115,8 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
   return (
     <section className="relative">
       {showConfetti && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-lg">
-          🎉
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <PartyPopper className="h-10 w-10 text-violet-500" strokeWidth={2} />
         </div>
       )}
 
@@ -150,8 +152,9 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
       </div>
 
       {error && (
-        <div className="mb-3 rounded-2xl border border-rose-300/60 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
-          ⚠️ {error}
+        <div className="mb-3 flex items-center gap-2 rounded-2xl border border-rose-300/60 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2} />
+          {error}
           <button className="ml-2 underline" onClick={generateAiGoals}>
             კვლავ სცადე
           </button>

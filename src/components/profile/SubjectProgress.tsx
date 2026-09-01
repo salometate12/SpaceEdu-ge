@@ -19,11 +19,11 @@ export function SubjectProgress({ subjects }: SubjectProgressProps) {
             <div className="mb-2 flex items-center justify-between gap-2">
               <p className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
                 <span
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-base"
+                  className="flex h-8 w-8 items-center justify-center rounded-full"
                   style={{ background: `color-mix(in oklab, ${subject.color}, white 85%)` }}
                   aria-hidden
                 >
-                  {subject.icon}
+                  <subject.icon className="h-4 w-4 stroke-[2.25]" style={{ color: subject.color }} />
                 </span>
                 {subject.name}
               </p>

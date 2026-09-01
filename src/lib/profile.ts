@@ -1,3 +1,5 @@
+import { BookOpen, Dna, FlaskConical, Landmark, type LucideIcon } from "lucide-react";
+
 export type UserSpace = "school" | "abiturient" | "student";
 
 export interface UserProfile {
@@ -18,7 +20,7 @@ export interface UserProfile {
 
 export interface SubjectProgress {
   name: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   progress: number;
   quizzesDone: number;
@@ -95,7 +97,7 @@ export async function getProfileData(): Promise<{
     subjects: [
       {
         name: "ბიოლოგია",
-        icon: "🧬",
+        icon: Dna,
         color: "var(--accent-green)",
         progress: 78,
         quizzesDone: 21,
@@ -103,7 +105,7 @@ export async function getProfileData(): Promise<{
       },
       {
         name: "ქიმია",
-        icon: "🧪",
+        icon: FlaskConical,
         color: "var(--accent-cyan)",
         progress: 64,
         quizzesDone: 17,
@@ -111,7 +113,7 @@ export async function getProfileData(): Promise<{
       },
       {
         name: "ისტორია",
-        icon: "🏛️",
+        icon: Landmark,
         color: "var(--accent-amber)",
         progress: 52,
         quizzesDone: 13,
@@ -119,7 +121,7 @@ export async function getProfileData(): Promise<{
       },
       {
         name: "ქართული",
-        icon: "📚",
+        icon: BookOpen,
         color: "var(--accent-purple)",
         progress: 71,
         quizzesDone: 19,

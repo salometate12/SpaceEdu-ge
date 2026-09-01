@@ -1,4 +1,4 @@
-import { Flame } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 
 interface StreakTrackerProps {
   currentStreak: number;
@@ -23,8 +23,15 @@ export function StreakTracker({ currentStreak, personalBest }: StreakTrackerProp
         </span>
         <div className="pb-1.5">
           <p className="text-sm font-black text-[#7c2d12]">დღიანი სტრიკი</p>
-          <p className="text-xs font-bold text-[#9a3412]/70">
-            {isNewRecord ? "🏆 ეს შენი პირადი რეკორდია!" : `პირადი რეკორდი: ${personalBest}`}
+          <p className="flex items-center gap-1 text-xs font-bold text-[#9a3412]/70">
+            {isNewRecord ? (
+              <>
+                <Trophy className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+                ეს შენი პირადი რეკორდია!
+              </>
+            ) : (
+              `პირადი რეკორდი: ${personalBest}`
+            )}
           </p>
         </div>
       </div>

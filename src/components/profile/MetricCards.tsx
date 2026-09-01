@@ -1,4 +1,4 @@
-import { CalendarClock, Sparkles, TrendingUp } from "lucide-react";
+import { CalendarClock, GraduationCap, Sparkles, TrendingUp } from "lucide-react";
 import { getDaysUntilExam, type UserProfile } from "@/lib/profile";
 
 interface MetricCardsProps {
@@ -20,11 +20,11 @@ export function MetricCards({ user }: MetricCardsProps) {
     },
     {
       label: "გამოცდამდე",
-      value: examPassed ? "🎓" : String(daysUntilExam),
+      value: examPassed ? null : String(daysUntilExam),
       sub: examPassed ? "წარმატებები!" : "დღე დარჩა",
       bg: "#fef3c7",
       text: "#92400e",
-      icon: CalendarClock,
+      icon: examPassed ? GraduationCap : CalendarClock,
     },
     {
       label: "Quiz სიზუსტე",
@@ -56,7 +56,7 @@ export function MetricCards({ user }: MetricCardsProps) {
             </span>
           </div>
           <p className="mono relative mt-3 text-4xl font-black" style={{ color: metric.text }}>
-            {metric.value}
+            {metric.value ?? <metric.icon className="h-9 w-9" strokeWidth={2.25} />}
           </p>
           <p className="relative mt-1 text-xs font-bold" style={{ color: metric.text, opacity: 0.75 }}>
             {metric.sub}

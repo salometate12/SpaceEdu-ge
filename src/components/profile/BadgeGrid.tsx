@@ -33,7 +33,15 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
               }
               title={badge.unlocked ? badge.name : badge.requirement}
             >
-              <p className="text-3xl leading-none">{badge.icon}</p>
+              <span
+                className="mx-auto flex h-11 w-11 items-center justify-center rounded-full"
+                style={badge.unlocked ? { background: `color-mix(in oklab, ${color}, white 55%)` } : undefined}
+              >
+                <badge.icon
+                  className="h-5 w-5 stroke-[2.25]"
+                  style={{ color: badge.unlocked ? color : "var(--text-muted)" }}
+                />
+              </span>
               <p className="mt-2 text-xs font-black text-[var(--text-primary)]">{badge.name}</p>
               {!badge.unlocked && badge.requirement && (
                 <p className="mt-0.5 text-[10px] font-medium leading-tight text-[var(--text-muted)]">

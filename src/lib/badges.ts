@@ -1,6 +1,15 @@
+import {
+  Award,
+  BrainCircuit,
+  CheckCircle2,
+  Flame,
+  Lock,
+  type LucideIcon,
+} from "lucide-react";
+
 export interface Badge {
   id: string;
-  icon: string;
+  icon: LucideIcon;
   color: "purple" | "cyan" | "green" | "amber" | "gray";
   name: string;
   unlocked: boolean;
@@ -8,13 +17,13 @@ export interface Badge {
 }
 
 export const DEFAULT_BADGES: Badge[] = [
-  { id: "streak_7", icon: "🔥", color: "purple", name: "7 დღის სტრიქი", unlocked: true },
-  { id: "quiz_master", icon: "🧠", color: "cyan", name: "Quiz მასტერი", unlocked: true },
-  { id: "first_plan", icon: "✅", color: "green", name: "პირველი გეგმა", unlocked: true },
-  { id: "sessions_50", icon: "⭐", color: "amber", name: "50 სესია", unlocked: true },
+  { id: "streak_7", icon: Flame, color: "purple", name: "7 დღის სტრიქი", unlocked: true },
+  { id: "quiz_master", icon: BrainCircuit, color: "cyan", name: "Quiz მასტერი", unlocked: true },
+  { id: "first_plan", icon: CheckCircle2, color: "green", name: "პირველი გეგმა", unlocked: true },
+  { id: "sessions_50", icon: Award, color: "amber", name: "50 სესია", unlocked: true },
   {
     id: "streak_30",
-    icon: "🔒",
+    icon: Lock,
     color: "gray",
     name: "30 სტრიქი",
     unlocked: false,
@@ -22,7 +31,7 @@ export const DEFAULT_BADGES: Badge[] = [
   },
   {
     id: "quiz_100",
-    icon: "🔒",
+    icon: Lock,
     color: "gray",
     name: "100% Quiz",
     unlocked: false,
@@ -30,7 +39,7 @@ export const DEFAULT_BADGES: Badge[] = [
   },
   {
     id: "all_subjects",
-    icon: "🔒",
+    icon: Lock,
     color: "gray",
     name: "ყველა საგანი",
     unlocked: false,
@@ -38,7 +47,7 @@ export const DEFAULT_BADGES: Badge[] = [
   },
   {
     id: "mock_exam",
-    icon: "🔒",
+    icon: Lock,
     color: "gray",
     name: "Mock Exam",
     unlocked: false,
