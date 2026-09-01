@@ -457,15 +457,39 @@ html.dark .subject-icon-wrap-featured {
   }
 
   .mobile-stack-tool-item {
-    position: relative;
+    position: sticky;
+    transition: margin-top 0.2s ease;
   }
 
   .mobile-stack-tool-item:not(:first-child) {
     margin-top: -44px;
   }
 
-  .mobile-stack-tool-item {
-    transition: margin-top 0.2s ease;
+  /* Scroll-driven stacking: each card sticks a little lower than the previous one,
+     so as you scroll the next card slides up and tucks in behind/under it. */
+  .mobile-stack-tool-item:nth-child(1) {
+    top: 64px;
+    z-index: 1;
+  }
+
+  .mobile-stack-tool-item:nth-child(2) {
+    top: 78px;
+    z-index: 2;
+  }
+
+  .mobile-stack-tool-item:nth-child(3) {
+    top: 92px;
+    z-index: 3;
+  }
+
+  .mobile-stack-tool-item:nth-child(4) {
+    top: 106px;
+    z-index: 4;
+  }
+
+  .mobile-stack-tool-item:nth-child(n + 5) {
+    top: 120px;
+    z-index: 5;
   }
 
   .mobile-stack-tool-item .mobile-vivid-tool-card {
