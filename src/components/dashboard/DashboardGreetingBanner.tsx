@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { motion } from "framer-motion";
 import { DashboardBannerStats, type DashboardWorkspace } from "./DashboardBannerStats";
 
 interface DashboardGreetingBannerProps {
@@ -17,7 +20,10 @@ export function DashboardGreetingBanner({
   const vivid = workspace === "student";
 
   return (
-    <section
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       className={`dashboard-hero flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 ${vivid ? "mobile-vivid-hero" : ""}`}
     >
       <div className="min-w-0 flex-1">
@@ -40,6 +46,6 @@ export function DashboardGreetingBanner({
       <div className={vivid ? "max-[639px]:hidden" : ""}>
         <DashboardBannerStats workspace={workspace} />
       </div>
-    </section>
+    </motion.section>
   );
 }
