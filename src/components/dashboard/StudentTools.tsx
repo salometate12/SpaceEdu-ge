@@ -31,7 +31,8 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
-    borderColor: "#f472b6",
+    fillColor: "#fce7f3",
+    textColor: "#9d174d",
   },
   {
     id: "quiz",
@@ -40,7 +41,8 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
-    borderColor: "#3b82f6",
+    fillColor: "#dbeafe",
+    textColor: "#1e3a8a",
   },
   {
     id: "ai-teacher",
@@ -49,7 +51,8 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
-    borderColor: "#facc15",
+    fillColor: "#fef9c3",
+    textColor: "#854d0e",
   },
   {
     id: "presentation",
@@ -58,7 +61,8 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
-    borderColor: "#34d399",
+    fillColor: "#d1fae5",
+    textColor: "#065f46",
   },
   {
     id: "research",
@@ -67,7 +71,8 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
-    borderColor: "#3b82f6",
+    fillColor: "#dbeafe",
+    textColor: "#1e3a8a",
   },
   {
     id: "eli5",
@@ -76,7 +81,8 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
-    borderColor: "#f472b6",
+    fillColor: "#fce7f3",
+    textColor: "#9d174d",
   },
 ] as const;
 
@@ -154,7 +160,12 @@ export function StudentTools() {
               layoutId={`student-tool-card-${tool.id}`}
               className={`${cardClass} mobile-vivid-tool-card`}
               onClick={(event) => handleMobileOpen(event, tool)}
-              style={{ "--tool-border-color": tool.borderColor } as CSSProperties}
+              style={
+                {
+                  "--tool-fill-color": tool.fillColor,
+                  "--tool-text-color": tool.textColor,
+                } as CSSProperties
+              }
             >
               {isLive ? (
                 <>
