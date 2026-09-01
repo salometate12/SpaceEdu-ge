@@ -261,40 +261,8 @@ html.dark .subject-icon-wrap-featured {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
 }
 
-/* Mobile-only tool cards — same solid palette + contrast rule as the metrics cards above them, both modes */
+/* Mobile-only layout for student dashboard tools (calm/neutral desktop-matching card style) */
 @media (max-width: 639px) {
-  .mobile-vivid-tool-card {
-    background: var(--tool-fill-color, #f7f0dd) !important;
-    border-color: transparent !important;
-    box-shadow: 0 8px 20px rgb(0 0 0 / 0.15) !important;
-    min-height: 0 !important;
-    padding: 1.25rem !important;
-  }
-
-  .mobile-vivid-tool-card:hover {
-    box-shadow: 0 10px 24px rgb(0 0 0 / 0.18) !important;
-  }
-
-  .mobile-vivid-tool-card::before {
-    display: none;
-  }
-
-  .mobile-vivid-tool-card h3,
-  .mobile-vivid-tool-card span,
-  .mobile-vivid-tool-card svg {
-    color: var(--tool-text-color, #1c1917) !important;
-  }
-
-  .mobile-vivid-tool-card p {
-    color: var(--tool-text-color, #1c1917) !important;
-    opacity: 0.72;
-  }
-
-  .mobile-vivid-tool-card .subject-icon-wrap {
-    border-color: rgb(255 255 255 / 0.9) !important;
-    background: rgb(255 255 255 / 0.92) !important;
-  }
-
   /* Widget-style bento grid for student tools (wide + paired half cards) */
   .mobile-widget-tools {
     display: grid !important;
@@ -315,15 +283,6 @@ html.dark .subject-icon-wrap-featured {
     grid-column: 1 / -1;
   }
 
-  .mobile-widget-tool-half .mobile-vivid-tool-card {
-    min-height: 128px !important;
-  }
-
-  .mobile-widget-tools .mobile-vivid-tool-card {
-    min-width: 0 !important;
-    max-width: 100% !important;
-  }
-
   .mobile-widget-tools p {
     overflow-wrap: break-word !important;
     word-break: normal !important;
@@ -336,7 +295,6 @@ html.dark .subject-icon-wrap-featured {
     -webkit-box-orient: vertical !important;
     -webkit-line-clamp: 2 !important;
     overflow: hidden !important;
-    padding-right: 2.25rem !important;
   }
 
   html:not(.dark) .mobile-vivid-stat-pill {
