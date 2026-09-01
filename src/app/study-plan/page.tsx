@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { StudyPlanForm, type StudyPlanFormValues } from "@/components/StudyPlan/StudyPlanForm";
 import { CalendarView } from "@/components/StudyPlan/CalendarView";
+import { StudyPlanThinkingLoader } from "@/components/StudyPlan/StudyPlanThinkingLoader";
 import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
-import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
@@ -56,7 +56,7 @@ export default function StudyPlanPage() {
 
         <div className="dashboard-tool-card min-h-[500px] flex-1 rounded-[28px] p-6">
           {loading ? (
-            <AiSkeletonLoader rows={4} />
+            <StudyPlanThinkingLoader />
           ) : result ? (
             <CalendarView
               plan={result.plan}

@@ -1365,6 +1365,72 @@ html.dark .tool-chip-active {
   }
 }
 
+/* Study plan — gamified "quest" generation loader */
+@keyframes study-plan-xp-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.85);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.05);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-14px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.95);
+  }
+}
+
+@keyframes study-plan-quest-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes study-plan-quest-check-pop {
+  0% {
+    transform: scale(0.4) rotate(-20deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.study-plan-xp-pop {
+  animation: study-plan-xp-pop 1.5s ease-out both;
+}
+
+.study-plan-quest-row-in {
+  animation: study-plan-quest-row-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.study-plan-quest-check-pop {
+  animation: study-plan-quest-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-plan-xp-pop,
+  .study-plan-quest-row-in,
+  .study-plan-quest-check-pop {
+    animation: none !important;
+  }
+}
+
 /* Hero headline — word-by-word blur/pop reveal on page load */
 @keyframes headline-word-in {
   0% {
