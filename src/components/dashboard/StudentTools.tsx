@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowUpRight,
   Brain,
   CalendarClock,
   ChevronRight,
@@ -34,7 +35,7 @@ const TOOLS = [
   },
   {
     id: "quiz",
-    title: "ინტერაქციული ვიქტორინა",
+    title: "ვიქტორინა",
     description: "კითხვები კონსპექტიდან და ტექსტიდან",
     href: "/quiz",
     icon: Brain,
@@ -162,9 +163,12 @@ export function StudentTools() {
                       {tool.description}
                     </p>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
+                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               ) : (
@@ -180,9 +184,12 @@ export function StudentTools() {
                       {tool.description}
                     </p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white">
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white max-[639px]:hidden">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                  </span>
+                  <span className="absolute right-4 top-4 hidden max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
+                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               )}

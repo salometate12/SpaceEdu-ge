@@ -298,6 +298,7 @@ html.dark .subject-icon-wrap-featured {
     margin-top: 0.625rem !important;
     font-size: 0.9375rem !important;
     line-height: 1.25 !important;
+    padding-right: 2.25rem !important;
     overflow-wrap: normal !important;
     word-break: normal !important;
     display: -webkit-box !important;
