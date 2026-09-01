@@ -41,19 +41,24 @@ export function MetricCards({ user }: MetricCardsProps) {
       {metrics.map((metric) => (
         <article
           key={metric.label}
-          className="relative overflow-hidden rounded-[24px] p-5 transition-transform hover:-translate-y-0.5"
+          className="relative overflow-hidden rounded-[28px] p-5 transition-transform hover:-translate-y-1"
           style={{ background: metric.bg }}
         >
           <div className="relative flex items-center justify-between">
-            <p className="text-xs font-semibold" style={{ color: metric.text, opacity: 0.75 }}>
+            <p className="text-xs font-bold" style={{ color: metric.text, opacity: 0.8 }}>
               {metric.label}
             </p>
-            <metric.icon className="h-4 w-4 stroke-[1.75]" style={{ color: metric.text }} />
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-full"
+              style={{ background: "rgb(255 255 255 / 0.55)" }}
+            >
+              <metric.icon className="h-4 w-4 stroke-[2]" style={{ color: metric.text }} />
+            </span>
           </div>
-          <p className="mono relative mt-2 text-3xl font-extrabold" style={{ color: metric.text }}>
+          <p className="mono relative mt-3 text-4xl font-black" style={{ color: metric.text }}>
             {metric.value}
           </p>
-          <p className="relative mt-1 text-xs font-medium" style={{ color: metric.text, opacity: 0.7 }}>
+          <p className="relative mt-1 text-xs font-bold" style={{ color: metric.text, opacity: 0.75 }}>
             {metric.sub}
           </p>
         </article>

@@ -6,24 +6,32 @@ interface SubjectProgressProps {
 
 export function SubjectProgress({ subjects }: SubjectProgressProps) {
   return (
-    <section className="dashboard-glass-card relative overflow-hidden rounded-[28px] p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="headline text-lg font-bold text-[var(--text-primary)]">საგნობრივი პროგრესი</h3>
-        <span className="text-xs font-medium text-[var(--text-muted)]">{subjects.length} საგანი</span>
+    <section className="dashboard-glass-card relative overflow-hidden rounded-[32px] p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <h3 className="headline text-xl font-black text-[var(--text-primary)]">საგნობრივი პროგრესი</h3>
+        <span className="rounded-full bg-[var(--bg-secondary)] px-2.5 py-1 text-xs font-bold text-[var(--text-muted)]">
+          {subjects.length} საგანი
+        </span>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-5">
         {subjects.map((subject) => (
           <div key={subject.name}>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-[var(--text-primary)]">
-                <span aria-hidden>{subject.icon}</span>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+                <span
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-base"
+                  style={{ background: `color-mix(in oklab, ${subject.color}, white 85%)` }}
+                  aria-hidden
+                >
+                  {subject.icon}
+                </span>
                 {subject.name}
               </p>
-              <span className="mono text-xs font-bold" style={{ color: subject.color }}>
+              <span className="mono text-sm font-black" style={{ color: subject.color }}>
                 {subject.progress}%
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-[var(--border)]">
+            <div className="h-3 overflow-hidden rounded-full bg-[var(--border)]">
               <div
                 className="animated-progress h-full rounded-full transition-all"
                 style={{
@@ -32,7 +40,7 @@ export function SubjectProgress({ subjects }: SubjectProgressProps) {
                 }}
               />
             </div>
-            <p className="mt-1.5 text-xs text-[var(--text-muted)]">
+            <p className="mt-1.5 text-xs font-medium text-[var(--text-muted)]">
               {subject.quizzesDone} quiz გავლილი · ბოლო აქტივობა: {subject.lastStudied}
             </p>
           </div>
