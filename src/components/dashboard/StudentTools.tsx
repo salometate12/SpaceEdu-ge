@@ -1,10 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUpRight,
   Brain,
   CalendarClock,
   ChevronRight,
@@ -153,54 +152,43 @@ export function StudentTools() {
               accent={tool.accent}
               href={tool.href}
               layoutId={`student-tool-card-${tool.id}`}
-              className={`${cardClass} mobile-vivid-tool-card`}
+              className={cardClass}
               onClick={(event) => handleMobileOpen(event, tool)}
-              style={{ "--tool-gradient": tool.gradient } as CSSProperties}
             >
               {isLive ? (
                 <>
-                  <div className="max-[639px]:hidden">
-                    <ToolIconWrap accent={tool.accent} compact>
-                      <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
-                    </ToolIconWrap>
-                  </div>
+                  <ToolIconWrap accent={tool.accent} compact>
+                    <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
+                  </ToolIconWrap>
                   <div className="min-w-0 flex-1">
-                    <h3 className="tool-card-font text-base font-semibold text-slate-900 dark:text-white max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
+                    <h3 className="tool-card-font text-base font-semibold text-slate-900 dark:text-white">
                       {tool.title}
                     </h3>
-                    <p className="tool-card-font mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
+                    <p className="tool-card-font mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70">
                       {tool.description}
                     </p>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 max-[639px]:hidden">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="hidden shrink-0 max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
-                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               ) : (
                 <>
                   <div>
-                    <div className="max-[639px]:hidden">
-                      <ToolIconWrap accent={tool.accent}>
-                        <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
-                      </ToolIconWrap>
-                    </div>
-                    <h3 className="tool-card-font mt-4 text-lg font-semibold text-slate-900 dark:text-white max-[639px]:mt-0 max-[639px]:text-lg max-[639px]:font-black max-[639px]:tracking-tight">
+                    <ToolIconWrap accent={tool.accent}>
+                      <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
+                    </ToolIconWrap>
+                    <h3 className="tool-card-font mt-4 text-lg font-semibold text-slate-900 dark:text-white">
                       {tool.title}
                     </h3>
-                    <p className="tool-card-font mt-2 text-sm text-slate-600 dark:text-white/70 max-[639px]:mt-1 max-[639px]:line-clamp-1 max-[639px]:text-xs max-[639px]:font-semibold max-[639px]:text-black/70">
+                    <p className="tool-card-font mt-2 text-sm text-slate-600 dark:text-white/70">
                       {tool.description}
                     </p>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white max-[639px]:hidden">
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-all duration-300 ease-in-out group-hover:text-[color:var(--accent-color)] dark:text-zinc-400 dark:group-hover:text-white">
                     გახსნა
                     <ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
-                  </span>
-                  <span className="absolute right-4 top-4 hidden max-[639px]:flex max-[639px]:h-8 max-[639px]:w-8 max-[639px]:items-center max-[639px]:justify-center max-[639px]:rounded-full max-[639px]:bg-black/10">
-                    <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2} />
                   </span>
                 </>
               )}
