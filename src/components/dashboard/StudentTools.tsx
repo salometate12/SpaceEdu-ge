@@ -31,8 +31,8 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
-    fillColor: "#fce7f3",
-    textColor: "#9d174d",
+    fillColor: "#f9a8d4",
+    textColor: "#ffffff",
   },
   {
     id: "quiz",
@@ -41,8 +41,8 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
-    fillColor: "#dbeafe",
-    textColor: "#1e3a8a",
+    fillColor: "#93c5fd",
+    textColor: "#ffffff",
   },
   {
     id: "ai-teacher",
@@ -51,8 +51,8 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
-    fillColor: "#fef9c3",
-    textColor: "#854d0e",
+    fillColor: "#fde047",
+    textColor: "#1c1917",
   },
   {
     id: "presentation",
@@ -61,8 +61,8 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
-    fillColor: "#d1fae5",
-    textColor: "#065f46",
+    fillColor: "#6ee7b7",
+    textColor: "#ffffff",
   },
   {
     id: "research",
@@ -71,8 +71,8 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
-    fillColor: "#dbeafe",
-    textColor: "#1e3a8a",
+    fillColor: "#93c5fd",
+    textColor: "#ffffff",
   },
   {
     id: "eli5",
@@ -81,8 +81,8 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
-    fillColor: "#fce7f3",
-    textColor: "#9d174d",
+    fillColor: "#f9a8d4",
+    textColor: "#ffffff",
   },
 ] as const;
 
@@ -173,10 +173,10 @@ export function StudentTools() {
                     <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                   </ToolIconWrap>
                   <div className="min-w-0 flex-1">
-                    <h3 className="tool-card-font text-base font-semibold text-slate-900 dark:text-white">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                       {tool.title}
                     </h3>
-                    <p className="tool-card-font mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-slate-600 dark:text-white/70">
                       {tool.description}
                     </p>
                   </div>
@@ -191,10 +191,10 @@ export function StudentTools() {
                     <ToolIconWrap accent={tool.accent}>
                       <Icon className={`h-5 w-5 ${tool.accent.iconClass}`} strokeWidth={1.5} />
                     </ToolIconWrap>
-                    <h3 className="tool-card-font mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
                       {tool.title}
                     </h3>
-                    <p className="tool-card-font mt-2 text-sm text-slate-600 dark:text-white/70">
+                    <p className="mt-2 text-sm text-slate-600 dark:text-white/70">
                       {tool.description}
                     </p>
                   </div>
