@@ -265,7 +265,7 @@ html.dark .subject-icon-wrap-featured {
 @media (max-width: 639px) {
   .mobile-vivid-tool-card {
     background: #f7f0dd !important;
-    border: 1.5px solid #d9c397 !important;
+    border: 2px solid var(--tool-border-color, #d9c397) !important;
     box-shadow: 0 8px 20px rgb(217 160 6 / 0.12) !important;
     min-height: 0 !important;
     padding: 1.25rem !important;

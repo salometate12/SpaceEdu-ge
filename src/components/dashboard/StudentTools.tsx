@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useState, type CSSProperties, type MouseEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Brain,
@@ -31,7 +31,7 @@ const TOOLS = [
     href: "/study-plan",
     icon: CalendarClock,
     accent: STUDENT_TOOL_ACCENTS.studyPlan,
-    gradient: "linear-gradient(160deg, #c3b8f2 0%, #ded8f9 55%, #f5f2ff 100%)",
+    borderColor: "#f472b6",
   },
   {
     id: "quiz",
@@ -40,7 +40,7 @@ const TOOLS = [
     href: "/quiz",
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
-    gradient: "linear-gradient(160deg, #a7ddd2 0%, #cdeee6 55%, #f0fbf8 100%)",
+    borderColor: "#3b82f6",
   },
   {
     id: "ai-teacher",
@@ -49,7 +49,7 @@ const TOOLS = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
-    gradient: "linear-gradient(160deg, #a8dab5 0%, #cdeed4 55%, #f1faf3 100%)",
+    borderColor: "#facc15",
   },
   {
     id: "presentation",
@@ -58,7 +58,7 @@ const TOOLS = [
     href: "/presentation",
     icon: Sparkles,
     accent: STUDENT_TOOL_ACCENTS.presentation,
-    gradient: "linear-gradient(160deg, #f3cf8e 0%, #f8e2b8 55%, #fdf6e6 100%)",
+    borderColor: "#34d399",
   },
   {
     id: "research",
@@ -67,7 +67,7 @@ const TOOLS = [
     href: researchPlatformHref("student"),
     icon: FileSearch,
     accent: STUDENT_TOOL_ACCENTS.research,
-    gradient: "linear-gradient(160deg, #f0a8b4 0%, #f6c8d0 55%, #fdedf0 100%)",
+    borderColor: "#3b82f6",
   },
   {
     id: "eli5",
@@ -76,7 +76,7 @@ const TOOLS = [
     href: "/eli5",
     icon: ListChecks,
     accent: STUDENT_TOOL_ACCENTS.eli5,
-    gradient: "linear-gradient(160deg, #b3b8ee 0%, #d3d6f5 55%, #f1f2fc 100%)",
+    borderColor: "#f472b6",
   },
 ] as const;
 
@@ -154,6 +154,7 @@ export function StudentTools() {
               layoutId={`student-tool-card-${tool.id}`}
               className={`${cardClass} mobile-vivid-tool-card`}
               onClick={(event) => handleMobileOpen(event, tool)}
+              style={{ "--tool-border-color": tool.borderColor } as CSSProperties}
             >
               {isLive ? (
                 <>
