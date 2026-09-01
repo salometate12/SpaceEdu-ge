@@ -426,8 +426,9 @@ html.dark .subject-icon-wrap-featured {
   /* Greeting hero banner — soft widget-style mesh gradient, both themes */
   .mobile-vivid-hero {
     border: none !important;
-    border-radius: 28px !important;
-    padding: 1.5rem !important;
+    border-radius: 0 0 36px 36px !important;
+    margin: -4rem -1rem 0 !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 1.75rem) 1.5rem 1.75rem !important;
     background: linear-gradient(160deg, #3f4252 0%, #55586c 50%, #6f7186 100%) !important;
     box-shadow: 0 10px 26px rgb(15 23 42 / 0.22) !important;
   }
