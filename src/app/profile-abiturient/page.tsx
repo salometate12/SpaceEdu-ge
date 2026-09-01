@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { ChartNoAxesColumn, Pencil } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
 import { getProfileData, INITIAL_DAILY_GOALS } from "@/lib/profile";
 import { buildWeekStreak } from "@/lib/streak";
@@ -34,6 +34,13 @@ export default async function AbiturientProfilePage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">პროფილი</h1>
         <div className="flex gap-2">
+          <Link
+            href="/profile-abiturient/stats"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-emerald-400 hover:text-emerald-600"
+          >
+            <ChartNoAxesColumn className="h-4 w-4 stroke-[1.75]" />
+            სტატისტიკა
+          </Link>
           <Link
             href="/profile/edit"
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-emerald-400 hover:text-emerald-600"

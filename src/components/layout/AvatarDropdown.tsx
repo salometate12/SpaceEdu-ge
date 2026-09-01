@@ -10,9 +10,15 @@ interface AvatarDropdownProps {
   open: boolean;
   isAdmin?: boolean;
   profileHref?: string;
+  statsHref?: string;
 }
 
-export function AvatarDropdown({ open, isAdmin = false, profileHref = "/profile" }: AvatarDropdownProps) {
+export function AvatarDropdown({
+  open,
+  isAdmin = false,
+  profileHref = "/profile",
+  statsHref = "/profile/stats",
+}: AvatarDropdownProps) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -40,7 +46,7 @@ export function AvatarDropdown({ open, isAdmin = false, profileHref = "/profile"
         პროფილი
       </Link>
       <Link
-        href="/profile/stats"
+        href={statsHref}
         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--text-primary)]"
       >
         <BarChart3 className="h-4 w-4" />

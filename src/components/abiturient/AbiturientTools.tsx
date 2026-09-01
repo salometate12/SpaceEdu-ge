@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Brain,
-  Calculator,
-  ChevronRight,
-  FileSearch,
-  Sparkles,
-} from "lucide-react";
-import { researchPlatformHref } from "@/lib/space-back-navigation";
+import { ChevronRight, Sparkles } from "lucide-react";
 import {
   DASHBOARD_TOOL_ACCENTS,
   type NeonSubjectAccent,
@@ -19,36 +12,13 @@ import {
   DashboardMorphItem,
 } from "@/components/dashboard/DashboardMorphGrid";
 import { getToolCardClass, isLivePreviewMode } from "@/lib/dashboard-preview-layout";
+import { ABITURIENT_TOOLS } from "@/lib/abiturient-tools";
+import { recordToolUsage } from "@/lib/activity";
 
-const TOOLS = [
-  {
-    id: "quiz",
-    title: "ინტერაქციული ვიქტორინა",
-    description: "კითხვები პროგრამის მიხედვით და სწრაფი შეფასება",
-    href: "/quiz",
-    icon: Brain,
-    accent: DASHBOARD_TOOL_ACCENTS.quiz,
-    action: "გახსნა",
-  },
-  {
-    id: "calculator",
-    title: "უნივერსიტეტის კალკულატორი",
-    description: "შეფასება საგნების ქულებით და პროგნოზი",
-    href: "/exam-calculator",
-    icon: Calculator,
-    accent: DASHBOARD_TOOL_ACCENTS.calculator,
-    action: "გახსნა",
-  },
-  {
-    id: "research",
-    title: "მასალა → ანალიზი",
-    description: "PDF, ფოტო, ტექსტი, აუდიო — ერთად გაანალიზე",
-    href: researchPlatformHref("abit"),
-    icon: FileSearch,
-    accent: DASHBOARD_TOOL_ACCENTS.research,
-    action: "გახსნა",
-  },
-] as const;
+const TOOLS = ABITURIENT_TOOLS.filter((tool) => tool.id !== "abit-conspectus").map((tool) => ({
+  ...tool,
+  action: "გახსნა",
+}));
 
 function ToolIconWrap({
   accent,
@@ -78,6 +48,7 @@ function AiConspectusCard({ isLive, cardClass }: { isLive: boolean; cardClass: s
       href="/lit-assistant"
       layoutId="abit-tool-conspectus"
       className={cardClass}
+      onClick={() => recordToolUsage("abit-conspectus", "AI კონსპექტი")}
     >
       {isLive ? (
         <>
@@ -145,6 +116,7 @@ export function AbiturientTools() {
                 href={tool.href}
                 layoutId={`abit-tool-${tool.id}`}
                 className={cardClass}
+                onClick={() => recordToolUsage(tool.id, tool.title)}
               >
                 {isLive ? (
                   <>

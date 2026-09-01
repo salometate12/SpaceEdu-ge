@@ -25,6 +25,11 @@ export function studyPlanHrefForSpace(space: SpaceeduSpace | null | undefined): 
   return "/study-plan/abit";
 }
 
+export function statsHrefForSpace(space: SpaceeduSpace | null | undefined): string {
+  if (space === "student") return "/profile/stats";
+  return "/profile-abiturient/stats";
+}
+
 /**
  * Routes that belong to exactly one space. A signed-in, non-admin user
  * whose account space doesn't match gets redirected to their own
@@ -47,6 +52,7 @@ export const SPACE_GUARDED_ROUTES: {
   { path: PROFILE_ABITURIENT_HREF, space: "abiturient", match: "exact", redirectTo: "profile" },
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile/stats", space: "student", match: "exact", redirectTo: "profile" },
+  { path: "/profile-abiturient/stats", space: "abiturient", match: "exact", redirectTo: "profile" },
 ];
 
 function matchesRoute(pathname: string, route: { path: string; match: "exact" | "prefix" }): boolean {

@@ -17,7 +17,7 @@ import {
 import { AvatarDropdown } from "./AvatarDropdown";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -163,6 +163,7 @@ export function DashboardHeader({
               open={avatarOpen}
               isAdmin={isAdmin}
               profileHref={profileHrefForSpace(effectiveSpace)}
+              statsHref={statsHrefForSpace(effectiveSpace)}
             />
           </div>
         </div>
