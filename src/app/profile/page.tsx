@@ -9,6 +9,7 @@ import { DailyGoals } from "@/components/profile/DailyGoals";
 import { DiaryLog } from "@/components/profile/DiaryLog";
 import { MetricCards } from "@/components/profile/MetricCards";
 import { ProfileCard } from "@/components/profile/ProfileCard";
+import { ProfileChallengeHero } from "@/components/profile/ProfileChallengeHero";
 import { StreakTracker } from "@/components/profile/StreakTracker";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
 
@@ -35,22 +36,23 @@ export default async function ProfilePage() {
   }
   const week = buildWeekStreak(user.currentStreak);
   const spaceLabel = getSpaceLabel(user.space);
+  const goalsRemaining = INITIAL_GOALS.filter((goal) => !goal.done).length;
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 sm:py-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="headline text-2xl font-bold text-white">პროფილი</h1>
+        <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">პროფილი</h1>
         <div className="flex gap-2">
           <Link
             href="/profile/stats"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm font-medium text-white/85 transition-all hover:border-cyan-500/40 hover:bg-cyan-500/5 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-violet-400 hover:text-violet-600"
           >
             <ChartNoAxesColumn className="h-4 w-4 stroke-[1.75]" />
             სტატისტიკა
           </Link>
           <Link
             href="/profile/edit"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm font-medium text-white/85 transition-all hover:border-cyan-500/40 hover:bg-cyan-500/5 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-violet-400 hover:text-violet-600"
           >
             <Pencil className="h-4 w-4 stroke-[1.75]" />
             რედაქტირება
@@ -58,9 +60,13 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] px-4 py-2.5 text-sm text-zinc-400">
-        შენი სფეისი: <span className="headline font-semibold text-cyan-300">{spaceLabel}</span>
+      <div className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm text-[var(--text-secondary)] dark:border-cyan-500/20 dark:bg-cyan-500/[0.04]">
+        შენი სფეისი: <span className="headline font-semibold text-violet-700 dark:text-cyan-300">{spaceLabel}</span>
       </div>
+
+      <ProfileChallengeHero user={user} week={week} goalsRemaining={goalsRemaining} />
+
+      <DailyGoals initialGoals={INITIAL_GOALS} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <ProfileCard user={user} />
@@ -69,7 +75,6 @@ export default async function ProfilePage() {
           <StreakTracker
             currentStreak={user.currentStreak}
             personalBest={user.personalBestStreak}
-            week={week}
           />
         </div>
       </section>
@@ -79,10 +84,7 @@ export default async function ProfilePage() {
         <DiaryLog entries={diary} />
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
-        <BadgeGrid badges={DEFAULT_BADGES} />
-        <DailyGoals initialGoals={INITIAL_GOALS} />
-      </section>
+      <BadgeGrid badges={DEFAULT_BADGES} />
     </main>
   );
 }

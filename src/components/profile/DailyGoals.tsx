@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import {
   BookOpen,
+  Check,
   ListChecks,
   MessageCircle,
   Plus,
@@ -24,6 +25,20 @@ const TYPE_ICON: Record<DailyGoal["type"], LucideIcon> = {
   study: Target,
   read: BookOpen,
   chat: MessageCircle,
+};
+
+const TYPE_LABEL: Record<DailyGoal["type"], string> = {
+  quiz: "ქვიზი",
+  study: "სწავლა",
+  read: "კითხვა",
+  chat: "ჩატი",
+};
+
+const TYPE_STYLE: Record<DailyGoal["type"], { bg: string; text: string; pill: string }> = {
+  quiz: { bg: "#efe9fe", text: "#5b21b6", pill: "#c4b5fd" },
+  study: { bg: "#dbeafe", text: "#1e3a8a", pill: "#93c5fd" },
+  read: { bg: "#fef3c7", text: "#92400e", pill: "#fcd34d" },
+  chat: { bg: "#d1fae5", text: "#065f46", pill: "#6ee7b7" },
 };
 
 export function DailyGoals({ initialGoals }: DailyGoalsProps) {
@@ -96,37 +111,38 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
   }, [allDone]);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#13131A]/60 p-6 backdrop-blur-xl transition-colors hover:border-white/[0.15]">
+    <section className="relative">
       {showConfetti && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-lg">
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-lg">
           🎉
         </div>
       )}
+
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="headline text-lg font-semibold text-white">დღის მიზნები</h3>
-        <span className="mono text-xs text-zinc-500">
+        <h3 className="headline text-lg font-bold text-[var(--text-primary)]">თქვენი გეგმა</h3>
+        <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
           {doneCount} / {goals.length} შესრულებული
         </span>
       </div>
 
       {goals.length > 0 && (
-        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-[var(--border)]">
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${(doneCount / goals.length) * 100}%`,
-              background: "linear-gradient(90deg, #A78BFA, #22D3EE)",
+              background: "linear-gradient(90deg, #8b5cf6, #22d3ee)",
             }}
           />
         </div>
       )}
 
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={generateAiGoals}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/10 transition-all hover:from-violet-500 hover:to-cyan-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:from-violet-500 hover:to-cyan-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Sparkles className="h-4 w-4 stroke-[1.75]" />
           {loading ? "გენერირდება..." : "AI მიზნების გენერაცია"}
@@ -134,7 +150,7 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
       </div>
 
       {error && (
-        <div className="mb-3 rounded-xl border border-rose-500/25 bg-rose-500/[0.06] px-3 py-2 text-sm text-rose-200">
+        <div className="mb-3 rounded-2xl border border-rose-300/60 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
           ⚠️ {error}
           <button className="ml-2 underline" onClick={generateAiGoals}>
             კვლავ სცადე
@@ -142,45 +158,67 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {goals.map((goal) => {
           const Icon = TYPE_ICON[goal.type];
+          const style = TYPE_STYLE[goal.type];
           return (
             <div
               key={goal.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition-colors hover:border-white/[0.12]"
+              className="relative overflow-hidden rounded-[24px] p-4 transition-all"
+              style={{
+                background: goal.done ? "var(--bg-card)" : style.bg,
+                border: goal.done ? "1px solid var(--border)" : "1px solid transparent",
+              }}
             >
-              <label className="flex min-w-0 items-center gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={goal.done}
-                  onChange={() => toggleGoal(goal.id)}
-                  className="h-4 w-4 shrink-0 accent-cyan-500"
-                />
-                <Icon
-                  className={`h-3.5 w-3.5 shrink-0 ${
-                    goal.done ? "text-zinc-600" : "text-cyan-300"
-                  }`}
-                />
+              <div className="flex items-start justify-between gap-2">
                 <span
-                  className={`text-sm ${goal.done ? "text-zinc-600 line-through" : "text-zinc-200"}`}
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  style={{
+                    background: goal.done ? "var(--bg-secondary)" : style.pill,
+                    color: goal.done ? "var(--text-muted)" : style.text,
+                  }}
                 >
-                  {goal.text}
+                  <Icon className="h-3 w-3" strokeWidth={2.25} />
+                  {TYPE_LABEL[goal.type]}
                 </span>
-              </label>
+                <button
+                  type="button"
+                  onClick={() => toggleGoal(goal.id)}
+                  aria-label={goal.done ? "მონიშვნის გაუქმება" : "დასრულებულად მონიშვნა"}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all"
+                  style={{
+                    background: goal.done ? "#1c1917" : "rgb(255 255 255 / 0.7)",
+                    color: goal.done ? "#ffffff" : style.text,
+                  }}
+                >
+                  <Check className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              </div>
+
+              <p
+                className={`mt-3 text-sm font-bold leading-snug ${
+                  goal.done ? "text-[var(--text-muted)] line-through" : ""
+                }`}
+                style={goal.done ? undefined : { color: style.text }}
+              >
+                {goal.text}
+              </p>
+
               <button
                 type="button"
                 onClick={() => deleteGoal(goal.id)}
-                className="shrink-0 text-zinc-500 hover:text-white"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--text-muted)] transition-colors hover:text-rose-500"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
+                წაშლა
               </button>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-4 flex gap-2">
         <input
           value={newGoal}
           onChange={(e) => setNewGoal(e.target.value)}
@@ -188,12 +226,12 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
             if (e.key === "Enter") addGoal();
           }}
           placeholder="ახალი მიზანი..."
-          className="h-10 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-cyan-500/50"
+          className="h-11 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-violet-400"
         />
         <button
           type="button"
           onClick={addGoal}
-          className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-4 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+          className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-4 text-sm font-semibold text-white shadow-md transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4 stroke-[1.75]" />
           დამატება
