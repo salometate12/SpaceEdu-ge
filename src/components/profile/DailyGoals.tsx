@@ -20,6 +20,7 @@ import type { DailyGoal } from "@/lib/profile";
 
 interface DailyGoalsProps {
   initialGoals: DailyGoal[];
+  title?: string;
 }
 
 const TYPE_ICON: Record<DailyGoal["type"], LucideIcon> = {
@@ -43,7 +44,7 @@ const TYPE_STYLE: Record<DailyGoal["type"], { bg: string; text: string; pill: st
   chat: { bg: "#d1fae5", text: "#065f46", pill: "#6ee7b7" },
 };
 
-export function DailyGoals({ initialGoals }: DailyGoalsProps) {
+export function DailyGoals({ initialGoals, title = "თქვენი გეგმა" }: DailyGoalsProps) {
   const [goals, setGoals] = useState(initialGoals);
   const [newGoal, setNewGoal] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +122,7 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
       )}
 
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="headline text-lg font-bold text-[var(--text-primary)]">თქვენი გეგმა</h3>
+        <h3 className="headline text-lg font-bold text-[var(--text-primary)]">{title}</h3>
         <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
           {doneCount} / {goals.length} შესრულებული
         </span>
@@ -133,7 +134,7 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${(doneCount / goals.length) * 100}%`,
-              background: "linear-gradient(90deg, #8b5cf6, #22d3ee)",
+              background: "linear-gradient(90deg, #f97316, #ec4899)",
             }}
           />
         </div>
@@ -144,7 +145,7 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
           type="button"
           onClick={generateAiGoals}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:from-violet-500 hover:to-cyan-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:from-orange-400 hover:to-pink-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Sparkles className="h-4 w-4 stroke-[1.75]" />
           {loading ? "გენერირდება..." : "AI მიზნების გენერაცია"}
@@ -234,7 +235,7 @@ export function DailyGoals({ initialGoals }: DailyGoalsProps) {
         <button
           type="button"
           onClick={addGoal}
-          className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-4 text-sm font-semibold text-white shadow-md transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+          className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 text-sm font-semibold text-white shadow-md transition-all hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98]"
         >
           <Plus className="h-4 w-4 stroke-[1.75]" />
           დამატება

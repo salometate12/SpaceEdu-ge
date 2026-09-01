@@ -30,7 +30,7 @@ export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChal
 
         <div className="relative flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/70 text-sm font-bold text-[#4c1d95] shadow-sm">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-br from-orange-400 via-pink-500 to-rose-500 text-sm font-black text-white shadow-md ring-4 ring-white/70">
               {user.initials}
             </div>
             <h1 className="headline mt-4 text-3xl font-extrabold leading-tight tracking-tight text-[#1c1917] sm:text-4xl">

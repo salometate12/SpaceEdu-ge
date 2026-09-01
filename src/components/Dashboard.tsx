@@ -17,6 +17,8 @@ import { DashboardGreetingBanner } from "./dashboard/DashboardGreetingBanner";
 import { DashboardSideRail } from "./dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "./dashboard/DashboardCalendarPanel";
 import { StudentTools } from "./dashboard/StudentTools";
+import { DailyGoals } from "./profile/DailyGoals";
+import { INITIAL_DAILY_GOALS } from "@/lib/profile";
 import {
   DashboardMorphGrid,
   DashboardMorphItem,
@@ -221,6 +223,10 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           </DashboardMorphGrid>
 
           <StudentTools />
+
+          <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <DailyGoals initialGoals={INITIAL_DAILY_GOALS} title="ჩემი მიზნები" />
+          </div>
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <article className="relative overflow-hidden rounded-[32px] border border-violet-200 bg-violet-100 p-6 transition-all duration-300 hover:-translate-y-1 dark:border-transparent dark:bg-violet-500 sm:p-8">

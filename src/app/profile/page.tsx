@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChartNoAxesColumn, Pencil } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
-import { getProfileData, getSpaceLabel, type DailyGoal } from "@/lib/profile";
+import { getProfileData, getSpaceLabel, INITIAL_DAILY_GOALS } from "@/lib/profile";
 import { buildWeekStreak } from "@/lib/streak";
 import { getCurrentServerUserName } from "@/lib/auth-server";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
@@ -12,14 +12,6 @@ import { ProfileCard } from "@/components/profile/ProfileCard";
 import { ProfileChallengeHero } from "@/components/profile/ProfileChallengeHero";
 import { StreakTracker } from "@/components/profile/StreakTracker";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
-
-const INITIAL_GOALS: DailyGoal[] = [
-  { id: "goal-1", text: "ბიოლოგიის 1 quiz", done: true, type: "quiz" },
-  { id: "goal-2", text: "ქიმიის კონსპექტის გამეორება", done: false, type: "read" },
-  { id: "goal-3", text: "AI ჩატი — რთული თემა", done: true, type: "chat" },
-  { id: "goal-4", text: "Study plan task #4", done: false, type: "study" },
-  { id: "goal-5", text: "ისტორიის მოკლე ტესტი", done: false, type: "quiz" },
-];
 
 export default async function ProfilePage() {
   const { user, subjects, diary } = await getProfileData();
@@ -36,7 +28,7 @@ export default async function ProfilePage() {
   }
   const week = buildWeekStreak(user.currentStreak);
   const spaceLabel = getSpaceLabel(user.space);
-  const goalsRemaining = INITIAL_GOALS.filter((goal) => !goal.done).length;
+  const goalsRemaining = INITIAL_DAILY_GOALS.filter((goal) => !goal.done).length;
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
@@ -66,7 +58,7 @@ export default async function ProfilePage() {
 
       <ProfileChallengeHero user={user} week={week} goalsRemaining={goalsRemaining} />
 
-      <DailyGoals initialGoals={INITIAL_GOALS} />
+      <DailyGoals initialGoals={INITIAL_DAILY_GOALS} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <ProfileCard user={user} />

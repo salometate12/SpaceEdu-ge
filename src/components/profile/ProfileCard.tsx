@@ -30,7 +30,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
   return (
     <section className="dashboard-glass-card relative overflow-hidden rounded-[32px] p-6">
       <div className="relative flex items-start gap-4">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xl font-black text-white shadow-lg">
+        <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[24px] bg-gradient-to-br from-orange-400 via-pink-500 to-rose-500 text-xl font-black text-white shadow-lg ring-4 ring-white dark:ring-[#16161f]">
           {user.initials}
         </div>
         <div className="min-w-0 pt-1">
