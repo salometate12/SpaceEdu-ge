@@ -283,18 +283,39 @@ html.dark .subject-icon-wrap-featured {
     grid-column: 1 / -1;
   }
 
-  .mobile-widget-tools p {
-    overflow-wrap: break-word !important;
-    word-break: normal !important;
+  /* Tighten card padding/height so text sizing matches the narrower mobile columns */
+  .mobile-widget-tool-item > div {
+    padding: 1rem !important;
+    min-height: 0 !important;
+  }
+
+  .mobile-widget-tools .subject-icon-wrap {
+    height: 2.25rem !important;
+    width: 2.25rem !important;
   }
 
   .mobile-widget-tools h3 {
+    margin-top: 0.625rem !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.25 !important;
     overflow-wrap: normal !important;
     word-break: normal !important;
     display: -webkit-box !important;
     -webkit-box-orient: vertical !important;
     -webkit-line-clamp: 2 !important;
     overflow: hidden !important;
+  }
+
+  .mobile-widget-tools p {
+    margin-top: 0.25rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  .mobile-widget-tools span {
+    margin-top: 0.625rem !important;
   }
 
   html:not(.dark) .mobile-vivid-stat-pill {
