@@ -10,25 +10,20 @@ const SPACE_STYLE: Record<
   {
     label: string;
     icon: React.ReactNode;
-    bg?: string;
-    border?: string;
-    color?: string;
-    className?: string;
+    className: string;
   }
 > = {
   school: {
     label: "სკოლა",
-    bg: "#1a0a2e",
-    border: "#7C3AED",
-    color: "#c4b5fd",
     icon: <School className="h-3.5 w-3.5" />,
+    className:
+      "border-violet-300 bg-violet-100 text-violet-700 hover:bg-violet-200/70 dark:border-[#7C3AED] dark:bg-[#1a0a2e] dark:text-[#c4b5fd] dark:hover:bg-[#1a0a2e]/80",
   },
   abiturient: {
     label: "აბიტურიენტი",
-    bg: "#042f3d",
-    border: "#22d3ee",
-    color: "#67e8f9",
     icon: <GraduationCap className="h-3.5 w-3.5" />,
+    className:
+      "border-cyan-300 bg-cyan-100 text-cyan-700 hover:bg-cyan-200/70 dark:border-[#22d3ee] dark:bg-[#042f3d] dark:text-[#67e8f9] dark:hover:bg-[#042f3d]/80",
   },
   student: {
     label: "სტუდენტი",
@@ -45,23 +40,10 @@ interface SpaceChipProps {
 export function SpaceChip({ space }: SpaceChipProps) {
   const ui = SPACE_STYLE[space];
 
-  if (ui.className) {
-    return (
-      <Link
-        href="/select-space"
-        className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${ui.className}`}
-      >
-        {ui.icon}
-        {ui.label}
-      </Link>
-    );
-  }
-
   return (
     <Link
       href="/select-space"
-      className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-transform hover:-translate-y-0.5"
-      style={{ background: ui.bg, borderColor: ui.border, color: ui.color }}
+      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${ui.className}`}
     >
       {ui.icon}
       {ui.label}

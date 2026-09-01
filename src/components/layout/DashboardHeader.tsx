@@ -107,8 +107,8 @@ export function DashboardHeader({
                   aria-pressed={aiChatOpen}
                   className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
                     aiChatOpen
-                      ? "bg-[#1a0a2e] text-[#a78bfa]"
-                      : "text-[var(--text-secondary)] hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+                      ? "bg-violet-100 text-violet-700 dark:bg-[#1a0a2e] dark:text-[#a78bfa]"
+                      : "text-[var(--text-secondary)] hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-[#1a0a2e] dark:hover:text-[#a78bfa]"
                   }`}
                 >
                   {item.icon}
@@ -118,7 +118,7 @@ export function DashboardHeader({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[#1a0a2e] hover:text-[#a78bfa]"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-[#1a0a2e] dark:hover:text-[#a78bfa]"
                 >
                   {item.icon}
                   {item.label}
@@ -130,13 +130,13 @@ export function DashboardHeader({
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <span className="hidden items-center gap-1 rounded-full border border-[#f59e0b] bg-[#2d1a00] px-2.5 py-1 text-xs text-[#fcd34d] sm:inline-flex dark:border-[#f59e0b] dark:bg-[#2d1a00]">
+          <span className="hidden items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-700 sm:inline-flex dark:border-[#f59e0b] dark:bg-[#2d1a00] dark:text-[#fcd34d]">
             <Flame className="h-3.5 w-3.5" />
             {streak} სტრიქი
           </span>
           <Link
             href="/notifications"
-            className="relative rounded-lg border border-[var(--border)] p-2 text-[var(--text-secondary)] hover:text-white"
+            className="relative rounded-lg border border-[var(--border)] p-2 text-[var(--text-secondary)] transition-colors hover:border-violet-300 hover:text-violet-700 dark:hover:text-white"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
@@ -147,7 +147,7 @@ export function DashboardHeader({
             <button
               type="button"
               onClick={() => setAvatarOpen((prev) => !prev)}
-              className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd]"
+              className="h-9 w-9 rounded-full border border-violet-300 bg-violet-100 text-sm font-semibold text-violet-700 dark:border-[#7C3AED] dark:bg-[#1a0a2e] dark:text-[#c4b5fd]"
             >
               {avatarInitial}
             </button>
