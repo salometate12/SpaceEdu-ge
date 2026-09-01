@@ -78,6 +78,7 @@ export default function AbitStudyPlanPage() {
               totalDays={result.total_days}
               advice={result.advice}
               subject={subjectTitle}
+              space="abiturient"
             />
           ) : (
             <div className="flex h-full flex-col">

@@ -63,6 +63,7 @@ export default function StudyPlanPage() {
               totalDays={result.total_days}
               advice={result.advice}
               subject={subjectTitle}
+              space="student"
             />
           ) : (
             <div className="flex h-full flex-col">

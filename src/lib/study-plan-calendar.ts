@@ -1,5 +1,7 @@
 import { recordDailyActivity } from "./daily-streak";
 
+export type StudyPlanSpace = "student" | "abiturient";
+
 export interface StudyPlanCalendarDay {
   date: string;
   day_name: string;
@@ -17,7 +19,11 @@ export interface SavedStudyPlan {
   doneDates: string[];
 }
 
-const STUDY_PLAN_CALENDAR_KEY = "spaceedu-dashboard-study-plan";
+function storageKey(space: StudyPlanSpace): string {
+  return space === "abiturient"
+    ? "spaceedu-dashboard-study-plan"
+    : "spaceedu-dashboard-study-plan-student";
+}
 
 export const STUDY_PLAN_CALENDAR_UPDATED_EVENT = "spaceedu-study-plan-calendar-updated";
 
@@ -26,10 +32,10 @@ function notifyStudyPlanCalendarUpdated() {
   window.dispatchEvent(new Event(STUDY_PLAN_CALENDAR_UPDATED_EVENT));
 }
 
-export function getSavedStudyPlan(): SavedStudyPlan | null {
+export function getSavedStudyPlan(space: StudyPlanSpace): SavedStudyPlan | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STUDY_PLAN_CALENDAR_KEY);
+    const raw = window.localStorage.getItem(storageKey(space));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SavedStudyPlan;
     return { ...parsed, doneDates: parsed.doneDates ?? [] };
@@ -39,6 +45,7 @@ export function getSavedStudyPlan(): SavedStudyPlan | null {
 }
 
 export function saveStudyPlanToDashboard(
+  space: StudyPlanSpace,
   subject: string,
   days: StudyPlanCalendarDay[],
   totalDays: number,
@@ -51,27 +58,27 @@ export function saveStudyPlanToDashboard(
     days,
     doneDates: [],
   };
-  window.localStorage.setItem(STUDY_PLAN_CALENDAR_KEY, JSON.stringify(record));
+  window.localStorage.setItem(storageKey(space), JSON.stringify(record));
   notifyStudyPlanCalendarUpdated();
 }
 
-export function toggleStudyPlanDayDone(date: string): void {
-  const current = getSavedStudyPlan();
+export function toggleStudyPlanDayDone(space: StudyPlanSpace, date: string): void {
+  const current = getSavedStudyPlan(space);
   if (!current) return;
   const isDone = current.doneDates.includes(date);
   const nextDoneDates = isDone
     ? current.doneDates.filter((item) => item !== date)
     : [...current.doneDates, date];
   const next: SavedStudyPlan = { ...current, doneDates: nextDoneDates };
-  window.localStorage.setItem(STUDY_PLAN_CALENDAR_KEY, JSON.stringify(next));
+  window.localStorage.setItem(storageKey(space), JSON.stringify(next));
   notifyStudyPlanCalendarUpdated();
   if (!isDone) {
     recordDailyActivity();
   }
 }
 
-export function clearSavedStudyPlan(): void {
+export function clearSavedStudyPlan(space: StudyPlanSpace): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(STUDY_PLAN_CALENDAR_KEY);
+  window.localStorage.removeItem(storageKey(space));
   notifyStudyPlanCalendarUpdated();
 }

@@ -15,11 +15,11 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function AbiturientStudyCalendar() {
+export function StudentStudyCalendar() {
   const [plan, setPlan] = useState<SavedStudyPlan | null>(null);
 
   useEffect(() => {
-    const sync = () => setPlan(getSavedStudyPlan("abiturient"));
+    const sync = () => setPlan(getSavedStudyPlan("student"));
     sync();
     window.addEventListener(STUDY_PLAN_CALENDAR_UPDATED_EVENT, sync);
     window.addEventListener("storage", sync);
@@ -48,24 +48,24 @@ export function AbiturientStudyCalendar() {
   const finished = Boolean(plan) && upcoming.length === 0 && doneCount > 0;
 
   return (
-    <section className="dashboard-section p-5 sm:p-6">
+    <section className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl dark:text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-purple-500/15 dark:text-purple-300">
-              <CalendarDays className="h-4.5 w-4.5" strokeWidth={2} />
+          <h2 className="headline flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500/10 text-violet-700 dark:bg-white/20 dark:text-white">
+              <CalendarDays className="h-4 w-4 stroke-[2]" />
             </span>
             შენი სასწავლო კალენდარი
           </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             {plan
               ? `${plan.subject} — გეგმა თარიღების მიხედვით`
               : "შექმენი სასწავლო გეგმა და გადაიტანე აქ კალენდრული ხედვისთვის."}
           </p>
         </div>
         <Link
-          href="/study-plan/abit"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-violet-300/60 bg-violet-50 px-3 py-2 text-xs font-medium text-violet-700 transition hover:bg-violet-100 dark:border-purple-500/25 dark:bg-purple-500/10 dark:text-purple-200 dark:hover:bg-purple-500/20"
+          href="/study-plan"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/10 px-3 py-2 text-xs font-medium text-[var(--accent-primary)] transition hover:bg-[var(--accent-primary)]/15"
         >
           <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
           {plan ? "ახალი გეგმა" : "გეგმის შექმნა"}
@@ -73,29 +73,29 @@ export function AbiturientStudyCalendar() {
       </div>
 
       {!plan ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center dark:border-white/[0.08]">
-          <CalendarDays className="h-6 w-6 text-slate-300 dark:text-zinc-600" strokeWidth={1.5} />
-          <p className="max-w-sm text-sm text-slate-500 dark:text-zinc-500">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] px-4 py-10 text-center">
+          <CalendarDays className="h-6 w-6 text-[var(--text-muted)]" strokeWidth={1.5} />
+          <p className="max-w-sm text-sm text-[var(--text-muted)]">
             სასწავლო გეგმის გენერატორში შექმნილი გეგმა, „გადატანა კალენდარში“ ღილაკით, აქ
             გამოჩნდება თარიღების მიხედვით.
           </p>
         </div>
       ) : (
         <>
-          <div className="mb-5 flex items-center gap-3 rounded-xl border border-violet-200/60 bg-violet-50/50 px-3 py-2.5 dark:border-purple-500/20 dark:bg-purple-500/[0.06]">
+          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2.5">
             <span className="text-lg" aria-hidden>
               {finished ? "🏆" : progressPct === 0 ? "🌱" : "🔥"}
             </span>
             <div className="flex-1">
-              <div className="flex items-center justify-between text-xs font-medium text-violet-700 dark:text-purple-200">
+              <div className="flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
                 <span>
                   {doneCount}/{plan.totalDays} დღე შესრულებული
                 </span>
                 <span>{progressPct}%</span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-violet-100 dark:bg-white/[0.06]">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--border)]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500 dark:from-purple-500 dark:to-indigo-400"
+                  className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-500"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -103,14 +103,14 @@ export function AbiturientStudyCalendar() {
           </div>
 
           {finished ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-emerald-300/50 bg-emerald-50/60 px-4 py-8 text-center dark:border-emerald-500/25 dark:bg-emerald-500/[0.06]">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-300/50 bg-emerald-50/60 px-4 py-8 text-center dark:border-emerald-500/25 dark:bg-emerald-500/[0.06]">
               <PartyPopper className="h-6 w-6 text-emerald-500 dark:text-emerald-300" strokeWidth={1.75} />
               <p className="text-sm font-medium text-emerald-700 dark:text-emerald-200">
                 გეგმა დასრულებულია — შექმენი ახალი მომდევნო ეტაპისთვის!
               </p>
             </div>
           ) : (
-            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-200 dark:[&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-track]:bg-transparent">
+            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--border)] [&::-webkit-scrollbar-track]:bg-transparent">
               {upcoming.map((day) => {
                 const level = FOCUS_LEVEL_CONFIG[day.focus_level];
                 const LevelIcon = level.icon;
@@ -119,7 +119,7 @@ export function AbiturientStudyCalendar() {
                 return (
                   <div
                     key={`${day.date}-${day.day_name}`}
-                    className={`flex w-[190px] shrink-0 snap-start flex-col gap-2 rounded-xl border-t-4 ${level.accent} border-slate-200/80 bg-gradient-to-b from-white to-violet-50/30 p-3 transition-opacity dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
+                    className={`flex w-[190px] shrink-0 snap-start flex-col gap-2 rounded-[20px] border-t-4 ${level.accent} border-[var(--border)] bg-[var(--bg-card)] p-3 transition-opacity ${
                       done ? "opacity-60" : ""
                     }`}
                   >
@@ -132,13 +132,13 @@ export function AbiturientStudyCalendar() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => toggleStudyPlanDayDone("abiturient", day.date)}
+                        onClick={() => toggleStudyPlanDayDone("student", day.date)}
                         aria-label={done ? "მონიშნე დაუსრულებლად" : "მონიშნე დასრულებულად"}
                         aria-pressed={done}
                         className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all active:scale-90 ${
                           done
                             ? "border-emerald-400/60 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"
-                            : "border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:text-violet-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-purple-400/40 dark:hover:text-purple-300"
+                            : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
                         }`}
                       >
                         <Check className="h-4 w-4" strokeWidth={2.5} />
@@ -147,25 +147,25 @@ export function AbiturientStudyCalendar() {
 
                     <div className="flex flex-wrap items-center gap-1.5">
                       {isToday ? (
-                        <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-purple-500">
+                        <span className="rounded-full bg-[var(--accent-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
                           დღეს
                         </span>
                       ) : (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-white/[0.06] dark:text-zinc-400">
+                        <span className="rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-secondary)]">
                           {day.day_name}
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-500 dark:text-zinc-500">{day.date}</span>
+                    <span className="text-xs text-[var(--text-muted)]">{day.date}</span>
 
                     <p
-                      className={`line-clamp-2 text-sm font-medium text-slate-900 dark:text-zinc-100 ${
-                        done ? "line-through decoration-slate-400 dark:decoration-zinc-500" : ""
+                      className={`line-clamp-2 text-sm font-medium text-[var(--text-primary)] ${
+                        done ? "line-through decoration-[var(--text-muted)]" : ""
                       }`}
                     >
                       {day.topics.join(", ")}
                     </p>
-                    <p className="mt-auto inline-flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400">
+                    <p className="mt-auto inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                       <Clock className="h-3 w-3" strokeWidth={2} />
                       {day.hours} საათი
                     </p>

@@ -5,7 +5,7 @@ import { CalendarDays, CalendarPlus, Check, Clock } from "lucide-react";
 import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
 import { DayCard } from "./DayCard";
 import { FOCUS_LEVEL_CONFIG } from "./focus-level-config";
-import { saveStudyPlanToDashboard } from "@/lib/study-plan-calendar";
+import { saveStudyPlanToDashboard, type StudyPlanSpace } from "@/lib/study-plan-calendar";
 import { recordDailyActivity } from "@/lib/daily-streak";
 
 interface StudyDay {
@@ -22,14 +22,15 @@ interface CalendarViewProps {
   totalDays: number;
   advice: string;
   subject?: string;
+  space: StudyPlanSpace;
 }
 
-export function CalendarView({ plan, totalDays, advice, subject }: CalendarViewProps) {
+export function CalendarView({ plan, totalDays, advice, subject, space }: CalendarViewProps) {
   const [doneDays, setDoneDays] = useState<Record<string, boolean>>({});
   const [savedToDashboard, setSavedToDashboard] = useState(false);
 
   const handleSaveToDashboard = () => {
-    saveStudyPlanToDashboard(subject?.trim() || "სასწავლო გეგმა", plan, totalDays);
+    saveStudyPlanToDashboard(space, subject?.trim() || "სასწავლო გეგმა", plan, totalDays);
     setSavedToDashboard(true);
   };
 

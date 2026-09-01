@@ -129,10 +129,13 @@ export function markAllNotificationsRead(): void {
 export function ensureDailyStudyPlanNotification(): void {
   if (typeof window === "undefined") return;
 
-  const plan = getSavedStudyPlan();
+  const today = new Date().toISOString().slice(0, 10);
+  const plan =
+    getSavedStudyPlan("student")?.days.some((day) => day.date === today)
+      ? getSavedStudyPlan("student")
+      : getSavedStudyPlan("abiturient");
   if (!plan) return;
 
-  const today = new Date().toISOString().slice(0, 10);
   const todayEntry = plan.days.find((day) => day.date === today);
   if (!todayEntry) return;
 

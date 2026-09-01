@@ -18,6 +18,7 @@ import { DashboardSideRail } from "./dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "./dashboard/DashboardCalendarPanel";
 import { StudentTools } from "./dashboard/StudentTools";
 import { SemesterSubjects } from "./dashboard/SemesterSubjects";
+import { StudentStudyCalendar } from "./dashboard/StudentStudyCalendar";
 import { DailyGoals } from "./profile/DailyGoals";
 import { DASHBOARD_GOALS_STORAGE_KEY, INITIAL_DAILY_GOALS } from "@/lib/profile";
 import {
@@ -231,6 +232,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           <StudentTools />
 
           <SemesterSubjects />
+
+          <StudentStudyCalendar />
 
           {goalsOnDashboard && (
             <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
