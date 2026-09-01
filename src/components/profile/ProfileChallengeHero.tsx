@@ -71,22 +71,22 @@ export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChal
         </div>
       </div>
 
-      <div className="flex gap-2.5 overflow-x-auto pb-1 sm:gap-3">
+      <div className="grid grid-cols-7 gap-2 sm:gap-3">
         {week.map((day, idx) => (
           <div
             key={`${day.fullLabel}-${idx}`}
-            className={`flex min-w-[4.25rem] shrink-0 flex-col items-center gap-2.5 rounded-[26px] border px-4 py-5 transition-colors sm:min-w-[5rem] sm:py-6 ${DAY_PILL_STYLE[day.status]}`}
+            className={`flex min-w-0 flex-col items-center gap-2.5 rounded-[22px] border px-2 py-5 transition-colors sm:rounded-[26px] sm:px-3 sm:py-6 ${DAY_PILL_STYLE[day.status]}`}
             title={day.fullLabel}
           >
-            <span className="text-sm font-bold uppercase tracking-wide opacity-80">
+            <span className="text-xs font-bold uppercase tracking-wide opacity-80 sm:text-sm">
               {day.fullLabel}
             </span>
             {day.status === "done" ? (
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400">
-                <Check className="h-4 w-4 text-[#1c1917]" strokeWidth={3} />
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400 sm:h-7 sm:w-7">
+                <Check className="h-3.5 w-3.5 text-[#1c1917] sm:h-4 sm:w-4" strokeWidth={3} />
               </span>
             ) : (
-              <span className="h-2.5 w-2.5 rounded-full bg-current opacity-30" aria-hidden />
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-current opacity-30" aria-hidden />
             )}
           </div>
         ))}
