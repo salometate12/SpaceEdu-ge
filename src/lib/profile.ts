@@ -82,6 +82,51 @@ export function getDaysUntilExam(examDate: string): number {
   );
 }
 
+/**
+ * Static subject-progress data. Exported as a plain constant (rather than
+ * only living inside getProfileData()'s return value) so client components
+ * that need it — like StatsView — can `import` it directly instead of
+ * receiving it as a prop from a Server Component. Prop-passing a value that
+ * contains LucideIcon component references into a "use client" component
+ * fails at build time ("Functions cannot be passed directly to Client
+ * Components"), since React can't serialize a function reference across
+ * the server/client boundary.
+ */
+export const DEFAULT_SUBJECTS: SubjectProgress[] = [
+  {
+    name: "ბიოლოგია",
+    icon: Dna,
+    color: "var(--accent-green)",
+    progress: 78,
+    quizzesDone: 21,
+    lastStudied: "დღეს",
+  },
+  {
+    name: "ქიმია",
+    icon: FlaskConical,
+    color: "var(--accent-cyan)",
+    progress: 64,
+    quizzesDone: 17,
+    lastStudied: "გუშინ",
+  },
+  {
+    name: "ისტორია",
+    icon: Landmark,
+    color: "var(--accent-amber)",
+    progress: 52,
+    quizzesDone: 13,
+    lastStudied: "2 დღის წინ",
+  },
+  {
+    name: "ქართული",
+    icon: BookOpen,
+    color: "var(--accent-purple)",
+    progress: 71,
+    quizzesDone: 19,
+    lastStudied: "დღეს",
+  },
+];
+
 export async function getProfileData(): Promise<{
   user: UserProfile;
   subjects: SubjectProgress[];
@@ -104,40 +149,7 @@ export async function getProfileData(): Promise<{
       quizImprovement: 7,
       personalBestStreak: 14,
     },
-    subjects: [
-      {
-        name: "ბიოლოგია",
-        icon: Dna,
-        color: "var(--accent-green)",
-        progress: 78,
-        quizzesDone: 21,
-        lastStudied: "დღეს",
-      },
-      {
-        name: "ქიმია",
-        icon: FlaskConical,
-        color: "var(--accent-cyan)",
-        progress: 64,
-        quizzesDone: 17,
-        lastStudied: "გუშინ",
-      },
-      {
-        name: "ისტორია",
-        icon: Landmark,
-        color: "var(--accent-amber)",
-        progress: 52,
-        quizzesDone: 13,
-        lastStudied: "2 დღის წინ",
-      },
-      {
-        name: "ქართული",
-        icon: BookOpen,
-        color: "var(--accent-purple)",
-        progress: 71,
-        quizzesDone: 19,
-        lastStudied: "დღეს",
-      },
-    ],
+    subjects: DEFAULT_SUBJECTS,
     diary: [
       {
         id: "1",

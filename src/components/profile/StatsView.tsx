@@ -10,8 +10,8 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import type { Badge } from "@/lib/badges";
-import type { SubjectProgress, UserProfile } from "@/lib/profile";
+import { DEFAULT_BADGES } from "@/lib/badges";
+import { DEFAULT_SUBJECTS, type UserProfile } from "@/lib/profile";
 import { STUDENT_TOOLS } from "@/lib/student-tools";
 import {
   getToolUsageEvents,
@@ -29,8 +29,6 @@ import {
 
 interface StatsViewProps {
   user: UserProfile;
-  subjects: SubjectProgress[];
-  badges: Badge[];
 }
 
 function StatTile({
@@ -298,7 +296,9 @@ function LoadingSkeleton() {
   );
 }
 
-export function StatsView({ user, subjects, badges }: StatsViewProps) {
+export function StatsView({ user }: StatsViewProps) {
+  const subjects = DEFAULT_SUBJECTS;
+  const badges = DEFAULT_BADGES;
   const [events, setEvents] = useState<ToolUsageEvent[]>([]);
   const [semesterSubjects, setSemesterSubjects] = useState<SemesterSubject[]>([]);
   const [hydrated, setHydrated] = useState(false);

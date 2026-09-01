@@ -10,7 +10,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import type { Badge } from "@/lib/badges";
+import { DEFAULT_BADGES } from "@/lib/badges";
 import type { UserProfile } from "@/lib/profile";
 import { ABITURIENT_TOOLS } from "@/lib/abiturient-tools";
 import { ABITURIENT_LAST_ACTIVE, ABITURIENT_SUBJECTS } from "@/lib/abiturient-subjects";
@@ -24,7 +24,6 @@ import {
 
 interface AbiturientStatsViewProps {
   user: UserProfile;
-  badges: Badge[];
 }
 
 const EMERALD = "#059669";
@@ -277,7 +276,8 @@ function LoadingSkeleton() {
   );
 }
 
-export function AbiturientStatsView({ user, badges }: AbiturientStatsViewProps) {
+export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
+  const badges = DEFAULT_BADGES;
   const [events, setEvents] = useState<ToolUsageEvent[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
