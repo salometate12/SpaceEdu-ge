@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Pin, StickyNote } from "lucide-react";
 import {
   formatGeorgianDate,
-  journalHref,
   previewLectureNote,
   stickerToneForId,
   type LectureNote,
@@ -20,7 +19,7 @@ export function DashboardStickyNote({ note, className = "" }: DashboardStickyNot
   const tone = stickerToneForId(note.id);
   const title = note.title.trim() || "უსათაურო ლექცია";
   const keywords = note.aiKeywords.slice(0, 3);
-  const href = journalHref(note.id, note.section);
+  const href = `/lecture-notes?id=${encodeURIComponent(note.id)}`;
 
   return (
     <motion.article
