@@ -8,6 +8,7 @@ import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
+import { spaceFromPathname } from "@/lib/access-control";
 import {
   DASHBOARD_MOBILE_MENU_HREF,
   isDockItemActive,
@@ -36,7 +37,10 @@ export function MobileGlassDock() {
     }
   }, []);
 
-  const effectiveSpace = accountSpace ?? localSpace;
+  // The current URL wins when it's space-specific, so an admin browsing
+  // another space's page still gets nav links for the page they're on
+  // rather than jumping back to their own registered space.
+  const effectiveSpace = spaceFromPathname(pathname) ?? accountSpace ?? localSpace;
   const items = mobileDockItems(pathname, effectiveSpace);
   const hidden = mobileDockHidden(pathname) || items.length === 0;
 

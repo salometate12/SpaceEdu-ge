@@ -17,7 +17,7 @@ import {
 import { AvatarDropdown } from "./AvatarDropdown";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { profileHrefForSpace, spaceFromPathname, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -48,9 +48,13 @@ export function DashboardHeader({
     }
   }, []);
 
-  // The account's real space (from Supabase) is the source of truth once
-  // it's loaded; localStorage is only a fallback for anonymous/dev use.
-  const effectiveSpace = accountSpace ?? spaceLabel;
+  // The current URL wins when it's a space-specific route (e.g.
+  // /dashboard-student), so an admin browsing another space's page sees
+  // a chip/nav that matches what's actually on screen. Otherwise fall
+  // back to the account's real space (Supabase), then localStorage for
+  // anonymous/dev use.
+  const pathSpace = spaceFromPathname(pathname);
+  const effectiveSpace = pathSpace ?? accountSpace ?? spaceLabel;
 
   useEffect(() => {
     const sync = () => setStreak(getCurrentStreak());

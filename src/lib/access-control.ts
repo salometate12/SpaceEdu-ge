@@ -60,6 +60,41 @@ function matchesRoute(pathname: string, route: { path: string; match: "exact" | 
   return pathname === route.path || pathname.startsWith(`${route.path}/`);
 }
 
+/**
+ * Routes whose URL alone tells you which space you're looking at — used
+ * only to decide what the header's space chip/nav should *display*, not
+ * to gate access (that's SPACE_GUARDED_ROUTES above). Broader than the
+ * guarded list on purpose (e.g. includes /study-plan, which isn't
+ * access-restricted by space). More specific paths are listed before
+ * shorter ones they'd otherwise prefix-match (e.g. /study-plan/abit
+ * before /study-plan).
+ */
+const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact" | "prefix" }[] = [
+  { path: DASHBOARD_ABIT_HREF, space: "abiturient", match: "prefix" },
+  { path: DASHBOARD_STUDENT_HREF, space: "student", match: "prefix" },
+  { path: DASHBOARD_SCHOOL_HREF, space: "school", match: "prefix" },
+  { path: "/profile-abiturient/stats", space: "abiturient", match: "exact" },
+  { path: "/profile/stats", space: "student", match: "exact" },
+  { path: PROFILE_ABITURIENT_HREF, space: "abiturient", match: "exact" },
+  { path: PROFILE_STUDENT_HREF, space: "student", match: "exact" },
+  { path: "/study-plan/abit", space: "abiturient", match: "prefix" },
+  { path: "/study-plan", space: "student", match: "prefix" },
+];
+
+/**
+ * Given the current URL, returns the space that page visibly belongs to
+ * (or null if the route isn't space-specific, e.g. /quiz or /ai-teacher).
+ * The header uses this ahead of the account's own registered space, so
+ * an admin browsing another space's dashboard sees a chip/nav that
+ * matches what's actually on screen instead of their own home space.
+ */
+export function spaceFromPathname(pathname: string): SpaceeduSpace | null {
+  for (const route of SPACE_DISPLAY_ROUTES) {
+    if (matchesRoute(pathname, route)) return route.space;
+  }
+  return null;
+}
+
 function dashboardHrefForUserSpace(userSpace: SpaceeduSpace): string {
   switch (userSpace) {
     case "abiturient":
