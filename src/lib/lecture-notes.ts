@@ -1,5 +1,73 @@
 export const LECTURE_NOTES_STORAGE_KEY = "spaceedu-lecture-notes";
 export const LECTURE_NOTES_UPDATED_EVENT = "spaceedu-lecture-notes-updated";
+export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
+export const JOURNAL_XP_PER_SAVE = 50;
+
+export const JOURNAL_SECTION_IDS = ["lectures", "assignments", "ai-notes", "ideas"] as const;
+export type JournalSection = (typeof JOURNAL_SECTION_IDS)[number];
+
+export const JOURNAL_SECTIONS: {
+  id: JournalSection;
+  label: string;
+  heading: string;
+  placeholder: string;
+  tabColor: string;
+  tabInk: string;
+  headingColor: string;
+}[] = [
+  {
+    id: "lectures",
+    label: "ლექციები",
+    heading: "ლექცია",
+    placeholder: "ჩაწერე ლექცია აქ... მაგ: დღეს გავიარეთ TCP/IP მოდელი, DNS lookup და subnetting...",
+    tabColor: "#F9A8D4",
+    tabInk: "#9D174D",
+    headingColor: "#3B82F6",
+  },
+  {
+    id: "assignments",
+    label: "დავალებები",
+    heading: "დავალება",
+    placeholder: "დავალების პირობა, ვადა და შენიშვნები...",
+    tabColor: "#7DD3FC",
+    tabInk: "#0C4A6E",
+    headingColor: "#F97316",
+  },
+  {
+    id: "ai-notes",
+    label: "AI ნოტები",
+    heading: "AI ნოტი",
+    placeholder: "AI-სთან საუბრის შედეგები, ახსნები და კითხვები...",
+    tabColor: "#FDE047",
+    tabInk: "#854D0E",
+    headingColor: "#16A34A",
+  },
+  {
+    id: "ideas",
+    label: "იდეები",
+    heading: "იდეა",
+    placeholder: "იდეები, ჰიპოთეზები, კითხვები შემდეგი ლექციისთვის...",
+    tabColor: "#5EEAD4",
+    tabInk: "#115E59",
+    headingColor: "#DB2777",
+  },
+];
+
+export function isJournalSection(value: unknown): value is JournalSection {
+  return typeof value === "string" && (JOURNAL_SECTION_IDS as readonly string[]).includes(value);
+}
+
+export function journalSectionMeta(section: JournalSection) {
+  return JOURNAL_SECTIONS.find((item) => item.id === section) ?? JOURNAL_SECTIONS[0];
+}
+
+export function journalHref(id?: string, tab?: JournalSection): string {
+  const params = new URLSearchParams();
+  if (tab) params.set("tab", tab);
+  if (id) params.set("id", id);
+  const query = params.toString();
+  return query ? `/lecture-notes?${query}` : "/lecture-notes";
+}
 
 const GEORGIAN_MONTHS = [
   "იანვარი",
@@ -45,11 +113,26 @@ export interface LectureNote {
   title: string;
   date: string;
   content: string;
+  section: JournalSection;
   pinned: boolean;
   aiKeywords: string[];
   createdAt: number;
   updatedAt: number;
 }
+
+export interface JournalProgress {
+  xp: number;
+  streak: number;
+  lastSaveDate: string | null;
+  unlocked: Record<string, boolean>;
+}
+
+const EMPTY_PROGRESS: JournalProgress = {
+  xp: 0,
+  streak: 0,
+  lastSaveDate: null,
+  unlocked: {},
+};
 
 export function todayIsoDate(): string {
   const now = new Date();
@@ -67,13 +150,14 @@ export function formatGeorgianDate(isoDate: string): string {
   return `${day} ${month}`;
 }
 
-export function createBlankLectureNote(): LectureNote {
+export function createBlankLectureNote(section: JournalSection = "lectures"): LectureNote {
   const now = Date.now();
   return {
     id: crypto.randomUUID(),
     title: "",
     date: todayIsoDate(),
     content: "",
+    section,
     pinned: false,
     aiKeywords: [],
     createdAt: now,
@@ -103,6 +187,9 @@ export function loadLectureNotes(): LectureNote[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(isLectureNote).map((note) => ({
       ...note,
+      section: isJournalSection((note as LectureNote).section)
+        ? (note as LectureNote).section
+        : "lectures",
       aiKeywords: note.aiKeywords.filter((tag) => typeof tag === "string" && tag.trim()),
       createdAt: typeof note.createdAt === "number" ? note.createdAt : Date.now(),
       updatedAt: typeof note.updatedAt === "number" ? note.updatedAt : Date.now(),
@@ -128,6 +215,78 @@ export function upsertLectureNote(notes: LectureNote[], next: LectureNote): Lect
 
 export function pinnedLectureNotes(notes: LectureNote[]): LectureNote[] {
   return notes.filter((note) => note.pinned).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+export function notesInSection(notes: LectureNote[], section: JournalSection): LectureNote[] {
+  return notes
+    .filter((note) => note.section === section)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+export function latestJournalNote(notes: LectureNote[]): LectureNote | null {
+  if (notes.length === 0) return null;
+  return [...notes].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+}
+
+function isJournalProgress(value: unknown): value is JournalProgress {
+  if (!value || typeof value !== "object") return false;
+  const progress = value as Partial<JournalProgress>;
+  return typeof progress.xp === "number" && typeof progress.streak === "number";
+}
+
+export function loadJournalProgress(): JournalProgress {
+  if (typeof window === "undefined") return { ...EMPTY_PROGRESS };
+  try {
+    const raw = window.localStorage.getItem(JOURNAL_PROGRESS_KEY);
+    if (!raw) return { ...EMPTY_PROGRESS };
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isJournalProgress(parsed)) return { ...EMPTY_PROGRESS };
+    return {
+      xp: parsed.xp,
+      streak: parsed.streak,
+      lastSaveDate: typeof parsed.lastSaveDate === "string" ? parsed.lastSaveDate : null,
+      unlocked: parsed.unlocked && typeof parsed.unlocked === "object" ? parsed.unlocked : {},
+    };
+  } catch {
+    return { ...EMPTY_PROGRESS };
+  }
+}
+
+export function saveJournalProgress(progress: JournalProgress): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(JOURNAL_PROGRESS_KEY, JSON.stringify(progress));
+}
+
+function yesterdayIsoDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+export function awardJournalSave(progress: JournalProgress): {
+  progress: JournalProgress;
+  xpGained: number;
+} {
+  const today = todayIsoDate();
+  let streak = progress.streak;
+  if (progress.lastSaveDate === today) {
+    streak = Math.max(streak, 1);
+  } else if (progress.lastSaveDate === yesterdayIsoDate()) {
+    streak += 1;
+  } else {
+    streak = 1;
+  }
+  return {
+    xpGained: JOURNAL_XP_PER_SAVE,
+    progress: {
+      ...progress,
+      xp: progress.xp + JOURNAL_XP_PER_SAVE,
+      streak,
+      lastSaveDate: today,
+    },
+  };
 }
 
 export function previewLectureNote(content: string, maxLength = 96): string {
