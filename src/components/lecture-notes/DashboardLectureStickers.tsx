@@ -38,7 +38,7 @@ export function DashboardLectureStickers() {
         </p>
         <h3 className="mt-1 text-lg font-bold text-stone-900 dark:text-white">დაამატე სტიკერი დეშბორდზე</h3>
         <p className="mt-1 max-w-xl text-sm text-stone-600 dark:text-zinc-400">
-          ჩაწერე ლექცია, AI ამოიღებს საკვანძო თემებს და შეგიძლია ნოტი პინით დადო აქ.
+          გახსენი ციფრული ჟურნალი, ჩაწერე ლექცია და ნოტი პინით დადო აქ სტიკერად.
         </p>
         <Link
           href="/lecture-notes"
@@ -64,7 +64,7 @@ export function DashboardLectureStickers() {
           href="/lecture-notes"
           className="text-xs font-semibold text-amber-800 hover:underline dark:text-amber-300"
         >
-          ყველა ნოტი
+          გახსენი ჟურნალი
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">

@@ -13,6 +13,7 @@ export function FooterByPath() {
   if (
     isPremiumAssistantPath(pathname) ||
     FULL_BLEED_PATHS.has(pathname ?? "") ||
+    pathname?.startsWith("/lecture-notes") ||
     CUSTOM_FOOTER_PATHS.has(pathname ?? "") ||
     NO_FOOTER_PATHS.has(pathname ?? "") ||
     pathname?.startsWith("/admin")

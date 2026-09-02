@@ -1,11 +1,11 @@
 import {
+  BookOpen,
   Brain,
   CalendarClock,
   FileSearch,
   ListChecks,
   MessageSquareText,
   Sparkles,
-  StickyNote,
   type LucideIcon,
 } from "lucide-react";
 import { researchPlatformHref } from "@/lib/space-back-navigation";
@@ -47,10 +47,10 @@ export const STUDENT_TOOLS: StudentTool[] = [
   },
   {
     id: "lecture-notes",
-    title: "ლექციის ნოტები",
-    description: "ცოცხალი ჩანაწერი, AI საკვანძო თემები და სტიკერი დეშბორდზე",
+    title: "ციფრული ჟურნალი",
+    description: "ღია რვეული: ლექციები, დავალებები, AI ნოტები და იდეები",
     href: "/lecture-notes",
-    icon: StickyNote,
+    icon: BookOpen,
     accent: STUDENT_TOOL_ACCENTS.lectureNotes,
   },
   {
