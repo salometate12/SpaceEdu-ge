@@ -91,6 +91,34 @@ export function buildUserPrompt(
         .join("\n");
     }
 
+    case "lecture-notes": {
+      const mode = asString(payload.mode, "chat");
+      const title = asString(payload.title, "ლექციის ნოტი");
+      const content = asString(payload.content);
+      const keyword = asString(payload.keyword);
+      if (mode === "keywords") {
+        return [
+          `ლექციის სათაური: ${title}`,
+          "ამოიღე 3-8 მოკლე საკვანძო თემა/ტერმინი ამ ნოტიდან.",
+          "დააბრუნე მხოლოდ JSON { \"keywords\": [\"...\"] } — უპირატესობა ტექნიკურ ტერმინებს და ქართულ თემებს.",
+          "არ დაამატო # პრეფიქსი.",
+          "--- BEGIN NOTE ---",
+          content || "(ცარიელი ნოტი)",
+          "--- END NOTE ---",
+        ].join("\n");
+      }
+      return [
+        `ლექციის სათაური: ${title}`,
+        keyword ? `ფოკუსი საკვანძო თემაზე: ${keyword}` : "",
+        "--- BEGIN LECTURE NOTE ---",
+        content || "(ნოტი ჯერ ცარიელია — უპასუხე ზოგადად, მაგრამ თქვი რომ კონტექსტი ცოტაა.)",
+        "--- END LECTURE NOTE ---",
+        `სტუდენტის კითხვა: ${asString(payload.message)}`,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
     case "eli5": {
       const level = asString(payload.level, "kid");
       const levelHint =

@@ -5,6 +5,7 @@ import {
   ListChecks,
   MessageSquareText,
   Sparkles,
+  StickyNote,
   type LucideIcon,
 } from "lucide-react";
 import { researchPlatformHref } from "@/lib/space-back-navigation";
@@ -43,6 +44,14 @@ export const STUDENT_TOOLS: StudentTool[] = [
     href: "/ai-teacher",
     icon: MessageSquareText,
     accent: STUDENT_TOOL_ACCENTS.aiTeacher,
+  },
+  {
+    id: "lecture-notes",
+    title: "ლექციის ნოტები",
+    description: "ცოცხალი ჩანაწერი, AI საკვანძო თემები და სტიკერი დეშბორდზე",
+    href: "/lecture-notes",
+    icon: StickyNote,
+    accent: STUDENT_TOOL_ACCENTS.lectureNotes,
   },
   {
     id: "presentation",

@@ -5,6 +5,7 @@ export const AI_PAGE_TYPES = [
   "ai-teacher",
   "presentation",
   "eli5",
+  "lecture-notes",
   "cv",
   "syllabus",
 ] as const;

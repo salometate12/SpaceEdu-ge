@@ -7,6 +7,11 @@ import {
   type Eli5Response,
 } from "@/lib/ai/eli5-schema";
 import {
+  LectureNotesKeywordsSchema,
+  LectureNotesRequestSchema,
+  type LectureNotesKeywords,
+} from "@/lib/ai/lecture-notes-schema";
+import {
   PresentationRequestSchema,
   PresentationResponseSchema,
   normalizePresentationSlides,
@@ -140,6 +145,13 @@ Return ONLY valid JSON (all text in Georgian):
   "followUpQuestion": "ოპციონალური შემოწმების კითხვა"
 }
 Adapt vocabulary strictly to the requested simplicity level.`;
+
+const LECTURE_NOTES_KEYWORDS_INSTRUCTIONS = `
+Return ONLY valid JSON:
+{
+  "keywords": ["TCP/IP", "DNS Lookup"]
+}
+3-8 short topic tags from the lecture notes. Prefer original technical terms or Georgian topic names. No # prefix. No explanations.`;
 
 const RESEARCH_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all text in Georgian):
@@ -393,6 +405,20 @@ export async function POST(request: Request) {
       })) as Eli5Response;
 
       return Response.json(object);
+    }
+
+    if (pageType === "lecture-notes") {
+      const notesPayload = LectureNotesRequestSchema.parse(body.payload);
+      if (notesPayload.mode === "keywords") {
+        const prompt = buildUserPrompt(pageType, notesPayload);
+        const object = (await generateGeminiObject({
+          schema: LectureNotesKeywordsSchema,
+          system: `${system}\n${LECTURE_NOTES_KEYWORDS_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as LectureNotesKeywords;
+        return Response.json(object);
+      }
     }
 
     if (pageType === "research-platform-abit") {
