@@ -61,12 +61,16 @@ export function journalSectionMeta(section: JournalSection) {
   return JOURNAL_SECTIONS.find((item) => item.id === section) ?? JOURNAL_SECTIONS[0];
 }
 
+export function lectureNoteHref(id?: string): string {
+  return id ? `/lecture-notes?id=${encodeURIComponent(id)}` : "/lecture-notes";
+}
+
 export function journalHref(id?: string, tab?: JournalSection): string {
   const params = new URLSearchParams();
   if (tab) params.set("tab", tab);
   if (id) params.set("id", id);
   const query = params.toString();
-  return query ? `/lecture-notes?${query}` : "/lecture-notes";
+  return query ? `/journal?${query}` : "/journal";
 }
 
 const GEORGIAN_MONTHS = [

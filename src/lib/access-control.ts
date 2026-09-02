@@ -82,6 +82,7 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
   { path: "/study-plan", space: "student", match: "prefix" },
   { path: "/ai-teacher", space: "student", match: "exact" },
   { path: "/lecture-notes", space: "student", match: "prefix" },
+  { path: "/journal", space: "student", match: "prefix" },
 ];
 
 /**
