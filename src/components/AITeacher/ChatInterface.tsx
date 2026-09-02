@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -13,9 +13,9 @@ import {
 } from "react";
 import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
-import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { readSpaceeduSpace } from "@/lib/space-back-navigation";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -76,9 +76,8 @@ export function ChatInterface() {
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { space: accountSpace } = useCurrentUserAccess();
+  const router = useRouter();
   const firstName = useCurrentUserFirstName();
-  const dashboardHref = dashboardHrefForSpace(accountSpace);
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
@@ -177,6 +176,18 @@ export function ChatInterface() {
     setMaterial("");
     setSidebarOpen(false);
     setIsLoading(false);
+  };
+
+  const handleBackToDashboard = () => {
+    setSidebarOpen(false);
+    // Prefer real browser history so the arrow returns to whichever
+    // dashboard (student, abiturient, admin-browsed, ...) the user actually
+    // came from, instead of guessing from the account's registered space.
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push(dashboardHrefForSpace(readSpaceeduSpace()));
   };
 
   const sidebarContent = (
@@ -280,13 +291,14 @@ export function ChatInterface() {
       {/* Desktop sidebar */}
       <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-primary)] px-3 py-4 md:flex">
         <div className="mb-4 flex items-center gap-2 px-1">
-          <Link
-            href={dashboardHref}
+          <button
+            type="button"
+            onClick={handleBackToDashboard}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
-            aria-label="Dashboard"
+            aria-label="დეშბორდზე დაბრუნება"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-          </Link>
+          </button>
           <span className="text-sm font-medium text-[var(--text-secondary)]">AI მასწავლებელი</span>
         </div>
         {sidebarContent}
@@ -319,33 +331,34 @@ export function ChatInterface() {
 
       <div className="relative flex min-w-0 flex-1 flex-col">
         {/* Top bar — mobile */}
-        <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3 md:hidden">
+        <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-3 md:hidden">
+          <button
+            type="button"
+            onClick={handleBackToDashboard}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+            aria-label="დეშბორდზე დაბრუნება"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+          </button>
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)]"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)]"
             aria-label="Open history"
           >
             <Menu className="h-4 w-4" />
           </button>
-          <div className="min-w-0 flex-1 truncate text-sm text-[var(--text-secondary)]">
-            საგანი: <span className="text-[var(--text-primary)]">{subject}</span>
+          <div className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--text-primary)]">
+            AI მასწავლებელი
           </div>
           <button
             type="button"
             onClick={startNewChat}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--accent-primary)]"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--accent-primary)]"
             aria-label="New chat"
           >
             <Plus className="h-4 w-4" />
           </button>
-        </div>
-
-        {/* Desktop subject chip */}
-        <div className="hidden border-b border-[var(--border)] px-6 py-3 md:block">
-          <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1 text-xs text-[var(--text-secondary)]">
-            აქტიური საგანი: <span className="ml-1 text-[var(--text-primary)]">{subject}</span>
-          </span>
         </div>
 
         <div
