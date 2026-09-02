@@ -6,6 +6,7 @@ import {
   ListChecks,
   MessageSquareText,
   Sparkles,
+  StickyNote,
   type LucideIcon,
 } from "lucide-react";
 import { researchPlatformHref } from "@/lib/space-back-navigation";
@@ -47,11 +48,19 @@ export const STUDENT_TOOLS: StudentTool[] = [
   },
   {
     id: "lecture-notes",
+    title: "ლექციის ნოტები",
+    description: "ცოცხალი ჩანაწერი, AI საკვანძო თემები და სტიკერი დეშბორდზე",
+    href: "/lecture-notes",
+    icon: StickyNote,
+    accent: STUDENT_TOOL_ACCENTS.lectureNotes,
+  },
+  {
+    id: "journal",
     title: "ციფრული ჟურნალი",
     description: "ღია რვეული: ლექციები, დავალებები, AI ნოტები და იდეები",
-    href: "/lecture-notes",
+    href: "/journal",
     icon: BookOpen,
-    accent: STUDENT_TOOL_ACCENTS.lectureNotes,
+    accent: STUDENT_TOOL_ACCENTS.journal,
   },
   {
     id: "presentation",
