@@ -142,6 +142,9 @@ export function buildUserPrompt(
       if (options?.["quiz-weeks"]) enabled.push("Quiz კვირები");
       return [
         payload.fileName ? `სილაბუსის ფაილი: ${asString(payload.fileName)}` : "",
+        payload.semesterStartDate
+          ? `სემესტრის დაწყების თარიღი: ${asString(payload.semesterStartDate)} (გამოიყენე ეს კვირის ნომრების რეალურ თარიღებად გადასაყვანად).`
+          : "",
         "შიგთავსი: უკვე ამოღებული ტექსტი PDF-დან (არა ბინარული ნაკადი).",
         "--- BEGIN SYLLABUS TEXT ---",
         asString(payload.textBody),

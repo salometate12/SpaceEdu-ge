@@ -3,7 +3,12 @@ export type SyllabusMilestoneType = "midterm" | "quiz" | "deadline";
 export interface SyllabusMilestone {
   id: string;
   title: string;
+  /** Real, placeable calendar date — always YYYY-MM-DD, resolved server-side. */
   date: string;
+  /** Week-of-semester label, e.g. "8", as stated in the syllabus. */
+  week?: string;
+  /** Short topic/chapter this milestone covers, if the syllabus states one. */
+  topic?: string;
   type: SyllabusMilestoneType;
 }
 
@@ -47,6 +52,15 @@ export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {
   }
 }
 
+/** Folds week/topic into a human-readable description, since DashboardCalendarEvent
+ * doesn't have dedicated fields for them but already renders `description`. */
+function describeMilestone(milestone: SyllabusMilestone): string | undefined {
+  const parts: string[] = [];
+  if (milestone.week) parts.push(`კვირა ${milestone.week}`);
+  if (milestone.topic) parts.push(milestone.topic);
+  return parts.length > 0 ? parts.join(" — ") : undefined;
+}
+
 export function addMilestoneToDashboardCalendar(
   milestone: SyllabusMilestone,
 ): DashboardCalendarEvent[] {
@@ -55,6 +69,7 @@ export function addMilestoneToDashboardCalendar(
     id: milestone.id,
     title: milestone.title,
     date: milestone.date,
+    description: describeMilestone(milestone),
     type: milestone.type,
     source: "syllabus",
   };

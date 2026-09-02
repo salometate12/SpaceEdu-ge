@@ -99,12 +99,18 @@ Return ONLY valid JSON (all text in Georgian):
     {
       "id": "unique-slug",
       "title": "მოვლენის სახელი",
-      "date": "დღე თვე, წელი (ქართულად)",
+      "date": "YYYY-MM-DD — STRICT ISO format, always a real calendar date, never a week label",
+      "week": "სემესტრის კვირის ნომერი, თუ სილაბუსში მითითებულია (მაგ. \\"8\\")",
+      "topic": "მოკლე თემა/თავი, რასაც ეს მოვლენა ეხება, თუ სილაბუსში ჩანს",
       "type": "midterm" | "quiz" | "deadline"
     }
   ]
 }
-Extract dates only from the provided syllabus text. Respect the requested focus options.`;
+Extract dates/weeks/topics only from the provided syllabus text.
+The "date" field MUST always be a real YYYY-MM-DD calendar date — never a bare week label like "Week 8" or "კვირა VIII".
+If the syllabus only states a week number (not an absolute date), compute the real date yourself using the provided semester start date: date = semester start date + (week_number - 1) * 7 days. Put the week number itself in "week" regardless.
+If no semester start date is provided and the syllabus has no absolute date either, make your best estimate but still return a valid YYYY-MM-DD string.
+Respect the requested focus options.`;
 
 const PRESENTATION_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all text in Georgian):
@@ -173,12 +179,14 @@ async function generateSyllabusFromText(
   fileName: string,
   textBody: string,
   options: z.infer<typeof SyllabusOptionsSchema> | undefined,
+  semesterStartDate: string | undefined,
 ): Promise<SyllabusResponse> {
   const system = getSystemPromptForPageType("syllabus");
   const payload = SyllabusRequestSchema.parse({
     fileName,
     textBody,
     options,
+    semesterStartDate,
   });
   const prompt = buildUserPrompt("syllabus", payload);
 
@@ -191,7 +199,7 @@ async function generateSyllabusFromText(
 
   return {
     ...raw,
-    milestones: normalizeSyllabusMilestones(raw.milestones),
+    milestones: normalizeSyllabusMilestones(raw.milestones, semesterStartDate),
   };
 }
 
@@ -239,7 +247,12 @@ async function handleMultipartPost(request: Request) {
     if (typeof optionsRaw === "string" && optionsRaw.trim()) {
       options = SyllabusOptionsSchema.parse(JSON.parse(optionsRaw));
     }
-    const result = await generateSyllabusFromText(file.name, textBody, options);
+    const semesterStartDateRaw = formData.get("semesterStartDate");
+    const semesterStartDate =
+      typeof semesterStartDateRaw === "string" && semesterStartDateRaw.trim()
+        ? semesterStartDateRaw.trim()
+        : undefined;
+    const result = await generateSyllabusFromText(file.name, textBody, options, semesterStartDate);
     return Response.json(result);
   }
 
@@ -331,6 +344,9 @@ export async function POST(request: Request) {
           String(body.payload.textBody ?? ""),
           body.payload.options
             ? SyllabusOptionsSchema.parse(body.payload.options)
+            : undefined,
+          body.payload.semesterStartDate
+            ? String(body.payload.semesterStartDate)
             : undefined,
         );
         return Response.json(result);

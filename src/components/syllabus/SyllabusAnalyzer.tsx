@@ -12,7 +12,6 @@ import {
   GraduationCap,
   Plus,
 } from "lucide-react";
-import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import {
@@ -24,6 +23,18 @@ import {
   type SyllabusMilestone,
   type SyllabusMilestoneType,
 } from "@/lib/syllabus-calendar";
+import { SyllabusThinkingLoader } from "./SyllabusThinkingLoader";
+
+const MONTH_NAMES = [
+  "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
+  "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი",
+];
+
+function formatIsoDateGeorgian(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
+}
 
 type SyllabusOption = "plan" | "midterms" | "quiz-weeks";
 
@@ -76,6 +87,7 @@ export function SyllabusAnalyzer() {
   const [fileName, setFileName] = useState("");
   const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [semesterStartDate, setSemesterStartDate] = useState("");
   const [enabled, setEnabled] = useState<Record<SyllabusOption, boolean>>({
     plan: true,
     midterms: true,
@@ -148,6 +160,10 @@ export function SyllabusAnalyzer() {
       setError("გთხოვ, ჯერ ატვირთე სილაბუსის PDF.");
       return;
     }
+    if (!semesterStartDate) {
+      setError("გთხოვ, მიუთითე სემესტრის დაწყების თარიღი — ეს სჭირდება AI-ს რეალური თარიღების გამოსათვლელად.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -157,13 +173,15 @@ export function SyllabusAnalyzer() {
       const data = await fetchAiMultipartJson<SyllabusResponse>({
         pageType: "syllabus",
         file: syllabusFile,
-        fields: { options: JSON.stringify(enabled) },
+        fields: { options: JSON.stringify(enabled), semesterStartDate },
       });
 
       const next: SyllabusMilestone[] = data.milestones.map((item, index) => ({
         id: item.id?.trim() || `syllabus-ms-${index + 1}`,
         title: item.title,
         date: item.date,
+        week: item.week,
+        topic: item.topic,
         type: item.type,
       }));
 
@@ -231,6 +249,22 @@ export function SyllabusAnalyzer() {
             </div>
           )}
 
+          <label className="mt-4 block space-y-1.5 text-sm">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+              სემესტრის დაწყების თარიღი
+            </span>
+            <input
+              type="date"
+              value={semesterStartDate}
+              onChange={(event) => setSemesterStartDate(event.target.value)}
+              required
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:focus:border-rose-400/50 dark:focus:ring-rose-500/10"
+            />
+            <p className="text-xs text-slate-500 dark:text-zinc-500">
+              სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების მაგივრად — ეს გვჭირდება, რომ AI-მ ისინი რეალურ თარიღებად გადათვალოს.
+            </p>
+          </label>
+
           <div className="mt-4 space-y-2">
             {OPTIONS.map((item) => (
               <label
@@ -253,10 +287,10 @@ export function SyllabusAnalyzer() {
           <button
             type="button"
             onClick={() => void handleGenerate()}
-            disabled={isLoading || !syllabusFile}
+            disabled={isLoading || !syllabusFile || !semesterStartDate}
             className="mt-4 w-full rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
           >
-            {isLoading ? "PDF-ის დამუშავება მიმდინარეობს..." : "კალენდრის გენერაცია"}
+            {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
           </button>
           {error && (
             <p className="mt-3 text-xs text-rose-600 dark:text-rose-400">{error}</p>
@@ -266,12 +300,7 @@ export function SyllabusAnalyzer() {
 
       <div className="dashboard-tool-card min-h-[520px] flex-1 rounded-[28px] p-5">
         {isLoading ? (
-          <div className="space-y-3">
-            <p className="text-sm text-rose-600 dark:text-rose-400">
-              PDF-ის დამუშავება მიმდინარეობს...
-            </p>
-            <AiSkeletonLoader rows={4} />
-          </div>
+          <SyllabusThinkingLoader />
         ) : !generated ? (
           <div className="flex h-full min-h-[480px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
             <p className="max-w-sm text-sm text-slate-500 dark:text-zinc-500">
@@ -327,9 +356,19 @@ export function SyllabusAnalyzer() {
                           >
                             {meta.label}
                           </span>
+                          {item.week && (
+                            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                              კვირა {item.week}
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{item.title}</p>
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">{item.date}</p>
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">
+                          {formatIsoDateGeorgian(item.date)}
+                        </p>
+                        {item.topic && (
+                          <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-zinc-500">{item.topic}</p>
+                        )}
                       </div>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {added ? (
