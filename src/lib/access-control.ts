@@ -53,6 +53,7 @@ export const SPACE_GUARDED_ROUTES: {
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile/stats", space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile-abiturient/stats", space: "abiturient", match: "exact", redirectTo: "profile" },
+  { path: "/ai-teacher", space: "student", match: "exact", redirectTo: "dashboard" },
 ];
 
 function matchesRoute(pathname: string, route: { path: string; match: "exact" | "prefix" }): boolean {
@@ -79,6 +80,7 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact" },
   { path: "/study-plan/abit", space: "abiturient", match: "prefix" },
   { path: "/study-plan", space: "student", match: "prefix" },
+  { path: "/ai-teacher", space: "student", match: "exact" },
 ];
 
 /**

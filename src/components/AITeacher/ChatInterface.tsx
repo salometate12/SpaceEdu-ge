@@ -1,9 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUp, Menu, Plus, X } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
+import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
+import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -13,32 +25,40 @@ interface ChatMessage {
 }
 
 const MOCK_SESSIONS = [
-  "🧬 ბიოლოგია: უჯრედები",
-  "📐 მათემატიკა: ინტეგრალები",
-  "📚 ქართული ლიტერატურა",
-  "⚛️ ფიზიკა: კვანტური მოდელი",
+  "ბიოლოგია: უჯრედები",
+  "მათემატიკა: ინტეგრალები",
+  "ქართული ლიტერატურა",
+  "ფიზიკა: კვანტური მოდელი",
 ];
 
 const QUICK_ACTIONS = [
   {
-    title: "🧬 დამეხმარე ბიოლოგიაში",
+    title: "დამეხმარე ბიოლოგიაში",
     prompt: "ამიხსენი უჯრედის ორგანოიდები მარტივად.",
     subject: "ბიოლოგია",
+    icon: Dna,
+    color: "var(--accent-green)",
   },
   {
-    title: "📐 ამიხსენი ფორმულა",
+    title: "ამიხსენი ფორმულა",
     prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში.",
     subject: "მათემატიკა",
+    icon: Calculator,
+    color: "var(--accent-cyan)",
   },
   {
-    title: "📚 ქართული ლიტერატურა",
+    title: "ქართული ლიტერატურა",
     prompt: "მოკლედ ამიხსენი 'ვეფხისტყაოსნის' მთავარი იდეა.",
     subject: "ქართული ლიტერატურა",
+    icon: BookOpen,
+    color: "var(--accent-purple)",
   },
   {
-    title: "🌍 ისტორიის დახმარება",
+    title: "ისტორიის დახმარება",
     prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები მარტივი ენით.",
     subject: "ისტორია",
+    icon: Landmark,
+    color: "var(--accent-amber)",
   },
 ];
 
@@ -55,6 +75,10 @@ export function ChatInterface() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { space: accountSpace } = useCurrentUserAccess();
+  const firstName = useCurrentUserFirstName();
+  const dashboardHref = dashboardHrefForSpace(accountSpace);
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
@@ -160,17 +184,17 @@ export function ChatInterface() {
       <button
         type="button"
         onClick={startNewChat}
-        className="w-full rounded-xl border border-emerald-400/25 bg-[#12121A] px-3 py-2.5 text-sm font-semibold text-zinc-100 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.08)] transition hover:border-cyan-400/40 hover:shadow-[0_0_14px_rgba(45,212,191,0.12)]"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm font-semibold text-[var(--text-primary)] shadow-sm transition hover:border-[var(--accent-primary)]/40 hover:bg-[var(--accent-primary)]/5"
       >
         <span className="inline-flex items-center gap-2">
-          <Plus className="h-4 w-4 text-emerald-300" strokeWidth={2} />
+          <Plus className="h-4 w-4 text-[var(--accent-primary)]" strokeWidth={2} />
           ახალი ჩატი
         </span>
       </button>
 
       <div className="mt-6 flex items-center justify-between px-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">ისტორია</p>
-        <span className="text-xs text-zinc-600">{MOCK_SESSIONS.length}</span>
+        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">ისტორია</p>
+        <span className="text-xs text-[var(--text-muted)]">{MOCK_SESSIONS.length}</span>
       </div>
 
       <div className="mt-3 flex-1 space-y-1 overflow-y-auto pr-1">
@@ -182,14 +206,14 @@ export function ChatInterface() {
               type="button"
               onClick={() => {
                 setActiveSession(session);
-                const hint = session.split(":")[0]?.replace(/[^\p{L}\p{N}\s]/gu, "") ?? "";
-                if (hint) setSubject(hint.trim());
+                const hint = session.split(":")[0]?.trim() ?? "";
+                if (hint) setSubject(hint);
                 setSidebarOpen(false);
               }}
               className={`w-full rounded-xl px-3 py-2.5 text-left text-sm transition ${
                 isActive
-                  ? "bg-white/10 text-white backdrop-blur-sm"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                  ? "bg-[var(--accent-primary)]/10 text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
               {session}
@@ -201,23 +225,23 @@ export function ChatInterface() {
   );
 
   const floatingInput = (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/95 to-transparent px-4 pb-5 pt-10">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/95 to-transparent px-4 pb-5 pt-10">
       <div className="pointer-events-auto w-full max-w-3xl">
         {friendlyError ? (
-          <div className="mb-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+          <div className="mb-3 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
           </div>
         ) : null}
 
         <form onSubmit={handleSubmit}>
           <div
-            className={`rounded-2xl p-[1px] transition-shadow duration-300 ${
+            className={`rounded-2xl border transition-all duration-300 ${
               inputFocused
-                ? "bg-gradient-to-r from-emerald-400/80 via-teal-400/80 to-cyan-400/80 shadow-[0_0_24px_rgba(45,212,191,0.18)]"
-                : "bg-white/10"
+                ? "border-[var(--accent-primary)]/50 shadow-[0_0_0_4px_rgba(124,58,237,0.1)]"
+                : "border-[var(--border)]"
             }`}
           >
-            <div className="flex items-end gap-2 rounded-[15px] bg-[#12121A] px-3 py-2">
+            <div className="flex items-end gap-2 rounded-2xl bg-[var(--bg-card)] px-3 py-2">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -227,7 +251,7 @@ export function ChatInterface() {
                 onBlur={() => setInputFocused(false)}
                 onKeyDown={handleKeyDown}
                 placeholder="დაწერე შენი კითხვა..."
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500"
+                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
               />
               <button
                 type="submit"
@@ -235,15 +259,15 @@ export function ChatInterface() {
                 aria-label="გაგზავნა"
                 className={`mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
                   canSend
-                    ? "bg-gradient-to-br from-emerald-400 to-cyan-500 text-[#0A0A0F] shadow-[0_0_16px_rgba(45,212,191,0.35)] hover:brightness-110"
-                    : "bg-white/[0.06] text-zinc-600"
+                    ? "bg-[var(--accent-primary)] text-white shadow-sm hover:opacity-90"
+                    : "bg-[var(--bg-secondary)] text-[var(--text-muted)]"
                 }`}
               >
                 <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
               </button>
             </div>
           </div>
-          <p className="mt-2 text-center text-[11px] text-zinc-600">
+          <p className="mt-2 text-center text-[11px] text-[var(--text-muted)]">
             Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
           </p>
         </form>
@@ -252,18 +276,18 @@ export function ChatInterface() {
   );
 
   return (
-    <section className="relative flex h-full w-full overflow-hidden bg-[#0A0A0F]">
+    <section className="relative flex h-full w-full overflow-hidden bg-[var(--bg-primary)]">
       {/* Desktop sidebar */}
-      <aside className="hidden w-[280px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0A0A0F] px-3 py-4 md:flex">
+      <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-primary)] px-3 py-4 md:flex">
         <div className="mb-4 flex items-center gap-2 px-1">
           <Link
-            href="/dashboard-student"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/[0.05] hover:text-zinc-200"
+            href={dashboardHref}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
             aria-label="Dashboard"
           >
-            ←
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
           </Link>
-          <span className="text-sm font-medium text-zinc-300">AI მასწავლებელი</span>
+          <span className="text-sm font-medium text-[var(--text-secondary)]">AI მასწავლებელი</span>
         </div>
         {sidebarContent}
       </aside>
@@ -273,17 +297,17 @@ export function ChatInterface() {
         <div className="fixed inset-0 z-40 md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             aria-label="Close sidebar"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="relative flex h-full w-[280px] flex-col border-r border-white/[0.06] bg-[#0A0A0F] px-3 py-4 shadow-2xl">
+          <aside className="relative flex h-full w-[280px] flex-col border-r border-[var(--border)] bg-[var(--bg-primary)] px-3 py-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between px-1">
-              <span className="text-sm font-medium text-zinc-300">საუბრების ისტორია</span>
+              <span className="text-sm font-medium text-[var(--text-secondary)]">საუბრების ისტორია</span>
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:bg-white/[0.05]"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -295,22 +319,22 @@ export function ChatInterface() {
 
       <div className="relative flex min-w-0 flex-1 flex-col">
         {/* Top bar — mobile */}
-        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3 md:hidden">
+        <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3 md:hidden">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-zinc-300"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)]"
             aria-label="Open history"
           >
             <Menu className="h-4 w-4" />
           </button>
-          <div className="min-w-0 flex-1 truncate text-sm text-zinc-400">
-            საგანი: <span className="text-zinc-200">{subject}</span>
+          <div className="min-w-0 flex-1 truncate text-sm text-[var(--text-secondary)]">
+            საგანი: <span className="text-[var(--text-primary)]">{subject}</span>
           </div>
           <button
             type="button"
             onClick={startNewChat}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-emerald-300"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--accent-primary)]"
             aria-label="New chat"
           >
             <Plus className="h-4 w-4" />
@@ -318,9 +342,9 @@ export function ChatInterface() {
         </div>
 
         {/* Desktop subject chip */}
-        <div className="hidden border-b border-white/[0.06] px-6 py-3 md:block">
-          <span className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-zinc-400">
-            აქტიური საგანი: <span className="ml-1 text-zinc-200">{subject}</span>
+        <div className="hidden border-b border-[var(--border)] px-6 py-3 md:block">
+          <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1 text-xs text-[var(--text-secondary)]">
+            აქტიური საგანი: <span className="ml-1 text-[var(--text-primary)]">{subject}</span>
           </span>
         </div>
 
@@ -332,33 +356,56 @@ export function ChatInterface() {
         >
           {!hasMessages ? (
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 text-center">
-              <h1 className="headline bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-400 bg-clip-text text-2xl font-semibold tracking-tight text-transparent sm:text-4xl md:text-5xl">
-                გამარჯობა, რით დაგეხმარო?
+              <div
+                className="animate-icon-glow mb-6 h-16 w-16 rounded-full shadow-lg sm:h-20 sm:w-20"
+                style={
+                  {
+                    background:
+                      "radial-gradient(circle at 32% 28%, var(--accent-secondary), var(--accent-primary) 70%)",
+                    "--icon-glow-color": "rgba(124,58,237,0.4)",
+                  } as CSSProperties
+                }
+                aria-hidden
+              />
+              <h1 className="headline text-2xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">
+                {firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა!"}
               </h1>
-              <p className="mt-4 max-w-lg text-sm leading-relaxed text-zinc-500">
+              <p className="mt-1 text-lg font-medium text-[var(--text-secondary)] sm:text-xl">
+                რით შემიძლია დაგეხმარო?
+              </p>
+              <p className="mt-4 max-w-lg text-sm leading-relaxed text-[var(--text-muted)]">
                 აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ. პასუხი იქნება მარტივი,
                 სტრუქტურირებული და შენს საგანზე მორგებული.
               </p>
 
               <div className="mt-10 grid w-full gap-3 sm:grid-cols-2">
-                {QUICK_ACTIONS.map((action) => (
-                  <div
-                    key={action.title}
-                    className="rounded-2xl bg-white/10 p-px transition-all duration-300 hover:bg-gradient-to-r hover:from-emerald-400/70 hover:to-cyan-400/70 hover:shadow-[0_0_15px_rgba(45,212,191,0.2)]"
-                  >
+                {QUICK_ACTIONS.map((action) => {
+                  const ActionIcon = action.icon;
+                  return (
                     <button
+                      key={action.title}
                       type="button"
                       onClick={() => {
                         setSubject(action.subject);
                         void sendMessage(action.prompt);
                       }}
-                      className="h-full w-full rounded-[15px] border border-white/10 bg-white/5 p-4 text-left backdrop-blur-md transition hover:bg-white/[0.07]"
+                      className="flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent-primary)]/30 hover:shadow-lg"
                     >
-                      <span className="block text-sm font-medium text-zinc-100">{action.title}</span>
-                      <span className="mt-1 block text-xs text-zinc-500">{action.subject}</span>
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                        style={{ background: `color-mix(in oklab, ${action.color}, white 82%)` }}
+                      >
+                        <ActionIcon className="h-4 w-4" style={{ color: action.color }} strokeWidth={2} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-[var(--text-primary)]">
+                          {action.title}
+                        </span>
+                        <span className="mt-1 block text-xs text-[var(--text-muted)]">{action.subject}</span>
+                      </span>
                     </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (

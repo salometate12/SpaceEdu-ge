@@ -127,11 +127,11 @@ function MobileSubjectChips({
   );
 }
 
-import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { isFullBleedAssistantPath } from "@/lib/assistant-routes";
 
 export function AssistantPlatformShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isPremiumAssistant = isPremiumAssistantPath(pathname);
+  const isPremiumAssistant = isFullBleedAssistantPath(pathname);
   const [controls, setControls] = useState<ReactNode>(null);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(true);
   const [space, setSpace] = useState<SmartSpace>("exam");
