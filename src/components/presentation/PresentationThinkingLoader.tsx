@@ -1,27 +1,33 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { BookOpen, CalendarClock, Check, ListChecks, PartyPopper, Sparkles } from "lucide-react";
+import {
+  FileText,
+  HelpCircle,
+  ImageIcon,
+  LayoutTemplate,
+  ListChecks,
+  Sparkles,
+} from "lucide-react";
 
 const STAGES = [
-  { icon: CalendarClock, text: "ვითვლი დარჩენილ დღეებს...", xp: 20 },
-  { icon: BookOpen, text: "ვაანალიზებ საგანსა და თემებს...", xp: 20 },
-  { icon: ListChecks, text: "ვანაწილებ დავალებებს დღეების მიხედვით...", xp: 20 },
-  { icon: Sparkles, text: "ვამატებ პერსონალურ რჩევებს...", xp: 20 },
-  { icon: PartyPopper, text: "თითქმის მზადაა...", xp: 20 },
+  { icon: HelpCircle, text: "შენი პასუხების ანალიზი...", xp: 15 },
+  { icon: ListChecks, text: "სლაიდების სტრუქტურის შექმნა...", xp: 20 },
+  { icon: FileText, text: "AI შინაარსს წერს...", xp: 25 },
+  { icon: ImageIcon, text: "ფოტოების განთავსება...", xp: 15 },
+  { icon: LayoutTemplate, text: "Template-ის დიზაინის აწყობა...", xp: 15 },
+  { icon: Sparkles, text: "თითქმის მზადაა...", xp: 10 },
 ];
 
-const STAGE_DURATION_MS = 1700;
+const STAGE_DURATION_MS = 1600;
 
 /**
- * A playful, gamified "AI is building your quest" loader shown while the
- * study-plan generator waits on the AI response — a stage icon + caption,
- * an XP progress bar with a floating "+XP" pop each time a stage
- * completes, a couple of drifting sparkle stars around the badge, and a
- * quest checklist so the wait reads as visible progress instead of a
- * blank skeleton.
+ * A gamified "AI is building your slides" loader for the presentation
+ * generator, matching the study-plan quest loader's XP/stage pattern
+ * (violet-themed, no emoji) so the wait for generated slides reads as
+ * visible progress instead of a blank skeleton.
  */
-export function StudyPlanThinkingLoader() {
+export function PresentationThinkingLoader() {
   const [stageIndex, setStageIndex] = useState(0);
 
   useEffect(() => {
@@ -40,8 +46,8 @@ export function StudyPlanThinkingLoader() {
     <div
       role="status"
       aria-live="polite"
-      aria-label="AI ქმნის შენს გეგმას"
-      className="flex min-h-[420px] flex-col items-center justify-center gap-6 text-center"
+      aria-label="AI ქმნის შენს პრეზენტაციას"
+      className="flex flex-col items-center justify-center gap-6 py-8 text-center"
     >
       <div className="relative flex h-24 w-24 items-center justify-center">
         <span
@@ -96,43 +102,20 @@ export function StudyPlanThinkingLoader() {
         </div>
       </div>
 
-      <ul className="flex w-full max-w-[280px] flex-col gap-1.5 text-left">
-        {STAGES.map((item, index) => {
-          const ItemIcon = item.icon;
-          const done = index < stageIndex;
-          const active = index === stageIndex;
-          return (
-            <li
-              key={item.text}
-              style={{ animationDelay: `${index * 60}ms` }}
-              className={`study-plan-quest-row-in flex items-center gap-2 rounded-lg px-2 py-1 text-xs transition-colors ${
-                active
-                  ? "bg-violet-50 font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-200"
-                  : done
-                    ? "text-emerald-600 dark:text-emerald-300"
-                    : "text-slate-400 dark:text-zinc-600"
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                  done
-                    ? "study-plan-quest-check-pop bg-emerald-500 text-white"
-                    : active
-                      ? "bg-violet-600 text-white"
-                      : "bg-slate-100 dark:bg-white/[0.06]"
-                }`}
-              >
-                {done ? (
-                  <Check className="h-3 w-3" strokeWidth={3} />
-                ) : (
-                  <ItemIcon className="h-3 w-3" strokeWidth={2.25} />
-                )}
-              </span>
-              <span className={done ? "line-through decoration-emerald-400/60" : ""}>{item.text}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="flex items-center gap-1.5" aria-hidden>
+        {STAGES.map((item, index) => (
+          <span
+            key={item.text}
+            className={`h-1.5 rounded-full transition-all duration-500 ${
+              index === stageIndex
+                ? "w-5 bg-violet-500 dark:bg-violet-400"
+                : index < stageIndex
+                  ? "w-1.5 bg-violet-300 dark:bg-violet-500/40"
+                  : "w-1.5 bg-slate-200 dark:bg-white/10"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

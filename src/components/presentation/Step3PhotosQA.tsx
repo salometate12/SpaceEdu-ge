@@ -30,18 +30,17 @@ export function Step3PhotosQA({
   return (
     <section className="space-y-5">
       <div className="flex items-center gap-3">
-        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-amber-600 dark:text-amber-400">
+        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-violet-600 dark:text-violet-400">
           <HelpCircle className="h-4 w-4" />
         </span>
-        <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
-          Step 3 — ფოტოები & Q&A
-        </h2>
-      </div>
-
-      <div className="dashboard-glass-card rounded-2xl p-4">
-        <p className="text-sm text-slate-600 dark:text-zinc-400">
-          Step 3 ამ ეტაპზე კონცენტრირებულია Q&A პარამეტრებზე.
-        </p>
+        <div>
+          <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
+            დეტალები
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-zinc-400">
+            რამდენიმე კითხვა, რომ AI-მ ტექსტი შენს მიზანს მოარგოს
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -105,8 +104,8 @@ function QASelect({
               onClick={() => onChange(opt)}
               className={`rounded-full border px-3 py-1 text-xs transition ${
                 active
-                  ? "border-amber-200 bg-amber-50 text-amber-700 shadow-sm dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-400"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-amber-400/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-400"
+                  ? "border-violet-300 bg-violet-50 text-violet-700 shadow-sm dark:border-violet-400/30 dark:bg-violet-500/10 dark:text-violet-300"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-violet-300"
               }`}
             >
               {opt}

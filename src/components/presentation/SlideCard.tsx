@@ -17,8 +17,12 @@ const TYPE_COLOR: Record<GeneratedSlide["type"], string> = {
 export function SlideCard({ slide, index, template }: SlideCardProps) {
   return (
     <article
-      className="rounded-xl border p-4"
-      style={{ backgroundColor: template.bg, borderColor: template.border }}
+      className="calendar-day-in rounded-xl border p-4"
+      style={{
+        backgroundColor: template.bg,
+        borderColor: template.border,
+        animationDelay: `${index * 60}ms`,
+      }}
     >
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="mono rounded-full bg-white/10 px-2 py-0.5 text-xs">

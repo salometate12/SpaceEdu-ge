@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { exportToPptx } from "@/lib/exportPptx";
 import { SlideCard } from "./SlideCard";
@@ -29,7 +29,7 @@ export function Step4Result({
     <section>
       <div className="dashboard-tool-card mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
         <div className="flex items-center gap-3">
-          <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-amber-600 dark:text-amber-400">
+          <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-violet-600 dark:text-violet-400">
             <Sparkles className="h-4 w-4" />
           </span>
           <div>
@@ -64,7 +64,8 @@ export function Step4Result({
             PDF გადმოწერა
           </button>
           <button type="button" onClick={onReset} className={secondaryBtn}>
-            ← ახალი პრეზენტაცია
+            <ArrowLeft className="mr-1 h-4 w-4" strokeWidth={2} />
+            ახალი პრეზენტაცია
           </button>
         </div>
       </div>
