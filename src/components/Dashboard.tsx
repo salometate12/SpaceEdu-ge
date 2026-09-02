@@ -166,9 +166,9 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
     <div className="relative flex min-h-full flex-col overflow-x-hidden">
       <DashboardDecorIcons />
 
-      <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8 lg:py-10 xl:flex-row">
+      <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-4 py-6 max-[639px]:px-0 max-[639px]:pt-0 sm:px-6 sm:py-8 lg:py-10 xl:flex-row">
         <DashboardSideRail />
-        <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 sm:pt-12">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 max-[639px]:pt-0 sm:pt-12">
           <DashboardGreetingBanner
             workspace="student"
             badge={
@@ -180,6 +180,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
             subtitle="დღეს გეგმაში: მონაცემთა სტრუქტურები — 2.5 საათი"
           />
 
+          <div className="flex flex-col gap-5 max-[639px]:px-4">
           <DashboardMorphGrid variant="metrics" className="mobile-stack-tools">
             {STUDENT_METRICS.map(
               ({ label, value, sub, color, card, mobileVivid, text, subText, chart, chartColor }) => (
@@ -393,6 +394,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           </section>
           <div id="dashboard-calendar-panel" className="scroll-mt-24">
             <DashboardCalendarPanel variant="inline" />
+          </div>
           </div>
         </div>
         <DashboardCalendarPanel />

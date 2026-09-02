@@ -21,10 +21,14 @@ export function DashboardGreetingBanner({
 
   return (
     <motion.section
-      initial={{ y: -100, opacity: 0 }}
+      initial={vivid ? false : { y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`dashboard-hero flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 ${vivid ? "mobile-vivid-hero" : ""}`}
+      className={`dashboard-hero flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 ${
+        vivid
+          ? "mobile-vivid-hero max-[639px]:left-0 max-[639px]:right-0 max-[639px]:top-0 max-[639px]:z-20 max-[639px]:mt-0 max-[639px]:w-full max-[639px]:rounded-t-none max-[639px]:rounded-b-[36px]"
+          : ""
+      }`}
     >
       <div className="min-w-0 flex-1">
         {badge ? (
