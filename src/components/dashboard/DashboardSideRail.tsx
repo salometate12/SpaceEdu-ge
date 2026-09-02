@@ -19,6 +19,7 @@ import {
   Settings,
   Shield,
   Sparkles,
+  StickyNote,
   User,
 } from "lucide-react";
 import { researchPlatformHref } from "@/lib/space-back-navigation";
@@ -49,6 +50,7 @@ export const ACCOUNT_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
 
 export const TOOL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "ai-teacher", label: "AI მასწავლებელი", href: "/ai-teacher", icon: MessageSquareText },
+  { id: "lecture-notes", label: "ლექციის ნოტები", href: "/lecture-notes", icon: StickyNote },
   { id: "research", label: "მასალა → ანალიზი", href: researchPlatformHref("student"), icon: FileSearch },
   { id: "presentation", label: "AI პრეზენტაცია", href: "/presentation", icon: Sparkles },
   { id: "cv", label: "CV გენერატორი", href: "/cv", icon: BriefcaseBusiness },
