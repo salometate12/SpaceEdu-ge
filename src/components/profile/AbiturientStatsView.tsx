@@ -282,8 +282,11 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setEvents(getToolUsageEvents().filter((event) => event.toolId.startsWith("abit-")));
-    setHydrated(true);
+    const hydrate = () => {
+      setEvents(getToolUsageEvents().filter((event) => event.toolId.startsWith("abit-")));
+      setHydrated(true);
+    };
+    hydrate();
   }, []);
 
   const totalOpens = events.length;

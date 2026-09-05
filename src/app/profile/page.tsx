@@ -1,20 +1,19 @@
 import Link from "next/link";
 import { ChartNoAxesColumn, Pencil } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
-import { getProfileData, INITIAL_DAILY_GOALS } from "@/lib/profile";
+import { getProfileData } from "@/lib/profile";
 import { buildWeekStreak } from "@/lib/streak";
 import { getCurrentServerUserName } from "@/lib/auth-server";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
 import { DiaryLog } from "@/components/profile/DiaryLog";
 import { MetricCards } from "@/components/profile/MetricCards";
-import { ProfileCard } from "@/components/profile/ProfileCard";
 import { ProfileChallengeHero } from "@/components/profile/ProfileChallengeHero";
 import { StreakTracker } from "@/components/profile/StreakTracker";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
 
 export default async function ProfilePage() {
-  const { user, subjects, diary } = await getProfileData();
+  const { user, diary } = await getProfileData();
   const serverUserName = await getCurrentServerUserName();
   if (serverUserName) {
     const fullName = [serverUserName.firstName, serverUserName.lastName]
@@ -27,7 +26,6 @@ export default async function ProfilePage() {
     if (initials) user.initials = initials;
   }
   const week = buildWeekStreak(user.currentStreak);
-  const goalsRemaining = INITIAL_DAILY_GOALS.filter((goal) => !goal.done).length;
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
@@ -55,25 +53,18 @@ export default async function ProfilePage() {
         შენი სფეისი: <span className="headline font-semibold text-violet-700 dark:text-cyan-300">სტუდენტი</span>
       </div>
 
-      <ProfileChallengeHero user={user} week={week} goalsRemaining={goalsRemaining} />
+      <ProfileChallengeHero user={user} week={week} />
 
-      <DailyGoals initialGoals={INITIAL_DAILY_GOALS} showDashboardToggle />
+      <DailyGoals showDashboardToggle />
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-        <ProfileCard user={user} />
-        <div className="space-y-4">
-          <MetricCards user={user} />
-          <StreakTracker
-            currentStreak={user.currentStreak}
-            personalBest={user.personalBestStreak}
-          />
-        </div>
-      </section>
+      <MetricCards examDate={user.examDate} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
-        <SubjectProgress subjects={subjects} />
-        <DiaryLog entries={diary} />
+        <StreakTracker />
+        <SubjectProgress />
       </section>
+
+      <DiaryLog entries={diary} />
 
       <BadgeGrid badges={DEFAULT_BADGES} />
     </main>

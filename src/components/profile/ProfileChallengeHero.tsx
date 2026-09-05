@@ -6,7 +6,6 @@ import type { StreakDay } from "@/lib/streak";
 interface ProfileChallengeHeroProps {
   user: UserProfile;
   week: StreakDay[];
-  goalsRemaining: number;
 }
 
 const DAY_PILL_STYLE: Record<StreakDay["status"], string> = {
@@ -16,7 +15,7 @@ const DAY_PILL_STYLE: Record<StreakDay["status"], string> = {
   upcoming: "border-[#e4d8bd] bg-white/70 text-[#8a7a52]",
 };
 
-export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChallengeHeroProps) {
+export function ProfileChallengeHero({ user, week }: ProfileChallengeHeroProps) {
   const firstName = user.name.split(" ")[0];
   const unlockedBadges = DEFAULT_BADGES.filter((badge) => badge.unlocked).slice(0, 4);
   const extraBadges = DEFAULT_BADGES.filter((badge) => badge.unlocked).length - unlockedBadges.length;
@@ -39,9 +38,7 @@ export function ProfileChallengeHero({ user, week, goalsRemaining }: ProfileChal
               {firstName}!
             </h1>
             <p className="mt-2 max-w-xs text-sm font-medium text-[#4c1d95]/80">
-              {goalsRemaining > 0
-                ? `დღეს დაგრჩა ${goalsRemaining} მიზანი — გააგრძელე სტრიკი!`
-                : "დღევანდელი მიზნები დასრულებულია — კარგი მუშაობა!"}
+              დაისახე დღევანდელი მიზნები და შეინარჩუნე სტრიკი.
             </p>
           </div>
         </div>

@@ -65,3 +65,44 @@ export function getCurrentStreak(): number {
   }
   return streak;
 }
+
+/** Longest run of consecutive active days ever recorded (personal best). */
+export function getLongestStreak(): number {
+  const sorted = [...new Set(readActivityDates())].sort();
+  let best = 0;
+  let run = 0;
+  let prev: number | null = null;
+  for (const iso of sorted) {
+    const t = new Date(`${iso}T00:00:00`).getTime();
+    if (Number.isNaN(t)) continue;
+    if (prev !== null && Math.round((t - prev) / 86_400_000) === 1) {
+      run += 1;
+    } else {
+      run = 1;
+    }
+    if (run > best) best = run;
+    prev = t;
+  }
+  return best;
+}
+
+/** ISO date strings the student was active on within the current ISO week. */
+export function getActiveDatesThisWeek(): string[] {
+  const dates = new Set(readActivityDates());
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const week: string[] = [];
+  for (let i = 0; i < 7; i += 1) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = d.toISOString().slice(0, 10);
+    if (dates.has(iso)) week.push(iso);
+  }
+  return week;
+}
+
+export function getTotalActiveDays(): number {
+  return new Set(readActivityDates()).size;
+}
