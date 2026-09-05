@@ -7,6 +7,7 @@ import {
   Bell,
   Brain,
   CalendarDays,
+  CalendarPlus,
   Check,
   CloudUpload,
   GraduationCap,
@@ -16,6 +17,7 @@ import { fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import {
   addMilestoneToDashboardCalendar,
+  addMilestonesToDashboardCalendar,
   clearLegacySyllabusMockData,
   getDashboardCalendarEvents,
   isMilestoneOnDashboard,
@@ -212,6 +214,27 @@ export function SyllabusAnalyzer() {
     setAddedIds((prev) => new Set(prev).add(milestone.id));
   };
 
+  const pendingMilestones = useMemo(
+    () =>
+      visibleMilestones.filter(
+        (item) => !addedIds.has(item.id) && !isMilestoneOnDashboard(item.id),
+      ),
+    [visibleMilestones, addedIds],
+  );
+
+  const allMilestonesAdded =
+    visibleMilestones.length > 0 && pendingMilestones.length === 0;
+
+  const handleAddAllToCalendar = () => {
+    if (pendingMilestones.length === 0) return;
+    addMilestonesToDashboardCalendar(pendingMilestones);
+    setAddedIds((prev) => {
+      const next = new Set(prev);
+      for (const item of pendingMilestones) next.add(item.id);
+      return next;
+    });
+  };
+
   return (
     <div className="flex w-full flex-col gap-6 lg:flex-row">
       <aside className="w-full lg:w-[360px] lg:shrink-0">
@@ -309,18 +332,37 @@ export function SyllabusAnalyzer() {
           </div>
         ) : (
           <div className="fade-in flex h-full flex-col">
-            <div className="mb-5 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl subject-icon-wrap">
-                <CalendarDays className="h-5 w-5 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl subject-icon-wrap">
+                  <CalendarDays className="h-5 w-5 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    სილაბუსიდან გენერირებული თარიღები
+                  </h2>
+                  <p className="text-sm text-slate-600 dark:text-zinc-400">
+                    მონიშნე მნიშვნელოვანი დღეები დეშბორდის კალენდარში დასამატებლად.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  სილაბუსიდან გენერირებული თარიღები
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-zinc-400">
-                  მონიშნე მნიშვნელოვანი დღეები დეშბორდის კალენდარში დასამატებლად.
-                </p>
-              </div>
+              {visibleMilestones.length > 0 && (
+                allMilestonesAdded ? (
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    <Check className="h-3.5 w-3.5" />
+                    ყველა დამატებულია კალენდარში
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleAddAllToCalendar}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-violet-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" />
+                    ყველას კალენდარში დამატება ({pendingMilestones.length})
+                  </button>
+                )
+              )}
             </div>
 
             {aiInsight && (
