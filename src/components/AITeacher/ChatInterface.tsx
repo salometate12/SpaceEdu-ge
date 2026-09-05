@@ -11,8 +11,15 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, Trash2, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import {
+  conversationTitleFrom,
+  deleteConversation,
+  loadConversations,
+  saveConversation,
+  type AiTeacherConversation,
+} from "@/lib/ai-teacher-history";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { readSpaceeduSpace } from "@/lib/space-back-navigation";
@@ -24,57 +31,47 @@ interface ChatMessage {
   content: string;
 }
 
-const MOCK_SESSIONS = [
-  "ბიოლოგია: უჯრედები",
-  "მათემატიკა: ინტეგრალები",
-  "ქართული ლიტერატურა",
-  "ფიზიკა: კვანტური მოდელი",
-];
-
 const QUICK_ACTIONS = [
   {
-    title: "დამეხმარე ბიოლოგიაში",
-    prompt: "ამიხსენი უჯრედის ორგანოიდები მარტივად.",
-    subject: "ბიოლოგია",
+    title: "ამიხსენი თემა ღრმად",
+    prompt: "ამიხსენი უჯრედის ორგანოიდები — ინტუიცია, მაგალითი და გამოცდის ხაფანგები.",
     icon: Dna,
     color: "var(--accent-green)",
   },
   {
     title: "ამიხსენი ფორმულა",
-    prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში.",
-    subject: "მათემატიკა",
+    prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში, ნაბიჯ-ნაბიჯ.",
     icon: Calculator,
     color: "var(--accent-cyan)",
   },
   {
-    title: "ქართული ლიტერატურა",
-    prompt: "მოკლედ ამიხსენი 'ვეფხისტყაოსნის' მთავარი იდეა.",
-    subject: "ქართული ლიტერატურა",
+    title: "გამიხსენი ნაწარმოები",
+    prompt: "დეტალურად ამიხსენი „ვეფხისტყაოსნის“ მთავარი იდეა და პერსონაჟები.",
     icon: BookOpen,
     color: "var(--accent-purple)",
   },
   {
-    title: "ისტორიის დახმარება",
-    prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები მარტივი ენით.",
-    subject: "ისტორია",
+    title: "ისტორიის მოვლენა",
+    prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები და შედეგები გასაგებად.",
     icon: Landmark,
     color: "var(--accent-amber)",
   },
 ];
 
 export function ChatInterface() {
-  const [subject, setSubject] = useState("ბიოლოგია");
   const [material, setMaterial] = useState("");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [friendlyError, setFriendlyError] = useState<string | null>(null);
-  const [activeSession, setActiveSession] = useState(MOCK_SESSIONS[0]);
+  const [conversations, setConversations] = useState<AiTeacherConversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const conversationIdRef = useRef<string | null>(null);
 
   const router = useRouter();
   const firstName = useCurrentUserFirstName();
@@ -99,22 +96,53 @@ export function ChatInterface() {
     element.scrollTop = element.scrollHeight;
   }, [messages, isLoading]);
 
+  // Mirror messages into a ref so sendMessage can read the history that
+  // preceded the current exchange without a stale closure.
+  const messagesRef = useRef<ChatMessage[]>([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Load the recent-conversation list once, and keep it in sync if another
+  // tab changes it.
+  useEffect(() => {
+    const sync = () => setConversations(loadConversations());
+    sync();
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
+  const persistCurrentConversation = (finalMessages: ChatMessage[]) => {
+    if (!conversationIdRef.current) conversationIdRef.current = crypto.randomUUID();
+    setActiveConversationId(conversationIdRef.current);
+    setConversations(
+      saveConversation({
+        id: conversationIdRef.current,
+        title: conversationTitleFrom(finalMessages),
+        messages: finalMessages,
+      }),
+    );
+  };
+
   const sendMessage = async (rawMessage: string) => {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
 
+    const priorMessages = messagesRef.current;
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: trimmed,
+    };
+    const assistantId = crypto.randomUUID();
+
     setFriendlyError(null);
     setSidebarOpen(false);
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: trimmed },
-    ]);
     setInput("");
-
-    const assistantId = crypto.randomUUID();
     setIsLoading(true);
-    setMessages((prev) => [
-      ...prev,
+    setMessages([
+      ...priorMessages,
+      userMessage,
       { id: assistantId, role: "assistant", content: "" },
     ]);
 
@@ -123,7 +151,6 @@ export function ChatInterface() {
         {
           pageType: "ai-teacher",
           payload: {
-            subject,
             material: material.trim() || undefined,
             message: trimmed,
           },
@@ -137,18 +164,14 @@ export function ChatInterface() {
         },
       );
 
-      if (!text.trim()) {
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantId
-              ? {
-                  ...message,
-                  content: "პასუხი ცარიელია. სცადე სხვა ფორმულირებით.",
-                }
-              : message,
-          ),
-        );
-      }
+      const answer = text.trim() || "პასუხი ცარიელია. სცადე სხვა ფორმულირებით.";
+      const finalMessages: ChatMessage[] = [
+        ...priorMessages,
+        userMessage,
+        { id: assistantId, role: "assistant", content: answer },
+      ];
+      setMessages(finalMessages);
+      persistCurrentConversation(finalMessages);
     } catch {
       setFriendlyError("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
       setMessages((prev) => prev.filter((message) => message.id !== assistantId));
@@ -170,12 +193,29 @@ export function ChatInterface() {
   };
 
   const startNewChat = () => {
+    conversationIdRef.current = null;
+    setActiveConversationId(null);
     setMessages([]);
     setFriendlyError(null);
     setInput("");
     setMaterial("");
     setSidebarOpen(false);
     setIsLoading(false);
+  };
+
+  const openConversation = (conversation: AiTeacherConversation) => {
+    conversationIdRef.current = conversation.id;
+    setActiveConversationId(conversation.id);
+    setMessages(conversation.messages);
+    setFriendlyError(null);
+    setInput("");
+    setSidebarOpen(false);
+    setIsLoading(false);
+  };
+
+  const removeConversation = (id: string) => {
+    setConversations(deleteConversation(id));
+    if (conversationIdRef.current === id) startNewChat();
   };
 
   const handleBackToDashboard = () => {
@@ -204,33 +244,54 @@ export function ChatInterface() {
       </button>
 
       <div className="mt-6 flex items-center justify-between px-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">ისტორია</p>
-        <span className="text-xs text-[var(--text-muted)]">{MOCK_SESSIONS.length}</span>
+        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
+          ბოლო საუბრები
+        </p>
+        {conversations.length > 0 && (
+          <span className="text-xs text-[var(--text-muted)]">{conversations.length}</span>
+        )}
       </div>
 
       <div className="mt-3 flex-1 space-y-1 overflow-y-auto pr-1">
-        {MOCK_SESSIONS.map((session) => {
-          const isActive = session === activeSession;
-          return (
-            <button
-              key={session}
-              type="button"
-              onClick={() => {
-                setActiveSession(session);
-                const hint = session.split(":")[0]?.trim() ?? "";
-                if (hint) setSubject(hint);
-                setSidebarOpen(false);
-              }}
-              className={`w-full rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                isActive
-                  ? "bg-[var(--accent-primary)]/10 text-[var(--text-primary)]"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              {session}
-            </button>
-          );
-        })}
+        {conversations.length === 0 ? (
+          <p className="px-1 py-2 text-xs leading-relaxed text-[var(--text-muted)]">
+            აქ გამოჩნდება შენი ბოლო კითხვები, რომლებზეც AI-მ უკვე გიპასუხა.
+          </p>
+        ) : (
+          conversations.map((conversation) => {
+            const isActive = conversation.id === activeConversationId;
+            return (
+              <div
+                key={conversation.id}
+                className={`group flex items-center gap-1 rounded-xl transition ${
+                  isActive
+                    ? "bg-[var(--accent-primary)]/10"
+                    : "hover:bg-[var(--bg-secondary)]"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => openConversation(conversation)}
+                  className={`min-w-0 flex-1 truncate rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                    isActive
+                      ? "text-[var(--text-primary)]"
+                      : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  {conversation.title}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeConversation(conversation.id)}
+                  aria-label="საუბრის წაშლა"
+                  className="mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] opacity-0 transition hover:bg-[var(--bg-primary)] hover:text-[var(--text-primary)] focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     </>
   );
@@ -315,7 +376,7 @@ export function ChatInterface() {
           />
           <aside className="relative flex h-full w-[280px] flex-col border-r border-[var(--border)] bg-[var(--bg-primary)] px-3 py-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between px-1">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">საუბრების ისტორია</span>
+              <span className="text-sm font-medium text-[var(--text-secondary)]">ბოლო საუბრები</span>
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
@@ -388,7 +449,7 @@ export function ChatInterface() {
               </p>
               <p className="mt-4 max-w-lg text-sm leading-relaxed text-[var(--text-muted)]">
                 აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ. პასუხი იქნება სრული,
-                ნაბიჯ-ნაბიჯ ახსნილი და შენს საგანზე მორგებული.
+                ნაბიჯ-ნაბიჯ ახსნილი და შენს კითხვაზე მორგებული.
               </p>
 
               <div className="mt-10 grid w-full gap-3 sm:grid-cols-2">
@@ -398,10 +459,7 @@ export function ChatInterface() {
                     <button
                       key={action.title}
                       type="button"
-                      onClick={() => {
-                        setSubject(action.subject);
-                        void sendMessage(action.prompt);
-                      }}
+                      onClick={() => void sendMessage(action.prompt)}
                       className="flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent-primary)]/30 hover:shadow-lg"
                     >
                       <span
@@ -410,11 +468,13 @@ export function ChatInterface() {
                       >
                         <ActionIcon className="h-4 w-4" style={{ color: action.color }} strokeWidth={2} />
                       </span>
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium text-[var(--text-primary)]">
                           {action.title}
                         </span>
-                        <span className="mt-1 block text-xs text-[var(--text-muted)]">{action.subject}</span>
+                        <span className="mt-1 line-clamp-2 block text-xs leading-snug text-[var(--text-muted)]">
+                          {action.prompt}
+                        </span>
                       </span>
                     </button>
                   );
