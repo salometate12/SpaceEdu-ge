@@ -13,7 +13,7 @@ import { StreakTracker } from "@/components/profile/StreakTracker";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
 
 export default async function AbiturientProfilePage() {
-  const { user, diary } = await getProfileData();
+  const { user } = await getProfileData();
   const serverUserName = await getCurrentServerUserName();
   if (serverUserName) {
     const fullName = [serverUserName.firstName, serverUserName.lastName]
@@ -64,7 +64,7 @@ export default async function AbiturientProfilePage() {
         <SubjectProgress />
       </section>
 
-      <DiaryLog entries={diary} />
+      <DiaryLog />
 
       <BadgeGrid badges={DEFAULT_BADGES} />
     </main>
