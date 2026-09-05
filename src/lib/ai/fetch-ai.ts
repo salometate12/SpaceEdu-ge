@@ -92,3 +92,30 @@ export async function fetchAiMultipartJson<T>(
   }
   return (await response.json()) as T;
 }
+
+/** Multipart upload that streams a plain-text answer back (used by the AI
+ * teacher chat when the student attaches a photo/PDF/audio to a message). */
+export async function fetchAiMultipartTextStream(
+  options: FetchAiMultipartOptions,
+  onChunk?: (partial: string) => void,
+): Promise<string> {
+  const formData = new FormData();
+  formData.append("pageType", options.pageType);
+  formData.append("file", options.file, options.file.name);
+  if (options.fields) {
+    for (const [key, value] of Object.entries(options.fields)) {
+      formData.append(key, value);
+    }
+  }
+
+  const response = await fetch("/api/ai", {
+    method: "POST",
+    body: formData,
+    signal: options.signal,
+  });
+
+  if (!response.ok) {
+    await parseAiError(response);
+  }
+  return readTextStream(response, { onChunk, sanitizeMarkdown: true });
+}

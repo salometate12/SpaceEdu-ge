@@ -10,8 +10,22 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, Trash2, X } from "lucide-react";
-import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import {
+  ArrowLeft,
+  ArrowUp,
+  BookOpen,
+  Calculator,
+  Dna,
+  FileText,
+  ImageIcon,
+  Landmark,
+  Menu,
+  Paperclip,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+import { fetchAiMultipartTextStream, fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import {
   conversationTitleFrom,
   deleteConversation,
@@ -68,17 +82,37 @@ export function ChatInterface() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [attachError, setAttachError] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const initialPromptConsumed = useRef(false);
 
   const router = useRouter();
   const firstName = useCurrentUserFirstName();
 
-  const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
+  const canSend = useMemo(
+    () => (input.trim().length > 0 || attachment !== null) && !isLoading,
+    [input, attachment, isLoading],
+  );
   const hasMessages = messages.length > 0;
+
+  const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md,audio/*";
+  const MAX_ATTACH_BYTES = 12 * 1024 * 1024;
+
+  const acceptAttachment = (file: File | undefined | null) => {
+    if (!file) return;
+    if (file.size > MAX_ATTACH_BYTES) {
+      setAttachError("ფაილი ძალიან დიდია — მაქსიმუმ 12 MB.");
+      return;
+    }
+    setAttachError(null);
+    setAttachment(file);
+  };
 
   const adjustTextareaHeight = useCallback(() => {
     const element = textareaRef.current;
@@ -126,21 +160,25 @@ export function ChatInterface() {
     );
   };
 
-  const sendMessage = async (rawMessage: string) => {
+  const sendMessage = async (rawMessage: string, file?: File | null) => {
     const trimmed = rawMessage.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && !file) || isLoading) return;
 
     const priorMessages = messagesRef.current;
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: trimmed,
+      content: file
+        ? `${trimmed ? `${trimmed}\n\n` : ""}📎 ${file.name}`
+        : trimmed,
     };
     const assistantId = crypto.randomUUID();
 
     setFriendlyError(null);
     setSidebarOpen(false);
     setInput("");
+    setAttachment(null);
+    setAttachError(null);
     setIsLoading(true);
     setMessages([
       ...priorMessages,
@@ -148,23 +186,30 @@ export function ChatInterface() {
       { id: assistantId, role: "assistant", content: "" },
     ]);
 
-    try {
-      const text = await fetchAiTextStream(
-        {
-          pageType: "ai-teacher",
-          payload: {
-            material: material.trim() || undefined,
-            message: trimmed,
-          },
-        },
-        (partial) => {
-          setMessages((prev) =>
-            prev.map((message) =>
-              message.id === assistantId ? { ...message, content: partial } : message,
-            ),
-          );
-        },
+    const onChunk = (partial: string) => {
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantId ? { ...message, content: partial } : message,
+        ),
       );
+    };
+
+    try {
+      const text = file
+        ? await fetchAiMultipartTextStream(
+            { pageType: "ai-teacher", file, fields: { message: trimmed } },
+            onChunk,
+          )
+        : await fetchAiTextStream(
+            {
+              pageType: "ai-teacher",
+              payload: {
+                material: material.trim() || undefined,
+                message: trimmed,
+              },
+            },
+            onChunk,
+          );
 
       const answer = text.trim() || "პასუხი ცარიელია. სცადე სხვა ფორმულირებით.";
       const finalMessages: ChatMessage[] = [
@@ -212,13 +257,13 @@ export function ChatInterface() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await sendMessage(input);
+    await sendMessage(input, attachment);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      if (canSend) void sendMessage(input);
+      if (canSend) void sendMessage(input, attachment);
     }
   };
 
@@ -229,6 +274,8 @@ export function ChatInterface() {
     setFriendlyError(null);
     setInput("");
     setMaterial("");
+    setAttachment(null);
+    setAttachError(null);
     setSidebarOpen(false);
     setIsLoading(false);
   };
@@ -335,7 +382,23 @@ export function ChatInterface() {
           </div>
         ) : null}
 
+        {attachError ? (
+          <div className="mb-2 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-xs text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            {attachError}
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT}
+            className="hidden"
+            onChange={(event) => {
+              acceptAttachment(event.target.files?.[0]);
+              event.target.value = "";
+            }}
+          />
           <div
             className={`rounded-[28px] border bg-white/70 shadow-[0_16px_44px_-16px_rgba(79,70,229,0.35)] backdrop-blur-xl transition-all duration-300 dark:bg-white/[0.06] ${
               inputFocused
@@ -343,7 +406,35 @@ export function ChatInterface() {
                 : "border-white/60 dark:border-white/10"
             }`}
           >
-            <div className="flex items-end gap-2 px-3 py-2">
+            {attachment ? (
+              <div className="flex items-center gap-2 px-3 pt-2.5">
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full bg-[var(--accent-primary)]/10 px-2.5 py-1 text-xs font-medium text-[var(--accent-primary)]">
+                  {attachment.type.startsWith("image/") ? (
+                    <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  <span className="truncate">{attachment.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachment(null)}
+                    aria-label="ფაილის მოხსნა"
+                    className="shrink-0 rounded-full p-0.5 hover:bg-[var(--accent-primary)]/15"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              </div>
+            ) : null}
+            <div className="flex items-end gap-1.5 px-2.5 py-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="ფაილის მიმაგრება"
+                className="mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-black/[0.05] hover:text-[var(--accent-primary)] dark:hover:bg-white/10"
+              >
+                <Paperclip className="h-4 w-4" strokeWidth={2} />
+              </button>
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -352,8 +443,8 @@ export function ChatInterface() {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 onKeyDown={handleKeyDown}
-                placeholder="მომწერე შენი კითხვა..."
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                placeholder={attachment ? "დაამატე კითხვა (არასავალდებულო)..." : "მომწერე შენი კითხვა..."}
+                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
               />
               <button
                 type="submit"
@@ -370,7 +461,7 @@ export function ChatInterface() {
             </div>
           </div>
           <p className="mt-2 hidden text-center text-[11px] text-[var(--text-muted)] sm:block">
-            Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
+            Enter — გაგზავნა · Shift+Enter — ახალი ხაზი · 📎 ფოტო / PDF / ტექსტი
           </p>
         </form>
       </div>
@@ -454,11 +545,47 @@ export function ChatInterface() {
 
         <div
           ref={feedRef}
-          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-36 pt-6 sm:px-6 md:pb-44"
+          onDragOver={(event) => {
+            event.preventDefault();
+            if (!isLoading) setDragActive(true);
+          }}
+          onDragLeave={(event) => {
+            if (event.currentTarget === event.target) setDragActive(false);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragActive(false);
+            if (!isLoading) acceptAttachment(event.dataTransfer.files?.[0]);
+          }}
+          className="scrollbar-thin relative flex-1 overflow-y-auto px-4 pb-36 pt-6 sm:px-6 md:pb-44"
         >
+          {dragActive ? (
+            <div className="pointer-events-none absolute inset-3 z-30 flex items-center justify-center rounded-3xl border-2 border-dashed border-[var(--accent-primary)]/60 bg-[var(--accent-primary)]/[0.06] backdrop-blur-sm">
+              <span className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--accent-primary)] shadow-lg dark:bg-[#101014]/90">
+                <Paperclip className="h-4 w-4" />
+                ჩააგდე ფოტო ან ფაილი
+              </span>
+            </div>
+          ) : null}
           {!hasMessages ? (
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 pb-4 text-center">
-              <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
+              <div
+                className={`ai-orb-stage mb-4 h-[4.5rem] w-[4.5rem] sm:mb-8 sm:h-44 sm:w-44 ${
+                  isLoading ? "is-thinking" : ""
+                }`}
+                aria-hidden
+              >
+                <span className="ai-orb-ring" />
+                <span className="ai-orb-ring" />
+                <div className="ai-orb h-full w-full" />
+                <div className="ai-orb-orbit">
+                  <span className="ai-orb-particle" />
+                </div>
+                <div className="ai-orb-orbit ai-orb-orbit--wide">
+                  <span className="ai-orb-particle ai-orb-particle--b" />
+                  <span className="ai-orb-particle ai-orb-particle--c" />
+                </div>
+              </div>
               <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-[2.5rem]">
                 {firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა!"}
                 <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">

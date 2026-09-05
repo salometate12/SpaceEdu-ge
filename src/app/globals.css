@@ -1769,3 +1769,117 @@ html.dark .ai-teacher-surface {
     animation: none !important;
   }
 }
+
+/* AI Teacher — gamified orb: pulse rings + orbiting spark particles.
+ * `.is-thinking` (set while the AI streams) speeds it up and brightens. */
+.ai-orb-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.ai-orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(129, 140, 248, 0.45);
+  opacity: 0;
+  animation: ai-orb-ring 3.4s ease-out infinite;
+}
+.ai-orb-ring:nth-of-type(2) {
+  animation-delay: 1.7s;
+  border-color: rgba(244, 114, 182, 0.4);
+}
+
+.ai-orb-orbit {
+  position: absolute;
+  inset: -13%;
+  border-radius: 9999px;
+  animation: ai-orb-spin 9s linear infinite;
+  pointer-events: none;
+}
+.ai-orb-orbit--wide {
+  inset: -26%;
+  animation-duration: 15s;
+  animation-direction: reverse;
+}
+
+.ai-orb-particle {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  height: 9px;
+  width: 9px;
+  margin-left: -4.5px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, #fff, #a5b4fc 60%, rgba(165, 180, 252, 0));
+  box-shadow: 0 0 10px 2px rgba(165, 180, 252, 0.7);
+  animation: ai-orb-twinkle 2.6s ease-in-out infinite;
+}
+.ai-orb-particle--b {
+  top: auto;
+  bottom: -3px;
+  left: 32%;
+  background: radial-gradient(circle at 35% 35%, #fff, #f9a8d4 60%, rgba(249, 168, 212, 0));
+  box-shadow: 0 0 10px 2px rgba(249, 168, 212, 0.7);
+  animation-delay: 0.9s;
+}
+.ai-orb-particle--c {
+  top: 42%;
+  left: -3px;
+  height: 6px;
+  width: 6px;
+  background: radial-gradient(circle at 35% 35%, #fff, #7dd3fc 60%, rgba(125, 211, 252, 0));
+  box-shadow: 0 0 8px 2px rgba(125, 211, 252, 0.7);
+  animation-delay: 1.6s;
+}
+
+.ai-orb-stage.is-thinking .ai-orb {
+  animation-duration: 2.6s;
+}
+.ai-orb-stage.is-thinking .ai-orb::after {
+  opacity: 0.9;
+}
+.ai-orb-stage.is-thinking .ai-orb-orbit {
+  animation-duration: 3.4s;
+}
+.ai-orb-stage.is-thinking .ai-orb-orbit--wide {
+  animation-duration: 5.5s;
+}
+.ai-orb-stage.is-thinking .ai-orb-ring {
+  animation-duration: 1.5s;
+}
+
+@keyframes ai-orb-ring {
+  0% {
+    transform: scale(0.72);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+@keyframes ai-orb-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    scale: 0.7;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-orb-ring,
+  .ai-orb-orbit,
+  .ai-orb-particle {
+    animation: none !important;
+  }
+  .ai-orb-ring {
+    opacity: 0.25;
+  }
+}

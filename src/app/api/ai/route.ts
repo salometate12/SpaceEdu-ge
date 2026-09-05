@@ -168,7 +168,7 @@ Return ONLY valid JSON (all text in Georgian):
 Include theses/methodology/literatureReview/criticalAnalysis/conclusions ONLY when requested in analysis focus.
 Base all content strictly on the document text between markers.`;
 
-const MULTIPART_PAGE_TYPES = ["syllabus", "research-platform-abit"] as const;
+const MULTIPART_PAGE_TYPES = ["syllabus", "research-platform-abit", "ai-teacher"] as const;
 
 async function generateResearchFromText(
   fileName: string,
@@ -228,7 +228,7 @@ async function handleMultipartPost(request: Request) {
     return Response.json(
       {
         error: true,
-        message: "multipart მხარდაჭერა: syllabus ან research-platform-abit.",
+        message: "multipart მხარდაჭერა: syllabus, research-platform-abit ან ai-teacher.",
       },
       { status: 400 },
     );
@@ -243,15 +243,35 @@ async function handleMultipartPost(request: Request) {
   }
 
   const lowerType = file.type.toLowerCase();
-  const isResearchUpload = pageType === "research-platform-abit";
-  const isImageFile = isResearchUpload && lowerType.startsWith("image/");
-  const isAudioFile = isResearchUpload && lowerType.startsWith("audio/");
+  const lowerName = file.name.toLowerCase();
+  const acceptsMedia =
+    pageType === "research-platform-abit" || pageType === "ai-teacher";
+  const isImageFile = acceptsMedia && lowerType.startsWith("image/");
+  const isAudioFile = acceptsMedia && lowerType.startsWith("audio/");
+  const isPlainText =
+    lowerType.startsWith("text/") ||
+    lowerName.endsWith(".txt") ||
+    lowerName.endsWith(".md");
 
   const textBody = isImageFile
     ? await extractTextFromImageFile(file)
     : isAudioFile
       ? await extractTextFromAudioFile(file)
-      : await extractTextFromPdfFile(file);
+      : isPlainText
+        ? (await file.text()).trim()
+        : await extractTextFromPdfFile(file);
+
+  if (pageType === "ai-teacher") {
+    const message = String(formData.get("message") ?? "").trim();
+    const system = getSystemPromptForPageType("ai-teacher");
+    const prompt = buildUserPrompt("ai-teacher", {
+      material: `მიმაგრებული ფაილი „${file.name}" — ამოღებული შიგთავსი:\n${textBody}`,
+      message:
+        message ||
+        "გააანალიზე მიმაგრებული ფაილი და ამიხსენი მისი შინაარსი დეტალურად.",
+    });
+    return llmTextStreamResponse({ system, prompt, temperature: 0.35 });
+  }
 
   if (pageType === "syllabus") {
     let options: z.infer<typeof SyllabusOptionsSchema> | undefined;
