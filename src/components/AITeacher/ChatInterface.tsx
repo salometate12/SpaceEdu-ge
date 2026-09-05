@@ -327,7 +327,7 @@ export function ChatInterface() {
   );
 
   const floatingInput = (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-white via-white/90 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+4.75rem)] pt-8 dark:from-[#0a0a0f] dark:via-[#0a0a0f]/90 md:pb-5">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-white via-white/92 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-8 dark:from-[#0a0a0f] dark:via-[#0a0a0f]/92 md:pb-5">
       <div className="pointer-events-auto w-full max-w-3xl">
         {friendlyError ? (
           <div className="mb-3 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-sm text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
@@ -454,10 +454,10 @@ export function ChatInterface() {
 
         <div
           ref={feedRef}
-          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-52 pt-6 sm:px-6 md:pb-44"
+          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-36 pt-6 sm:px-6 md:pb-44"
         >
           {!hasMessages ? (
-            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-start px-2 pt-1 text-center sm:justify-center sm:pt-0">
+            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 pb-4 text-center">
               <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
               <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-[2.5rem]">
                 {firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა!"}

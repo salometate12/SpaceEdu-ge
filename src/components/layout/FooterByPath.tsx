@@ -6,7 +6,7 @@ import { SiteFooter } from "./SiteFooter";
 
 const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
 const CUSTOM_FOOTER_PATHS = new Set(["/"]);
-const NO_FOOTER_PATHS = new Set(["/privacy", "/terms"]);
+const NO_FOOTER_PATHS = new Set(["/privacy", "/terms", "/ai-teacher"]);
 
 export function FooterByPath() {
   const pathname = usePathname();

@@ -89,6 +89,7 @@ export function mobileDockHidden(pathname: string | null): boolean {
     pathname === "/registration" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
+    pathname === "/ai-teacher" || // full-screen chat: its own top bar + bottom input
     pathname.startsWith("/login") ||
     pathname.startsWith("/admin") ||
     isPremiumAssistantPath(pathname)
