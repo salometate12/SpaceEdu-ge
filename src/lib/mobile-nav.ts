@@ -1,59 +1,62 @@
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
-import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { profileHrefForSpace } from "@/lib/access-control";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import type { LucideIcon } from "lucide-react";
 import {
-  Calculator,
   CalendarDays,
-  Flame,
   Home,
-  LayoutDashboard,
   LogIn,
   Menu,
-  MessageSquare,
   Rocket,
+  Sparkles,
   Tag,
   UserRound,
 } from "lucide-react";
+
+/** Kind tags let the dock component style each slot distinctly
+ * (AI + calendar on the left, menu in the middle, theme + profile on
+ * the right, with profile as the accent sphere). */
+export type MobileDockKind = "ai" | "calendar" | "menu" | "profile";
 
 export interface MobileDockItem {
   href: string;
   label: string;
   icon: LucideIcon;
   match?: (pathname: string) => boolean;
+  kind?: MobileDockKind;
 }
 
+export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
+export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
+
+/** One shared dock across the whole mobile app: AI · Calendar · Menu · Profile.
+ * The theme toggle is rendered by the dock component between Menu and Profile. */
 function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
+  const calendarHref =
+    space === "abiturient" ? "/study-plan/abit" : space === "school" ? "/study-plan" : DASHBOARD_CALENDAR_ANCHOR_HREF;
   return [
     {
-      href: dashboardHrefForSpace(space),
-      label: "დეშბორდი",
-      icon: LayoutDashboard,
-      match: (p) =>
-        p.startsWith("/dashboard") ||
-        p === "/school" ||
-        p.startsWith("/subject"),
-    },
-    {
-      href: "/exam-calculator",
-      label: "კალკულატორი",
-      icon: Calculator,
-      match: (p) => p.startsWith("/exam-calculator"),
-    },
-    {
-      href: "/quiz",
-      label: "Quiz",
-      icon: Flame,
-      match: (p) => p === "/quiz",
-    },
-    {
+      kind: "ai",
       href: "/ai-teacher",
       label: "AI",
-      icon: MessageSquare,
+      icon: Sparkles,
       match: (p) => p === "/ai-teacher",
     },
     {
+      kind: "calendar",
+      href: calendarHref,
+      label: "კალენდარი",
+      icon: CalendarDays,
+      match: (p) => p.startsWith("/study-plan"),
+    },
+    {
+      kind: "menu",
+      href: DASHBOARD_MOBILE_MENU_HREF,
+      label: "მენიუ",
+      icon: Menu,
+    },
+    {
+      kind: "profile",
       href: profileHrefForSpace(space),
       label: "პროფილი",
       icon: UserRound,
@@ -61,33 +64,6 @@ function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
     },
   ];
 }
-
-export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
-export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
-
-const STUDENT_DASHBOARD_DOCK: MobileDockItem[] = [
-  {
-    href: DASHBOARD_CALENDAR_ANCHOR_HREF,
-    label: "კალენდარი",
-    icon: CalendarDays,
-  },
-  {
-    href: "/ai-teacher",
-    label: "AI",
-    icon: MessageSquare,
-  },
-  {
-    href: "/profile",
-    label: "პროფილი",
-    icon: UserRound,
-    match: (p) => p.startsWith("/profile"),
-  },
-  {
-    href: DASHBOARD_MOBILE_MENU_HREF,
-    label: "მენიუ",
-    icon: Menu,
-  },
-];
 
 const LANDING_DOCK: MobileDockItem[] = [
   { href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
@@ -128,8 +104,14 @@ export function mobileDockItems(
 ): MobileDockItem[] {
   if (!pathname || mobileDockHidden(pathname)) return [];
   if (pathname === "/" || pathname === "/pricing") return LANDING_DOCK;
-  if (pathname === "/dashboard-student") return STUDENT_DASHBOARD_DOCK;
   return appDock(space);
+}
+
+/** True for the shared app dock (AI · Calendar · Menu · Profile), which the
+ * dock component renders with its own centered, glossy styling. */
+export function isAppDock(pathname: string | null): boolean {
+  if (!pathname || mobileDockHidden(pathname)) return false;
+  return pathname !== "/" && pathname !== "/pricing";
 }
 
 export function isDockItemActive(pathname: string, item: MobileDockItem): boolean {
