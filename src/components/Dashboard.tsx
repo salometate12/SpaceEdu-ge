@@ -20,7 +20,7 @@ import { StudentTools } from "./dashboard/StudentTools";
 import { SemesterSubjects } from "./dashboard/SemesterSubjects";
 import { StudentStudyCalendar } from "./dashboard/StudentStudyCalendar";
 import { DailyGoals } from "./profile/DailyGoals";
-import { DASHBOARD_GOALS_STORAGE_KEY, INITIAL_DAILY_GOALS } from "@/lib/profile";
+import { DASHBOARD_GOALS_STORAGE_KEY } from "@/lib/profile";
 import { DashboardJournalWidget } from "./lecture-notes/DashboardJournalWidget";
 import { DashboardLectureStickers } from "./lecture-notes/DashboardLectureStickers";
 import {
@@ -314,7 +314,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           {goalsOnDashboard && (
             <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
-              <DailyGoals initialGoals={INITIAL_DAILY_GOALS} title="ჩემი მიზნები" />
+              <DailyGoals title="ჩემი მიზნები" />
             </div>
           )}
 

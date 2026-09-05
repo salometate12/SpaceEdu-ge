@@ -1,19 +1,73 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { CalendarClock, GraduationCap, Sparkles, TrendingUp } from "lucide-react";
-import { getDaysUntilExam, type UserProfile } from "@/lib/profile";
+import { getDaysUntilExam } from "@/lib/profile";
+import {
+  computeDashboardMetrics,
+  DASHBOARD_METRICS_UPDATED_EVENT,
+  type DashboardMetrics,
+} from "@/lib/dashboard-metrics";
+import { STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
 
 interface MetricCardsProps {
-  user: UserProfile;
+  /** From the user's profile — the one date we can't derive from activity. */
+  examDate: string;
 }
 
-export function MetricCards({ user }: MetricCardsProps) {
-  const daysUntilExam = getDaysUntilExam(user.examDate);
-  const examPassed = daysUntilExam === 0;
+export function MetricCards({ examDate }: MetricCardsProps) {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
 
-  const metrics = [
+  useEffect(() => {
+    const refresh = () => setMetrics(computeDashboardMetrics());
+    refresh();
+    window.addEventListener(DASHBOARD_METRICS_UPDATED_EVENT, refresh);
+    window.addEventListener(STREAK_UPDATED_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.removeEventListener(DASHBOARD_METRICS_UPDATED_EVENT, refresh);
+      window.removeEventListener(STREAK_UPDATED_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
+
+  const daysUntilExam = examDate ? getDaysUntilExam(examDate) : 0;
+  const examPassed = !examDate || daysUntilExam === 0;
+
+  const sessionsSub = !metrics
+    ? ""
+    : metrics.sessionsThisWeek === 0
+      ? "ჯერ არ დაგიწყია"
+      : metrics.sessionsDelta > 0
+        ? `+${metrics.sessionsDelta} გასულ კვირასთან`
+        : metrics.sessionsDelta < 0
+          ? `${metrics.sessionsDelta} გასულ კვირასთან`
+          : "იგივე, რაც გასულ კვირას";
+
+  const quizValue = !metrics
+    ? "—"
+    : metrics.quizAccuracy === null
+      ? "—"
+      : `${metrics.quizAccuracy}%`;
+  const quizSub = !metrics
+    ? ""
+    : metrics.quizAccuracy === null
+      ? "გაიარე პირველი ქვიზი"
+      : metrics.quizAccuracyDelta === null
+        ? "საშუალო სიზუსტე"
+        : metrics.quizAccuracyDelta > 0
+          ? `+${metrics.quizAccuracyDelta}% ამ თვეში`
+          : metrics.quizAccuracyDelta < 0
+            ? `${metrics.quizAccuracyDelta}% ამ თვეში`
+            : "უცვლელი ამ თვეში";
+
+  const cards = [
     {
       label: "ამ კვირის სესიები",
-      value: String(user.weekSessions),
-      sub: `+${user.weekDiff} გასულ კვირაზე`,
+      value: metrics ? String(metrics.sessionsThisWeek) : "—",
+      sub: sessionsSub,
       bg: "#d1fae5",
       text: "#065f46",
       icon: TrendingUp,
@@ -21,15 +75,15 @@ export function MetricCards({ user }: MetricCardsProps) {
     {
       label: "გამოცდამდე",
       value: examPassed ? null : String(daysUntilExam),
-      sub: examPassed ? "წარმატებები!" : "დღე დარჩა",
+      sub: examPassed ? "თარიღი არაა მითითებული" : "დღე დარჩა",
       bg: "#fef3c7",
       text: "#92400e",
       icon: examPassed ? GraduationCap : CalendarClock,
     },
     {
       label: "Quiz სიზუსტე",
-      value: `${user.avgQuizScore}%`,
-      sub: `+${user.quizImprovement}% ამ თვეში`,
+      value: quizValue,
+      sub: quizSub,
       bg: "#efe9fe",
       text: "#5b21b6",
       icon: Sparkles,
@@ -38,7 +92,7 @@ export function MetricCards({ user }: MetricCardsProps) {
 
   return (
     <section className="grid gap-3 sm:grid-cols-3">
-      {metrics.map((metric) => (
+      {cards.map((metric) => (
         <article
           key={metric.label}
           className="relative overflow-hidden rounded-[28px] p-5 transition-transform hover:-translate-y-1"

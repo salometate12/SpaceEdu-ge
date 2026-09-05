@@ -14,6 +14,7 @@ import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
+import { getActiveSubject } from "@/lib/activity";
 
 export interface QuizQuestion {
   id: number;
@@ -156,7 +157,7 @@ export default function QuizPage() {
   const goNext = () => {
     if (currentQuestionIndex + 1 >= questions.length) {
       recordDailyActivity();
-      recordQuizResult(score, questions.length);
+      recordQuizResult(score, questions.length, getActiveSubject());
     }
     setCurrentQuestionIndex((prev) => prev + 1);
     setSelectedOptionIndex(null);

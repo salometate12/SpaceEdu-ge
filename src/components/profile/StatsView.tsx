@@ -304,9 +304,12 @@ export function StatsView({ user }: StatsViewProps) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setEvents(getToolUsageEvents());
-    setSemesterSubjects(readSemesterSubjects().subjects);
-    setHydrated(true);
+    const hydrate = () => {
+      setEvents(getToolUsageEvents());
+      setSemesterSubjects(readSemesterSubjects().subjects);
+      setHydrated(true);
+    };
+    hydrate();
   }, []);
 
   const totalOpens = events.length;

@@ -14,11 +14,13 @@ const MAX_QUIZ_ATTEMPTS = 200;
 
 export const DASHBOARD_METRICS_UPDATED_EVENT = "spaceedu-dashboard-metrics-updated";
 
-interface QuizAttempt {
+export interface QuizAttempt {
   /** epoch ms */
   at: number;
   correct: number;
   total: number;
+  /** Active semester subject at the time, if any. */
+  subject?: string | null;
 }
 
 function isBrowser(): boolean {
@@ -31,7 +33,7 @@ function notify(): void {
 
 // ---- writers ---------------------------------------------------------------
 
-function readQuizAttempts(): QuizAttempt[] {
+export function readQuizAttempts(): QuizAttempt[] {
   if (!isBrowser()) return [];
   try {
     const raw = window.localStorage.getItem(QUIZ_STATS_KEY);
@@ -43,12 +45,22 @@ function readQuizAttempts(): QuizAttempt[] {
   }
 }
 
-/** Call once when a quiz run finishes. */
-export function recordQuizResult(correct: number, total: number): void {
+/** Call once when a quiz run finishes. `subject` is the active semester
+ * subject, if the student had one selected. */
+export function recordQuizResult(
+  correct: number,
+  total: number,
+  subject?: string | null,
+): void {
   if (!isBrowser() || total <= 0) return;
   const next = [
     ...readQuizAttempts(),
-    { at: Date.now(), correct: Math.max(0, Math.min(correct, total)), total },
+    {
+      at: Date.now(),
+      correct: Math.max(0, Math.min(correct, total)),
+      total,
+      subject: subject ?? null,
+    },
   ].slice(-MAX_QUIZ_ATTEMPTS);
   try {
     window.localStorage.setItem(QUIZ_STATS_KEY, JSON.stringify(next));
