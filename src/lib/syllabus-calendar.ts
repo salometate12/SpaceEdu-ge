@@ -81,6 +81,32 @@ export function addMilestoneToDashboardCalendar(
   return next;
 }
 
+/** Adds several milestones to the dashboard calendar in one pass — a single
+ * localStorage write and one update event, so bulk "add all" stays cheap. */
+export function addMilestonesToDashboardCalendar(
+  milestones: SyllabusMilestone[],
+): DashboardCalendarEvent[] {
+  const existing = getDashboardCalendarEvents();
+  const incomingIds = new Set(milestones.map((milestone) => milestone.id));
+  const events: DashboardCalendarEvent[] = milestones.map((milestone) => ({
+    id: milestone.id,
+    title: milestone.title,
+    date: milestone.date,
+    description: describeMilestone(milestone),
+    type: milestone.type,
+    source: "syllabus",
+  }));
+  const next = [
+    ...existing.filter((item) => !incomingIds.has(item.id)),
+    ...events,
+  ];
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    notifyCalendarUpdated();
+  }
+  return next;
+}
+
 export function isMilestoneOnDashboard(id: string): boolean {
   return getDashboardCalendarEvents().some((event) => event.id === id);
 }
