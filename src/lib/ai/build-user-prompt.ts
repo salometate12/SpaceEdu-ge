@@ -58,12 +58,14 @@ export function buildUserPrompt(
     }
 
     case "ai-teacher": {
-      const subject = asString(payload.subject, "General");
+      const subject = asString(payload.subject);
       const material = asString(payload.material);
       const message = asString(payload.message);
       return [
         material ? `Reference material:\n${material}` : "",
-        `Student question (${subject}): ${message}`,
+        subject
+          ? `Student question (${subject}): ${message}`
+          : `Student question: ${message}`,
       ]
         .filter(Boolean)
         .join("\n\n");
