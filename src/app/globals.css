@@ -1704,3 +1704,68 @@ html.dark .tool-chip-active {
     animation-duration: 0.01s !important;
   }
 }
+
+/* AI Teacher — glassmorphic hero orb */
+.ai-teacher-surface {
+  background:
+    radial-gradient(60% 45% at 18% 12%, rgba(129, 140, 248, 0.22), transparent 70%),
+    radial-gradient(55% 45% at 88% 8%, rgba(236, 72, 153, 0.14), transparent 70%),
+    radial-gradient(70% 55% at 50% 110%, rgba(56, 189, 248, 0.16), transparent 70%),
+    linear-gradient(180deg, #eef2ff 0%, #f6f5ff 42%, #ffffff 100%);
+}
+html.dark .ai-teacher-surface {
+  background:
+    radial-gradient(60% 45% at 18% 12%, rgba(124, 58, 237, 0.28), transparent 70%),
+    radial-gradient(55% 45% at 88% 8%, rgba(236, 72, 153, 0.16), transparent 70%),
+    radial-gradient(70% 55% at 50% 110%, rgba(14, 165, 233, 0.18), transparent 70%),
+    linear-gradient(180deg, #0b0b12 0%, #0a0a0f 60%, #0a0a0f 100%);
+}
+
+.ai-orb {
+  position: relative;
+  border-radius: 9999px;
+  background:
+    radial-gradient(closest-side at 34% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 55%),
+    radial-gradient(closest-side at 68% 40%, rgba(129, 140, 248, 0.95), rgba(129, 140, 248, 0) 62%),
+    radial-gradient(closest-side at 40% 70%, rgba(244, 114, 182, 0.85), rgba(244, 114, 182, 0) 60%),
+    radial-gradient(closest-side at 62% 66%, rgba(56, 189, 248, 0.9), rgba(56, 189, 248, 0) 62%),
+    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.55), rgba(99, 102, 241, 0.18) 70%);
+  box-shadow:
+    0 30px 70px -18px rgba(99, 102, 241, 0.5),
+    inset 0 0 40px rgba(255, 255, 255, 0.35);
+  filter: blur(0.5px);
+  animation: ai-orb-float 7s ease-in-out infinite;
+}
+.ai-orb::after {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 9999px;
+  background: inherit;
+  filter: blur(26px);
+  opacity: 0.6;
+  z-index: -1;
+  animation: ai-orb-spin 18s linear infinite;
+}
+
+@keyframes ai-orb-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.03);
+  }
+}
+@keyframes ai-orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-orb,
+  .ai-orb::after {
+    animation: none !important;
+  }
+}
