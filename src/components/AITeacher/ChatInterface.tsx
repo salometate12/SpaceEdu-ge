@@ -13,6 +13,7 @@ import {
 } from "react";
 import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { readSpaceeduSpace } from "@/lib/space-back-navigation";
@@ -75,6 +76,7 @@ export function ChatInterface() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const initialPromptConsumed = useRef(false);
 
   const router = useRouter();
   const firstName = useCurrentUserFirstName();
@@ -156,6 +158,34 @@ export function ChatInterface() {
       setIsLoading(false);
     }
   };
+
+  // Consume a one-shot prompt handed over from another page (e.g. the
+  // dashboard calendar's "დაიწყე სწავლა"), then auto-send it once. The ref
+  // guard keeps React Strict Mode's double effect run from dropping it.
+  useEffect(() => {
+    if (typeof window === "undefined" || initialPromptConsumed.current) return;
+    let pending: string | null = null;
+    try {
+      pending = window.sessionStorage.getItem(AI_TEACHER_PROMPT_KEY);
+      if (pending) window.sessionStorage.removeItem(AI_TEACHER_PROMPT_KEY);
+    } catch {
+      pending = null;
+    }
+    if (!pending) {
+      const fromQuery = new URLSearchParams(window.location.search).get("prompt");
+      if (fromQuery) {
+        pending = fromQuery;
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+    }
+    if (!pending || !pending.trim()) return;
+    initialPromptConsumed.current = true;
+    const message = pending;
+    window.setTimeout(() => {
+      void sendMessage(message);
+    }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

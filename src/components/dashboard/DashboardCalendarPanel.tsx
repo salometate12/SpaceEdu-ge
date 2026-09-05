@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
+  BookOpen,
   Brain,
   Calendar,
   CalendarDays,
@@ -12,12 +14,15 @@ import {
   Clock,
   FileText,
   GraduationCap,
+  Pencil,
   Plus,
   RefreshCw,
   X,
 } from "lucide-react";
 import {
   addManualCalendarEvent,
+  AI_TEACHER_PROMPT_KEY,
+  buildStudyPromptForEvent,
   CALENDAR_UPDATED_EVENT,
   getDashboardCalendarEvents,
   removeDashboardCalendarEvent,
@@ -148,6 +153,7 @@ interface DashboardCalendarPanelProps {
 
 export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalendarPanelProps = {}) {
   const isSidebar = variant === "sidebar";
+  const router = useRouter();
   const today = useMemo(() => new Date(), []);
   const [expandedState, setExpanded] = useState(true);
   const expanded = isSidebar ? expandedState : true;
@@ -155,6 +161,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
   const [selectedKey, setSelectedKey] = useState(() => toDateKey(today));
   const [events, setEvents] = useState<DashboardCalendarEvent[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formDate, setFormDate] = useState(() => toDateKey(today));
@@ -222,6 +229,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     setShowTimePicker(false);
     setFormAnimDone(false);
     setShowAddForm(true);
+    setOpenActionId(null);
   };
 
   const handleSubmitEvent = () => {
@@ -250,6 +258,24 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
       setShowAddForm(false);
       setEditingId(null);
     }
+    if (openActionId === id) setOpenActionId(null);
+  };
+
+  const handleStartStudying = (event: DashboardCalendarEvent) => {
+    const prompt = buildStudyPromptForEvent(
+      event,
+      formatDateLabel(eventDateKey(event.date)),
+      event.time ? formatTimeLabel(event.time) : undefined,
+    );
+    try {
+      window.sessionStorage.setItem(AI_TEACHER_PROMPT_KEY, prompt);
+    } catch {
+      // sessionStorage can be unavailable (private mode) — fall back to the
+      // query string so the AI teacher still receives the message.
+      router.push(`/ai-teacher?prompt=${encodeURIComponent(prompt)}`);
+      return;
+    }
+    router.push("/ai-teacher");
   };
 
   const handleExport = () => {
@@ -712,47 +738,88 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                   {selectedEvents.map((event) => {
                     const style = TYPE_STYLE[event.type];
                     const Icon = style.icon;
+                    const actionsOpen = openActionId === event.id;
                     return (
-                      <div
-                        key={event.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => openEditForm(event)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") openEditForm(event);
-                        }}
-                        className={`mobile-vivid-schedule-row ${style.mobileRow} group flex w-full items-start gap-2.5 rounded-2xl p-1.5 text-left transition-all hover:bg-black/5 dark:hover:bg-white/5`}
-                      >
-                        <span
-                          className={`mobile-vivid-schedule-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style.iconWrap}`}
-                        >
-                          <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="mobile-vivid-schedule-title truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                            {event.title}
-                          </p>
-                          <p className="mobile-vivid-schedule-label text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
-                            {style.label}
-                            {event.time ? ` · ${formatTimeLabel(event.time)}` : ""}
-                          </p>
-                          {event.description && (
-                            <p className="mobile-vivid-schedule-label mt-0.5 line-clamp-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
-                              {event.description}
-                            </p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveEvent(event.id);
+                      <div key={event.id}>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() =>
+                            setOpenActionId((prev) => (prev === event.id ? null : event.id))
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setOpenActionId((prev) => (prev === event.id ? null : event.id));
+                            }
                           }}
-                          aria-label="წაშლა"
-                          className="mobile-vivid-schedule-delete flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 opacity-0 transition-all hover:bg-black/5 hover:text-zinc-600 group-hover:opacity-100 dark:text-zinc-600 dark:hover:bg-white/10 dark:hover:text-zinc-300"
+                          aria-expanded={actionsOpen}
+                          className={`mobile-vivid-schedule-row ${style.mobileRow} group flex w-full items-start gap-2.5 rounded-2xl p-1.5 text-left transition-all hover:bg-black/5 dark:hover:bg-white/5 ${
+                            actionsOpen ? "bg-black/5 dark:bg-white/5" : ""
+                          }`}
                         >
-                          <X className="h-3 w-3" />
-                        </button>
+                          <span
+                            className={`mobile-vivid-schedule-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style.iconWrap}`}
+                          >
+                            <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="mobile-vivid-schedule-title truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                              {event.title}
+                            </p>
+                            <p className="mobile-vivid-schedule-label text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
+                              {style.label}
+                              {event.time ? ` · ${formatTimeLabel(event.time)}` : ""}
+                            </p>
+                            {event.description && (
+                              <p className="mobile-vivid-schedule-label mt-0.5 line-clamp-2 text-[10px] leading-snug text-zinc-500 dark:text-zinc-500">
+                                {event.description}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveEvent(event.id);
+                            }}
+                            aria-label="წაშლა"
+                            className="mobile-vivid-schedule-delete flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 opacity-0 transition-all hover:bg-black/5 hover:text-zinc-600 group-hover:opacity-100 dark:text-zinc-600 dark:hover:bg-white/10 dark:hover:text-zinc-300"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                          {actionsOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.18 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex gap-1.5 pl-[42px] pr-1.5 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartStudying(event)}
+                                  className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-pink-400 px-3 py-2 text-[11px] font-bold text-white transition-all hover:bg-pink-500 active:scale-[0.98] dark:bg-sky-400 dark:text-black dark:hover:bg-sky-300"
+                                >
+                                  <BookOpen className="h-3.5 w-3.5 stroke-[2.25]" />
+                                  დაიწყე სწავლა
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openEditForm(event)}
+                                  aria-label="რედაქტირება"
+                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-500 transition-all hover:border-sky-300 hover:text-sky-700 dark:border-white/10 dark:bg-white/5 dark:text-sky-300 dark:hover:text-white"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}

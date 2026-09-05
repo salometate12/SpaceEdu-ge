@@ -174,6 +174,37 @@ export function removeDashboardCalendarEvent(id: string): DashboardCalendarEvent
 
 export const CALENDAR_UPDATED_EVENT = "spaceedu-calendar-updated";
 
+/** sessionStorage handoff: the dashboard calendar writes a ready-made prompt
+ * here, then routes to /ai-teacher, which consumes it once and auto-sends. */
+export const AI_TEACHER_PROMPT_KEY = "spaceedu-ai-teacher-initial-prompt";
+
+const STUDY_PROMPT_TYPE_LABEL: Record<SyllabusMilestoneType, string> = {
+  midterm: "შუალედური გამოცდა",
+  quiz: "ქვიზი",
+  deadline: "დავალების დედლაინი",
+};
+
+/** Turns a calendar entry the student added into a first message for the
+ * AI teacher, carrying over everything they typed into the calendar. */
+export function buildStudyPromptForEvent(
+  event: DashboardCalendarEvent,
+  formattedDate?: string,
+  formattedTime?: string,
+): string {
+  const lines = [
+    `კალენდარში დაგეგმილი მაქვს: „${event.title}"`,
+    `ტიპი: ${STUDY_PROMPT_TYPE_LABEL[event.type]}`,
+    `თარიღი: ${formattedDate || event.date}`,
+  ];
+  if (event.time) lines.push(`დრო: ${formattedTime || event.time}`);
+  if (event.description) lines.push(`დეტალები: ${event.description}`);
+  lines.push(
+    "",
+    "დამეხმარე ამ თემისთვის მომზადებაში — ამიხსენი მთავარი საკითხები, შემიდგინე მოკლე სასწავლო გეგმა და მითხარი, რას მივაქციო განსაკუთრებული ყურადღება.",
+  );
+  return lines.join("\n");
+}
+
 export function notifyCalendarUpdated() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event(CALENDAR_UPDATED_EVENT));
