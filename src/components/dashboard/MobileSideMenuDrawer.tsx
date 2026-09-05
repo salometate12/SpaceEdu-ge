@@ -22,8 +22,6 @@ export function MobileSideMenuDrawer() {
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
   const [signingOut, setSigningOut] = useState(false);
 
-  const isStudentDashboard = pathname === "/dashboard-student";
-
   useEffect(() => {
     close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -37,8 +35,6 @@ export function MobileSideMenuDrawer() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
-
-  if (!isStudentDashboard) return null;
 
   const handleSignOut = async () => {
     setSigningOut(true);
