@@ -31,6 +31,8 @@ import { AbiturientDashboard } from "./abiturient/AbiturientDashboard";
 import { PreviewModeProvider, usePreviewMode } from "@/contexts/PreviewModeContext";
 import { isLivePreviewMode } from "@/lib/dashboard-preview-layout";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
+import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import type { ActivityEntry, DashboardMetrics } from "@/lib/dashboard-metrics";
 
 interface DashboardProps {
   initialSpace?: SmartSpace;
@@ -61,9 +63,8 @@ export function Dashboard({ initialSpace }: DashboardProps = {}) {
 
 const STUDENT_METRICS = [
   {
+    key: "sessions" as const,
     label: "ამ კვირის სესიები",
-    value: "5",
-    sub: "+2 | გასულ კვირაზე",
     color: "text-green-400",
     card: "border border-amber-200 bg-amber-100 dark:border-transparent dark:bg-yellow-400",
     mobileVivid: "mobile-vivid-metric-yellow",
@@ -73,9 +74,8 @@ const STUDENT_METRICS = [
     chartColor: "text-amber-600 dark:text-black/35",
   },
   {
+    key: "quiz" as const,
     label: "Quiz სიზუსტე",
-    value: "73%",
-    sub: "+5% ამ თვეში",
     color: "text-purple-300",
     card: "border border-pink-200 bg-pink-100 dark:border-transparent dark:bg-pink-400",
     mobileVivid: "mobile-vivid-metric-pink",
@@ -85,9 +85,8 @@ const STUDENT_METRICS = [
     chartColor: "text-pink-600 dark:text-black/35",
   },
   {
+    key: "research" as const,
     label: "კვლევები",
-    value: "8",
-    sub: "ამ სემესტრში",
     color: "text-slate-300",
     card: "border border-sky-200 bg-sky-100 dark:border-transparent dark:bg-blue-500",
     mobileVivid: "mobile-vivid-metric-blue",
@@ -97,9 +96,8 @@ const STUDENT_METRICS = [
     chartColor: "",
   },
   {
+    key: "cv" as const,
     label: "CV განახლდა",
-    value: "3 დღე",
-    sub: "განაახლე",
     color: "text-amber-300",
     card: "border border-emerald-200 bg-emerald-100 dark:border-transparent dark:bg-emerald-400",
     mobileVivid: "mobile-vivid-metric-emerald",
@@ -109,6 +107,71 @@ const STUDENT_METRICS = [
     chartColor: "",
   },
 ] as const;
+
+type StudentMetricKey = (typeof STUDENT_METRICS)[number]["key"];
+
+/** Turns the raw per-user metrics into the `{ value, sub }` each card shows.
+ * `null` metrics (server render / first paint) get a neutral placeholder so
+ * we never flash invented numbers. */
+function metricDisplay(
+  key: StudentMetricKey,
+  m: DashboardMetrics | null,
+): { value: string; sub: string } {
+  if (!m) return { value: "—", sub: "" };
+
+  switch (key) {
+    case "sessions": {
+      const d = m.sessionsDelta;
+      const sub =
+        m.sessionsThisWeek === 0
+          ? "ჯერ არ დაგიწყია ამ კვირას"
+          : d > 0
+            ? `+${d} გასულ კვირასთან`
+            : d < 0
+              ? `${d} გასულ კვირასთან`
+              : "იგივე, რაც გასულ კვირას";
+      return { value: String(m.sessionsThisWeek), sub };
+    }
+    case "quiz": {
+      if (m.quizAccuracy === null) {
+        return { value: "—", sub: "გაიარე პირველი ქვიზი" };
+      }
+      const d = m.quizAccuracyDelta;
+      const sub =
+        d === null
+          ? "საშუალო სიზუსტე"
+          : d > 0
+            ? `+${d}% ამ თვეში`
+            : d < 0
+              ? `${d}% ამ თვეში`
+              : "უცვლელი ამ თვეში";
+      return { value: `${m.quizAccuracy}%`, sub };
+    }
+    case "research":
+      return { value: String(m.researchThisSemester), sub: "ამ სემესტრში" };
+    case "cv": {
+      if (m.cvUpdatedDaysAgo === null) return { value: "ჯერ არა", sub: "შექმენი" };
+      if (m.cvUpdatedDaysAgo === 0) return { value: "დღეს", sub: "განახლებულია" };
+      if (m.cvUpdatedDaysAgo === 1) return { value: "გუშინ", sub: "განაახლე" };
+      return { value: `${m.cvUpdatedDaysAgo} დღის წინ`, sub: "განაახლე" };
+    }
+    default:
+      return { value: "—", sub: "" };
+  }
+}
+
+function activityTimeLabel(at: number): string {
+  const now = new Date();
+  const then = new Date(at);
+  const startOfToday = new Date(now).setHours(0, 0, 0, 0);
+  const startOfThen = new Date(then).setHours(0, 0, 0, 0);
+  const dayDiff = Math.round((startOfToday - startOfThen) / 86_400_000);
+  if (dayDiff <= 0) {
+    return `${String(then.getHours()).padStart(2, "0")}:${String(then.getMinutes()).padStart(2, "0")}`;
+  }
+  if (dayDiff === 1) return "გუშინ";
+  return `${then.getDate()}.${String(then.getMonth() + 1).padStart(2, "0")}`;
+}
 
 const ACTIVITY_ICON = {
   quiz: Flame,
@@ -157,11 +220,15 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
   const { previewMode } = usePreviewMode();
   const isLive = isLivePreviewMode(previewMode);
   const firstName = useCurrentUserFirstName();
+  const { metrics, activity } = useDashboardMetrics();
   const fallbackGreeting = activeSpace === "university" ? "პროფი!" : "სტუდენტო!";
   const [goalsOnDashboard, setGoalsOnDashboard] = useState(false);
 
   useEffect(() => {
-    setGoalsOnDashboard(window.localStorage.getItem(DASHBOARD_GOALS_STORAGE_KEY) === "1");
+    const readGoalsPref = () => {
+      setGoalsOnDashboard(window.localStorage.getItem(DASHBOARD_GOALS_STORAGE_KEY) === "1");
+    };
+    readGoalsPref();
   }, []);
 
   return (
@@ -185,7 +252,9 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           <div className="flex flex-col gap-5 max-[639px]:px-4">
           <DashboardMorphGrid variant="metrics" className="mobile-stack-tools">
             {STUDENT_METRICS.map(
-              ({ label, value, sub, color, card, mobileVivid, text, subText, chart, chartColor }) => (
+              ({ key, label, color, card, mobileVivid, text, subText, chart, chartColor }) => {
+                const { value, sub } = metricDisplay(key, metrics);
+                return (
                 <DashboardMorphItem
                   key={label}
                   id={`student-metric-${label}`}
@@ -228,7 +297,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
                     )}
                   </article>
                 </DashboardMorphItem>
-              ),
+                );
+              },
             )}
           </DashboardMorphGrid>
 
@@ -359,43 +429,48 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
             </article>
 
             <article className="rounded-[28px] border border-slate-200 bg-white p-5 dark:border-2 dark:border-white/10 dark:bg-[#121214]">
-              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">დღიური აქტივობა</h3>
-              <div className="space-y-3">
-                {(
-                  [
-                    ["quiz", "Quiz — მოლეკულა სტრუქტურა", "10:24"],
-                    ["study", "სასწავლო გეგმა განახლდა", "12:10"],
-                    ["ai", "AI მასწავლებელი — მექანიკა", "14:30"],
-                    ["cv", "CV განახლდა — სტაჟირება", "15:10"],
-                    ["syllabus", "სილაბუსის ანალიზი", "16:00"],
-                  ] as [keyof typeof ACTIVITY_ICON, string, string][]
-                ).map(([type, title, time]) => {
-                  const Icon = ACTIVITY_ICON[type];
-                  const dot =
-                    type === "quiz"
-                      ? "bg-violet-500"
-                      : type === "study"
-                        ? "bg-cyan-500"
-                        : type === "ai"
-                          ? "bg-emerald-500"
-                          : type === "cv"
-                            ? "bg-fuchsia-500"
-                            : "bg-pink-500";
-                  return (
-                    <div key={title} className="flex items-center justify-between text-sm">
-                      <span className="inline-flex items-center gap-2.5">
-                        <span
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white ${dot}`}
-                        >
-                          <Icon className="h-3.5 w-3.5 stroke-[2]" />
+              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">ბოლო აქტივობა</h3>
+              {activity && activity.length === 0 ? (
+                <p className="text-sm leading-relaxed text-slate-500 dark:text-zinc-500">
+                  ჯერ აქტივობა არ გაქვს — გახსენი რომელიმე ხელსაწყო და აქ გამოჩნდება.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {(activity ?? []).map((entry: ActivityEntry, index) => {
+                    const Icon = ACTIVITY_ICON[entry.category];
+                    const dot =
+                      entry.category === "quiz"
+                        ? "bg-violet-500"
+                        : entry.category === "study"
+                          ? "bg-cyan-500"
+                          : entry.category === "ai"
+                            ? "bg-emerald-500"
+                            : entry.category === "cv"
+                              ? "bg-fuchsia-500"
+                              : "bg-pink-500";
+                    return (
+                      <div
+                        key={`${entry.at}-${index}`}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="inline-flex min-w-0 items-center gap-2.5">
+                          <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white ${dot}`}
+                          >
+                            <Icon className="h-3.5 w-3.5 stroke-[2]" />
+                          </span>
+                          <span className="truncate text-slate-700 dark:text-zinc-300">
+                            {entry.title}
+                          </span>
                         </span>
-                        <span className="text-slate-700 dark:text-zinc-300">{title}</span>
-                      </span>
-                      <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">{time}</span>
-                    </div>
-                  );
-                })}
-              </div>
+                        <span className="shrink-0 pl-2 text-xs font-semibold text-slate-400 dark:text-zinc-500">
+                          {activityTimeLabel(entry.at)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </article>
           </section>
           <div id="dashboard-calendar-panel" className="scroll-mt-24">

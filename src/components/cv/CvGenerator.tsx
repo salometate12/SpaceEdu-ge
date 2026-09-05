@@ -4,6 +4,7 @@ import { useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { Download } from "lucide-react";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
+import { recordCvUpdate } from "@/lib/dashboard-metrics";
 import type { CvResponse } from "@/lib/ai/cv-schema";
 
 type WizardStep = 1 | 2 | 3 | 4;
@@ -153,6 +154,7 @@ export function CvGenerator() {
       setOptimizationTips(data.optimizationTips);
       setGenerated(true);
       setStep(4);
+      recordCvUpdate();
     } catch (err) {
       setCvError(
         err instanceof Error
