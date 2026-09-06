@@ -23,7 +23,18 @@ export interface DashboardCalendarEvent {
 }
 
 const SYLLABUS_MILESTONES_KEY = "spaceedu-syllabus-generated-milestones";
-const DASHBOARD_CALENDAR_KEY = "spaceedu-dashboard-calendar-events";
+const DASHBOARD_CALENDAR_KEY_BASE = "spaceedu-dashboard-calendar-events";
+
+/** The dashboard calendar is per-space so the abiturient dashboard doesn't
+ * inherit the student dashboard's saved dates (and vice-versa). Student /
+ * unknown keeps the original key so existing data is preserved. */
+function dashboardCalendarKey(): string {
+  if (typeof window === "undefined") return DASHBOARD_CALENDAR_KEY_BASE;
+  const space = window.localStorage.getItem("spaceedu_space");
+  return space && space !== "student"
+    ? `${DASHBOARD_CALENDAR_KEY_BASE}:${space}`
+    : DASHBOARD_CALENDAR_KEY_BASE;
+}
 
 export function getGeneratedMilestones(): SyllabusMilestone[] {
   if (typeof window === "undefined") return [];
@@ -44,7 +55,7 @@ export function setGeneratedMilestones(milestones: SyllabusMilestone[]) {
 export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(DASHBOARD_CALENDAR_KEY);
+    const raw = window.localStorage.getItem(dashboardCalendarKey());
     if (!raw) return [];
     return JSON.parse(raw) as DashboardCalendarEvent[];
   } catch {
@@ -75,7 +86,7 @@ export function addMilestoneToDashboardCalendar(
   };
   const next = [...existing.filter((item) => item.id !== milestone.id), event];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
     notifyCalendarUpdated();
   }
   return next;
@@ -101,7 +112,7 @@ export function addMilestonesToDashboardCalendar(
     ...events,
   ];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
     notifyCalendarUpdated();
   }
   return next;
@@ -134,7 +145,7 @@ export function addManualCalendarEvent(
   };
   const next = [...existing, event];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
     notifyCalendarUpdated();
   }
   return next;
@@ -157,7 +168,7 @@ export function updateDashboardCalendarEvent(
       : event,
   );
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
     notifyCalendarUpdated();
   }
   return next;
@@ -166,7 +177,7 @@ export function updateDashboardCalendarEvent(
 export function removeDashboardCalendarEvent(id: string): DashboardCalendarEvent[] {
   const next = getDashboardCalendarEvents().filter((event) => event.id !== id);
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(DASHBOARD_CALENDAR_KEY, JSON.stringify(next));
+    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
     notifyCalendarUpdated();
   }
   return next;
@@ -232,10 +243,10 @@ export function clearLegacySyllabusMockData(): void {
   );
   if (cleanedEvents.length !== events.length) {
     if (cleanedEvents.length === 0) {
-      window.localStorage.removeItem(DASHBOARD_CALENDAR_KEY);
+      window.localStorage.removeItem(dashboardCalendarKey());
     } else {
       window.localStorage.setItem(
-        DASHBOARD_CALENDAR_KEY,
+        dashboardCalendarKey(),
         JSON.stringify(cleanedEvents),
       );
     }
