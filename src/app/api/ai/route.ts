@@ -7,6 +7,13 @@ import {
   type Eli5Response,
 } from "@/lib/ai/eli5-schema";
 import {
+  ESSAY_GRADER_JSON_INSTRUCTIONS,
+  EssayGraderRequestSchema,
+  EssayGraderResponseSchema,
+  normalizeEssayReport,
+  type EssayGraderResponse,
+} from "@/lib/ai/essay-grader-schema";
+import {
   LectureNotesKeywordsSchema,
   LectureNotesRequestSchema,
   type LectureNotesKeywords,
@@ -405,6 +412,22 @@ export async function POST(request: Request) {
       })) as Eli5Response;
 
       return Response.json(object);
+    }
+
+    if (pageType === "essay-grader") {
+      const essayPayload = EssayGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, essayPayload);
+
+      const object = (await generateGeminiObject({
+        schema: EssayGraderResponseSchema,
+        system: `${system}\n${ESSAY_GRADER_JSON_INSTRUCTIONS}`,
+        prompt,
+        temperature: 0.25,
+      })) as EssayGraderResponse;
+
+      // The report the UI renders always has all four criteria and a
+      // total that matches them, whatever the model returned.
+      return Response.json(normalizeEssayReport(object));
     }
 
     if (pageType === "lecture-notes") {

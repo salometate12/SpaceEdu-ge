@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { ArrowLeft, ChevronRight, Layers, PlayCircle } from "lucide-react";
+import { Archive, ArrowLeft, ChevronRight, Layers, PenLine, PlayCircle } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
 import { getSecondaryTheme, getTertiaryTheme } from "@/lib/abiturient-subjects";
 import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
@@ -156,6 +156,56 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
         </Link>
       </section>
       )}
+
+      <section className="mt-6 grid gap-4 sm:grid-cols-2" aria-label="საგამოცდო რესურსები">
+        <Link
+          href={`/subject/${subject.id}/past-exams`}
+          className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#16161a]/40 p-5 backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-cyan-400/40"
+        >
+          <div
+            className="pointer-events-none absolute -right-14 -top-14 h-32 w-32 rounded-full opacity-[0.1] blur-2xl transition-opacity duration-300 group-hover:opacity-[0.2]"
+            style={{ background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)" }}
+            aria-hidden
+          />
+          <div className="relative z-[1] mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/[0.06]">
+            <Archive className="h-5 w-5 text-cyan-400" strokeWidth={1.5} />
+          </div>
+          <h2 className="relative z-[1] text-lg font-semibold text-white">
+            ეროვნული გამოცდების არქივი
+          </h2>
+          <p className="relative z-[1] mt-1 text-xs leading-relaxed text-zinc-400">
+            ტესტები წლებისა და ვარიანტების მიხედვით.
+          </p>
+          <span className="relative z-[1] mt-4 inline-flex items-center gap-1 text-xs font-medium text-cyan-400">
+            გახსნა
+            <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+
+        <Link
+          href={`/subject/${subject.id}/essay-grader`}
+          className="group relative block overflow-hidden rounded-2xl border border-white/[0.06] bg-[#16161a]/40 p-5 backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-violet-400/40"
+        >
+          <div
+            className="pointer-events-none absolute -right-14 -top-14 h-32 w-32 rounded-full opacity-[0.1] blur-2xl transition-opacity duration-300 group-hover:opacity-[0.2]"
+            style={{ background: "radial-gradient(circle, #A855F7 0%, transparent 70%)" }}
+            aria-hidden
+          />
+          <div className="relative z-[1] mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/[0.06]">
+            <PenLine className="h-5 w-5 text-violet-400" strokeWidth={1.5} />
+          </div>
+          <h2 className="relative z-[1] text-lg font-semibold text-white">
+            ესეს შემფასებელი
+          </h2>
+          <p className="relative z-[1] mt-1 text-xs leading-relaxed text-zinc-400">
+            შეფასება ეროვნული გამოცდის რუბრიკით და კონკრეტული შესწორებები.
+          </p>
+          <span className="relative z-[1] mt-4 inline-flex items-center gap-1 text-xs font-medium text-violet-400">
+            გახსნა
+            <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      </section>
 
       <section className="mt-6">
         {premiumSlot ?? (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 import { DashboardHeader } from "./DashboardHeader";
 import { LandingHeader } from "./LandingHeader";
 
@@ -40,7 +41,9 @@ export function Header({ variant }: HeaderProps) {
 
 export function HeaderByPath() {
   const pathname = usePathname();
+  const { focusMode } = useFocusMode();
   if (
+    focusMode ||
     !pathname ||
     pathname === "/select-space" ||
     pathname === "/registration" ||

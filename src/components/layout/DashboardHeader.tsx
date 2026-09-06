@@ -15,6 +15,7 @@ import {
   NOTIFICATIONS_UPDATED_EVENT,
 } from "@/lib/notifications";
 import { AvatarDropdown } from "./AvatarDropdown";
+import { FocusModeToggle } from "./FocusModeToggle";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { profileHrefForSpace, spaceFromPathname, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
@@ -141,6 +142,7 @@ export function DashboardHeader({
         )}
 
         <div className="flex items-center gap-2">
+          <FocusModeToggle compact />
           <ThemeToggle />
           <span className="hidden items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-700 sm:inline-flex dark:border-[#f59e0b] dark:bg-[#2d1a00] dark:text-[#fcd34d]">
             <Flame className="h-3.5 w-3.5" />

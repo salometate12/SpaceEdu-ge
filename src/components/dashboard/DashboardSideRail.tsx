@@ -32,6 +32,7 @@ import { profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control
 import { abiturientMenuGroups } from "@/lib/abiturient-menu";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 
 export interface RailItem {
   id: string;
@@ -215,6 +216,7 @@ export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
+  const { focusMode } = useFocusMode();
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -237,9 +239,16 @@ export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
 
   return (
     <motion.aside
-      animate={{ width: expanded ? 232 : 76 }}
+      animate={
+        focusMode
+          ? { width: 0, opacity: 0, paddingLeft: 0, paddingRight: 0 }
+          : { width: expanded ? 232 : 76, opacity: 1 }
+      }
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 self-start overflow-y-auto overflow-x-hidden rounded-[28px] bg-[#0b0b0e] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.35)] md:flex md:flex-col"
+      aria-hidden={focusMode}
+      className={`sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 self-start overflow-y-auto overflow-x-hidden rounded-[28px] bg-[#0b0b0e] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.35)] md:flex md:flex-col ${
+        focusMode ? "pointer-events-none" : ""
+      }`}
     >
       <button
         type="button"

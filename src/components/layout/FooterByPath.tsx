@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SiteFooter } from "./SiteFooter";
 
 const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
@@ -10,7 +11,9 @@ const NO_FOOTER_PATHS = new Set(["/privacy", "/terms"]);
 
 export function FooterByPath() {
   const pathname = usePathname();
+  const { focusMode } = useFocusMode();
   if (
+    focusMode ||
     isPremiumAssistantPath(pathname) ||
     FULL_BLEED_PATHS.has(pathname ?? "") ||
     pathname?.startsWith("/journal") ||
