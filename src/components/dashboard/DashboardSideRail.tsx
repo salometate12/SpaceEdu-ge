@@ -29,6 +29,7 @@ import {
 } from "@/lib/space-back-navigation";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { abiturientMenuGroups } from "@/lib/abiturient-menu";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 
@@ -155,15 +156,65 @@ export function resolveRailHref(
   return fallback;
 }
 
+interface RailGroupsOptions {
+  space?: SpaceeduSpace;
+  pathname: string | null;
+  onAiChat: () => void;
+  aiChatOpen: boolean;
+}
+
+/** The menu groups for the current space. Abiturient gets its own tuned
+ * menu (general · subjects · tools · account); every other space keeps the
+ * shared student rail. Used by the desktop rail and the mobile drawer. */
+export function buildRailGroups({
+  space,
+  pathname,
+  onAiChat,
+  aiChatOpen,
+}: RailGroupsOptions): { title: string; items: RailItem[] }[] {
+  if (space === "abiturient") {
+    return abiturientMenuGroups()
+      .map((group) => ({
+        title: group.title,
+        items: group.items.map((item): RailItem => ({
+          id: item.id,
+          label: item.label,
+          icon: item.icon,
+          href: item.action ? undefined : item.href,
+          onClick: item.action === "ai-chat" ? onAiChat : undefined,
+          active:
+            item.action === "ai-chat"
+              ? aiChatOpen
+              : !!item.href && pathname === item.href,
+        })),
+      }))
+      .filter((group) => group.items.length > 0);
+  }
+
+  const withHref = (item: Omit<RailItem, "onClick" | "active">): RailItem => {
+    const href = resolveRailHref(item.id, item.href ?? "#", space);
+    return { ...item, href, active: pathname === href };
+  };
+
+  return [
+    { title: "ზოგადი", items: GENERAL_ITEMS.map(withHref) },
+    {
+      title: "ხელსაწყოები",
+      items: [
+        { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, onClick: onAiChat, active: aiChatOpen },
+        ...TOOL_ITEMS.map(withHref),
+      ],
+    },
+    { title: "ანგარიში", items: ACCOUNT_ITEMS.map(withHref) },
+  ];
+}
+
 export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
   const [expanded, setExpanded] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
-
-  const hrefForItem = (id: string, fallback: string): string =>
-    resolveRailHref(id, fallback, space);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -177,17 +228,12 @@ export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
     }
   };
 
-  const withHref = (item: Omit<RailItem, "onClick" | "active">): RailItem => {
-    const href = hrefForItem(item.id, item.href ?? "#");
-    return { ...item, href, active: pathname === href };
-  };
-
-  const generalItems: RailItem[] = GENERAL_ITEMS.map(withHref);
-  const accountItems: RailItem[] = ACCOUNT_ITEMS.map(withHref);
-  const toolItems: RailItem[] = [
-    { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, onClick: toggleAiChat, active: aiChatOpen },
-    ...TOOL_ITEMS.map(withHref),
-  ];
+  const groups = buildRailGroups({
+    space,
+    pathname,
+    onAiChat: toggleAiChat,
+    aiChatOpen,
+  });
 
   return (
     <motion.aside
@@ -206,15 +252,11 @@ export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
         </motion.span>
       </button>
 
-      <RailGroup title="ზოგადი" items={generalItems} expanded={expanded} />
-
-      <div className="mt-4 border-t border-white/10 pt-4">
-        <RailGroup title="ხელსაწყოები" items={toolItems} expanded={expanded} />
-      </div>
-
-      <div className="mt-4 border-t border-white/10 pt-4">
-        <RailGroup title="ანგარიში" items={accountItems} expanded={expanded} />
-      </div>
+      {groups.map((group, index) => (
+        <div key={group.title} className={index > 0 ? "mt-4 border-t border-white/10 pt-4" : ""}>
+          <RailGroup title={group.title} items={group.items} expanded={expanded} />
+        </div>
+      ))}
 
       <div className="mt-4 border-t border-white/10 pt-4">
         <button

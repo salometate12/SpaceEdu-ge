@@ -3,19 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogOut, MessageSquare, Rocket, X } from "lucide-react";
+import { LogOut, Rocket, X } from "lucide-react";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { spaceFromPathname } from "@/lib/access-control";
-import {
-  ACCOUNT_ITEMS,
-  GENERAL_ITEMS,
-  RailGroup,
-  resolveRailHref,
-  TOOL_ITEMS,
-  type RailItem,
-} from "./DashboardSideRail";
+import { buildRailGroups, RailGroup } from "./DashboardSideRail";
 
 export function MobileSideMenuDrawer() {
   const pathname = usePathname();
@@ -25,10 +18,6 @@ export function MobileSideMenuDrawer() {
   const [signingOut, setSigningOut] = useState(false);
 
   const space = spaceFromPathname(pathname ?? "") ?? undefined;
-  const withHref = (item: Omit<RailItem, "onClick" | "active">): RailItem => {
-    const href = resolveRailHref(item.id, item.href ?? "#", space);
-    return { ...item, href, active: pathname === href };
-  };
 
   useEffect(() => {
     close();
@@ -57,21 +46,15 @@ export function MobileSideMenuDrawer() {
     }
   };
 
-  const generalItems: RailItem[] = GENERAL_ITEMS.map(withHref);
-  const accountItems: RailItem[] = ACCOUNT_ITEMS.map(withHref);
-  const toolItems: RailItem[] = [
-    {
-      id: "ai-chat",
-      label: "AI ჩატი",
-      icon: MessageSquare,
-      onClick: () => {
-        toggleAiChat();
-        close();
-      },
-      active: aiChatOpen,
+  const groups = buildRailGroups({
+    space,
+    pathname,
+    onAiChat: () => {
+      toggleAiChat();
+      close();
     },
-    ...TOOL_ITEMS.map(withHref),
-  ];
+    aiChatOpen,
+  });
 
   return (
     <div
@@ -98,15 +81,14 @@ export function MobileSideMenuDrawer() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <RailGroup title="ზოგადი" items={generalItems} expanded />
-
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <RailGroup title="ხელსაწყოები" items={toolItems} expanded />
-        </div>
-
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <RailGroup title="ანგარიში" items={accountItems} expanded />
-        </div>
+        {groups.map((group, index) => (
+          <div
+            key={group.title}
+            className={index > 0 ? "mt-4 border-t border-white/10 pt-4" : ""}
+          >
+            <RailGroup title={group.title} items={group.items} expanded />
+          </div>
+        ))}
       </div>
 
       <div className="border-t border-white/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
