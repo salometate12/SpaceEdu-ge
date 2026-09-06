@@ -16,6 +16,8 @@ interface TropeHighlightedPassageProps {
    * a brighter neon wash so the student's eye jumps straight to the span.
    */
   intensity?: "soft" | "strong";
+  /** Poems keep every line break; prose reflows. */
+  preserveLines?: boolean;
 }
 
 /**
@@ -27,8 +29,10 @@ export function TropeHighlightedPassage({
   text,
   highlight,
   intensity = "soft",
+  preserveLines = false,
 }: TropeHighlightedPassageProps) {
   const paragraphs = useMemo(() => text.split(/\n{2,}/), [text]);
+  const paraClass = preserveLines ? "whitespace-pre-line" : undefined;
 
   const markClass =
     intensity === "strong"
@@ -39,12 +43,16 @@ export function TropeHighlightedPassage({
     <div className="space-y-5 text-[15.5px] leading-[2] text-white/90">
       {paragraphs.map((paragraph, index) => {
         if (!highlight || !paragraph.includes(highlight)) {
-          return <p key={`p-${index}`}>{paragraph}</p>;
+          return (
+            <p key={`p-${index}`} className={paraClass}>
+              {paragraph}
+            </p>
+          );
         }
 
         const parts = paragraph.split(new RegExp(`(${escapeRegExp(highlight)})`));
         return (
-          <p key={`p-${index}`}>
+          <p key={`p-${index}`} className={paraClass}>
             {parts.map((part, partIndex) =>
               part === highlight ? (
                 <motion.mark

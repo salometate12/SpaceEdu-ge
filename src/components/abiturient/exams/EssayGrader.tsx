@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -52,6 +52,16 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
     () => essay.trim().split(/\s+/).filter(Boolean).length,
     [essay],
   );
+
+  // The archive hands the exam's own essay task over via ?prompt=, so the
+  // student lands here with the real task already filled in.
+  useEffect(() => {
+    const prefill = () => {
+      const fromUrl = new URLSearchParams(window.location.search).get("prompt");
+      if (fromUrl) setPrompt(fromUrl);
+    };
+    prefill();
+  }, []);
 
   const grade = useCallback(async () => {
     const text = essay.trim();
