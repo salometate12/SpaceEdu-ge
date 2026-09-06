@@ -6,6 +6,8 @@ import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardTopUtility } from "@/components/dashboard/DashboardTopUtility";
+import { DashboardSideRail } from "@/components/dashboard/DashboardSideRail";
+import { DashboardCalendarPanel } from "@/components/dashboard/DashboardCalendarPanel";
 import { PreviewModeProvider } from "@/contexts/PreviewModeContext";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 
@@ -15,9 +17,10 @@ export function AbiturientDashboard() {
   return (
     <PreviewModeProvider>
       <div className="relative flex min-h-full flex-col overflow-x-hidden">
-      <main className="relative mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
-        <DashboardTopUtility />
-        <div className="relative z-10 flex w-full flex-col gap-5 pt-10 sm:pt-12">
+      <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-4 py-6 max-[639px]:px-0 max-[639px]:pt-0 sm:px-6 sm:py-8 lg:py-10 xl:flex-row">
+        <DashboardSideRail space="abiturient" />
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 max-[639px]:pt-0 sm:pt-12">
+          <DashboardTopUtility />
           <DashboardGreetingBanner
             workspace="abiturient"
             badge={
@@ -51,7 +54,12 @@ export function AbiturientDashboard() {
           <AbiturientStudyCalendar />
 
           <AbiturientLibrary />
+
+          <div id="dashboard-calendar-panel" className="scroll-mt-24">
+            <DashboardCalendarPanel variant="inline" />
+          </div>
         </div>
+        <DashboardCalendarPanel />
       </main>
       </div>
     </PreviewModeProvider>

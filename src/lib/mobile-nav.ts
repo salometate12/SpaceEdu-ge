@@ -33,7 +33,11 @@ export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-cale
  * The theme toggle is rendered by the dock component between Menu and Profile. */
 function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
   const calendarHref =
-    space === "abiturient" ? "/study-plan/abit" : space === "school" ? "/study-plan" : DASHBOARD_CALENDAR_ANCHOR_HREF;
+    space === "abiturient"
+      ? "/dashboard-abit#dashboard-calendar-panel"
+      : space === "school"
+        ? "/study-plan"
+        : DASHBOARD_CALENDAR_ANCHOR_HREF;
   return [
     {
       kind: "ai",

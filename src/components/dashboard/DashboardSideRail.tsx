@@ -23,7 +23,12 @@ import {
   StickyNote,
   User,
 } from "lucide-react";
-import { researchPlatformHref } from "@/lib/space-back-navigation";
+import {
+  researchPlatformHref,
+  type SpaceeduSpace,
+} from "@/lib/space-back-navigation";
+import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 
@@ -128,12 +133,37 @@ export function RailGroup({
   );
 }
 
-export function DashboardSideRail() {
+interface DashboardSideRailProps {
+  /** Retargets the space-specific links (dashboard, study plan, profile,
+   * stats, research). Defaults to the student space. */
+  space?: SpaceeduSpace;
+}
+
+/** Retargets a rail item's link for a non-student space. Shared by the
+ * desktop rail and the mobile drawer. */
+export function resolveRailHref(
+  id: string,
+  fallback: string,
+  space?: SpaceeduSpace,
+): string {
+  if (!space || space === "student") return fallback;
+  if (id === "dashboard") return dashboardHrefForSpace(space);
+  if (id === "study-plan") return studyPlanHrefForSpace(space);
+  if (id === "profile") return profileHrefForSpace(space);
+  if (id === "stats") return `${profileHrefForSpace(space)}/stats`;
+  if (id === "research") return researchPlatformHref("abit");
+  return fallback;
+}
+
+export function DashboardSideRail({ space }: DashboardSideRailProps = {}) {
   const [expanded, setExpanded] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
+
+  const hrefForItem = (id: string, fallback: string): string =>
+    resolveRailHref(id, fallback, space);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -147,17 +177,16 @@ export function DashboardSideRail() {
     }
   };
 
-  const generalItems: RailItem[] = GENERAL_ITEMS.map((item) => ({
-    ...item,
-    active: pathname === item.href,
-  }));
-  const accountItems: RailItem[] = ACCOUNT_ITEMS.map((item) => ({
-    ...item,
-    active: pathname === item.href,
-  }));
+  const withHref = (item: Omit<RailItem, "onClick" | "active">): RailItem => {
+    const href = hrefForItem(item.id, item.href ?? "#");
+    return { ...item, href, active: pathname === href };
+  };
+
+  const generalItems: RailItem[] = GENERAL_ITEMS.map(withHref);
+  const accountItems: RailItem[] = ACCOUNT_ITEMS.map(withHref);
   const toolItems: RailItem[] = [
     { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, onClick: toggleAiChat, active: aiChatOpen },
-    ...TOOL_ITEMS.map((item) => ({ ...item, active: pathname === item.href })),
+    ...TOOL_ITEMS.map(withHref),
   ];
 
   return (
