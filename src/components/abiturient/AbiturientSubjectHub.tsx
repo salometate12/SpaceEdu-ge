@@ -105,6 +105,7 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
         </div>
       </section>
 
+      {subject.id !== "georgian" && (
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <Link
           href={subjectId === "georgian" ? quizHrefForGeorgianSubject() : "/quiz"}
@@ -154,6 +155,7 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
           </span>
         </Link>
       </section>
+      )}
 
       <section className="mt-6">
         {premiumSlot ?? (
