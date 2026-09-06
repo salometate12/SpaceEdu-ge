@@ -6,7 +6,6 @@ import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
 import { AbiturientNotesWidget } from "./AbiturientNotesWidget";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
-import { DashboardTopUtility } from "@/components/dashboard/DashboardTopUtility";
 import { DashboardSideRail } from "@/components/dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "@/components/dashboard/DashboardCalendarPanel";
 import { PreviewModeProvider } from "@/contexts/PreviewModeContext";
@@ -21,7 +20,6 @@ export function AbiturientDashboard() {
       <main className="relative mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5 px-4 py-6 max-[639px]:px-0 max-[639px]:pt-0 sm:px-6 sm:py-8 lg:py-10 xl:flex-row">
         <DashboardSideRail space="abiturient" />
         <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 max-[639px]:pt-0 sm:pt-12">
-          <DashboardTopUtility />
           <DashboardGreetingBanner
             workspace="abiturient"
             badge={
