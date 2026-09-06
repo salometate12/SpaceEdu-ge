@@ -13,6 +13,8 @@ import { SiteThemeAccess } from "@/components/layout/SiteThemeAccess";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AIChatPanelProvider } from "@/contexts/AIChatPanelContext";
 import { AIChatSidePanel } from "@/components/AITeacher/AIChatSidePanel";
+import { FocusModeProvider } from "@/contexts/FocusModeContext";
+import { FocusModeExitPill } from "@/components/layout/FocusModeToggle";
 import { MobileSideMenuProvider } from "@/contexts/MobileSideMenuContext";
 import { MobileSideMenuDrawer } from "@/components/dashboard/MobileSideMenuDrawer";
 import { ka } from "@/lib/i18n";
@@ -117,15 +119,18 @@ export default function RootLayout({
         <ThemeProvider>
           <AIChatPanelProvider>
             <MobileSideMenuProvider>
-              <div className="flex min-h-screen flex-col">
-                <HeaderByPath />
-                <AIChatSidePanel />
-                <MobileSideMenuDrawer />
-                <SiteShell>{children}</SiteShell>
-                <FooterByPath />
-                <MobileGlassDockByPath />
-              </div>
-              <SiteThemeAccess />
+              <FocusModeProvider>
+                <div className="flex min-h-screen flex-col">
+                  <HeaderByPath />
+                  <AIChatSidePanel />
+                  <MobileSideMenuDrawer />
+                  <SiteShell>{children}</SiteShell>
+                  <FooterByPath />
+                  <MobileGlassDockByPath />
+                  <FocusModeExitPill />
+                </div>
+                <SiteThemeAccess />
+              </FocusModeProvider>
             </MobileSideMenuProvider>
           </AIChatPanelProvider>
         </ThemeProvider>

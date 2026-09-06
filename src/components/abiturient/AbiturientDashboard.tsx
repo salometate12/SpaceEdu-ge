@@ -5,9 +5,11 @@ import { AbiturientTools } from "./AbiturientTools";
 import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
 import { AbiturientNotesWidget } from "./AbiturientNotesWidget";
+import { DailyQuests } from "@/components/dashboard/DailyQuests";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardSideRail } from "@/components/dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "@/components/dashboard/DashboardCalendarPanel";
+import { WeaknessRadar } from "@/components/dashboard/WeaknessRadar";
 import { PreviewModeProvider } from "@/contexts/PreviewModeContext";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 
@@ -48,7 +50,11 @@ export function AbiturientDashboard() {
             </div>
           </section>
 
+          <DailyQuests />
+
           <AbiturientTools />
+
+          <WeaknessRadar />
 
           <AbiturientNotesWidget />
 

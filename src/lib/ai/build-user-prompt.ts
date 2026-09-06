@@ -188,6 +188,24 @@ export function buildUserPrompt(
         .join("\n\n");
     }
 
+    case "essay-grader": {
+      const essay = asString(payload.essay);
+      const topic = asString(payload.prompt);
+      const wordCount = essay.split(/\s+/).filter(Boolean).length;
+      return [
+        topic
+          ? `ესეს დავალება/თემა: ${topic}`
+          : "ესეს დავალება მითითებული არაა — შეაფასე თემის შინაგანი თანმიმდევრულობა.",
+        `მოცულობა: ${wordCount} სიტყვა.`,
+        "შეაფასე ქვემოთ მოცემული ესე ეროვნული გამოცდების რუბრიკით და დააბრუნე მხოლოდ JSON.",
+        "--- BEGIN ESSAY ---",
+        essay,
+        "--- END ESSAY ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
     default:
       return JSON.stringify(payload);
   }

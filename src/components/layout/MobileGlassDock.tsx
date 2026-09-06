@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
@@ -219,5 +221,20 @@ export function MobileGlassDock() {
 }
 
 export function MobileGlassDockByPath() {
-  return <MobileGlassDock />;
+  const { focusMode } = useFocusMode();
+  return (
+    <AnimatePresence initial={false}>
+      {!focusMode && (
+        <motion.div
+          key="mobile-glass-dock"
+          initial={{ y: 96, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 96, opacity: 0 }}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <MobileGlassDock />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

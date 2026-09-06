@@ -38,6 +38,9 @@ import {
   type Passage,
   type Question,
 } from "@/data/readingComprehensionData";
+import { recordCategoryAttempt } from "@/lib/category-accuracy";
+import { recordQuestProgress } from "@/lib/daily-quests";
+import { categoryFromTropeAnswer } from "@/lib/exam-categories";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 
@@ -244,6 +247,15 @@ export function ReadingComprehensionExercise() {
     setIsRevealed(true);
     setShowExplanation(true);
 
+    // Feed the Weakness Radar. Trope questions carry the device name in
+    // their correct option, so the radar gets the specific category.
+    recordCategoryAttempt(
+      currentQuestion.type === "literary_trope"
+        ? categoryFromTropeAnswer(currentQuestion.options[currentQuestion.correctIndex])
+        : currentQuestion.type,
+      correct,
+    );
+
     if (correct) {
       const nextStreak = streak + 1;
       const earned = pointsForStreak(nextStreak);
@@ -267,6 +279,8 @@ export function ReadingComprehensionExercise() {
 
   const goNext = useCallback(() => {
     if (isLastQuestion) {
+      // One finished passage = one analysed work for the daily quest.
+      recordQuestProgress("analyze-works", 1);
       setPhase("results");
       return;
     }
