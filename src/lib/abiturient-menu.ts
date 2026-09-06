@@ -71,6 +71,7 @@ export function abiturientMenuGroups(): AbitMenuGroup[] {
     {
       title: "ხელსაწყოები",
       items: [
+        { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, action: "ai-chat" },
         { id: "conspectus", label: "AI კონსპექტი", href: "/lit-assistant", icon: Sparkles },
         { id: "quiz-tool", label: "ინტერაქციული ვიქტორინა", href: "/quiz", icon: Brain },
         { id: "calculator", label: "კალკულატორი", href: "/exam-calculator", icon: Calculator },
@@ -80,7 +81,6 @@ export function abiturientMenuGroups(): AbitMenuGroup[] {
           href: researchPlatformHref("abit"),
           icon: FileSearch,
         },
-        { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, action: "ai-chat" },
         {
           id: "library",
           label: "სასწავლო ბიბლიოთეკა",
