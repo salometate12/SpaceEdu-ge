@@ -1,10 +1,11 @@
 "use client";
 
+import { GraduationCap } from "lucide-react";
 import { AbiturientSubjects } from "./AbiturientSubjects";
 import { AbiturientTools } from "./AbiturientTools";
 import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
-import { AbiturientNotesWidget } from "./AbiturientNotesWidget";
+import { AbiturientLectureNotesWidget } from "./AbiturientLectureNotesWidget";
 import { DailyQuests } from "@/components/dashboard/DailyQuests";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardSideRail } from "@/components/dashboard/DashboardSideRail";
@@ -25,8 +26,9 @@ export function AbiturientDashboard() {
           <DashboardGreetingBanner
             workspace="abiturient"
             badge={
-              <span className="inline-flex rounded-full border border-emerald-400/40 bg-gradient-to-r from-emerald-50 to-cyan-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:border-emerald-500/25 dark:from-emerald-500/10 dark:to-transparent dark:text-emerald-200">
-                Abiturient Workspace
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-cyan-300 bg-cyan-100 px-3 py-1.5 text-xs font-bold text-cyan-700 dark:border-[#22d3ee] dark:bg-[#042f3d] dark:text-[#67e8f9]">
+                <GraduationCap className="h-3.5 w-3.5" />
+                აბიტურიენტი
               </span>
             }
             title={firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა, აბიტურიენტო!"}
@@ -56,7 +58,7 @@ export function AbiturientDashboard() {
 
           <WeaknessRadar />
 
-          <AbiturientNotesWidget />
+          <AbiturientLectureNotesWidget />
 
           <AbiturientStudyCalendar />
 
