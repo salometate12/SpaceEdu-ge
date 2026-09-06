@@ -4,6 +4,7 @@ import { AbiturientSubjects } from "./AbiturientSubjects";
 import { AbiturientTools } from "./AbiturientTools";
 import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
 import { AbiturientLibrary } from "./AbiturientLibrary";
+import { AbiturientNotesWidget } from "./AbiturientNotesWidget";
 import { DashboardGreetingBanner } from "@/components/dashboard/DashboardGreetingBanner";
 import { DashboardTopUtility } from "@/components/dashboard/DashboardTopUtility";
 import { DashboardSideRail } from "@/components/dashboard/DashboardSideRail";
@@ -50,6 +51,8 @@ export function AbiturientDashboard() {
           </section>
 
           <AbiturientTools />
+
+          <AbiturientNotesWidget />
 
           <AbiturientStudyCalendar />
 

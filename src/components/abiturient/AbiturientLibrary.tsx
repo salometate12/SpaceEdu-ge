@@ -86,7 +86,7 @@ export function AbiturientLibrary() {
 
   return (
     <section className="dashboard-section p-5">
-      <div className="mb-4">
+      <div id="abit-library" className="mb-4 scroll-mt-24">
         <BookOpen className="mb-2 h-6 w-6 text-violet-600 dark:text-purple-400" strokeWidth={1.5} />
         <h3 className="text-xl font-semibold text-slate-900 dark:text-white">სასწავლო ბიბლიოთეკა</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
@@ -165,7 +165,7 @@ export function AbiturientLibrary() {
 
       <div className="my-10 border-t border-slate-200/80 dark:border-white/[0.06]" />
 
-      <div className="mb-4">
+      <div id="abit-summer-reading" className="mb-4 scroll-mt-24">
         <Compass className="mb-2 h-6 w-6 text-emerald-600 dark:text-emerald-400" strokeWidth={1.5} />
         <h3 className="text-xl font-semibold text-slate-900 dark:text-white">საზაფხულო საკითხავი</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
