@@ -7,10 +7,12 @@ import { LogOut, MessageSquare, Rocket, X } from "lucide-react";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
+import { spaceFromPathname } from "@/lib/access-control";
 import {
   ACCOUNT_ITEMS,
   GENERAL_ITEMS,
   RailGroup,
+  resolveRailHref,
   TOOL_ITEMS,
   type RailItem,
 } from "./DashboardSideRail";
@@ -21,6 +23,12 @@ export function MobileSideMenuDrawer() {
   const { isOpen, close } = useMobileSideMenu();
   const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
   const [signingOut, setSigningOut] = useState(false);
+
+  const space = spaceFromPathname(pathname ?? "") ?? undefined;
+  const withHref = (item: Omit<RailItem, "onClick" | "active">): RailItem => {
+    const href = resolveRailHref(item.id, item.href ?? "#", space);
+    return { ...item, href, active: pathname === href };
+  };
 
   useEffect(() => {
     close();
@@ -49,14 +57,8 @@ export function MobileSideMenuDrawer() {
     }
   };
 
-  const generalItems: RailItem[] = GENERAL_ITEMS.map((item) => ({
-    ...item,
-    active: pathname === item.href,
-  }));
-  const accountItems: RailItem[] = ACCOUNT_ITEMS.map((item) => ({
-    ...item,
-    active: pathname === item.href,
-  }));
+  const generalItems: RailItem[] = GENERAL_ITEMS.map(withHref);
+  const accountItems: RailItem[] = ACCOUNT_ITEMS.map(withHref);
   const toolItems: RailItem[] = [
     {
       id: "ai-chat",
@@ -68,7 +70,7 @@ export function MobileSideMenuDrawer() {
       },
       active: aiChatOpen,
     },
-    ...TOOL_ITEMS.map((item) => ({ ...item, active: pathname === item.href })),
+    ...TOOL_ITEMS.map(withHref),
   ];
 
   return (
