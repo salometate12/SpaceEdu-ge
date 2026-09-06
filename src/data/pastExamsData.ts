@@ -15,6 +15,7 @@
  */
 
 import type { ExamCategory } from "@/lib/exam-categories";
+import { GEORGIAN_2025 } from "./pastExams2025";
 
 export interface ExamQuestion {
   id: string;
@@ -32,12 +33,35 @@ export interface ExamQuestion {
   highlightPhrase?: string;
 }
 
+/** Part II's writing task — the essay prompt attached to a passage. */
+export interface ExamEssayTask {
+  id: string;
+  points: number;
+  prompt: string;
+}
+
+/** Part I — "ტექსტის რედაქტირება". A free-writing exercise, not an MCQ. */
+export interface ExamEditingTask {
+  id: string;
+  points: number;
+  /** The flawed text the student has to rewrite correctly. */
+  text: string;
+  /** What the marker is looking for, shown after the student submits. */
+  focusPoints: string[];
+}
+
 export interface ExamPassage {
   id: string;
   title: string;
   authorOrSource: string;
   textExcerpt: string;
+  /** Poems keep their line breaks in the reading panel. */
+  kind?: "poem" | "prose";
   questions: ExamQuestion[];
+  /** Part II's writing task for this text. */
+  essay?: ExamEssayTask;
+  /** Shown on the text-choice screen ("ტექსტი I" / "ტექსტი II"). */
+  choiceLabel?: string;
 }
 
 export interface ExamVariant {
@@ -46,6 +70,14 @@ export interface ExamVariant {
   label: string;
   /** Short descriptor shown under the badge. */
   blurb: string;
+  /** Part I of the paper, when the variant has one. */
+  editingTask?: ExamEditingTask;
+  /**
+   * True for real national-exam papers, where Part II offers two texts and
+   * the student answers on ONE of them. When false/absent the passages run
+   * back to back as a single question set.
+   */
+  choosePassage?: boolean;
   passages: ExamPassage[];
 }
 
@@ -438,7 +470,7 @@ const HISTORY_2024: ExamYear = {
 /* -------------------------------------------------------------------------- */
 
 export const PAST_EXAMS: Record<string, ExamYear[]> = {
-  georgian: [GEORGIAN_2024, GEORGIAN_2023, GEORGIAN_2022],
+  georgian: [GEORGIAN_2025, GEORGIAN_2024, GEORGIAN_2023, GEORGIAN_2022],
   history: [HISTORY_2024],
 };
 

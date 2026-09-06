@@ -6,9 +6,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   Check,
   CircleCheck,
   Lightbulb,
+  PenLine,
   RefreshCw,
   Sparkles,
   Target,
@@ -16,6 +18,8 @@ import {
 } from "lucide-react";
 import {
   buildExamRun,
+  type ExamEditingTask,
+  type ExamPassage,
   type ExamVariant,
   type ExamRunStep,
 } from "@/data/pastExamsData";
@@ -53,13 +57,32 @@ export function PastExamRunner({
   variant,
   onExit,
 }: PastExamRunnerProps) {
-  const run: ExamRunStep[] = useMemo(() => buildExamRun(variant), [variant]);
+  /**
+   * Real papers offer two texts and the student answers on ONE. Until a
+   * choice is made we show the chooser; older seed variants run every
+   * passage in sequence and skip this step entirely.
+   */
+  const [chosenPassageId, setChosenPassageId] = useState<string | null>(
+    variant.choosePassage ? null : "__all__",
+  );
+
+  const activeVariant: ExamVariant = useMemo(() => {
+    if (!variant.choosePassage || chosenPassageId === null) return variant;
+    const picked = variant.passages.find((p) => p.id === chosenPassageId);
+    return picked ? { ...variant, passages: [picked] } : variant;
+  }, [variant, chosenPassageId]);
+
+  const run: ExamRunStep[] = useMemo(
+    () => buildExamRun(activeVariant),
+    [activeVariant],
+  );
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [finished, setFinished] = useState(false);
+  const [showEditing, setShowEditing] = useState(false);
   /** Question the student is hovering in the rail — drives the highlighter. */
   const [previewHighlight, setPreviewHighlight] = useState<string | null>(null);
 
@@ -105,7 +128,121 @@ export function PastExamRunner({
     setAnswers([]);
     setFinished(false);
     setPreviewHighlight(null);
-  }, []);
+    if (variant.choosePassage) setChosenPassageId(null);
+  }, [variant.choosePassage]);
+
+  const chosenPassage: ExamPassage | undefined =
+    variant.choosePassage && chosenPassageId
+      ? variant.passages.find((p) => p.id === chosenPassageId)
+      : variant.passages[0];
+
+  /* -------------------------- Part I — რედაქტირება ------------------------ */
+  if (showEditing && variant.editingTask) {
+    return (
+      <EditingTaskPanel
+        year={year}
+        variantLabel={variant.label}
+        task={variant.editingTask}
+        onBack={() => setShowEditing(false)}
+      />
+    );
+  }
+
+  /* ------------------------- text chooser (Part II) ----------------------- */
+  if (variant.choosePassage && chosenPassageId === null) {
+    return (
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onExit}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 stroke-[2]" />
+            არქივი
+          </button>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold text-white/70">
+            {year} · {variant.label}
+          </span>
+        </div>
+
+        {variant.editingTask && (
+          <button
+            type="button"
+            onClick={() => setShowEditing(true)}
+            className="group flex w-full items-center justify-between gap-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 p-5 text-left transition hover:border-amber-400/45"
+          >
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                <PenLine className="h-3 w-3 stroke-[2]" />
+                I ნაწილი · {variant.editingTask.points} ქულა
+              </span>
+              <h3 className="mt-2 text-base font-semibold text-white">
+                ტექსტის რედაქტირება
+              </h3>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                გაასწორე შეცდომები და გადაწერე ტექსტი შინაარსის შეცვლის გარეშე.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-amber-300 transition group-hover:translate-x-0.5" />
+          </button>
+        )}
+
+        <section
+          aria-label="ტექსტის არჩევა"
+          className="rounded-2xl border border-white/10 bg-[#0D0D15]/80 p-6 backdrop-blur-xl"
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+            <BookOpen className="h-3 w-3 stroke-[2]" />
+            II ნაწილი · წაკითხულის გააზრება
+          </span>
+          <h2 className="mt-3 text-xl font-bold text-white">
+            აირჩიე ერთ-ერთი ტექსტი
+          </h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            დავალებები მხოლოდ არჩეული ტექსტის მიხედვით სრულდება — ისე, როგორც
+            რეალურ გამოცდაზე.
+          </p>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {variant.passages.map((passage, passageIndex) => (
+              <motion.button
+                key={passage.id}
+                type="button"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: passageIndex * 0.06, duration: 0.28 }}
+                onClick={() => {
+                  setChosenPassageId(passage.id);
+                  setIndex(0);
+                  setSelected(null);
+                  setRevealed(false);
+                  setAnswers([]);
+                }}
+                className="group rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-cyan-400/40"
+              >
+                <span className="inline-flex rounded-full border-2 border-cyan-500/30 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-bold text-cyan-300">
+                  {passage.choiceLabel ?? `ტექსტი ${passageIndex + 1}`}
+                </span>
+                <h3 className="mt-3 text-base font-semibold text-white">
+                  {passage.title}
+                </h3>
+                <p className="mt-1 text-xs text-zinc-500">{passage.authorOrSource}</p>
+                <p className="mt-3 text-[11px] font-medium text-zinc-500">
+                  {passage.questions.length} კითხვა
+                  {passage.essay ? ` · ესე ${passage.essay.points} ქულა` : ""}
+                </p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400">
+                  დაიწყე
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   /* ------------------------------ completion ----------------------------- */
   if (finished) {
@@ -169,6 +306,27 @@ export function PastExamRunner({
           </div>
         </div>
 
+        {chosenPassage?.essay && (
+          <div className="mt-8 rounded-2xl border border-violet-500/25 bg-violet-950/20 p-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+              <PenLine className="h-3 w-3 stroke-[2]" />
+              წერითი დავალება · {chosenPassage.essay.points} ქულა
+            </span>
+            <p className="mt-2.5 text-[13.5px] leading-relaxed text-violet-50/85">
+              {chosenPassage.essay.prompt}
+            </p>
+            <Link
+              href={`/subject/${subjectId}/essay-grader?prompt=${encodeURIComponent(
+                chosenPassage.essay.prompt,
+              )}`}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-violet-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-400"
+            >
+              <Sparkles className="h-4 w-4 stroke-[2]" />
+              დაწერე და შეაფასებინე
+            </Link>
+          </div>
+        )}
+
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
             type="button"
@@ -186,13 +344,6 @@ export function PastExamRunner({
             <ArrowLeft className="h-4 w-4 stroke-[1.75]" />
             არქივში დაბრუნება
           </button>
-          <Link
-            href={`/subject/${subjectId}/essay-grader`}
-            className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-5 py-2.5 text-sm font-semibold text-violet-200 transition hover:border-violet-400/50"
-          >
-            <Sparkles className="h-4 w-4 stroke-[1.75]" />
-            ესეს შეფასება
-          </Link>
         </div>
       </motion.section>
     );
@@ -257,6 +408,7 @@ export function PastExamRunner({
               text={passage.textExcerpt}
               highlight={activeHighlight}
               intensity={previewHighlight ? "strong" : "soft"}
+              preserveLines={passage.kind === "poem"}
             />
 
             {activeHighlight && (
@@ -419,6 +571,112 @@ export function PastExamRunner({
               </button>
             )}
           </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                        PART I — ტექსტის რედაქტირება                        */
+/* -------------------------------------------------------------------------- */
+
+function EditingTaskPanel({
+  year,
+  variantLabel,
+  task,
+  onBack,
+}: {
+  year: number;
+  variantLabel: string;
+  task: ExamEditingTask;
+  onBack: () => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const words = draft.trim().split(/\s+/).filter(Boolean).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition hover:text-white"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 stroke-[2]" />
+          ვარიანტის დავალებები
+        </button>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-300">
+          {year} · {variantLabel} · {task.points} ქულა
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6">
+        <section className="rounded-2xl border border-white/10 bg-[#0D0D15]/80 p-6 backdrop-blur-xl">
+          <h2 className="text-lg font-bold text-white">ტექსტის რედაქტირება</h2>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+            გაასწორე მორფოლოგიურ-ორთოგრაფიული, სინტაქსური და პუნქტუაციური
+            შეცდომები და სტილისტიკური ხარვეზები. შინაარსი არ შეცვალო.
+          </p>
+          <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <p className="whitespace-pre-line text-[14.5px] leading-[1.95] text-zinc-200">
+              {task.text}
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-[#0D0D15]/80 p-6 backdrop-blur-xl">
+          <label className="block">
+            <span className="mb-1.5 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+              <span>შენი გასწორებული ვერსია</span>
+              <span className="text-zinc-600">{words} სიტყვა</span>
+            </span>
+            <textarea
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="გადაწერე მთელი ტექსტი გასწორებული სახით..."
+              className="min-h-[360px] w-full resize-y rounded-xl border border-white/10 bg-[#08080d]/80 p-4 text-[14.5px] leading-[1.9] text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-amber-400/50"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setShowKey((value) => !value)}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-bold text-[#241a02] transition hover:bg-amber-400"
+          >
+            {showKey ? "დამალე შესამოწმებელი პუნქტები" : "შემოწმების პუნქტები"}
+          </button>
+
+          <AnimatePresence>
+            {showKey && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/25 p-4">
+                  <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                    <Lightbulb className="h-3 w-3 stroke-[2]" />
+                    რას ამოწმებს გამსწორებელი
+                  </p>
+                  <ul className="space-y-2">
+                    {task.focusPoints.map((point) => (
+                      <li
+                        key={point}
+                        className="flex gap-2 text-[13px] leading-relaxed text-amber-50/85"
+                      >
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-400" />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
       </div>
     </div>
