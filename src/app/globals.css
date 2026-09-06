@@ -512,9 +512,9 @@ html.dark .subject-icon-wrap-featured {
     box-shadow: 0 10px 26px rgb(6 182 212 / 0.15) !important;
   }
   .mobile-vivid-hero--abit .mobile-vivid-hero-badge span {
-    border-color: rgb(5 150 105 / 0.35) !important;
-    background: rgb(255 255 255 / 0.6) !important;
-    color: #065f46 !important;
+    border-color: #67e8f9 !important;
+    background: rgb(255 255 255 / 0.65) !important;
+    color: #0e7490 !important;
   }
   .mobile-vivid-hero--abit .mobile-vivid-hero-title {
     color: #062119 !important;
