@@ -17,37 +17,31 @@ export function DashboardGreetingBanner({
   title,
   subtitle,
 }: DashboardGreetingBannerProps) {
-  const vivid = workspace === "student";
+  // Both workspaces get the polished full-bleed banner on mobile; the
+  // abiturient space just swaps the palette (emerald instead of cream).
+  const abit = workspace === "abiturient";
 
   return (
     <motion.section
-      initial={vivid ? false : { y: -100, opacity: 0 }}
+      initial={false}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`dashboard-hero flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 ${
-        vivid
-          ? "mobile-vivid-hero max-[639px]:left-0 max-[639px]:right-0 max-[639px]:top-0 max-[639px]:z-20 max-[639px]:mt-0 max-[639px]:w-full max-[639px]:rounded-t-none max-[639px]:rounded-b-[36px]"
-          : ""
-      }`}
+      className={`dashboard-hero mobile-vivid-hero ${
+        abit ? "mobile-vivid-hero--abit" : ""
+      } flex flex-col items-stretch justify-center gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8 max-[639px]:left-0 max-[639px]:right-0 max-[639px]:top-0 max-[639px]:z-20 max-[639px]:mt-0 max-[639px]:w-full max-[639px]:rounded-t-none max-[639px]:rounded-b-[36px]`}
     >
       <div className="min-w-0 flex-1">
-        {badge ? (
-          <div className={`mb-2 ${vivid ? "mobile-vivid-hero-badge" : ""}`}>{badge}</div>
-        ) : null}
-        <h1
-          className={`headline text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-white ${vivid ? "mobile-vivid-hero-title" : ""}`}
-        >
+        {badge ? <div className="mobile-vivid-hero-badge mb-2">{badge}</div> : null}
+        <h1 className="headline mobile-vivid-hero-title text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
           {title}
         </h1>
         {subtitle ? (
-          <p
-            className={`mt-1 text-sm text-slate-600 dark:text-zinc-400 ${vivid ? "max-[639px]:hidden" : ""}`}
-          >
+          <p className="mt-1 text-sm text-slate-600 max-[639px]:hidden dark:text-zinc-400">
             {subtitle}
           </p>
         ) : null}
       </div>
-      <div className={vivid ? "max-[639px]:hidden" : ""}>
+      <div className="max-[639px]:hidden">
         <DashboardBannerStats workspace={workspace} />
       </div>
     </motion.section>
