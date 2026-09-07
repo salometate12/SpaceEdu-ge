@@ -41,10 +41,20 @@ type Stage = "editing" | "choose" | "questions" | "essay" | "done";
 
 const STAGE_ORDER: Stage[] = ["editing", "choose", "questions", "essay"];
 
+/** Full name — used as the step's tooltip. */
 const STAGE_LABEL: Record<Stage, string> = {
-  editing: "I ნაწილი · რედაქტირება",
+  editing: "I ნაწილი · ტექსტის რედაქტირება",
   choose: "II ნაწილი · ტექსტის არჩევა",
   questions: "II ნაწილი · კითხვები",
+  essay: "წერითი დავალება",
+  done: "დასრულებული",
+};
+
+/** What the minimal rail actually prints. */
+const STAGE_SHORT: Record<Stage, string> = {
+  editing: "რედაქტირება",
+  choose: "ტექსტის არჩევა",
+  questions: "კითხვები",
   essay: "წერითი დავალება",
   done: "დასრულებული",
 };
@@ -327,6 +337,31 @@ export function ExamSimulation({
 
   const stageIndex = STAGE_ORDER.indexOf(stage === "done" ? "essay" : stage);
 
+  /**
+   * A step is reachable once the work it depends on exists: the editing
+   * task and the text choice are always open, questions need a chosen
+   * text, and the essay needs that text to actually carry one.
+   */
+  const stageReachable = useCallback(
+    (target: Stage) => {
+      if (target === "editing") return Boolean(variant.editingTask);
+      if (target === "choose") return true;
+      if (target === "questions") return Boolean(passage);
+      if (target === "essay") return Boolean(passage?.essay);
+      return false;
+    },
+    [variant.editingTask, passage],
+  );
+
+  const goToStage = useCallback(
+    (target: Stage) => {
+      if (!stageReachable(target) || target === stage) return;
+      setPreviewHighlight(null);
+      setStage(target);
+    },
+    [stageReachable, stage],
+  );
+
   /* ------------------------------- chrome --------------------------------- */
   const header = (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -355,31 +390,67 @@ export function ExamSimulation({
   );
 
   const stageRail = (
-    <ol className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-2">
-      {STAGE_ORDER.map((s, i) => {
-        const active = i === stageIndex;
-        const passed = i < stageIndex || stage === "done";
-        return (
-          <li key={s} className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
-                active
-                  ? "border-cyan-400/70 bg-cyan-50 text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200"
-                  : passed
-                    ? "border-emerald-300/80 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/10 dark:text-emerald-300"
-                    : `border-slate-200 bg-white/60 ${FAINT} dark:border-white/[0.07] dark:bg-white/[0.02]`
-              }`}
-            >
-              {passed && <Check className="h-3 w-3 stroke-[3]" />}
-              {STAGE_LABEL[s]}
-            </span>
-            {i < STAGE_ORDER.length - 1 && (
-              <span className="hidden h-px w-4 bg-slate-200 sm:block dark:bg-white/10" />
-            )}
-          </li>
-        );
-      })}
-    </ol>
+    <nav aria-label="გამოცდის ეტაპები" className="mb-7">
+      <ol className="flex items-center gap-1 overflow-x-auto pb-1">
+        {STAGE_ORDER.map((s, i) => {
+          const active = i === stageIndex && stage !== "done";
+          const passed = i < stageIndex || stage === "done";
+          const reachable = stageReachable(s);
+          const last = i === STAGE_ORDER.length - 1;
+
+          return (
+            <li key={s} className="flex shrink-0 items-center">
+              <button
+                type="button"
+                onClick={() => goToStage(s)}
+                disabled={!reachable}
+                title={STAGE_LABEL[s]}
+                aria-current={active ? "step" : undefined}
+                className={`group inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition disabled:cursor-not-allowed ${
+                  reachable && !active
+                    ? "hover:bg-slate-100/80 dark:hover:bg-white/[0.04]"
+                    : ""
+                }`}
+              >
+                <span
+                  className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border text-[10px] font-bold transition ${
+                    passed
+                      ? "border-transparent bg-cyan-500 text-white"
+                      : active
+                        ? "border-cyan-500 bg-transparent text-cyan-600 ring-4 ring-cyan-500/15 dark:border-cyan-400 dark:text-cyan-300 dark:ring-cyan-400/15"
+                        : "border-slate-300 text-slate-400 dark:border-white/15 dark:text-zinc-600"
+                  }`}
+                >
+                  {passed ? <Check className="h-3 w-3 stroke-[3]" /> : i + 1}
+                </span>
+                <span
+                  className={`whitespace-nowrap text-[12px] transition ${
+                    active
+                      ? "font-bold text-slate-900 dark:text-white"
+                      : passed
+                        ? "font-semibold text-slate-600 dark:text-zinc-300"
+                        : "font-medium text-slate-400 dark:text-zinc-600"
+                  }`}
+                >
+                  {STAGE_SHORT[s]}
+                </span>
+              </button>
+
+              {!last && (
+                <span
+                  aria-hidden
+                  className={`mx-1 h-px w-6 shrink-0 transition-colors sm:w-9 ${
+                    i < stageIndex || stage === "done"
+                      ? "bg-cyan-400"
+                      : "bg-slate-200 dark:bg-white/10"
+                  }`}
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 
   /* ============================ STAGE: editing ============================ */
@@ -427,8 +498,16 @@ export function ExamSimulation({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span className="inline-flex rounded-full border border-cyan-300/70 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-500/[0.08] dark:text-cyan-300">
-                      {p.choiceLabel ?? `ტექსტი ${i + 1}`}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex rounded-full border border-cyan-300/70 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-500/[0.08] dark:text-cyan-300">
+                        {p.choiceLabel ?? `ტექსტი ${i + 1}`}
+                      </span>
+                      {p.id === chosenId && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                          არჩეული
+                        </span>
+                      )}
                     </span>
                     <h3 className={`mt-2.5 text-lg font-bold ${TITLE}`}>{p.title}</h3>
                     <p className={`mt-0.5 text-xs ${FAINT}`}>{p.authorOrSource}</p>
@@ -461,16 +540,20 @@ export function ExamSimulation({
                 <button
                   type="button"
                   onClick={() => {
-                    setChosenId(p.id);
-                    setIndex(0);
-                    setPicked({});
-                    setRevealedIds({});
-                    setAnswers({});
+                    // Coming back and re-picking the same text keeps the
+                    // answers; switching texts starts that part over.
+                    if (p.id !== chosenId) {
+                      setChosenId(p.id);
+                      setIndex(0);
+                      setPicked({});
+                      setRevealedIds({});
+                      setAnswers({});
+                    }
                     setStage("questions");
                   }}
                   className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
                 >
-                  ამ ტექსტით გაგრძელება
+                  {p.id === chosenId ? "გაგრძელება" : "ამ ტექსტით გაგრძელება"}
                   <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                 </button>
               </motion.article>
