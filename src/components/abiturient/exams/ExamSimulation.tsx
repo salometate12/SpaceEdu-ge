@@ -221,9 +221,10 @@ export function ExamSimulation({
   const [chosenId, setChosenId] = useState<string | null>(null);
 
   const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [answers, setAnswers] = useState<AnswerRecord[]>([]);
+  /* Per-question state, so stepping back restores exactly what was there. */
+  const [picked, setPicked] = useState<Record<string, number>>({});
+  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerRecord>>({});
   const [previewHighlight, setPreviewHighlight] = useState<string | null>(null);
 
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
@@ -244,7 +245,11 @@ export function ExamSimulation({
   const questions = passage?.questions ?? [];
   const question = questions[index];
   const total = questions.length;
-  const correctCount = answers.filter((a) => a.correct).length;
+  const answerList = useMemo(() => Object.values(answers), [answers]);
+  const correctCount = answerList.filter((a) => a.correct).length;
+
+  const selected = question ? (picked[question.id] ?? null) : null;
+  const revealed = question ? Boolean(revealedIds[question.id]) : false;
 
   /* --------------------------------- timer -------------------------------- */
   useEffect(() => {
@@ -265,13 +270,24 @@ export function ExamSimulation({
   const check = useCallback(() => {
     if (selected === null || revealed || !question) return;
     const correct = selected === question.correctIndex;
-    setRevealed(true);
-    setAnswers((prev) => [
+    setRevealedIds((prev) => ({ ...prev, [question.id]: true }));
+    setAnswers((prev) => ({
       ...prev,
-      { questionId: question.id, category: question.category, correct },
-    ]);
+      [question.id]: {
+        questionId: question.id,
+        category: question.category,
+        correct,
+      },
+    }));
+    // Only the first reveal of a question counts toward the radar.
     recordCategoryAttempt(question.category, correct);
   }, [selected, revealed, question]);
+
+  const goPrev = useCallback(() => {
+    if (index <= 0) return;
+    setIndex((v) => v - 1);
+    setPreviewHighlight(null);
+  }, [index]);
 
   const advance = useCallback(() => {
     if (!revealed) return;
@@ -280,8 +296,6 @@ export function ExamSimulation({
       return;
     }
     setIndex((v) => v + 1);
-    setSelected(null);
-    setRevealed(false);
     setPreviewHighlight(null);
   }, [revealed, index, total, passage?.essay]);
 
@@ -300,9 +314,9 @@ export function ExamSimulation({
     setStage(variant.editingTask ? "editing" : "choose");
     setChosenId(null);
     setIndex(0);
-    setSelected(null);
-    setRevealed(false);
-    setAnswers([]);
+    setPicked({});
+    setRevealedIds({});
+    setAnswers({});
     setPreviewHighlight(null);
     setRemaining(EXAM_SECONDS);
     setRunning(true);
@@ -449,9 +463,9 @@ export function ExamSimulation({
                   onClick={() => {
                     setChosenId(p.id);
                     setIndex(0);
-                    setSelected(null);
-                    setRevealed(false);
-                    setAnswers([]);
+                    setPicked({});
+                    setRevealedIds({});
+                    setAnswers({});
                     setStage("questions");
                   }}
                   className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
@@ -500,30 +514,42 @@ export function ExamSimulation({
               </span>
             </div>
 
-            {/* one pill per question */}
-            <div className="mb-6 flex items-center gap-1.5" aria-hidden>
-              {questions.map((q, i) => (
-                <div
-                  key={q.id}
-                  className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 ${
-                    i < index
-                      ? "bg-cyan-400"
-                      : i === index
-                        ? "bg-slate-200 dark:bg-white/10"
-                        : "bg-slate-100 dark:bg-white/[0.06]"
-                  }`}
-                >
-                  {i === index && (
-                    <motion.div
-                      key={`fill-${index}-${revealed}`}
-                      initial={{ width: "0%" }}
-                      animate={{ width: revealed ? "100%" : "45%" }}
-                      transition={{ duration: revealed ? 0.4 : 1.1, ease: "easeOut" }}
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
-                    />
-                  )}
-                </div>
-              ))}
+            {/* One pill per question — click to jump to any you've reached. */}
+            <div className="mb-6 flex items-center gap-1.5">
+              {questions.map((q, i) => {
+                const done = Boolean(revealedIds[q.id]);
+                const reachable = done || i <= index;
+                return (
+                  <button
+                    key={q.id}
+                    type="button"
+                    disabled={!reachable}
+                    onClick={() => {
+                      setIndex(i);
+                      setPreviewHighlight(null);
+                    }}
+                    aria-label={`კითხვა ${i + 1}`}
+                    aria-current={i === index ? "step" : undefined}
+                    className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 disabled:cursor-not-allowed ${
+                      done
+                        ? "bg-cyan-400"
+                        : i === index
+                          ? "bg-slate-200 dark:bg-white/10"
+                          : "bg-slate-100 dark:bg-white/[0.06]"
+                    } ${i === index ? "ring-2 ring-cyan-400/40 ring-offset-2 ring-offset-white dark:ring-offset-[#101016]" : ""}`}
+                  >
+                    {i === index && !done && (
+                      <motion.span
+                        key={`fill-${index}`}
+                        initial={{ width: "0%" }}
+                        animate={{ width: "45%" }}
+                        transition={{ duration: 1.1, ease: "easeOut" }}
+                        className="block h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Keyed on the question so React remounts and replays the
@@ -581,7 +607,9 @@ export function ExamSimulation({
                         key={`${question.id}-${i}`}
                         type="button"
                         disabled={revealed}
-                        onClick={() => setSelected(i)}
+                        onClick={() =>
+                          setPicked((prev) => ({ ...prev, [question.id]: i }))
+                        }
                         whileTap={revealed ? undefined : { scale: 0.985 }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -651,13 +679,24 @@ export function ExamSimulation({
               )}
             </AnimatePresence>
 
-            <div className="mt-6">
+            <div className="mt-6 flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={goPrev}
+                disabled={index === 0}
+                aria-label="წინა კითხვა"
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
+              >
+                <ArrowLeft className="h-4 w-4 stroke-[2.5]" />
+                <span className="hidden sm:inline">წინა</span>
+              </button>
+
               {!revealed ? (
                 <button
                   type="button"
                   onClick={check}
                   disabled={selected === null}
-                  className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   პასუხის შემოწმება
                 </button>
@@ -665,7 +704,7 @@ export function ExamSimulation({
                 <button
                   type="button"
                   onClick={advance}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
                 >
                   {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
                   <ArrowRight className="h-4 w-4 stroke-[2.5]" />
@@ -782,7 +821,7 @@ export function ExamSimulation({
 
   /* ============================== STAGE: done ============================= */
   const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-  const byCategory = answers.reduce<Record<string, { correct: number; total: number }>>(
+  const byCategory = answerList.reduce<Record<string, { correct: number; total: number }>>(
     (acc, a) => {
       const bucket = acc[a.category] ?? { correct: 0, total: 0 };
       acc[a.category] = {

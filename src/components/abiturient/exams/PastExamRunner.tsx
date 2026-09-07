@@ -78,9 +78,10 @@ export function PastExamRunner({
   );
 
   const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [answers, setAnswers] = useState<AnswerRecord[]>([]);
+  /* Per-question state, so stepping back restores exactly what was there. */
+  const [picked, setPicked] = useState<Record<string, number>>({});
+  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerRecord>>({});
   const [finished, setFinished] = useState(false);
   const [showEditing, setShowEditing] = useState(false);
   /** Question the student is hovering in the rail — drives the highlighter. */
@@ -88,44 +89,56 @@ export function PastExamRunner({
 
   const step = run[index];
   const total = run.length;
-  const correctCount = answers.filter((a) => a.correct).length;
+  const answerList = useMemo(() => Object.values(answers), [answers]);
+  const correctCount = answerList.filter((a) => a.correct).length;
   const isLast = index >= total - 1;
+
+  const selected = step ? (picked[step.question.id] ?? null) : null;
+  const revealed = step ? Boolean(revealedIds[step.question.id]) : false;
 
   const activeHighlight = previewHighlight ?? step?.question.highlightPhrase;
 
   const check = useCallback(() => {
     if (selected === null || revealed || !step) return;
+    const questionId = step.question.id;
     const correct = selected === step.question.correctIndex;
-    setRevealed(true);
-    setAnswers((prev) => [
+    setRevealedIds((prev) => ({ ...prev, [questionId]: true }));
+    setAnswers((prev) => ({
       ...prev,
-      { questionId: step.question.id, category: step.question.category, correct },
-    ]);
+      [questionId]: {
+        questionId,
+        category: step.question.category,
+        correct,
+      },
+    }));
+    // Only the first reveal of a question counts toward the radar.
     recordCategoryAttempt(step.question.category, correct);
   }, [selected, revealed, step]);
+
+  const goPrev = useCallback(() => {
+    if (index <= 0) return;
+    setIndex((current) => current - 1);
+    setPreviewHighlight(null);
+  }, [index]);
 
   const advance = useCallback(() => {
     if (!revealed) return;
     if (isLast) {
-      const finalAnswers = answers;
-      const correct = finalAnswers.filter((a) => a.correct).length;
-      recordQuizResult(correct, total, subjectTitle);
+      recordQuizResult(correctCount, total, subjectTitle);
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
       setFinished(true);
       return;
     }
     setIndex((current) => current + 1);
-    setSelected(null);
-    setRevealed(false);
     setPreviewHighlight(null);
-  }, [revealed, isLast, answers, total, subjectTitle]);
+  }, [revealed, isLast, correctCount, total, subjectTitle]);
 
   const restart = useCallback(() => {
     setIndex(0);
-    setSelected(null);
-    setRevealed(false);
-    setAnswers([]);
+    setPicked({});
+    setRevealedIds({});
+    setAnswers({});
     setFinished(false);
     setPreviewHighlight(null);
     if (variant.choosePassage) setChosenPassageId(null);
@@ -215,9 +228,9 @@ export function PastExamRunner({
                 onClick={() => {
                   setChosenPassageId(passage.id);
                   setIndex(0);
-                  setSelected(null);
-                  setRevealed(false);
-                  setAnswers([]);
+                  setPicked({});
+                  setRevealedIds({});
+                  setAnswers({});
                 }}
                 className="group rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-cyan-400/40"
               >
@@ -247,7 +260,7 @@ export function PastExamRunner({
   /* ------------------------------ completion ----------------------------- */
   if (finished) {
     const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-    const byCategory = answers.reduce<Record<string, { correct: number; total: number }>>(
+    const byCategory = answerList.reduce<Record<string, { correct: number; total: number }>>(
       (acc, answer) => {
         const bucket = acc[answer.category] ?? { correct: 0, total: 0 };
         acc[answer.category] = {
@@ -374,7 +387,7 @@ export function PastExamRunner({
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
             <Target className="h-3 w-3 stroke-[2]" />
-            {correctCount}/{answers.length || 0}
+            {correctCount}/{answerList.length}
           </span>
         </div>
       </div>
@@ -477,7 +490,9 @@ export function PastExamRunner({
                   key={option}
                   type="button"
                   disabled={revealed}
-                  onClick={() => setSelected(optionIndex)}
+                  onClick={() =>
+                    setPicked((prev) => ({ ...prev, [question.id]: optionIndex }))
+                  }
                   className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm leading-relaxed transition-all disabled:cursor-default ${stateClass}`}
                 >
                   <span
@@ -550,13 +565,24 @@ export function PastExamRunner({
           </AnimatePresence>
 
           {/* --------------------------- action row ------------------------- */}
-          <div className="mt-6">
+          <div className="mt-6 flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={goPrev}
+              disabled={index === 0}
+              aria-label="წინა კითხვა"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowLeft className="h-4 w-4 stroke-[2.5]" />
+              <span className="hidden sm:inline">წინა</span>
+            </button>
+
             {!revealed ? (
               <button
                 type="button"
                 onClick={check}
                 disabled={selected === null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-cyan-500 px-5 py-3 text-sm font-bold text-[#04141a] transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-cyan-500 px-5 py-3 text-sm font-bold text-[#04141a] transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
               >
                 პასუხის შემოწმება
               </button>
@@ -564,7 +590,7 @@ export function PastExamRunner({
               <button
                 type="button"
                 onClick={advance}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-zinc-200"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-zinc-200"
               >
                 {isLast ? "შედეგების ნახვა" : "შემდეგი კითხვა"}
                 <ArrowRight className="h-4 w-4 stroke-[2.5]" />
