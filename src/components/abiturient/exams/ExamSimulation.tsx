@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -11,6 +10,7 @@ import {
   CircleCheck,
   Clock,
   Lightbulb,
+  LoaderCircle,
   Pause,
   PenLine,
   Play,
@@ -23,12 +23,15 @@ import {
   type ExamPassage,
   type ExamVariant,
 } from "@/data/pastExamsData";
+import { ESSAY_TOTAL_MAX } from "@/lib/ai/essay-grader-schema";
 import { EXAM_CATEGORY_META, type ExamCategory } from "@/lib/exam-categories";
 import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { recordDailyActivity } from "@/lib/daily-streak";
+import { EssayReport } from "./EssayReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
+import { useEssayGrading } from "./useEssayGrading";
 
 /** The real paper allows three hours. */
 const EXAM_SECONDS = 3 * 60 * 60;
@@ -53,7 +56,6 @@ interface AnswerRecord {
 }
 
 interface ExamSimulationProps {
-  subjectId: string;
   subjectTitle: string;
   year: number;
   variant: ExamVariant;
@@ -208,7 +210,6 @@ function ReadingPanel({
 /* -------------------------------------------------------------------------- */
 
 export function ExamSimulation({
-  subjectId,
   subjectTitle,
   year,
   variant,
@@ -228,6 +229,13 @@ export function ExamSimulation({
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [running, setRunning] = useState(true);
   const scoredRef = useRef(false);
+
+  const [essayDraft, setEssayDraft] = useState("");
+  const essayGrading = useEssayGrading("abit-exam-essay");
+  const essayWords = useMemo(
+    () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
+    [essayDraft],
+  );
 
   const passage = useMemo(
     () => variant.passages.find((p) => p.id === chosenId) ?? null,
@@ -299,7 +307,9 @@ export function ExamSimulation({
     setRemaining(EXAM_SECONDS);
     setRunning(true);
     scoredRef.current = false;
-  }, [variant.editingTask]);
+    setEssayDraft("");
+    essayGrading.reset();
+  }, [variant.editingTask, essayGrading]);
 
   const stageIndex = STAGE_ORDER.indexOf(stage === "done" ? "essay" : stage);
 
@@ -700,20 +710,67 @@ export function ExamSimulation({
               ))}
             </ul>
 
-            <Link
-              href={`/subject/${subjectId}/essay-grader?prompt=${encodeURIComponent(
-                passage.essay.prompt,
-              )}`}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/10 transition-all hover:from-violet-500 hover:to-fuchsia-500 active:scale-[0.98]"
-            >
-              <Sparkles className="h-4 w-4 stroke-[2]" />
-              დაწერე რედაქტორში და შეაფასებინე
-            </Link>
+            {/* The essay is written here, inside the exam — no detour to a
+                separate grader page. */}
+            <div className="mt-5">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span
+                  className={`text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
+                >
+                  შენი ნაშრომი
+                </span>
+                <span
+                  className={`text-[11px] font-semibold ${
+                    essayWords >= 250
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : FAINT
+                  }`}
+                >
+                  {essayWords} სიტყვა
+                </span>
+              </div>
+
+              <textarea
+                value={essayDraft}
+                onChange={(event) => setEssayDraft(event.target.value)}
+                placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
+                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-200 bg-white/70 p-4 outline-none transition placeholder:text-slate-400 focus:border-violet-400/70 dark:border-white/10 dark:bg-black/25 dark:placeholder:text-zinc-600"
+              />
+
+              <button
+                type="button"
+                onClick={() => void essayGrading.grade(essayDraft, passage.essay?.prompt)}
+                disabled={essayGrading.busy || essayWords === 0}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/10 transition-all hover:from-violet-500 hover:to-fuchsia-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {essayGrading.busy ? (
+                  <>
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                    მიმდინარეობს შეფასება...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 stroke-[2]" />
+                    {essayGrading.result ? "ხელახლა შეაფასე" : "შეაფასე ნაშრომი"}
+                  </>
+                )}
+              </button>
+
+              {essayGrading.result && (
+                <div className="mt-5">
+                  <EssayReport
+                    result={essayGrading.result}
+                    usedFallback={essayGrading.usedFallback}
+                    compact
+                  />
+                </div>
+              )}
+            </div>
 
             <button
               type="button"
               onClick={finish}
-              className={`mt-3 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
+              className={`mt-4 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
             >
               გამოცდის დასრულება და შედეგები
             </button>
@@ -758,9 +815,32 @@ export function ExamSimulation({
             <span className={`text-2xl font-bold ${FAINT}`}>/{total}</span>
           </p>
           <p className="mt-1 text-sm font-semibold text-cyan-600 dark:text-cyan-300">
-            {percent}% სისწორე · დარჩა {formatClock(remaining)}
+            კითხვები · {percent}% სისწორე · დარჩა {formatClock(remaining)}
           </p>
+
+          {essayGrading.result && passage?.essay && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-300 bg-violet-50 px-4 py-1.5 text-sm font-bold text-violet-700 dark:border-violet-400/30 dark:bg-violet-500/10 dark:text-violet-200">
+              <PenLine className="h-3.5 w-3.5 stroke-[2]" />
+              წერითი დავალება: {essayGrading.result.totalScore}/
+              {ESSAY_TOTAL_MAX}
+            </p>
+          )}
         </div>
+
+        {essayGrading.result && (
+          <div className="mt-8">
+            <p
+              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
+            >
+              ესეს შეფასება
+            </p>
+            <EssayReport
+              result={essayGrading.result}
+              usedFallback={essayGrading.usedFallback}
+              compact
+            />
+          </div>
+        )}
 
         {Object.keys(byCategory).length > 0 && (
           <div className="mt-8">
