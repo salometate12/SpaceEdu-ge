@@ -1784,3 +1784,93 @@ html.dark .ai-teacher-surface {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Exam simulation (/subject/[id]/past-exams) — a calm, paper-like reading
+   surface in both themes. The reading pane scrolls inside itself so the
+   page never leaves a tall empty column beside a short question panel.
+   ========================================================================== */
+
+.exam-scroll {
+  overflow-y: auto;
+  /* Smoothness lives in CSS so a plain `scrollTop = x` still glides. */
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.35) transparent;
+  /* Soft fade top and bottom so text never looks sliced off. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+.exam-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.exam-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.exam-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(148 163 184 / 0.3);
+}
+
+html.dark .exam-scroll {
+  scrollbar-color: rgb(255 255 255 / 0.16) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+html.dark .exam-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.14);
+}
+
+/* Reading typography — generous and low-contrast enough to sit with for
+   three hours, tuned separately per theme. */
+.exam-prose {
+  font-size: 16.5px;
+  line-height: 2.05;
+  letter-spacing: 0.004em;
+  color: #24303f;
+}
+
+html.dark .exam-prose {
+  color: rgb(228 233 242 / 0.9);
+  font-size: 16px;
+  line-height: 2.05;
+}
+
+.exam-prose-poem {
+  white-space: pre-line;
+  line-height: 1.95;
+}
+
+/* The paper surface behind the passage. */
+.exam-paper {
+  border-radius: 28px;
+  border: 1px solid rgb(226 232 240 / 0.9);
+  background: linear-gradient(170deg, #fffdf9 0%, #fdfbf6 60%, #fbf8f1 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+html.dark .exam-paper {
+  border-color: rgb(255 255 255 / 0.07);
+  background: linear-gradient(170deg, #14151c 0%, #121319 60%, #101116 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+}

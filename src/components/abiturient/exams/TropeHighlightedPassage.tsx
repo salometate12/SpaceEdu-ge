@@ -18,6 +18,12 @@ interface TropeHighlightedPassageProps {
   intensity?: "soft" | "strong";
   /** Poems keep every line break; prose reflows. */
   preserveLines?: boolean;
+  /**
+   * Use the theme-aware reading typography (`.exam-prose`) instead of the
+   * dark-only default. The exam simulation opts in; the older runner keeps
+   * its original look.
+   */
+  themed?: boolean;
 }
 
 /**
@@ -30,17 +36,30 @@ export function TropeHighlightedPassage({
   highlight,
   intensity = "soft",
   preserveLines = false,
+  themed = false,
 }: TropeHighlightedPassageProps) {
   const paragraphs = useMemo(() => text.split(/\n{2,}/), [text]);
-  const paraClass = preserveLines ? "whitespace-pre-line" : undefined;
+  const paraClass = [
+    themed ? "exam-prose" : "",
+    preserveLines ? (themed ? "exam-prose-poem" : "whitespace-pre-line") : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  const markClass =
-    intensity === "strong"
+  const markClass = themed
+    ? intensity === "strong"
+      ? "rounded-md bg-cyan-500/20 px-1 py-0.5 text-cyan-900 border-b-2 border-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.35)] dark:bg-cyan-500/20 dark:text-cyan-100 dark:border-cyan-400 dark:shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+      : "rounded-md bg-cyan-400/18 px-1 py-0.5 text-cyan-900 border-b-2 border-cyan-500/60 dark:bg-cyan-500/12 dark:text-cyan-200 dark:border-cyan-400/50"
+    : intensity === "strong"
       ? "rounded-md bg-cyan-500/20 px-1 py-0.5 text-cyan-100 border-b-2 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.4)]"
       : "rounded-md bg-cyan-500/12 px-1 py-0.5 text-cyan-200 border-b-2 border-cyan-400/50";
 
   return (
-    <div className="space-y-5 text-[15.5px] leading-[2] text-white/90">
+    <div
+      className={
+        themed ? "space-y-5" : "space-y-5 text-[15.5px] leading-[2] text-white/90"
+      }
+    >
       {paragraphs.map((paragraph, index) => {
         if (!highlight || !paragraph.includes(highlight)) {
           return (
