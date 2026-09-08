@@ -133,6 +133,33 @@ body {
   }
 }
 
+/* Floating header pill.
+ *
+ * The bar stays dark in both themes, so everything inside it has to render
+ * its night-mode styling even while the page is in day mode. Two things
+ * make that happen: the element also carries Tailwind's `dark` class, which
+ * flips every `dark:` utility in the subtree, and the palette variables are
+ * re-pointed here — those live on `html.dark`, so a nested class alone
+ * would leave them on their light values. */
+.header-pill {
+  --bg-secondary: #111118;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --border: #262636;
+  --border-hover: #33334a;
+  --nav-hover-bg: #1e1e2e;
+  background-color: #101017;
+}
+
+/* On a near-black page the pill needs to sit slightly above the
+   background rather than melt into it. */
+html.dark .header-pill {
+  background-color: #14141d;
+}
+
 /* Dashboard — day: white + soft gradients; night: neon glass */
 .dashboard-hero {
   border-radius: 1rem;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Flame, LayoutDashboard, MessageSquare, Rocket, UserRound } from "lucide-react";
+import { Bell, Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
@@ -16,6 +16,7 @@ import {
 } from "@/lib/notifications";
 import { AvatarDropdown } from "./AvatarDropdown";
 import { FocusModeToggle } from "./FocusModeToggle";
+import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { profileHrefForSpace, spaceFromPathname, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
@@ -81,100 +82,79 @@ export function DashboardHeader({
   }, []);
 
   const navItems = [
-    { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace), icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
-    { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace), icon: <Rocket className="h-3.5 w-3.5" /> },
-    { label: "Quiz", href: "/quiz", icon: <Flame className="h-3.5 w-3.5" /> },
-    { label: "AI", href: "/ai-teacher", icon: <MessageSquare className="h-3.5 w-3.5" /> },
-    { label: "პროფილი", href: profileHrefForSpace(effectiveSpace), icon: <UserRound className="h-3.5 w-3.5" /> },
+    { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },
+    { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace) },
+    { label: "Quiz", href: "/quiz" },
+    { label: "AI", href: "/ai-teacher" },
+    { label: "პროფილი", href: profileHrefForSpace(effectiveSpace) },
   ];
 
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/" && pathname?.startsWith(`${href}/`));
+
   return (
-    <header
-      className={`sticky top-0 z-40 border-b px-4 transition-colors sm:px-6 ${
-        scrolled
-          ? "border-[var(--border-hover)] bg-[var(--header-scrolled-bg)] backdrop-blur-md"
-          : "border-[var(--border)] bg-[var(--bg-primary)]"
-      }`}
-    >
-      <div className="mx-auto flex h-12 w-full max-w-7xl items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href="/select-space" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[#7C3AED]">
-              <Rocket className="h-3.5 w-3.5 text-white" />
-            </div>
-            <span className="headline text-base font-medium text-[var(--text-primary)]">
-              SpaceEdu
-            </span>
-          </Link>
-          <SpaceChip space={effectiveSpace} />
-        </div>
+    <HeaderPill scrolled={scrolled}>
+      <HeaderBrand href="/select-space" />
+      <SpaceChip space={effectiveSpace} />
 
-        {!hasOwnNav && (
-          <nav className="hidden items-center gap-1 lg:flex">
-            {navItems.map((item) =>
-              item.href === "/ai-teacher" ? (
-                <button
-                  key={item.href}
-                  type="button"
-                  onClick={toggleAiChat}
-                  aria-pressed={aiChatOpen}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
-                    aiChatOpen
-                      ? "bg-violet-100 text-violet-700 dark:bg-[#1a0a2e] dark:text-[#a78bfa]"
-                      : "text-[var(--text-secondary)] hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-[#1a0a2e] dark:hover:text-[#a78bfa]"
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition-colors hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-[#1a0a2e] dark:hover:text-[#a78bfa]"
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ),
-            )}
-          </nav>
-        )}
+      {!hasOwnNav && (
+        <HeaderNav>
+          {navItems.map((item) =>
+            item.href === "/ai-teacher" ? (
+              <button
+                key={item.href}
+                type="button"
+                onClick={toggleAiChat}
+                aria-pressed={aiChatOpen}
+                className={headerNavItemClass(aiChatOpen)}
+              >
+                {item.label}
+              </button>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={headerNavItemClass(Boolean(isActive(item.href)))}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+        </HeaderNav>
+      )}
 
-        <div className="flex items-center gap-2">
-          <FocusModeToggle compact />
-          <ThemeToggle />
-          <span className="hidden items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-700 sm:inline-flex dark:border-[#f59e0b] dark:bg-[#2d1a00] dark:text-[#fcd34d]">
-            <Flame className="h-3.5 w-3.5" />
-            {streak} სტრიქი
-          </span>
-          <Link
-            href="/notifications"
-            className="relative rounded-lg border border-[var(--border)] p-2 text-[var(--text-secondary)] transition-colors hover:border-violet-300 hover:text-violet-700 dark:hover:text-white"
+      <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
+        <span className="hidden items-center gap-1 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-300 xl:inline-flex">
+          <Flame className="h-3.5 w-3.5" />
+          {streak} სტრიქი
+        </span>
+        <FocusModeToggle compact />
+        <ThemeToggle />
+        <Link
+          href="/notifications"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:border-[var(--border-hover)] hover:text-white"
+        >
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
+          )}
+        </Link>
+        <div className={`relative ${hasOwnNav ? "md:hidden" : ""}`}>
+          <button
+            type="button"
+            onClick={() => setAvatarOpen((prev) => !prev)}
+            className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd] transition-colors hover:bg-[#25103f]"
           >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
-            )}
-          </Link>
-          <div className={`relative ${hasOwnNav ? "md:hidden" : ""}`}>
-            <button
-              type="button"
-              onClick={() => setAvatarOpen((prev) => !prev)}
-              className="h-9 w-9 rounded-full border border-violet-300 bg-violet-100 text-sm font-semibold text-violet-700 dark:border-[#7C3AED] dark:bg-[#1a0a2e] dark:text-[#c4b5fd]"
-            >
-              {avatarInitial}
-            </button>
-            <AvatarDropdown
-              open={avatarOpen}
-              isAdmin={isAdmin}
-              profileHref={profileHrefForSpace(effectiveSpace)}
-              statsHref={statsHrefForSpace(effectiveSpace)}
-            />
-          </div>
+            {avatarInitial}
+          </button>
+          <AvatarDropdown
+            open={avatarOpen}
+            isAdmin={isAdmin}
+            profileHref={profileHrefForSpace(effectiveSpace)}
+            statsHref={statsHrefForSpace(effectiveSpace)}
+          />
         </div>
       </div>
-
-    </header>
+    </HeaderPill>
   );
 }
