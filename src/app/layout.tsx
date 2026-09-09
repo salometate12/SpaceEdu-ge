@@ -11,6 +11,7 @@ import { FooterByPath } from "@/components/layout/FooterByPath";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { SiteThemeAccess } from "@/components/layout/SiteThemeAccess";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { AIChatPanelProvider } from "@/contexts/AIChatPanelContext";
 import { AIChatSidePanel } from "@/components/AITeacher/AIChatSidePanel";
 import { FocusModeProvider } from "@/contexts/FocusModeContext";
@@ -111,28 +112,30 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);if(location.pathname==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){document.documentElement.lang=l;}}}catch(e){}})();`,
           }}
         />
       </head>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[var(--bg-primary)] font-sans text-[var(--text-primary)]">
         <ThemeProvider>
-          <AIChatPanelProvider>
-            <MobileSideMenuProvider>
-              <FocusModeProvider>
-                <div className="flex min-h-screen flex-col">
-                  <HeaderByPath />
-                  <AIChatSidePanel />
-                  <MobileSideMenuDrawer />
-                  <SiteShell>{children}</SiteShell>
-                  <FooterByPath />
-                  <MobileGlassDockByPath />
-                  <FocusModeExitPill />
-                </div>
-                <SiteThemeAccess />
-              </FocusModeProvider>
-            </MobileSideMenuProvider>
-          </AIChatPanelProvider>
+          <LanguageProvider>
+            <AIChatPanelProvider>
+              <MobileSideMenuProvider>
+                <FocusModeProvider>
+                  <div className="flex min-h-screen flex-col">
+                    <HeaderByPath />
+                    <AIChatSidePanel />
+                    <MobileSideMenuDrawer />
+                    <SiteShell>{children}</SiteShell>
+                    <FooterByPath />
+                    <MobileGlassDockByPath />
+                    <FocusModeExitPill />
+                  </div>
+                  <SiteThemeAccess />
+                </FocusModeProvider>
+              </MobileSideMenuProvider>
+            </AIChatPanelProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

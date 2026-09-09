@@ -66,12 +66,14 @@ export function HeaderNav({ children }: { children: ReactNode }) {
 }
 
 /**
- * Shared look for everything that lives in `HeaderNav`. The horizontal
- * padding tightens below `xl` — with five Georgian labels the row would
- * otherwise crowd the wordmark on a 1280-wide screen.
+ * Shared look for everything that lives in `HeaderNav`. Below `xl` the
+ * label shrinks a step and the padding tightens: six Georgian labels plus
+ * the wordmark and the call to action don't fit a 1024-wide bar at full
+ * size, and `whitespace-nowrap` means a squeezed row clips rather than
+ * wraps.
  */
 export function headerNavItemClass(active = false) {
-  return `whitespace-nowrap rounded-full px-2.5 py-2 text-sm transition-colors xl:px-3.5 ${
+  return `shrink-0 whitespace-nowrap rounded-full px-2 py-2 text-[13px] transition-colors xl:px-3.5 xl:text-sm ${
     active
       ? "bg-white/[0.12] font-semibold text-white"
       : "text-white/70 hover:bg-white/[0.07] hover:text-white"

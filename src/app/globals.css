@@ -1088,6 +1088,50 @@ html.dark .tool-chip-active {
     radial-gradient(ellipse 800px 500px at 100% 10%, rgba(34, 211, 238, 0.08), transparent 60%);
 }
 
+/* About page — ruled notebook paper.
+ *
+ * /about deliberately sits outside the landing's neon palette: it's the one
+ * warm, hand-made page, so it gets its own surface instead of
+ * `.landing-dark-bg`. Night mode keeps the paper metaphor — a darker sheet
+ * with fainter rules — rather than dropping to the landing's near-black. */
+.notebook-paper {
+  --paper-rule: rgba(15, 23, 42, 0.1);
+  --paper-margin: rgba(244, 114, 182, 0.5);
+  background-color: #faf6ec;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    var(--paper-rule) 31px 32px
+  );
+}
+
+html.dark .notebook-paper {
+  --paper-rule: rgba(255, 255, 255, 0.055);
+  --paper-margin: rgba(244, 114, 182, 0.3);
+  background-color: #161a24;
+}
+
+/* The margin rule down the left edge of the sheet. Sits on the same
+   element as `.notebook-paper`, which owns the custom property. On wide
+   screens it tracks the text column instead of the viewport edge, so the
+   sheet still reads as a page rather than a stripe far off to the side.
+   (48rem column ÷ 2 = 24rem, plus 1rem of margin.) */
+.notebook-margin::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(1.25rem, calc(50% - 25rem));
+  width: 2px;
+  background-color: var(--paper-margin);
+}
+
+@media (min-width: 640px) {
+  .notebook-margin::before {
+    left: max(2.5rem, calc(50% - 25rem));
+  }
+}
+
 /* Mobile assistant — lg+ desktop unchanged */
 @media (max-width: 1023px) {
   .assistant-mobile-controls > div {
