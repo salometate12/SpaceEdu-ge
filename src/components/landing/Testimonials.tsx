@@ -1,5 +1,12 @@
 import { Star } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { Sparkle } from "./notebook/Doodles";
+import {
+  ACCENT_PILL,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+  type NotebookAccent,
+} from "./notebook/accents";
 
 interface TestimonialItem {
   id: string;
@@ -7,7 +14,7 @@ interface TestimonialItem {
   author: string;
   role: string;
   initials: string;
-  color: string;
+  accent: NotebookAccent;
   rating: number;
 }
 
@@ -18,7 +25,7 @@ const TESTIMONIALS: TestimonialItem[] = [
     author: "გიორგი მ.",
     role: "ეროვნულები",
     initials: "გმ",
-    color: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+    accent: "violet",
     rating: 5,
   },
   {
@@ -27,7 +34,7 @@ const TESTIMONIALS: TestimonialItem[] = [
     author: "მარიამ კ.",
     role: "სტუდენტი",
     initials: "მკ",
-    color: "linear-gradient(135deg, #2dd4bf, #0891b2)",
+    accent: "green",
     rating: 5,
   },
   {
@@ -36,7 +43,7 @@ const TESTIMONIALS: TestimonialItem[] = [
     author: "ანა გ.",
     role: "აბიტურიენტი",
     initials: "აგ",
-    color: "linear-gradient(135deg, #f472b6, #c026d3)",
+    accent: "pink",
     rating: 4,
   },
 ];
@@ -48,7 +55,9 @@ function StarRating({ rating }: { rating: number }) {
         <Star
           key={index}
           className={`h-4 w-4 ${
-            index < rating ? "fill-amber-400 text-amber-400" : "text-gray-700"
+            index < rating
+              ? "fill-amber-400 text-amber-500"
+              : "text-slate-300 dark:text-slate-600"
           }`}
           aria-hidden
         />
@@ -63,34 +72,41 @@ export function Testimonials() {
       id="testimonials"
       className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
     >
+      <Sparkle className="pointer-events-none absolute left-8 top-14 hidden h-5 w-5 rotate-12 text-violet-400 xl:block" />
+
       <div className="mx-auto mb-12 max-w-2xl text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
+        <p
+          className={`text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
+        >
           გამოცდილებები
         </p>
-        <h2 className="headline mt-2 text-2xl font-bold text-white sm:text-3xl">
+        <h2 className="headline mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           რას ამბობენ ჩვენი მომხმარებლები
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
           აბიტურიენტები და სტუდენტები SpaceEdu-ს რეალურ სწავლის პროცესში იყენებენ.
         </p>
       </div>
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {TESTIMONIALS.map((item, idx) => (
-          <RevealOnScroll key={item.id} delayMs={90 * (idx + 1)}>
-            <article className="flex h-full flex-col justify-between rounded-2xl border border-white/[0.06] bg-[#121214]/40 p-6 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/30 hover:bg-[#121214]/60">
+        {TESTIMONIALS.map((item, index) => (
+          <RevealOnScroll key={item.id} delayMs={90 * (index + 1)}>
+            <article
+              className={`flex h-full flex-col justify-between rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${PLAIN_CARD}`}
+            >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-white"
-                  style={{ background: item.color }}
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${ACCENT_PILL[item.accent]}`}
                   aria-hidden
                 >
                   {item.initials}
                 </div>
                 <StarRating rating={item.rating} />
               </div>
-              <p className="mb-4 text-sm leading-relaxed text-gray-300">{item.text}</p>
-              <p className="text-xs font-medium tracking-wide text-gray-500">
+              <p className="mb-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                {item.text}
+              </p>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400">
                 {item.author}, {item.role}
               </p>
             </article>

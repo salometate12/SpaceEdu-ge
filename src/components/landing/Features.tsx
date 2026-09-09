@@ -14,6 +14,8 @@ import {
 import Link from "next/link";
 import { MoveRight } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { Pencil, Sparkle } from "./notebook/Doodles";
+import { ACCENT_CARD, ACCENT_TEXT, type NotebookAccent } from "./notebook/accents";
 
 interface ToolCard {
   id: string;
@@ -21,7 +23,7 @@ interface ToolCard {
   title: string;
   body: string;
   icon: LucideIcon;
-  color: string;
+  accent: NotebookAccent;
   featured?: boolean;
 }
 
@@ -31,14 +33,14 @@ const SIDE_TOOLS: ToolCard[] = [
     title: "Active Recall Quiz",
     body: "ქვიზები, რომლებიც გახსოვნებას ამყარებენ და სუსტ ადგილებს გაჩვენებენ.",
     icon: RotateCw,
-    color: "#22d3ee",
+    accent: "blue",
   },
   {
     id: "ai-teacher",
     title: "AI მასწავლებელი",
     body: "პასუხობს კითხვებს ბუნებრივ ენაზე, ნებისმიერ საათზე.",
     icon: MessageSquare,
-    color: "#10b981",
+    accent: "green",
   },
 ];
 
@@ -48,21 +50,21 @@ const MID_TOOLS: ToolCard[] = [
     title: "კონსპექტი",
     body: "გრძელი მასალიდან მოკლე, სტრუქტურირებული კონსპექტი წამებში.",
     icon: FileText,
-    color: "#f59e0b",
+    accent: "amber",
   },
   {
     id: "eli5",
     title: "ELI5",
     body: "რთული თემები ახსნილი უმარტივესად, გასაგები ენით.",
     icon: Lightbulb,
-    color: "#f472b6",
+    accent: "pink",
   },
   {
     id: "flashcards",
     title: "ფლეშქარდები",
     body: "ავტომატურად გენერირებული ბარათები გამეორებისთვის.",
     icon: Copy,
-    color: "#2dd4bf",
+    accent: "green",
   },
 ];
 
@@ -72,28 +74,28 @@ const SMALL_TOOLS: ToolCard[] = [
     title: "PDF → ტესტი",
     body: "ატვირთე PDF და AI ავტომატურად შეადგენს ტესტურ კითხვებს მისი შინაარსიდან.",
     icon: FileCheck2,
-    color: "#6366f1",
+    accent: "violet",
   },
   {
     id: "flashcards-any-source",
     title: "ფლეშქარდები ნებისმიერი წყაროდან",
     body: "დაამატე PDF, ბმული ან YouTube ვიდეო — AI გამოყოფს საკვანძო საკითხებს ბარათებად.",
     icon: Video,
-    color: "#fb7185",
+    accent: "pink",
   },
   {
     id: "score-calculator",
     title: "გამოცდის ქულის კალკულატორი",
     body: "გამოთვალე მოსალოდნელი ჯამური ქულა საგნების მიხედვით და თარგმნე ის ჩარიცხვის შანსში.",
     icon: Calculator,
-    color: "#a3e635",
+    accent: "green",
   },
   {
     id: "program-picker",
     title: "პროგრამის შესარჩევი",
     body: "შენი ქულების მიხედვით ხედავ, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის საშუალება.",
     icon: GraduationCap,
-    color: "#f59e0b",
+    accent: "amber",
   },
 ];
 
@@ -101,34 +103,32 @@ function ToolTile({ tool, className = "" }: { tool: ToolCard; className?: string
   const Icon = tool.icon;
   return (
     <article
-      className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border bg-[#121214]/40 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${className}`}
-      style={{ borderColor: `${tool.color}30` }}
+      className={`flex h-full flex-col justify-between rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD[tool.accent]} ${className}`}
     >
       <div>
         <div
-          className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl border"
-          style={{
-            borderColor: `${tool.color}45`,
-            backgroundColor: `${tool.color}14`,
-            color: tool.color,
-          }}
+          className={`mb-4 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[tool.accent]}`}
         >
-          <Icon className="h-4 w-4 stroke-[1.75]" aria-hidden />
+          <Icon
+            className={`h-4 w-4 stroke-[2] ${ACCENT_TEXT[tool.accent]}`}
+            aria-hidden
+          />
         </div>
         {tool.kicker && (
           <p
-            className="mono mb-1 text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: tool.color }}
+            className={`mono mb-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT[tool.accent]}`}
           >
             {tool.kicker}
           </p>
         )}
         <h3
-          className={`mb-2 font-bold text-white ${tool.featured ? "text-xl" : "text-sm"}`}
+          className={`mb-2 font-bold text-slate-900 dark:text-slate-50 ${tool.featured ? "text-xl" : "text-sm"}`}
         >
           {tool.title}
         </h3>
-        <p className="text-xs leading-relaxed text-gray-400 sm:text-sm">{tool.body}</p>
+        <p className="text-xs leading-relaxed text-slate-700 sm:text-sm dark:text-slate-300">
+          {tool.body}
+        </p>
       </div>
     </article>
   );
@@ -137,11 +137,14 @@ function ToolTile({ tool, className = "" }: { tool: ToolCard; className?: string
 export function Features() {
   return (
     <section id="features" className="relative mx-auto w-full max-w-7xl py-16 sm:py-20">
+      <Pencil className="pointer-events-none absolute left-6 top-14 hidden h-12 w-12 rotate-12 text-amber-600/70 xl:block dark:text-amber-400/60" />
+      <Sparkle className="pointer-events-none absolute right-8 top-16 hidden h-5 w-5 -rotate-12 text-sky-400 xl:block" />
+
       <div className="mx-auto mb-10 max-w-2xl px-4 text-center sm:px-6">
-        <h2 className="headline text-2xl font-bold text-white sm:text-3xl">
+        <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           შენი სასწავლო არსენალი
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400 sm:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
           ყველა ინსტრუმენტი, რომელიც დაგჭირდება — ერთ სივრცეში
         </p>
       </div>
@@ -156,10 +159,10 @@ export function Features() {
                 title: "სასწავლო გეგმა",
                 body: "კვირეული გეგმა შენი მიზნების მიხედვით, ავტომატურად განახლებადი — ხედავ ზუსტად რა გელოდება დღეს, კვირაში და გამოცდამდე.",
                 icon: Calendar,
-                color: "#a78bfa",
+                accent: "violet",
                 featured: true,
               }}
-              className="min-h-[220px] bg-gradient-to-br from-purple-500/[0.1] via-[#121214]/40 to-[#121214]/40"
+              className="min-h-[220px]"
             />
             <div className="grid grid-cols-1 gap-4">
               {SIDE_TOOLS.map((tool) => (
@@ -189,7 +192,7 @@ export function Features() {
       <div className="mt-12 flex justify-center">
         <Link
           href="/select-space"
-          className="group relative flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-sm font-semibold text-gray-200 backdrop-blur-md transition-all duration-300 hover:border-purple-500/40 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+          className="group flex items-center gap-2 rounded-full border-2 border-slate-400 bg-white/60 px-8 py-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
         >
           ყველა ფუნქციის ნახვა
           <MoveRight

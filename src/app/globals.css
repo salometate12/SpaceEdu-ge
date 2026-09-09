@@ -1088,10 +1088,10 @@ html.dark .tool-chip-active {
     radial-gradient(ellipse 800px 500px at 100% 10%, rgba(34, 211, 238, 0.08), transparent 60%);
 }
 
-/* About page — ruled notebook paper.
+/* Ruled notebook paper — /about and the landing's sheets.
  *
- * /about deliberately sits outside the landing's neon palette: it's the one
- * warm, hand-made page, so it gets its own surface instead of
+ * These surfaces sit outside the app's neon palette: they're the warm,
+ * hand-made pages, so they get their own surface instead of
  * `.landing-dark-bg`. Night mode keeps the paper metaphor — a darker sheet
  * with fainter rules — rather than dropping to the landing's near-black. */
 .notebook-paper {
@@ -1129,6 +1129,58 @@ html.dark .notebook-paper {
 @media (min-width: 640px) {
   .notebook-margin::before {
     left: max(2.5rem, calc(50% - 25rem));
+  }
+}
+
+/* One sheet of that paper. The drawn edge is the point: the landing stacks
+   several sheets with the dark ground showing between them, so a change of
+   section reads as turning to a new page. */
+.notebook-sheet {
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 26px 60px -34px rgba(0, 0, 0, 0.8);
+}
+
+html.dark .notebook-sheet {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* Buttons and badges on the paper: something stuck onto the page, with a
+   hard offset shadow instead of the neon sections' glow. */
+.paper-sticker {
+  box-shadow: 0 5px 0 0 rgba(15, 23, 42, 0.25);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.paper-sticker:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 0 rgba(15, 23, 42, 0.25);
+}
+
+.paper-sticker:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 rgba(15, 23, 42, 0.25);
+}
+
+html.dark .paper-sticker {
+  box-shadow: 0 5px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+html.dark .paper-sticker:hover {
+  box-shadow: 0 7px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+html.dark .paper-sticker:active {
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper-sticker,
+  .paper-sticker:hover,
+  .paper-sticker:active {
+    transform: none;
+    transition: none;
   }
 }
 

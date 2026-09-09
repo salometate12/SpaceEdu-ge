@@ -1,93 +1,114 @@
 import { BookOpen, PenLine, RotateCcw, Timer, TrendingUp } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { Mountains, Sparkle } from "./notebook/Doodles";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_TEXT,
+  type NotebookAccent,
+} from "./notebook/accents";
 
-const SECONDARY_CARDS = [
+const SECONDARY_CARDS: {
+  title: string;
+  body: string;
+  icon: typeof PenLine;
+  accent: NotebookAccent;
+}[] = [
   {
     title: "თემის წერის დახვეწა",
     body: "AI ანალიზებს არგუმენტაციას, სტრუქტურასა და სტილს და გთავაზობს კონკრეტულ შესწორებებს.",
     icon: PenLine,
-    color: "#f59e0b",
+    accent: "amber",
   },
   {
     title: "სისტემური გამეორება",
     body: "სუსტი თემები ბრუნდება ზუსტად მაშინ, სანამ დაგავიწყდება — Spaced Repetition ალგორითმით.",
     icon: RotateCcw,
-    color: "#22d3ee",
+    accent: "blue",
   },
   {
     title: "ბიბლიოთეკა და მასალები",
     body: "წარსული წლების ტესტები, სახელმძღვანელოები და თემატური მასალა საგნების მიხედვით.",
     icon: BookOpen,
-    color: "#f472b6",
+    accent: "pink",
   },
   {
     title: "პროგრესის თრექინგი",
     body: "ხედავ ზუსტად რომელ საგანსა თუ თემაში გჭირდება საჯირო, გამოცდამდე.",
     icon: TrendingUp,
-    color: "#f59e0b",
+    accent: "green",
   },
 ];
 
 export function AbiturientCenter() {
   return (
-    <section id="exam" className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    <section
+      id="exam"
+      className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+    >
+      <Mountains className="pointer-events-none absolute right-6 top-12 hidden w-28 text-slate-400 xl:block dark:text-slate-500" />
+      <Sparkle className="pointer-events-none absolute left-6 top-24 hidden h-5 w-5 rotate-12 text-amber-400 xl:block" />
+
       <div className="mx-auto mb-10 max-w-2xl">
-        <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/[0.06] px-4 py-1.5 text-xs font-semibold text-amber-300">
+        <span
+          className={`inline-flex items-center rounded-full border-2 px-4 py-1.5 text-xs font-bold ${ACCENT_PILL.amber}`}
+        >
           ერთიანი ეროვნული გამოცდები
         </span>
-        <h2 className="headline mt-4 text-2xl font-bold text-white sm:text-3xl">
+        <h2 className="headline mt-4 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           აბიტურიენტის ცენტრი
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400 sm:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
           ყველაფერი, რაც დაგჭირდება ერთიან ეროვნულებზე მოსამზადებლად — ერთ სივრცეში
         </p>
       </div>
 
       <RevealOnScroll>
-        <article className="relative mb-6 overflow-hidden rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/[0.08] via-[#121214]/50 to-[#121214]/50 p-8 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/40">
+        <article
+          className={`mb-5 rounded-2xl border-2 p-8 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD.amber}`}
+        >
           <div
-            className="pointer-events-none absolute -right-10 top-1/2 -z-0 h-[220px] w-[280px] -translate-y-1/2 rounded-full bg-amber-500/15 blur-[90px]"
-            aria-hidden
-          />
-          <div className="relative z-[1]">
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              <Timer className="h-5 w-5 stroke-[1.75]" aria-hidden />
-            </div>
-            <p className="mono text-xs font-bold uppercase tracking-wider text-amber-400">
-              MOCK EXAM
-            </p>
-            <h3 className="mt-1.5 text-xl font-bold text-amber-200 sm:text-2xl">
-              გამოცდის სრული იმიტირება
-            </h3>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">
-              გაიარე რეალური ფორმატისა და დროის მიმდევრობის საცდელი გამოცდები საგნების
-              მიხედვით — შეაფასე შენი მზადყოფნა ზუსტად ისეთ პირობებში, როგორშიც ჩააბარებ.
-            </p>
+            className={`mb-5 flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.amber}`}
+          >
+            <Timer className={`h-5 w-5 stroke-[2] ${ACCENT_TEXT.amber}`} aria-hidden />
           </div>
+          <p
+            className={`mono text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.amber}`}
+          >
+            MOCK EXAM
+          </p>
+          <h3 className="mt-1.5 text-xl font-bold text-slate-900 sm:text-2xl dark:text-slate-50">
+            გამოცდის სრული იმიტირება
+          </h3>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+            გაიარე რეალური ფორმატისა და დროის მიმდევრობის საცდელი გამოცდები საგნების
+            მიხედვით — შეაფასე შენი მზადყოფნა ზუსტად ისეთ პირობებში, როგორშიც ჩააბარებ.
+          </p>
         </article>
       </RevealOnScroll>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {SECONDARY_CARDS.map((card, idx) => {
+        {SECONDARY_CARDS.map((card, index) => {
           const Icon = card.icon;
           return (
-            <RevealOnScroll key={card.title} delayMs={80 * (idx + 1)}>
+            <RevealOnScroll key={card.title} delayMs={80 * (index + 1)}>
               <article
-                className="group h-full rounded-2xl border bg-[#121214]/40 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1"
-                style={{ borderColor: `${card.color}30` }}
+                className={`h-full rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD[card.accent]}`}
               >
                 <div
-                  className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl border"
-                  style={{
-                    borderColor: `${card.color}40`,
-                    backgroundColor: `${card.color}14`,
-                    color: card.color,
-                  }}
+                  className={`mb-4 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[card.accent]}`}
                 >
-                  <Icon className="h-4 w-4 stroke-[1.75]" aria-hidden />
+                  <Icon
+                    className={`h-4 w-4 stroke-[2] ${ACCENT_TEXT[card.accent]}`}
+                    aria-hidden
+                  />
                 </div>
-                <h3 className="mb-2 text-sm font-semibold text-white">{card.title}</h3>
-                <p className="text-xs leading-relaxed text-gray-400">{card.body}</p>
+                <h3 className="mb-2 text-sm font-bold text-slate-900 dark:text-slate-50">
+                  {card.title}
+                </h3>
+                <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                  {card.body}
+                </p>
               </article>
             </RevealOnScroll>
           );
