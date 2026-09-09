@@ -21,9 +21,10 @@ export function HeaderPill({
   scrolled: boolean;
   children: ReactNode;
 }) {
-  // The strip around the pill stays transparent — a tinted band would read
-  // as a light bar across the dark landing hero. Depth on scroll comes from
-  // the pill's own shadow instead.
+  // The strip carries no colour of its own — `Header` paints it in the
+  // ground of the page it floats over, so the pill reads as sitting on
+  // that page rather than on a band of its own. Depth on scroll comes
+  // from the pill's shadow.
   return (
     <header className="px-3 py-2.5 sm:px-6 sm:py-3">
       <div

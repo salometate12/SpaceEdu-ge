@@ -1,7 +1,12 @@
 import { Lock, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_TEXT,
+  type NotebookAccent,
+} from "@/components/landing/notebook/accents";
 
 export interface SpaceOption {
   id: "school" | "abiturient" | "student";
@@ -10,9 +15,9 @@ export interface SpaceOption {
   available: boolean;
   badge: string;
   route: string;
-  borderColor: string;
-  bgColor: string;
-  accentColor: string;
+  accent: NotebookAccent;
+  /** Which way the card leans when you point at it, as on the landing. */
+  tilt: string;
   icon?: ReactNode;
   badgeIcon?: LucideIcon;
 }
@@ -28,74 +33,47 @@ export function SpaceCard({ space, onClick, animationDelayMs = 0 }: SpaceCardPro
   const BadgeIcon = space.badgeIcon;
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
       disabled={isLocked}
-      whileHover={
-        isLocked
-          ? undefined
-          : {
-              y: -6,
-            }
-      }
-      transition={{ duration: 0.24, ease: "easeOut" }}
-      className={`stagger-in group relative flex min-h-[230px] flex-col overflow-hidden rounded-2xl border p-7 text-left backdrop-blur-xl transition-all duration-300 ${
-        isLocked
-          ? "cursor-not-allowed border-white/[0.06] bg-gradient-to-b from-[#17131f]/60 to-[#121214]/30 opacity-65"
-          : "cursor-pointer border-white/[0.06] bg-gradient-to-b from-[#17131f]/80 to-[#121214]/40 hover:border-white/[0.14]"
-      }`}
+      className={`stagger-in relative flex min-h-[230px] w-full flex-col rounded-2xl border-2 p-7 text-left transition-transform duration-300 ${
+        ACCENT_CARD[space.accent]
+      } ${isLocked ? "cursor-not-allowed opacity-60" : `cursor-pointer ${space.tilt}`}`}
       style={{ animationDelay: `${animationDelayMs}ms` }}
     >
-      {/* ambient pulsing glow blob */}
-      <div
-        className="animate-card-blob pointer-events-none absolute -top-8 left-6 -z-0 h-32 w-32 rounded-full blur-[60px]"
-        style={{ backgroundColor: `${space.borderColor}30` }}
-        aria-hidden
-      />
-
       {isLocked && (
-        <div className="absolute right-4 top-4 z-[2] flex items-center gap-1 whitespace-nowrap rounded-full border border-[#a78bfa33] bg-[#130d25]/85 px-2.5 py-1 text-[10px] font-medium tracking-wide text-[#c4b5fd]">
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1 whitespace-nowrap rounded-full border-2 border-slate-400/70 bg-white/70 px-2.5 py-1 text-[10px] font-bold tracking-wide text-slate-600 dark:border-white/20 dark:bg-white/[0.08] dark:text-slate-300">
           <Lock className="h-2.5 w-2.5" />
           მალე
-        </div>
+        </span>
       )}
 
-      <div className="relative z-[1] flex flex-1 flex-col">
-        <div
-          className="animate-icon-glow mb-5 flex h-12 w-12 items-center justify-center"
-          style={
-            {
-              color: space.accentColor,
-              "--icon-glow-color": `${space.accentColor}88`,
-            } as CSSProperties
-          }
-        >
-          {space.icon}
-        </div>
-
-        <h3 className="mb-2 text-lg font-semibold text-white">{space.title}</h3>
-        <p className="mb-5 flex-1 text-sm leading-relaxed text-gray-400">
-          {space.description}
-        </p>
-
-        <span
-          className="inline-flex w-fit items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200"
-          style={{
-            borderColor: `${space.borderColor}40`,
-            backgroundColor: `${space.borderColor}12`,
-            color: space.accentColor,
-            border: "1px solid",
-          }}
-        >
-          {space.available ? (
-            <Sparkles className="h-3 w-3" />
-          ) : BadgeIcon ? (
-            <BadgeIcon className="h-3 w-3" />
-          ) : null}
-          {space.badge}
-        </span>
+      <div
+        className={`mb-5 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${
+          ACCENT_CARD[space.accent]
+        } ${ACCENT_TEXT[space.accent]}`}
+      >
+        {space.icon}
       </div>
-    </motion.button>
+
+      <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-slate-50">
+        {space.title}
+      </h3>
+      <p className="mb-5 flex-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+        {space.description}
+      </p>
+
+      <span
+        className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-bold ${ACCENT_PILL[space.accent]}`}
+      >
+        {space.available ? (
+          <Sparkles className="h-3 w-3" />
+        ) : BadgeIcon ? (
+          <BadgeIcon className="h-3 w-3" />
+        ) : null}
+        {space.badge}
+      </span>
+    </button>
   );
 }

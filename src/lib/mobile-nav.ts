@@ -13,24 +13,27 @@ import {
   UserRound,
 } from "lucide-react";
 
-/** Kind tags let the dock component style each slot distinctly
- * (AI + calendar on the left, menu in the middle, theme + profile on
- * the right, with profile as the accent sphere). */
-export type MobileDockKind = "ai" | "calendar" | "menu" | "profile";
+/**
+ * The dock has four fixed slots, and every page fills them with whatever
+ * it has: two plain icons, one primary action in a white circle (the
+ * bottom-bar echo of the header's white call to action) and the accent
+ * sphere on the right. Naming the slots rather than the destinations is
+ * what lets the marketing pages and the app share one bar.
+ */
+export type MobileDockSlot = "first" | "second" | "primary" | "accent";
 
 export interface MobileDockItem {
   href: string;
   label: string;
   icon: LucideIcon;
   match?: (pathname: string) => boolean;
-  kind?: MobileDockKind;
+  slot: MobileDockSlot;
 }
 
 export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
 export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
 
-/** One shared dock across the whole mobile app: AI · Calendar · Menu · Profile.
- * The theme toggle is rendered by the dock component between Menu and Profile. */
+/** Inside the app: AI · Calendar · Menu · Profile. */
 function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
   const calendarHref =
     space === "abiturient"
@@ -40,27 +43,27 @@ function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
         : DASHBOARD_CALENDAR_ANCHOR_HREF;
   return [
     {
-      kind: "ai",
+      slot: "first",
       href: "/ai-teacher",
       label: "AI",
       icon: Sparkles,
       match: (p) => p === "/ai-teacher",
     },
     {
-      kind: "calendar",
+      slot: "second",
       href: calendarHref,
       label: "კალენდარი",
       icon: CalendarDays,
       match: (p) => p.startsWith("/study-plan"),
     },
     {
-      kind: "menu",
+      slot: "primary",
       href: DASHBOARD_MOBILE_MENU_HREF,
       label: "მენიუ",
       icon: Menu,
     },
     {
-      kind: "profile",
+      slot: "accent",
       href: profileHrefForSpace(space),
       label: "პროფილი",
       icon: UserRound,
@@ -69,21 +72,30 @@ function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
   ];
 }
 
+/** On the marketing pages the same four slots carry the visitor's path —
+ *  home, pricing, the call to action, and signing in. */
 const LANDING_DOCK: MobileDockItem[] = [
-  { href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
+  { slot: "first", href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
   {
+    slot: "second",
     href: "/pricing",
     label: "ფასები",
     icon: Tag,
     match: (p) => p === "/pricing",
   },
   {
+    slot: "primary",
     href: "/select-space",
     label: "დაწყება",
     icon: Rocket,
-    match: (p) => p === "/select-space",
   },
-  { href: "/login", label: "შესვლა", icon: LogIn, match: (p) => p === "/login" },
+  {
+    slot: "accent",
+    href: "/login",
+    label: "შესვლა",
+    icon: LogIn,
+    match: (p) => p === "/login",
+  },
 ];
 
 export function mobileDockHidden(pathname: string | null): boolean {
@@ -107,15 +119,10 @@ export function mobileDockItems(
   space: SpaceeduSpace | null = null,
 ): MobileDockItem[] {
   if (!pathname || mobileDockHidden(pathname)) return [];
-  if (pathname === "/" || pathname === "/pricing") return LANDING_DOCK;
+  if (pathname === "/" || pathname === "/pricing" || pathname === "/about") {
+    return LANDING_DOCK;
+  }
   return appDock(space);
-}
-
-/** True for the shared app dock (AI · Calendar · Menu · Profile), which the
- * dock component renders with its own centered, glossy styling. */
-export function isAppDock(pathname: string | null): boolean {
-  if (!pathname || mobileDockHidden(pathname)) return false;
-  return pathname !== "/" && pathname !== "/pricing";
 }
 
 export function isDockItemActive(pathname: string, item: MobileDockItem): boolean {

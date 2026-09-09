@@ -3,9 +3,15 @@ import { DASHBOARD_ABIT_HREF, DASHBOARD_SCHOOL_HREF, DASHBOARD_STUDENT_HREF } fr
 
 /**
  * Accounts in this list bypass all space locking — full access to every
- * space, free switching, no redirects.
+ * space, free switching, no redirects — and the trial deadline and paywall
+ * with it (see `src/lib/subscription.ts`).
  */
-export const ADMIN_EMAILS = ["salo.tateshvili@gmail.com"];
+export const ADMIN_EMAILS = [
+  "salo.tateshvili@gmail.com",
+  "tateshvilielene@gmail.com",
+  "e_tateshvili@cu.edu.ge",
+  "salome.tateshvili.1@btu.edu.ge",
+];
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;

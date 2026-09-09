@@ -10,6 +10,14 @@ import {
   type ExamVariant,
 } from "@/data/pastExamsData";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
+import { subjectAccent } from "@/lib/subject-accents";
+import { Pencil, Ruler, Sparkle } from "@/components/landing/notebook/Doodles";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+} from "@/components/landing/notebook/accents";
 import { ExamSimulation } from "./ExamSimulation";
 import { PastExamRunner } from "./PastExamRunner";
 
@@ -24,6 +32,7 @@ interface ActiveRun {
 
 export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   const subject = getSubjectHub(subjectId);
+  const accent = subjectAccent(subjectId);
   const years = useMemo(() => getExamYears(subjectId), [subjectId]);
   const [activeYear, setActiveYear] = useState<number | null>(years[0]?.year ?? null);
   const [run, setRun] = useState<ActiveRun | null>(null);
@@ -40,6 +49,7 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
         {simulated ? (
           <ExamSimulation
             subjectTitle={subjectTitle}
+            accent={accent}
             year={run.year}
             variant={run.variant}
             onExit={() => setRun(null)}
@@ -48,6 +58,7 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
           <PastExamRunner
             subjectId={subjectId}
             subjectTitle={subjectTitle}
+            accent={accent}
             year={run.year}
             variant={run.variant}
             onExit={() => setRun(null)}
@@ -58,24 +69,32 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <main className="relative mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+      <Sparkle
+        className={`pointer-events-none absolute right-6 top-8 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT[accent]}`}
+      />
+      <Ruler className="pointer-events-none absolute -left-4 top-48 hidden w-20 -rotate-12 text-slate-400 opacity-60 xl:block dark:text-slate-500" />
+      <Pencil className="pointer-events-none absolute -right-4 bottom-24 hidden h-11 w-11 rotate-12 text-amber-600/50 xl:block dark:text-amber-400/40" />
+
       <Link
         href={subjectId === "georgian" ? "/subject/georgian" : `/subject/${subjectId}`}
-        className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/70 text-slate-500 transition hover:border-cyan-400/50 hover:text-slate-900 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:text-white"
+        className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-slate-300/80 bg-white/60 text-slate-600 transition-colors hover:border-slate-500 hover:text-slate-900 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white"
         aria-label="დაბრუნება"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4 stroke-[2.5]" />
       </Link>
 
-      <header className="rounded-[30px] border border-slate-200/90 bg-white/85 p-6 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl dark:border-white/[0.09] dark:bg-[#101016]/75 dark:shadow-none">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/70 bg-cyan-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:border-cyan-400/25 dark:bg-cyan-500/10 dark:text-cyan-300">
-          <CalendarRange className="h-3 w-3 stroke-[2]" />
+      <header className={`rounded-2xl border-2 p-6 ${ACCENT_CARD[accent]}`}>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+        >
+          <CalendarRange className="h-3 w-3 stroke-[2.5]" aria-hidden />
           {subjectTitle}
         </span>
-        <h1 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
+        <h1 className="headline mt-3 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           ეროვნული გამოცდების არქივი
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           ტესტები წლებისა და ვარიანტების მიხედვით. ყველა ვარიანტი იხსნება SpaceEdu-ს
           ინტერაქციულ რეჟიმში — ტექსტი მარცხნივ, კითხვები მარჯვნივ, მყისიერი შემოწმებით
           და ახსნებით.
@@ -83,24 +102,27 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
       </header>
 
       {years.length === 0 ? (
-        <div className="mt-6 rounded-[30px] border border-slate-200/90 bg-white/80 p-10 text-center backdrop-blur-xl dark:border-white/10 dark:bg-[#101016]/60">
-          <FileQuestion className="mx-auto h-10 w-10 text-slate-300 dark:text-zinc-600" strokeWidth={1.5} />
-          <p className="mt-3 text-sm text-slate-600 dark:text-zinc-400">
+        <div className={`mt-6 rounded-2xl border-2 p-10 text-center ${PLAIN_CARD}`}>
+          <FileQuestion
+            className="mx-auto h-10 w-10 stroke-[1.75] text-slate-400 dark:text-slate-500"
+            aria-hidden
+          />
+          <p className="mt-3 text-sm text-slate-700 dark:text-slate-300">
             ამ საგნის არქივი ჯერ მზადდება.
           </p>
           <Link
             href="/subject/georgian/past-exams"
-            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-600 hover:text-cyan-500 dark:text-cyan-400 dark:hover:text-cyan-300"
+            className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold ${ACCENT_TEXT[accent]}`}
           >
             ნახე ქართულის არქივი
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ArrowRight className="h-3.5 w-3.5 stroke-[2.5]" />
           </Link>
         </div>
       ) : (
         <>
           {/* ------------------------- year selector ------------------------ */}
           <section className="mt-6" aria-label="წლის არჩევა">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               აირჩიე წელი
             </p>
             <div className="flex flex-wrap gap-2.5">
@@ -111,14 +133,12 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
                     key={entry.year}
                     type="button"
                     onClick={() => setActiveYear(entry.year)}
-                    className={`rounded-xl border px-5 py-3 text-lg font-bold transition-all ${
-                      active
-                        ? "border-cyan-400/70 bg-cyan-50 text-cyan-800 shadow-[0_6px_22px_-10px_rgba(6,182,212,0.5)] dark:bg-cyan-500/12 dark:text-white"
-                        : "border-slate-200 bg-white/60 text-slate-500 hover:border-slate-300 hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-white"
-                    }`}
+                    className={`rounded-2xl border-2 px-5 py-3 text-lg font-bold transition-transform ${
+                      active ? `paper-sticker ${ACCENT_PILL[accent]}` : PLAIN_CARD
+                    } ${active ? "" : "text-slate-600 dark:text-slate-300"}`}
                   >
                     {entry.year}
-                    <span className="ml-2 text-[11px] font-semibold text-slate-400 dark:text-zinc-500">
+                    <span className="ml-2 text-[11px] font-semibold opacity-70">
                       {entry.variants.length} ვარიანტი
                     </span>
                   </button>
@@ -130,7 +150,7 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
           {/* ------------------------ variant grid -------------------------- */}
           {selectedYear && (
             <section className="mt-8" aria-label="ვარიანტები">
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {selectedYear.year} — ვარიანტები
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -142,29 +162,24 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: variantIndex * 0.06, duration: 0.3 }}
                     onClick={() => setRun({ year: selectedYear.year, variant })}
-                    className="group relative overflow-hidden rounded-[26px] border border-slate-200/90 bg-white/85 p-5 text-left shadow-[0_10px_40px_-28px_rgba(15,23,42,0.4)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-cyan-400/50 dark:border-white/[0.09] dark:bg-[#101016]/75 dark:shadow-none dark:hover:border-cyan-400/40"
+                    className={`group rounded-2xl border-2 p-5 text-left transition-transform duration-300 hover:-translate-y-1 ${PLAIN_CARD}`}
                   >
-                    <div
-                      className="pointer-events-none absolute -right-14 -top-14 h-32 w-32 rounded-full opacity-[0.08] blur-2xl transition-opacity group-hover:opacity-[0.16]"
-                      style={{
-                        background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)",
-                      }}
-                      aria-hidden
-                    />
-                    <span className="relative z-[1] inline-flex items-center gap-1.5 rounded-full border-2 border-cyan-300/70 bg-cyan-50 px-3.5 py-1 text-[11px] font-bold text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/[0.06] dark:text-cyan-300">
-                      <Layers3 className="h-3 w-3 stroke-[2]" />
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1 text-[11px] font-bold ${ACCENT_PILL[accent]}`}
+                    >
+                      <Layers3 className="h-3 w-3 stroke-[2.5]" aria-hidden />
                       {variant.label}
                     </span>
-                    <h3 className="relative z-[1] mt-3 text-base font-semibold text-slate-900 dark:text-white">
+                    <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-slate-50">
                       {variant.blurb}
                     </h3>
-                    <p className="relative z-[1] mt-1 text-xs text-slate-500 dark:text-zinc-500">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                       {countVariantQuestions(variant)} კითხვა ·{" "}
                       {variant.passages.length} ტექსტი
                     </p>
-                    <span className="relative z-[1] mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                    <span className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold ${ACCENT_TEXT[accent]}`}>
                       დაიწყე ტესტი
-                      <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-3.5 w-3.5 stroke-[2.5] transition-transform group-hover:translate-x-0.5" />
                     </span>
                   </motion.button>
                 ))}

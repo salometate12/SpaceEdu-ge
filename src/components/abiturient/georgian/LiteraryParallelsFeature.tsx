@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { GitMerge } from "lucide-react";
+import { ArrowRight, GitMerge } from "lucide-react";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_TEXT,
+} from "@/components/landing/notebook/accents";
 import { LIT_PARALLELS_HREF } from "@/lib/georgian-lit-parallels-table";
 
-const COMPACT_CARD_CLASS =
-  "group relative block cursor-pointer overflow-hidden rounded-2xl border border-white/[0.06] bg-[#121214]/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-purple-500/30";
+const COMPACT_CARD_CLASS = `group block rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD.violet}`;
 
 export function LiteraryParallelsCompactCard({
   className = "",
@@ -24,20 +28,23 @@ export function LiteraryParallelsCompactCard({
 
   return (
     <Link href={href} className={`${COMPACT_CARD_CLASS} ${className}`}>
-      <div
-        className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-purple-500/25 opacity-60 blur-2xl transition-opacity duration-300 group-hover:opacity-90"
-        aria-hidden
-      />
-      <div className="relative z-[1] flex h-11 w-11 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-        <GitMerge className="h-5 w-5 stroke-[1.5] text-purple-400" />
-      </div>
-      <h2 className="mt-4 text-lg font-bold text-white">ლიტერატურული პარალელები</h2>
-      <p className="mt-1 text-xs leading-relaxed text-gray-400">
+      <span
+        className={`flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
+      >
+        <GitMerge className="h-5 w-5 stroke-[2]" aria-hidden />
+      </span>
+      <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-50">
+        ლიტერატურული პარალელები
+      </h2>
+      <p className="mt-1 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
         ინტერაქტიული მატრიცა — ნაწარმოები, თემები, პარალელები და თანამედროვე არგუმენტები.
       </p>
-      <p className="mt-5 text-xs font-medium text-purple-400 transition-colors group-hover:text-purple-300">
-        გახსნა →
-      </p>
+      <span
+        className={`mt-5 inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-xs font-bold ${ACCENT_PILL.violet}`}
+      >
+        გახსნა
+        <ArrowRight className="h-3.5 w-3.5 stroke-[2.5] transition-transform group-hover:translate-x-0.5" />
+      </span>
     </Link>
   );
 }

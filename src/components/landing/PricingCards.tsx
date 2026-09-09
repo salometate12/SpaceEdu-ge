@@ -5,10 +5,12 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import {
+  isTrialTier,
   pricingTiersForRole,
   type PricingRole,
   type PricingTier,
 } from "@/lib/landing-pricing-plans";
+import { checkoutHref } from "@/lib/checkout-routes";
 import { registrationHref } from "@/lib/registration-role";
 import { Ruler } from "./notebook/Doodles";
 import {
@@ -31,8 +33,13 @@ const ROLE_ACCENT: Record<PricingRole, NotebookAccent> = {
   student: "blue",
 };
 
-function tierCtaHref(role: PricingRole): string {
-  return registrationHref(role);
+/**
+ * The free tier still starts with an account; the paid ones go straight to
+ * checkout, which sends anyone who isn't signed in through registration
+ * first and brings them back.
+ */
+function tierCtaHref(tier: PricingTier, role: PricingRole): string {
+  return isTrialTier(tier.id) ? registrationHref(role) : checkoutHref(tier.id, role);
 }
 
 function PricingTierCard({
@@ -91,7 +98,7 @@ function PricingTierCard({
         </div>
 
         <Link
-          href={tierCtaHref(role)}
+          href={tierCtaHref(tier, role)}
           className={`mt-8 block w-full rounded-full border-2 px-4 py-3 text-center text-sm font-bold ${
             popular
               ? `paper-sticker ${ACCENT_SOLID[accent]}`
