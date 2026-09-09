@@ -1,7 +1,7 @@
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import type { AboutContent } from "@/lib/about-content";
 import { AboutControls } from "./AboutControls";
-import { Bulb, Flower, RainbowArc, Sparkle } from "./Doodles";
+import { Bulb, Flower, RainbowArc, Sparkle } from "../notebook/Doodles";
 import { Segments } from "./AboutText";
 
 export function AboutUsHero({ content }: { content: AboutContent }) {

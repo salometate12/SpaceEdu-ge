@@ -1,6 +1,6 @@
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import type { AboutContent } from "@/lib/about-content";
-import { Pencil, Ruler, Sparkle } from "./Doodles";
+import { Pencil, Ruler, Sparkle } from "../notebook/Doodles";
 import { Segments } from "./AboutText";
 
 export function AboutUsStory({ content }: { content: AboutContent }) {

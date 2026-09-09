@@ -1,65 +1,73 @@
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { Pencil, Ruler } from "./notebook/Doodles";
+import { ACCENT_CARD, ACCENT_TEXT, type NotebookAccent } from "./notebook/accents";
 
-const STEPS = [
+const STEPS: {
+  id: string;
+  title: string;
+  body: string;
+  accent: NotebookAccent;
+  tilt: string;
+}[] = [
   {
     id: "01",
     title: "აირჩიე საგანი და დონე",
     body: "მიუთითე რას სწავლობ და რა დონეზე ხარ — SpaceEdu მორგებულია სკოლის, გამოცდის თუ უნივერსიტეტის პროგრამებზე.",
-    color: "#f59e0b",
-    bg: "rgba(245, 158, 11, 0.1)",
+    accent: "amber",
+    tilt: "hover:-rotate-1",
   },
   {
     id: "02",
     title: "მიიღე პერსონალური გეგმა",
     body: "AI ანალიზებს შენს მიზანს და აწყობს კვირეულ გეგმას — რას, როდის და როგორ ისწავლო.",
-    color: "#22d3ee",
-    bg: "rgba(34, 211, 238, 0.1)",
+    accent: "blue",
+    tilt: "hover:rotate-1",
   },
   {
     id: "03",
     title: "ისწავლე AI Tutor-თან ერთად",
     body: "დასვი კითხვები, გაიარე Active Recall Quiz-ები და მიიღე ახსნა ELI5 ფორმატში, სანამ ბოლომდე არ გაგიგია.",
-    color: "#f472b6",
-    bg: "rgba(244, 114, 182, 0.1)",
+    accent: "pink",
+    tilt: "hover:-rotate-1",
   },
-] as const;
+];
 
 export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative mx-auto w-full max-w-7xl overflow-hidden px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto w-full max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pb-24"
     >
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-20 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.05)_0%,transparent_70%)] blur-3xl"
-        aria-hidden
-      />
+      <Ruler className="pointer-events-none absolute right-6 top-6 hidden w-24 rotate-12 text-slate-400 xl:block dark:text-slate-500" />
+      <Pencil className="pointer-events-none absolute left-6 top-10 hidden h-12 w-12 -rotate-12 text-amber-600/70 xl:block dark:text-amber-400/60" />
 
-      <div className="mx-auto mb-12 max-w-2xl text-center">
-        <h2 className="headline text-2xl font-bold text-white sm:text-3xl">
-          როგორ მუშაობს <span className="text-[#22d3ee]">SpaceEdu</span>
+      <div className="mx-auto mb-10 max-w-2xl text-center">
+        <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
+          როგორ მუშაობს <span className={ACCENT_TEXT.green}>SpaceEdu</span>
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400 sm:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
           სამი მარტივი ნაბიჯი შენს პერსონალურ სასწავლო სივრცემდე
         </p>
       </div>
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="relative grid grid-cols-1 gap-6 md:grid-cols-3">
-          {STEPS.map((step, idx) => (
-            <RevealOnScroll key={step.id} delayMs={100 * (idx + 1)}>
+        <div className="relative grid grid-cols-1 gap-5 md:grid-cols-3">
+          {STEPS.map((step, index) => (
+            <RevealOnScroll key={step.id} delayMs={100 * (index + 1)}>
               <article
-                className="group relative flex h-full flex-col items-start rounded-2xl border bg-[#121214]/40 p-8 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1"
-                style={{ borderColor: `${step.color}30` }}
+                className={`flex h-full flex-col items-start rounded-2xl border-2 p-7 transition-transform duration-300 ${step.tilt} ${ACCENT_CARD[step.accent]}`}
               >
                 <span
-                  className="headline mb-6 text-3xl font-extrabold"
-                  style={{ color: step.color }}
+                  className={`headline mb-5 text-3xl font-extrabold ${ACCENT_TEXT[step.accent]}`}
                 >
                   {step.id}
                 </span>
-                <h3 className="mb-2 text-lg font-semibold text-white">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-gray-400">{step.body}</p>
+                <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-slate-50">
+                  {step.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                  {step.body}
+                </p>
               </article>
             </RevealOnScroll>
           ))}
