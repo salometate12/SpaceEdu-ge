@@ -1184,6 +1184,25 @@ html.dark .paper-sticker:active {
   }
 }
 
+/* The strip the header pill floats in.
+ *
+ * It is sticky and sits above the page, so it has to be painted in the
+ * ground of whatever it floats over — a transparent strip lets the page
+ * scroll through it, and the app's own background is the wrong colour on
+ * the two routes that bring their own: the landing's dark ground and
+ * /about's paper. Both stay put in day mode, matching the pill itself. */
+.header-ground-landing {
+  background-color: #09090f;
+}
+
+.header-ground-paper {
+  background-color: #faf6ec;
+}
+
+html.dark .header-ground-paper {
+  background-color: #161a24;
+}
+
 /* Mobile assistant — lg+ desktop unchanged */
 @media (max-width: 1023px) {
   .assistant-mobile-controls > div {
