@@ -9,7 +9,15 @@
 export type PageGround = "app" | "landing" | "paper";
 
 export function pageGround(pathname: string | null | undefined): PageGround {
+  if (!pathname) return "app";
   if (pathname === "/") return "landing";
-  if (pathname === "/about" || pathname === "/select-space") return "paper";
+  if (
+    pathname === "/about" ||
+    pathname === "/select-space" ||
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/")
+  ) {
+    return "paper";
+  }
   return "app";
 }

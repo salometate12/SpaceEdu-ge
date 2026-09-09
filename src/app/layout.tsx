@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import { HeaderByPath } from "@/components/layout/Header";
 import { DocumentGround } from "@/components/layout/DocumentGround";
+import { TrialNotice } from "@/components/layout/TrialNotice";
 import { MobileGlassDockByPath } from "@/components/layout/MobileGlassDock";
 import { FooterByPath } from "@/components/layout/FooterByPath";
 import { SiteShell } from "@/components/layout/SiteShell";
@@ -113,7 +114,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);var p=location.pathname;e.dataset.ground=p==='/'?'landing':(p==='/about'||p==='/select-space')?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
+            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);var p=location.pathname;e.dataset.ground=p==='/'?'landing':(p==='/about'||p==='/select-space'||p==='/checkout'||p.indexOf('/checkout/')===0)?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
           }}
         />
       </head>
@@ -128,6 +129,7 @@ export default function RootLayout({
                     <HeaderByPath />
                     <AIChatSidePanel />
                     <MobileSideMenuDrawer />
+                    <TrialNotice />
                     <SiteShell>{children}</SiteShell>
                     <FooterByPath />
                     <MobileGlassDockByPath />

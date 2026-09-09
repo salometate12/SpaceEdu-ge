@@ -55,7 +55,7 @@ export const STUDENT_PRICING_TIERS: readonly PricingTier[] = [
     id: "student-trial",
     name: "საცდელი პერიოდი",
     price: "0₾",
-    period: "1 კვირა უფასოდ",
+    period: "3 დღე უფასოდ",
     features: [
       "წვდომა საუნივერსიტეტო კურსების ასისტენტზე",
       "2 PDF დოკუმენტის ანალიზი",
@@ -93,4 +93,23 @@ export const STUDENT_PRICING_TIERS: readonly PricingTier[] = [
 
 export function pricingTiersForRole(role: PricingRole): readonly PricingTier[] {
   return role === "abiturient" ? ABITURIENT_PRICING_TIERS : STUDENT_PRICING_TIERS;
+}
+
+/** The one free tier per role — its button still leads to registration. */
+export function isTrialTier(tierId: string): boolean {
+  return tierId.endsWith("-trial");
+}
+
+export function findPricingTier(tierId: string): PricingTier | null {
+  return (
+    [...ABITURIENT_PRICING_TIERS, ...STUDENT_PRICING_TIERS].find(
+      (tier) => tier.id === tierId,
+    ) ?? null
+  );
+}
+
+export function roleForTier(tierId: string): PricingRole | null {
+  if (ABITURIENT_PRICING_TIERS.some((tier) => tier.id === tierId)) return "abiturient";
+  if (STUDENT_PRICING_TIERS.some((tier) => tier.id === tierId)) return "student";
+  return null;
 }
