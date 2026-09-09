@@ -40,7 +40,10 @@ export function DashboardHeader({
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
   const pathname = usePathname();
-  const hasOwnNav = pathname === "/dashboard-student";
+  // The student dashboard carries a side rail with the account links, so
+  // the pill leaves the avatar to it. The nav itself stays: see
+  // `navItems` — the student's row is their own tools, not the shared ones.
+  const hasSideRail = pathname === "/dashboard-student";
   const { space: accountSpace, isAdmin } = useCurrentUserAccess();
 
   useEffect(() => {
@@ -81,13 +84,26 @@ export function DashboardHeader({
     };
   }, []);
 
-  const navItems = [
-    { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },
-    { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace) },
-    { label: "Quiz", href: "/quiz" },
-    { label: "AI", href: "/ai-teacher" },
-    { label: "პროფილი", href: profileHrefForSpace(effectiveSpace) },
-  ];
+  // Each space gets the tools that are actually its own. The student's
+  // row is the university-only side of the product — the journal, live
+  // lecture notes and the presentation wizard — rather than the shared
+  // plan/quiz pair the other spaces lead with.
+  const navItems =
+    effectiveSpace === "student"
+      ? [
+          { label: "დეშბორდი", href: dashboardHrefForSpace(effectiveSpace) },
+          { label: "ჟურნალი", href: "/journal" },
+          { label: "ლექციები", href: "/lecture-notes" },
+          { label: "პრეზენტაცია", href: "/presentation" },
+          { label: "AI", href: "/ai-teacher" },
+        ]
+      : [
+          { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },
+          { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace) },
+          { label: "Quiz", href: "/quiz" },
+          { label: "AI", href: "/ai-teacher" },
+          { label: "პროფილი", href: profileHrefForSpace(effectiveSpace) },
+        ];
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname?.startsWith(`${href}/`));
@@ -97,31 +113,29 @@ export function DashboardHeader({
       <HeaderBrand href="/select-space" />
       <SpaceChip space={effectiveSpace} />
 
-      {!hasOwnNav && (
-        <HeaderNav>
-          {navItems.map((item) =>
-            item.href === "/ai-teacher" ? (
-              <button
-                key={item.href}
-                type="button"
-                onClick={toggleAiChat}
-                aria-pressed={aiChatOpen}
-                className={headerNavItemClass(aiChatOpen)}
-              >
-                {item.label}
-              </button>
-            ) : (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={headerNavItemClass(Boolean(isActive(item.href)))}
-              >
-                {item.label}
-              </Link>
-            ),
-          )}
-        </HeaderNav>
-      )}
+      <HeaderNav>
+        {navItems.map((item) =>
+          item.href === "/ai-teacher" ? (
+            <button
+              key={item.href}
+              type="button"
+              onClick={toggleAiChat}
+              aria-pressed={aiChatOpen}
+              className={headerNavItemClass(aiChatOpen)}
+            >
+              {item.label}
+            </button>
+          ) : (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={headerNavItemClass(Boolean(isActive(item.href)))}
+            >
+              {item.label}
+            </Link>
+          ),
+        )}
+      </HeaderNav>
 
       {/* On phones the bottom dock already carries theme, profile and the
           menu, so the bar keeps only what the dock has no room for. */}
@@ -145,7 +159,7 @@ export function DashboardHeader({
             <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
           )}
         </Link>
-        <div className={`relative hidden md:block ${hasOwnNav ? "md:hidden" : ""}`}>
+        <div className={`relative hidden md:block ${hasSideRail ? "md:hidden" : ""}`}>
           <button
             type="button"
             onClick={() => setAvatarOpen((prev) => !prev)}

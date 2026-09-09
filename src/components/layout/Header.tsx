@@ -55,7 +55,15 @@ export function Header({ variant, ground }: HeaderProps) {
   // sticky element can only travel within its containing block, and that
   // block used to be this div — exactly as tall as the header, so the bar
   // scrolled straight off the screen.
-  return <div className={`sticky top-0 z-40 ${GROUND_CLASS[ground]}`}>{header}</div>;
+  //
+  // Phones get no header at all: the floating dock at the bottom of the
+  // screen is the whole of mobile navigation, and it starts exactly where
+  // this bar stops (`md`).
+  return (
+    <div className={`sticky top-0 z-40 hidden md:block ${GROUND_CLASS[ground]}`}>
+      {header}
+    </div>
+  );
 }
 
 export function HeaderByPath() {
