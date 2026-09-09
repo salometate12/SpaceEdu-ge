@@ -3,19 +3,19 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { pageGround, type PageGround } from "@/lib/page-ground";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { DashboardHeader } from "./DashboardHeader";
 import { LandingHeader } from "./LandingHeader";
 
 /**
- * Which surface the header floats over. The strip around the pill has to
- * be painted in that colour: it is sticky, so anything scrolling under it
- * shows through a transparent one — and the app's own background is the
- * wrong colour on the two pages that bring their own ground.
+ * The strip around the pill has to be painted in the ground of the page it
+ * floats over: it is sticky, so anything scrolling under it shows through
+ * a transparent one — and the app's own background is the wrong colour on
+ * the pages that bring their own. `pageGround` is shared with
+ * `DocumentGround`, which paints the same colour behind the scrollbar.
  */
-type HeaderGround = "app" | "landing" | "paper";
-
-const GROUND_CLASS: Record<HeaderGround, string> = {
+const GROUND_CLASS: Record<PageGround, string> = {
   app: "bg-[var(--bg-primary)]",
   landing: "header-ground-landing",
   paper: "header-ground-paper",
@@ -23,7 +23,7 @@ const GROUND_CLASS: Record<HeaderGround, string> = {
 
 interface HeaderProps {
   variant: "landing" | "dashboard";
-  ground: HeaderGround;
+  ground: PageGround;
 }
 
 export function Header({ variant, ground }: HeaderProps) {
@@ -82,10 +82,7 @@ export function HeaderByPath() {
   ) {
     return null;
   }
-  // The landing lays its sections on a dark ground and /about on paper;
-  // every other route uses the app background.
-  const ground: HeaderGround =
-    pathname === "/" ? "landing" : pathname === "/about" ? "paper" : "app";
+  const ground = pageGround(pathname);
   const landingVariant =
     pathname === "/" || pathname === "/pricing" || pathname === "/about";
   return (

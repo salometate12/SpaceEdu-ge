@@ -1184,6 +1184,42 @@ html.dark .paper-sticker:active {
   }
 }
 
+/* The document's own ground.
+ *
+ * The scrollbar gutter is outside the layout viewport, so nothing inside
+ * the page can paint it: on the dark landing the browser drew its own
+ * light track down the right-hand edge, and the header strip stopped
+ * short of it. `data-ground` (set by `DocumentGround`, and by the inline
+ * script in the root layout for the first paint) puts the page's colour on
+ * <html> instead, where the gutter reads it.
+ *
+ * `color-scheme` is what tints the scrollbar itself. It follows the theme
+ * everywhere except the landing, whose ground is dark in both. */
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html[data-ground="landing"] {
+  color-scheme: dark;
+  background-color: #09090f;
+}
+
+html[data-ground="landing"] body {
+  background-color: #09090f;
+}
+
+html[data-ground="paper"] {
+  background-color: #faf6ec;
+}
+
+html.dark[data-ground="paper"] {
+  background-color: #161a24;
+}
+
 /* The strip the header pill floats in.
  *
  * It is sticky and sits above the page, so it has to be painted in the
