@@ -8,7 +8,7 @@ const PRODUCT_LINKS = [
 ];
 
 const COMPANY_LINKS = [
-  { href: "/#hero", label: "ჩვენს შესახებ" },
+  { href: "/about", label: "ჩვენს შესახებ" },
   { href: "/#pricing", label: "კონტაქტი" },
   { href: "/privacy", label: "კონფიდენციალურობა" },
   { href: "/terms", label: "წესები და პირობები" },

@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { href: "/#university", label: "უნივერსიტეტი" },
   { href: "/#how-it-works", label: "როგორ მუშაობს" },
   { href: "/#pricing", label: "ფასი" },
+  { href: "/about", label: "ჩვენს შესახებ" },
 ];
 
 export function LandingHeader({ scrolled }: LandingHeaderProps) {
@@ -42,7 +43,7 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
         <ThemeToggle className="!h-9 !w-9 sm:!h-9 sm:!w-9" />
         <Link
           href="/login"
-          className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white sm:inline-flex"
+          className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white xl:inline-flex"
         >
           შესვლა
         </Link>
