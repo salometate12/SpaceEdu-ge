@@ -5,6 +5,7 @@ import { Features } from "@/components/landing/Features";
 import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { LandingFooter } from "@/components/landing/LandingFooter";
+import { NotebookSheet } from "@/components/landing/notebook/NotebookSheet";
 import { PricingCards } from "@/components/landing/PricingCards";
 import { Starfield } from "@/components/landing/Starfield";
 import { Testimonials } from "@/components/landing/Testimonials";
@@ -55,20 +56,29 @@ export default function LandingPage() {
       <Starfield />
       <div className="relative z-10">
         <AuthErrorNotice />
-        {/* The notebook sheet: the part of the landing already redrawn in the
-            /about style, laid over the original neon surface. The sections
-            below still carry their own dark styling, so the seam is
-            deliberate until they follow. */}
-        <div className="notebook-paper relative overflow-hidden rounded-b-[2.5rem] shadow-[0_26px_60px_-32px_rgba(0,0,0,0.75)]">
-          <Hero />
-          <HowItWorks />
+        {/* The landing is a stack of notebook sheets rather than one long
+            page. The dark ground stays visible between them, which is what
+            gives every section change its drawn edge; the header pill and
+            the footer are the chrome the stack sits on, so they stay dark
+            in both themes. */}
+        <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-5 sm:pb-8 lg:px-8">
+          <NotebookSheet>
+            <Hero />
+            <HowItWorks />
+          </NotebookSheet>
+          <NotebookSheet>
+            <AbiturientCenter />
+            <Features />
+          </NotebookSheet>
+          <NotebookSheet>
+            <WhoItsFor />
+            <Testimonials />
+          </NotebookSheet>
+          <NotebookSheet>
+            <PricingCards />
+            <CTASection />
+          </NotebookSheet>
         </div>
-        <AbiturientCenter />
-        <Features />
-        <WhoItsFor />
-        <Testimonials />
-        <PricingCards />
-        <CTASection />
         <LandingFooter />
       </div>
     </div>

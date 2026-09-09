@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import {
   pricingTiersForRole,
@@ -11,68 +10,30 @@ import {
   type PricingTier,
 } from "@/lib/landing-pricing-plans";
 import { registrationHref } from "@/lib/registration-role";
+import { Ruler } from "./notebook/Doodles";
+import {
+  ACCENT_CARD,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+  type NotebookAccent,
+} from "./notebook/accents";
 
 const ROLE_TABS: { id: PricingRole; label: string }[] = [
   { id: "abiturient", label: "აბიტურიენტი" },
   { id: "student", label: "სტუდენტი" },
 ];
 
+/** One pen colour per audience — the tabs, the popular card and its badge
+ *  all pick it up, so switching tabs reads as switching pens. */
+const ROLE_ACCENT: Record<PricingRole, NotebookAccent> = {
+  abiturient: "violet",
+  student: "blue",
+};
+
 function tierCtaHref(role: PricingRole): string {
   return registrationHref(role);
 }
-
-const ROLE_ACCENT: Record<
-  PricingRole,
-  {
-    border: string;
-    borderHover: string;
-    glow: string;
-    glowHover: string;
-    overlay: string;
-    badgeBorder: string;
-    badgeBg: string;
-    badgeShadow: string;
-    check: string;
-    buttonGradient: string;
-    buttonGradientHover: string;
-    buttonShadow: string;
-    plainHover: string;
-    plainButtonHover: string;
-  }
-> = {
-  abiturient: {
-    border: "border-purple-500/35",
-    borderHover: "hover:border-purple-500/50",
-    glow: "shadow-[0_0_40px_rgba(124,58,237,0.12)]",
-    glowHover: "hover:shadow-[0_0_48px_rgba(124,58,237,0.18)]",
-    overlay: "from-purple-600/[0.08]",
-    badgeBorder: "border-purple-500/30",
-    badgeBg: "bg-purple-600",
-    badgeShadow: "shadow-purple-600/25",
-    check: "text-purple-400",
-    buttonGradient: "from-purple-600 to-indigo-600",
-    buttonGradientHover: "hover:from-purple-500 hover:to-indigo-500",
-    buttonShadow: "shadow-[0_0_20px_rgba(124,58,237,0.35)]",
-    plainHover: "hover:border-purple-500/40",
-    plainButtonHover: "hover:!border-purple-500/40",
-  },
-  student: {
-    border: "border-cyan-500/35",
-    borderHover: "hover:border-cyan-500/50",
-    glow: "shadow-[0_0_40px_rgba(8,145,178,0.14)]",
-    glowHover: "hover:shadow-[0_0_48px_rgba(8,145,178,0.2)]",
-    overlay: "from-cyan-600/[0.08]",
-    badgeBorder: "border-cyan-500/30",
-    badgeBg: "bg-cyan-600",
-    badgeShadow: "shadow-cyan-600/25",
-    check: "text-cyan-400",
-    buttonGradient: "from-cyan-600 to-blue-600",
-    buttonGradientHover: "hover:from-cyan-500 hover:to-blue-500",
-    buttonShadow: "shadow-[0_0_20px_rgba(8,145,178,0.35)]",
-    plainHover: "hover:border-cyan-500/40",
-    plainButtonHover: "hover:!border-cyan-500/40",
-  },
-};
 
 function PricingTierCard({
   tier,
@@ -89,43 +50,37 @@ function PricingTierCard({
   return (
     <RevealOnScroll delayMs={delayMs}>
       <article
-        className={`relative flex min-h-[420px] flex-col justify-between rounded-2xl border p-8 backdrop-blur-xl transition-all duration-300 ${
-          popular
-            ? `${accent.border} bg-[#121214]/50 ${accent.glow} ${accent.borderHover} ${accent.glowHover}`
-            : `border-white/[0.08] bg-[#121214]/40 ${accent.plainHover}`
+        className={`relative flex min-h-[420px] flex-col justify-between rounded-2xl border-2 p-8 ${
+          popular ? ACCENT_CARD[accent] : PLAIN_CARD
         }`}
       >
         {popular && (
-          <>
-            <div
-              className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b ${accent.overlay} via-transparent to-transparent`}
-              aria-hidden
-            />
-            <span
-              className={`absolute -top-3 left-1/2 z-[1] -translate-x-1/2 whitespace-nowrap rounded-full border ${accent.badgeBorder} ${accent.badgeBg} px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg ${accent.badgeShadow}`}
-            >
-              ყველაზე პოპულარული
-            </span>
-          </>
+          <span
+            className={`paper-sticker absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_SOLID[accent]}`}
+          >
+            ყველაზე პოპულარული
+          </span>
         )}
 
-        <div className="relative z-[1]">
-          <h3 className="headline text-lg font-semibold text-white">{tier.name}</h3>
+        <div>
+          <h3 className="headline text-lg font-bold text-slate-900 dark:text-slate-50">
+            {tier.name}
+          </h3>
           <div className="mt-4 flex flex-wrap items-end gap-x-2 gap-y-1">
-            <p className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <p className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-slate-50">
               {tier.price}
             </p>
-            <p className="pb-1 text-sm text-gray-400">{tier.period}</p>
+            <p className="pb-1 text-sm text-slate-600 dark:text-slate-400">{tier.period}</p>
           </div>
           <ul className="mt-6 space-y-3">
             {tier.features.map((feature) => (
               <li
                 key={feature}
-                className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-400"
+                className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
               >
                 <Check
-                  className={`mt-0.5 h-4 w-4 shrink-0 stroke-[2] ${
-                    popular ? accent.check : "text-gray-500"
+                  className={`mt-0.5 h-4 w-4 shrink-0 stroke-[2.5] ${
+                    popular ? ACCENT_TEXT[accent] : "text-slate-500 dark:text-slate-400"
                   }`}
                   aria-hidden
                 />
@@ -135,17 +90,15 @@ function PricingTierCard({
           </ul>
         </div>
 
-        <Link href={tierCtaHref(role)} className="relative z-[1] mt-8 block w-full">
-          <Button
-            variant={popular ? "primary" : "ghost"}
-            className={`w-full !rounded-full ${
-              popular
-                ? `bg-gradient-to-r ${accent.buttonGradient} ${accent.buttonShadow} ${accent.buttonGradientHover}`
-                : `!border-white/[0.12] !bg-white/[0.03] ${accent.plainButtonHover}`
-            }`}
-          >
-            {tier.cta}
-          </Button>
+        <Link
+          href={tierCtaHref(role)}
+          className={`mt-8 block w-full rounded-full border-2 px-4 py-3 text-center text-sm font-bold ${
+            popular
+              ? `paper-sticker ${ACCENT_SOLID[accent]}`
+              : "border-slate-400 bg-white/60 text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
+          }`}
+        >
+          {tier.cta}
         </Link>
       </article>
     </RevealOnScroll>
@@ -157,22 +110,29 @@ export function PricingCards() {
   const tiers = pricingTiersForRole(activeRole);
 
   return (
-    <section id="pricing" className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    <section
+      id="pricing"
+      className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+    >
+      <Ruler className="pointer-events-none absolute left-6 top-14 hidden w-24 -rotate-12 text-slate-400 xl:block dark:text-slate-500" />
+
       <div className="mx-auto mb-10 max-w-2xl text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
+        <p
+          className={`text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
+        >
           ფასების პაკეტები
         </p>
-        <h2 className="headline mt-2 text-2xl font-bold text-white sm:text-3xl">
+        <h2 className="headline mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
           აირჩიე შენს სივრცეს შესაფერისი გეგმა
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-gray-400">
+        <p className="mt-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           აბიტურიენტი თუ სტუდენტი — ყოველი მიმართულებისთვის ცალკე, გამჭვირვალე ფასები.
         </p>
       </div>
 
       <div className="mb-12 flex justify-center">
         <div
-          className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.03] p-1"
+          className={`inline-flex rounded-full border-2 p-1 ${PLAIN_CARD}`}
           role="tablist"
           aria-label="ფასების კატეგორია"
         >
@@ -185,12 +145,10 @@ export function PricingCards() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveRole(tab.id)}
-                className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 sm:px-8 ${
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-200 sm:px-8 ${
                   active
-                    ? tab.id === "abiturient"
-                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/20"
-                      : "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/20"
-                    : "text-gray-400 hover:text-white"
+                    ? `border-2 ${ACCENT_SOLID[ROLE_ACCENT[tab.id]]}`
+                    : "border-2 border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 }`}
               >
                 {tab.label}
@@ -205,12 +163,12 @@ export function PricingCards() {
         className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3"
         role="tabpanel"
       >
-        {tiers.map((tier, idx) => (
+        {tiers.map((tier, index) => (
           <PricingTierCard
             key={tier.id}
             tier={tier}
             role={activeRole}
-            delayMs={80 * (idx + 1)}
+            delayMs={80 * (index + 1)}
           />
         ))}
       </div>

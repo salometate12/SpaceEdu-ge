@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight, Bot, Clock, Lock } from "lucide-react";
 import { Bulb, Flower, RainbowArc, Sparkle, Sun } from "./notebook/Doodles";
-import { ACCENT_CARD, ACCENT_PILL, ACCENT_TEXT, type NotebookAccent } from "./notebook/accents";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  type NotebookAccent,
+} from "./notebook/accents";
 
 const SUBTITLE_TEXT =
   "SpaceEdu — შენი პერსონალური სასწავლო სივრცე სკოლის, გამოცდებისა და უნივერსიტეტისთვის. AI გეგმავს, ხსნის და ამოწმებს — შენ მხოლოდ სწავლობ.";
@@ -112,11 +118,9 @@ export function Hero() {
           className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-3.5"
           style={{ animationDelay: "1050ms" }}
         >
-          {/* A hard offset shadow instead of a glow: on paper the button
-              should read as something stuck on, not lit from behind. */}
           <Link
             href="/select-space"
-            className="group inline-flex items-center gap-2 rounded-full border-2 border-violet-700 bg-violet-600 px-7 py-3.5 text-base font-bold text-white shadow-[0_5px_0_0_rgba(76,29,149,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_0_0_rgba(76,29,149,0.35)] active:translate-y-0.5 active:shadow-[0_2px_0_0_rgba(76,29,149,0.35)] dark:border-violet-300/40"
+            className={`paper-sticker group inline-flex items-center gap-2 rounded-full border-2 px-7 py-3.5 text-base font-bold ${ACCENT_SOLID.violet}`}
           >
             უფასოდ დაიწყე
             <ArrowUpRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
