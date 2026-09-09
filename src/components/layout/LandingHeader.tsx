@@ -38,8 +38,8 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
         ))}
       </HeaderNav>
 
-      <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
-        <ThemeToggle />
+      <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0">
+        <ThemeToggle className="!h-9 !w-9 sm:!h-9 sm:!w-9" />
         <Link
           href="/login"
           className="hidden h-10 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white sm:inline-flex"
@@ -47,7 +47,9 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
           შესვლა
         </Link>
         <HeaderCta href="/select-space">
-          დაიწყე უფასოდ
+          {/* The full label doesn't fit next to the wordmark on a 375px screen. */}
+          <span className="sm:hidden">დაიწყე</span>
+          <span className="hidden sm:inline">დაიწყე უფასოდ</span>
           <ArrowUpRight className="h-3.5 w-3.5 stroke-[2.5]" />
         </HeaderCta>
       </div>
