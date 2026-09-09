@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
   BookOpen,
@@ -29,10 +30,8 @@ import { recordQuestProgress } from "@/lib/daily-quests";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import {
-  ACCENT_CARD,
   ACCENT_PILL,
   ACCENT_SOLID,
-  ACCENT_TEXT,
   PLAIN_CARD,
   type NotebookAccent,
 } from "@/components/landing/notebook/accents";
@@ -144,14 +143,12 @@ function ReadingPanel({
   highlight,
   strong,
   year,
-  accent,
   footer,
 }: {
   passage: ExamPassage;
   highlight?: string;
   strong?: boolean;
   year: number;
-  accent: NotebookAccent;
   footer?: React.ReactNode;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -181,7 +178,7 @@ function ReadingPanel({
       <header className="shrink-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${MUTED} ${PLAIN_CARD}`}
           >
             ეროვნული გამოცდა · {year}
           </span>
@@ -202,7 +199,7 @@ function ReadingPanel({
       </header>
 
       <div ref={scrollRef} className="exam-scroll relative mt-5 min-h-0 flex-1 pr-3">
-        <div className="exam-paper p-5 sm:p-6">
+        <div className="exam-paper-plain p-5 sm:p-6">
           <TropeHighlightedPassage
             text={passage.textExcerpt}
             highlight={highlight}
@@ -216,7 +213,7 @@ function ReadingPanel({
 
       {highlight && (
         <p
-          className={`mt-3 flex shrink-0 items-start gap-2 rounded-xl border-2 px-3 py-2 text-[11px] leading-relaxed ${ACCENT_CARD[accent]} ${ACCENT_TEXT[accent]}`}
+          className={`mt-3 flex shrink-0 items-start gap-2 rounded-xl border-2 px-3 py-2 text-[11px] leading-relaxed ${MUTED} ${PLAIN_CARD}`}
         >
           <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[2]" />
           ხაზგასმულია მონაკვეთი, რომელსაც კითხვა ეხება.
@@ -359,6 +356,40 @@ export function ExamSimulation({
 
   const stageIndex = STAGE_ORDER.indexOf(stage === "done" ? "essay" : stage);
 
+  /**
+   * The rail is navigation, so every step is a button. Two of them have a
+   * precondition: the questions and the essay both read from a chosen
+   * passage, and rendering either without one would land on a null
+   * question. A paper with a single text has nothing to choose, so its
+   * passage is picked here rather than made into a step the reader has to
+   * walk through.
+   */
+  const stageReachable = useCallback(
+    (target: Stage) => {
+      if (target === "editing") return Boolean(variant.editingTask);
+      if (target === "choose") return true;
+      return Boolean(chosenId) || variant.passages.length === 1;
+    },
+    [variant.editingTask, variant.passages.length, chosenId],
+  );
+
+  const goToStage = useCallback(
+    (target: Stage) => {
+      if (!stageReachable(target)) return;
+      // The clock keeps running across navigation — this moves the view,
+      // not the exam.
+      if ((target === "questions" || target === "essay") && !chosenId) {
+        const only = variant.passages[0];
+        if (!only) return;
+        setChosenId(only.id);
+        setIndex(0);
+      }
+      setPreviewHighlight(null);
+      setStage(target);
+    },
+    [stageReachable, chosenId, variant.passages],
+  );
+
   /* ------------------------------- chrome --------------------------------- */
   const header = (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -391,20 +422,26 @@ export function ExamSimulation({
       {STAGE_ORDER.map((s, i) => {
         const active = i === stageIndex;
         const passed = i < stageIndex || stage === "done";
+        const reachable = stageReachable(s);
         return (
           <li key={s} className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+            <button
+              type="button"
+              onClick={() => goToStage(s)}
+              disabled={!reachable}
+              aria-current={active ? "step" : undefined}
+              title={reachable ? undefined : "ჯერ წინა ნაწილი გაიარე"}
+              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-bold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 active
                   ? ACCENT_PILL[accent]
                   : passed
                     ? "border-emerald-300/80 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/10 dark:text-emerald-300"
-                    : `border-slate-200 bg-white/60 ${FAINT} dark:border-white/[0.07] dark:bg-white/[0.02]`
+                    : `${FAINT} ${PLAIN_CARD}`
               }`}
             >
               {passed && <Check className="h-3 w-3 stroke-[3]" />}
               {STAGE_LABEL[s]}
-            </span>
+            </button>
             {i < STAGE_ORDER.length - 1 && (
               <span className="hidden h-px w-4 bg-slate-200 sm:block dark:bg-white/10" />
             )}
@@ -438,7 +475,7 @@ export function ExamSimulation({
 
         <section className={`${PANEL} p-5 sm:p-7`}>
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${MUTED} ${PLAIN_CARD}`}
           >
             <BookOpen className="h-3 w-3 stroke-[2.5]" />
             II ნაწილი · წაკითხულის გააზრება
@@ -463,7 +500,7 @@ export function ExamSimulation({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <span
-                      className={`inline-flex rounded-full border-2 px-3 py-1 text-[11px] font-bold ${ACCENT_PILL[accent]}`}
+                      className={`inline-flex rounded-full border-2 px-3 py-1 text-[11px] font-bold ${MUTED} ${PLAIN_CARD}`}
                     >
                       {p.choiceLabel ?? `ტექსტი ${i + 1}`}
                     </span>
@@ -476,7 +513,7 @@ export function ExamSimulation({
                   </span>
                 </div>
 
-                <div className="exam-paper mt-4 max-h-40 overflow-hidden p-4">
+                <div className="exam-paper-plain mt-4 max-h-40 overflow-hidden p-4">
                   <p
                     className={`exam-prose line-clamp-4 ${
                       p.kind === "poem" ? "exam-prose-poem" : ""
@@ -535,7 +572,6 @@ export function ExamSimulation({
             highlight={activeHighlight}
             strong={Boolean(previewHighlight)}
             year={year}
-            accent={accent}
           />
 
           <section
@@ -626,8 +662,10 @@ export function ExamSimulation({
                       pill =
                         "border-slate-300/70 bg-transparent text-slate-400 dark:border-white/10 dark:text-white/30";
                     } else if (isSelected) {
-                      pill = ACCENT_SOLID[accent];
-                      circle = "border-white/60 text-white";
+                      pill =
+                        "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900";
+                      circle =
+                        "border-white/60 text-white dark:border-slate-900/40 dark:text-slate-900";
                     }
 
                     return (
@@ -693,9 +731,9 @@ export function ExamSimulation({
                         </>
                       )}
                     </p>
-                    <div className={`rounded-2xl border-2 p-4 ${ACCENT_CARD[accent]}`}>
+                    <div className={`rounded-2xl border-2 p-4 ${PLAIN_CARD}`}>
                       <p
-                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT[accent]}`}
+                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${FAINT}`}
                       >
                         <Lightbulb className="h-3 w-3 stroke-[2.5]" />
                         ახსნა
@@ -755,11 +793,11 @@ export function ExamSimulation({
         {stageRail}
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-6">
-          <ReadingPanel passage={passage} year={year} accent={accent} />
+          <ReadingPanel passage={passage} year={year} />
 
           <section className={`${PANEL} p-5 sm:p-7`}>
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL.violet}`}
+              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${MUTED} ${PLAIN_CARD}`}
             >
               <PenLine className="h-3 w-3 stroke-[2.5]" />
               წერითი დავალება · {passage.essay.points} ქულა
@@ -974,20 +1012,21 @@ function EditingStage({
   accent: NotebookAccent;
   onDone: () => void;
 }) {
-  // The source text is loaded straight into the editor so the student
-  // corrects it in place instead of retyping the whole thing by hand.
-  const [draft, setDraft] = useState(task.text);
+  // The editor starts empty: the source is above, and the reader decides
+  // whether to bring it down and correct it in place or to write out their
+  // own version. Reading and writing are stacked rather than side by side —
+  // the text is long, and two half-width columns made both of them worse.
+  const [draft, setDraft] = useState("");
   const [showKey, setShowKey] = useState(false);
   const words = draft.trim().split(/\s+/).filter(Boolean).length;
+  const transferred = draft !== "";
   const untouched = draft === task.text;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-6">
-      <section
-        className={`${PANEL} flex flex-col overflow-hidden p-5 sm:p-7 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)]`}
-      >
-        <header className="shrink-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-300">
+    <div className="space-y-4">
+      <section className={`${PANEL} p-5 sm:p-7`}>
+        <header>
+          <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-amber-300/70 bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-300">
             <PenLine className="h-3 w-3 stroke-[2]" />
             I ნაწილი · {task.points} ქულა
           </span>
@@ -998,12 +1037,24 @@ function EditingStage({
           </p>
         </header>
 
-        <div className="exam-scroll mt-5 min-h-0 flex-1 pr-3">
-          <div className="exam-paper p-5 sm:p-6">
-            <p className="exam-prose exam-prose-poem">{task.text}</p>
-          </div>
+        <div className="exam-paper-plain mt-5 p-5 sm:p-6">
+          <p className="exam-prose exam-prose-poem">{task.text}</p>
         </div>
       </section>
+
+      <div className="flex justify-center">
+        {/* Ink rather than the subject's colour: the accent on this screen
+            belongs to the step badge and the one button that moves the
+            exam forward. */}
+        <button
+          type="button"
+          onClick={() => setDraft(task.text)}
+          className="paper-sticker inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-slate-900 px-5 py-2.5 text-sm font-bold text-white dark:border-white dark:bg-white dark:text-slate-900"
+        >
+          <ArrowDown className="h-4 w-4 stroke-[2.5]" />
+          რედაქტორში გადმოყვანა
+        </button>
+      </div>
 
       <section className={`${PANEL} p-5 sm:p-7`}>
         <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -1017,23 +1068,28 @@ function EditingStage({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           spellCheck={false}
-          className="exam-prose min-h-[420px] w-full resize-y rounded-2xl border-2 border-slate-200 bg-white/70 p-4 outline-none transition focus:border-amber-400/70 dark:border-white/10 dark:bg-black/25"
+          placeholder="დაიწყე წერა, ან ჩამოიტანე ორიგინალი ზემოთა ღილაკით და გაასწორე ადგილზე."
+          className="exam-prose min-h-[420px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
         />
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setDraft(task.text)}
-            disabled={untouched}
-            className={`inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3.5 py-2 text-xs font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
-          >
-            <RotateCcw className="h-3.5 w-3.5 stroke-[2]" />
-            ორიგინალის დაბრუნება
-          </button>
+          {/* Only useful once there is something to undo — before the
+              transfer this would be the button above under another name. */}
+          {transferred && (
+            <button
+              type="button"
+              onClick={() => setDraft(task.text)}
+              disabled={untouched}
+              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold transition ${MUTED} ${PLAIN_CARD} disabled:opacity-40`}
+            >
+              <RotateCcw className="h-3.5 w-3.5 stroke-[2]" />
+              ორიგინალის დაბრუნება
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowKey((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200"
           >
             <Lightbulb className="h-3.5 w-3.5 stroke-[2]" />
             {showKey ? "დამალე პუნქტები" : "შემოწმების პუნქტები"}
