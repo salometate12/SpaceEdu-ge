@@ -25,9 +25,9 @@ export function HeaderPill({
   // as a light bar across the dark landing hero. Depth on scroll comes from
   // the pill's own shadow instead.
   return (
-    <header className="px-3 py-3 sm:px-6">
+    <header className="px-3 py-2.5 sm:px-6 sm:py-3">
       <div
-        className={`header-pill dark mx-auto flex h-14 w-full max-w-7xl items-center gap-2 rounded-full border border-white/[0.08] px-2.5 transition-shadow duration-300 xl:gap-3 ${
+        className={`header-pill dark mx-auto flex h-[52px] w-full max-w-7xl items-center gap-1.5 rounded-full border border-white/[0.08] px-2 transition-shadow duration-300 sm:h-14 sm:gap-2 sm:px-2.5 xl:gap-3 ${
           scrolled
             ? "shadow-[0_18px_44px_-20px_rgba(2,6,23,0.7)]"
             : "shadow-[0_12px_32px_-20px_rgba(2,6,23,0.55)]"
@@ -44,12 +44,12 @@ export function HeaderBrand({ href }: { href: string }) {
   return (
     <Link
       href={href}
-      className="group flex shrink-0 items-center gap-2.5 rounded-full pr-2 transition-opacity hover:opacity-90"
+      className="group flex shrink-0 items-center gap-2 rounded-full transition-opacity hover:opacity-90 sm:gap-2.5 sm:pr-2"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-[0_0_18px_rgba(124,58,237,0.45)]">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-[0_0_18px_rgba(124,58,237,0.45)] sm:h-9 sm:w-9">
         <Rocket className="h-4 w-4 text-white" strokeWidth={2.2} />
       </span>
-      <span className="headline text-[15px] font-bold tracking-tight text-white">
+      <span className="headline text-sm font-bold tracking-tight text-white sm:text-[15px]">
         SpaceEdu
       </span>
     </Link>
@@ -89,7 +89,7 @@ export function HeaderCta({
   return (
     <Link
       href={href}
-      className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-5 text-sm font-bold text-[#0f0f14] transition-all hover:bg-white/90 active:scale-[0.98]"
+      className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-3.5 text-[13px] font-bold text-[#0f0f14] transition-all hover:bg-white/90 active:scale-[0.98] sm:h-10 sm:px-5 sm:text-sm"
     >
       {children}
     </Link>
