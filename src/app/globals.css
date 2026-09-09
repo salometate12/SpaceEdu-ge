@@ -2023,15 +2023,23 @@ html.dark .exam-prose {
 }
 
 /* The paper surface behind the passage. */
+/* The sheet a passage is printed on. Now literally the site's notebook
+   paper — same colour, same ruling — rather than a paper-coloured
+   gradient of its own. */
 .exam-paper {
-  border-radius: 28px;
-  border: 1px solid rgb(226 232 240 / 0.9);
-  background: linear-gradient(170deg, #fffdf9 0%, #fdfbf6 60%, #fbf8f1 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  --paper-rule: rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  background-color: #faf6ec;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    var(--paper-rule) 31px 32px
+  );
 }
 
 html.dark .exam-paper {
-  border-color: rgb(255 255 255 / 0.07);
-  background: linear-gradient(170deg, #14151c 0%, #121319 60%, #101116 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --paper-rule: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: #161a24;
 }

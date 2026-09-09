@@ -1,23 +1,26 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { ArrowRight, Layers, Sparkles } from "lucide-react";
-import type { SubjectTheme } from "@/lib/abiturient-subjects";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_TEXT,
+  type NotebookAccent,
+} from "@/components/landing/notebook/accents";
 
 interface SubjectSpacePremiumCardProps {
-  theme: SubjectTheme;
+  accent: NotebookAccent;
   href: string;
   title?: string;
   description?: string;
 }
 
 /**
- * Generic, theme-aware "Premium Space" promo card shown at the bottom of
- * every subject hub. Colors always come from that subject's own theme
- * (the same palette used on the dashboard) so every subject gets its own
- * matching accent instead of one hardcoded color.
+ * The "Premium Space" card at the foot of every subject hub. It takes the
+ * subject's third notebook accent, so the three coloured blocks on a hub
+ * are always three different pens.
  */
 export function SubjectSpacePremiumCard({
-  theme,
+  accent,
   href,
   title = "მოემზადე ეროვნულებისთვის შენს Space-ზე",
   description = "დამატებითი სავარჯიშოები, ტესტები და AI ანალიზი — ყველაფერი ერთ სივრცეში.",
@@ -25,40 +28,36 @@ export function SubjectSpacePremiumCard({
   return (
     <Link
       href={href}
-      className={`group relative block cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl transition-all duration-300 ${theme.hoverBorder}`}
-      style={{ ["--subject-glow-color" as string]: theme.glow } as CSSProperties}
+      className={`group block rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD[accent]}`}
     >
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-[0.14] blur-3xl transition-opacity duration-300 group-hover:opacity-[0.24]"
-        style={{ background: "radial-gradient(circle, var(--subject-glow-color) 0%, transparent 70%)" }}
-        aria-hidden
-      />
-
-      <div className="relative z-[1] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
-          <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${theme.iconRing}`}>
-            <div
-              className="pointer-events-none absolute inset-0 rounded-xl opacity-60 blur-xl"
-              style={{ background: "var(--subject-glow-color)" }}
-              aria-hidden
-            />
-            <Sparkles className={`relative h-6 w-6 stroke-[1.5] ${theme.iconText}`} />
-          </div>
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[accent]} ${ACCENT_TEXT[accent]}`}
+          >
+            <Sparkles className="h-5 w-5 stroke-[2]" aria-hidden />
+          </span>
           <div className="min-w-0">
-            <p className={`mb-1 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider ${theme.iconText} opacity-80`}>
-              <Layers className="h-3 w-3 stroke-[1.5]" />
+            <span
+              className={`mb-2 inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+            >
+              <Layers className="h-3 w-3 stroke-[2.5]" aria-hidden />
               Premium Space
+            </span>
+            <h2 className="text-lg font-bold leading-snug text-slate-900 dark:text-slate-50">
+              {title}
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              {description}
             </p>
-            <h2 className="text-lg font-semibold leading-snug text-white">{title}</h2>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-400">{description}</p>
           </div>
         </div>
 
         <span
-          className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl border px-4 py-2.5 text-sm font-medium transition-all sm:self-center ${theme.iconRing} ${theme.ctaText}`}
+          className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border-2 px-4 py-2.5 text-sm font-bold sm:self-center ${ACCENT_PILL[accent]}`}
         >
           გადასვლა
-          <ArrowRight className="h-4 w-4 stroke-[1.5] transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="h-4 w-4 stroke-[2.5] transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
     </Link>

@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BookOpen,
   Check,
-  CircleCheck,
   Clock,
   Lightbulb,
   LoaderCircle,
@@ -29,6 +28,20 @@ import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { recordDailyActivity } from "@/lib/daily-streak";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+  type NotebookAccent,
+} from "@/components/landing/notebook/accents";
+import {
+  ComboBadge,
+  CorrectPop,
+  QuestComplete,
+  QuestionProgress,
+} from "./ExamGamification";
 import { EssayReport } from "./EssayReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
 import { useEssayGrading } from "./useEssayGrading";
@@ -57,6 +70,8 @@ interface AnswerRecord {
 
 interface ExamSimulationProps {
   subjectTitle: string;
+  /** The subject's notebook pen colour, carried in from the archive. */
+  accent: NotebookAccent;
   year: number;
   variant: ExamVariant;
   onExit: () => void;
@@ -66,11 +81,11 @@ interface ExamSimulationProps {
 /*                              SHARED SURFACES                               */
 /* -------------------------------------------------------------------------- */
 
-const PANEL =
-  "rounded-[30px] border border-slate-200/90 bg-white/85 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl dark:border-white/[0.09] dark:bg-[#101016]/75 dark:shadow-none";
-const TITLE = "text-slate-900 dark:text-white";
-const MUTED = "text-slate-500 dark:text-zinc-400";
-const FAINT = "text-slate-400 dark:text-zinc-500";
+/** The exam sits on the same paper as the rest of the site. */
+const PANEL = "notebook-paper notebook-sheet rounded-[26px]";
+const TITLE = "text-slate-900 dark:text-slate-50";
+const MUTED = "text-slate-600 dark:text-slate-300";
+const FAINT = "text-slate-500 dark:text-slate-400";
 
 function formatClock(totalSeconds: number): string {
   const s = Math.max(0, totalSeconds);
@@ -101,7 +116,7 @@ function ExamTimer({
       type="button"
       onClick={onToggle}
       title={running ? "პაუზა" : "გაგრძელება"}
-      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-bold tabular-nums transition ${
+      className={`inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-1.5 text-sm font-bold tabular-nums transition ${
         critical
           ? "border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-400/35 dark:bg-rose-500/10 dark:text-rose-300"
           : low
@@ -129,12 +144,14 @@ function ReadingPanel({
   highlight,
   strong,
   year,
+  accent,
   footer,
 }: {
   passage: ExamPassage;
   highlight?: string;
   strong?: boolean;
   year: number;
+  accent: NotebookAccent;
   footer?: React.ReactNode;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -163,12 +180,14 @@ function ReadingPanel({
     >
       <header className="shrink-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/70 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+          >
             ეროვნული გამოცდა · {year}
           </span>
           {passage.choiceLabel && (
             <span
-              className={`inline-flex rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-[10px] font-semibold ${MUTED} dark:border-white/10 dark:bg-white/[0.03]`}
+              className={`inline-flex rounded-full border-2 px-3 py-1 text-[10px] font-semibold ${MUTED} ${PLAIN_CARD}`}
             >
               {passage.choiceLabel}
             </span>
@@ -196,8 +215,10 @@ function ReadingPanel({
       </div>
 
       {highlight && (
-        <p className="mt-3 flex shrink-0 items-start gap-2 rounded-xl border border-cyan-200 bg-cyan-50/70 px-3 py-2 text-[11px] leading-relaxed text-cyan-800 dark:border-cyan-500/15 dark:bg-cyan-500/[0.05] dark:text-cyan-200/80">
-          <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[1.75]" />
+        <p
+          className={`mt-3 flex shrink-0 items-start gap-2 rounded-xl border-2 px-3 py-2 text-[11px] leading-relaxed ${ACCENT_CARD[accent]} ${ACCENT_TEXT[accent]}`}
+        >
+          <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[2]" />
           ხაზგასმულია მონაკვეთი, რომელსაც კითხვა ეხება.
         </p>
       )}
@@ -211,6 +232,7 @@ function ReadingPanel({
 
 export function ExamSimulation({
   subjectTitle,
+  accent,
   year,
   variant,
   onExit,
@@ -230,6 +252,9 @@ export function ExamSimulation({
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [running, setRunning] = useState(true);
   const scoredRef = useRef(false);
+  /** How many right answers in a row — the only score shown mid-exam. */
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
   const essayGrading = useEssayGrading("abit-exam-essay");
@@ -279,6 +304,11 @@ export function ExamSimulation({
         correct,
       },
     }));
+    setStreak((value) => {
+      const next = correct ? value + 1 : 0;
+      setBestStreak((best) => Math.max(best, next));
+      return next;
+    });
     // Only the first reveal of a question counts toward the radar.
     recordCategoryAttempt(question.category, correct);
   }, [selected, revealed, question]);
@@ -320,6 +350,8 @@ export function ExamSimulation({
     setPreviewHighlight(null);
     setRemaining(EXAM_SECONDS);
     setRunning(true);
+    setStreak(0);
+    setBestStreak(0);
     scoredRef.current = false;
     setEssayDraft("");
     essayGrading.reset();
@@ -364,7 +396,7 @@ export function ExamSimulation({
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
                 active
-                  ? "border-cyan-400/70 bg-cyan-50 text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200"
+                  ? ACCENT_PILL[accent]
                   : passed
                     ? "border-emerald-300/80 bg-emerald-50 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/10 dark:text-emerald-300"
                     : `border-slate-200 bg-white/60 ${FAINT} dark:border-white/[0.07] dark:bg-white/[0.02]`
@@ -390,6 +422,7 @@ export function ExamSimulation({
         {stageRail}
         <EditingStage
           task={variant.editingTask}
+          accent={accent}
           onDone={() => setStage("choose")}
         />
       </div>
@@ -404,8 +437,10 @@ export function ExamSimulation({
         {stageRail}
 
         <section className={`${PANEL} p-5 sm:p-7`}>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/70 bg-cyan-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:border-cyan-400/25 dark:bg-cyan-500/10 dark:text-cyan-300">
-            <BookOpen className="h-3 w-3 stroke-[2]" />
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL[accent]}`}
+          >
+            <BookOpen className="h-3 w-3 stroke-[2.5]" />
             II ნაწილი · წაკითხულის გააზრება
           </span>
           <h2 className={`mt-3 text-xl font-bold ${TITLE}`}>
@@ -423,11 +458,13 @@ export function ExamSimulation({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.07, duration: 0.3 }}
-                className="rounded-[26px] border border-slate-200 bg-white/70 p-5 dark:border-white/[0.08] dark:bg-white/[0.02]"
+                className={`rounded-[22px] border-2 p-5 ${PLAIN_CARD}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span className="inline-flex rounded-full border border-cyan-300/70 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-500/[0.08] dark:text-cyan-300">
+                    <span
+                      className={`inline-flex rounded-full border-2 px-3 py-1 text-[11px] font-bold ${ACCENT_PILL[accent]}`}
+                    >
                       {p.choiceLabel ?? `ტექსტი ${i + 1}`}
                     </span>
                     <h3 className={`mt-2.5 text-lg font-bold ${TITLE}`}>{p.title}</h3>
@@ -468,7 +505,7 @@ export function ExamSimulation({
                     setAnswers({});
                     setStage("questions");
                   }}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className={`paper-sticker mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID[accent]}`}
                 >
                   ამ ტექსტით გაგრძელება
                   <ArrowRight className="h-4 w-4 stroke-[2.5]" />
@@ -498,9 +535,17 @@ export function ExamSimulation({
             highlight={activeHighlight}
             strong={Boolean(previewHighlight)}
             year={year}
+            accent={accent}
           />
 
-          <section aria-label="კითხვები" className={`${PANEL} p-5 sm:p-7`}>
+          <section
+            aria-label="კითხვები"
+            className={`${PANEL} relative p-5 sm:p-7`}
+          >
+            {/* Small, fast, and out of the way: a tick in the corner when the
+                answer was right. Nothing about it moves the question. */}
+            <CorrectPop show={isCorrect} accent={accent} triggerKey={question.id} />
+
             <div className="relative mb-7 inline-flex flex-col items-start">
               <span
                 className={`-rotate-2 rounded-full border-2 border-slate-200 bg-white/80 px-5 py-2 text-[11px] font-bold uppercase tracking-wider ${MUTED} dark:border-white/20 dark:bg-white/[0.03] dark:text-white/80`}
@@ -514,43 +559,30 @@ export function ExamSimulation({
               </span>
             </div>
 
-            {/* One pill per question — click to jump to any you've reached. */}
-            <div className="mb-6 flex items-center gap-1.5">
-              {questions.map((q, i) => {
-                const done = Boolean(revealedIds[q.id]);
-                const reachable = done || i <= index;
-                return (
-                  <button
-                    key={q.id}
-                    type="button"
-                    disabled={!reachable}
-                    onClick={() => {
-                      setIndex(i);
-                      setPreviewHighlight(null);
-                    }}
-                    aria-label={`კითხვა ${i + 1}`}
-                    aria-current={i === index ? "step" : undefined}
-                    className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 disabled:cursor-not-allowed ${
-                      done
-                        ? "bg-cyan-400"
-                        : i === index
-                          ? "bg-slate-200 dark:bg-white/10"
-                          : "bg-slate-100 dark:bg-white/[0.06]"
-                    } ${i === index ? "ring-2 ring-cyan-400/40 ring-offset-2 ring-offset-white dark:ring-offset-[#101016]" : ""}`}
-                  >
-                    {i === index && !done && (
-                      <motion.span
-                        key={`fill-${index}`}
-                        initial={{ width: "0%" }}
-                        animate={{ width: "45%" }}
-                        transition={{ duration: 1.1, ease: "easeOut" }}
-                        className="block h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
-                      />
-                    )}
-                  </button>
-                );
-              })}
+            <div className="mb-4 flex min-h-[26px] items-center">
+              <ComboBadge streak={streak} />
             </div>
+
+            {/* One segment per question — solid colours, no gradient, with a
+                small star over the ones already answered correctly. */}
+            <QuestionProgress
+              total={total}
+              index={index}
+              accent={accent}
+              stateFor={(i) => {
+                const q = questions[i];
+                const record = q ? answers[q.id] : undefined;
+                if (record) return record.correct ? "correct" : "wrong";
+                return i === index ? "current" : "todo";
+              }}
+              onJump={(i) => {
+                const q = questions[i];
+                if (!q) return;
+                if (!answers[q.id] && i > index) return;
+                setIndex(i);
+                setPreviewHighlight(null);
+              }}
+            />
 
             {/* Keyed on the question so React remounts and replays the
                 enter animation. Deliberately not wrapped in AnimatePresence:
@@ -562,7 +594,7 @@ export function ExamSimulation({
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
                 <div
-                  className="mb-6 rounded-[26px] border-2 border-slate-200 bg-white/60 p-5 dark:border-white/15 dark:bg-white/[0.02]"
+                  className={`mb-6 rounded-[22px] border-2 p-5 ${PLAIN_CARD}`}
                   onMouseEnter={() =>
                     question.highlightPhrase &&
                     setPreviewHighlight(question.highlightPhrase)
@@ -581,25 +613,21 @@ export function ExamSimulation({
                     const isSelected = selected === i;
                     const isAnswer = i === question.correctIndex;
 
-                    let pill =
-                      "border-slate-200 bg-white/50 text-slate-700 hover:border-cyan-400/60 hover:bg-cyan-50/60 dark:border-white/15 dark:bg-transparent dark:text-zinc-200 dark:hover:border-cyan-400/50 dark:hover:bg-cyan-500/[0.03]";
+                    let pill = `${PLAIN_CARD} text-slate-800 dark:text-slate-200`;
                     let circle =
-                      "border-slate-300 text-slate-400 dark:border-white/20 dark:text-white/40";
+                      "border-slate-400 text-slate-500 dark:border-white/25 dark:text-white/50";
                     if (revealed && isAnswer) {
-                      pill =
-                        "border-transparent bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20";
-                      circle = "border-white/50 text-white";
+                      pill = "border-emerald-600 bg-emerald-600 text-white";
+                      circle = "border-white/60 text-white";
                     } else if (revealed && isSelected) {
-                      pill =
-                        "border-transparent bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20";
-                      circle = "border-white/50 text-white";
+                      pill = "border-pink-600 bg-pink-600 text-white";
+                      circle = "border-white/60 text-white";
                     } else if (revealed) {
                       pill =
-                        "border-slate-200 bg-transparent text-slate-400 dark:border-white/10 dark:text-white/25";
+                        "border-slate-300/70 bg-transparent text-slate-400 dark:border-white/10 dark:text-white/30";
                     } else if (isSelected) {
-                      pill =
-                        "border-transparent bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20";
-                      circle = "border-white/50 text-white";
+                      pill = ACCENT_SOLID[accent];
+                      circle = "border-white/60 text-white";
                     }
 
                     return (
@@ -665,12 +693,14 @@ export function ExamSimulation({
                         </>
                       )}
                     </p>
-                    <div className="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 dark:border-cyan-500/25 dark:bg-cyan-950/30">
-                      <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">
-                        <Lightbulb className="h-3 w-3 stroke-[2]" />
+                    <div className={`rounded-2xl border-2 p-4 ${ACCENT_CARD[accent]}`}>
+                      <p
+                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT[accent]}`}
+                      >
+                        <Lightbulb className="h-3 w-3 stroke-[2.5]" />
                         ახსნა
                       </p>
-                      <p className="text-[13.5px] leading-relaxed text-cyan-900/85 dark:text-cyan-50/85">
+                      <p className="text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
                         {question.explanation}
                       </p>
                     </div>
@@ -685,7 +715,7 @@ export function ExamSimulation({
                 onClick={goPrev}
                 disabled={index === 0}
                 aria-label="წინა კითხვა"
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-4 py-3 text-sm font-bold transition ${MUTED} ${PLAIN_CARD} disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <ArrowLeft className="h-4 w-4 stroke-[2.5]" />
                 <span className="hidden sm:inline">წინა</span>
@@ -696,7 +726,7 @@ export function ExamSimulation({
                   type="button"
                   onClick={check}
                   disabled={selected === null}
-                  className="flex-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`paper-sticker flex-1 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID[accent]}`}
                 >
                   პასუხის შემოწმება
                 </button>
@@ -704,7 +734,7 @@ export function ExamSimulation({
                 <button
                   type="button"
                   onClick={advance}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
                 >
                   {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
                   <ArrowRight className="h-4 w-4 stroke-[2.5]" />
@@ -725,11 +755,13 @@ export function ExamSimulation({
         {stageRail}
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-6">
-          <ReadingPanel passage={passage} year={year} />
+          <ReadingPanel passage={passage} year={year} accent={accent} />
 
           <section className={`${PANEL} p-5 sm:p-7`}>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/70 bg-violet-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-700 dark:border-violet-400/25 dark:bg-violet-500/10 dark:text-violet-300">
-              <PenLine className="h-3 w-3 stroke-[2]" />
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL.violet}`}
+            >
+              <PenLine className="h-3 w-3 stroke-[2.5]" />
               წერითი დავალება · {passage.essay.points} ქულა
             </span>
             <h2 className={`mt-3 text-lg font-bold leading-relaxed ${TITLE}`}>
@@ -773,14 +805,14 @@ export function ExamSimulation({
                 value={essayDraft}
                 onChange={(event) => setEssayDraft(event.target.value)}
                 placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
-                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-200 bg-white/70 p-4 outline-none transition placeholder:text-slate-400 focus:border-violet-400/70 dark:border-white/10 dark:bg-black/25 dark:placeholder:text-zinc-600"
+                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
               />
 
               <button
                 type="button"
                 onClick={() => void essayGrading.grade(essayDraft, passage.essay?.prompt)}
                 disabled={essayGrading.busy || essayWords === 0}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/10 transition-all hover:from-violet-500 hover:to-fuchsia-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className={`paper-sticker mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
               >
                 {essayGrading.busy ? (
                   <>
@@ -809,7 +841,7 @@ export function ExamSimulation({
             <button
               type="button"
               onClick={finish}
-              className={`mt-4 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 dark:border-white/12 dark:hover:border-white/25 dark:hover:text-white`}
+              className={`mt-4 w-full rounded-full border-2 px-5 py-3 text-sm font-bold transition ${MUTED} ${PLAIN_CARD}`}
             >
               გამოცდის დასრულება და შედეგები
             </button>
@@ -841,30 +873,27 @@ export function ExamSimulation({
         animate={{ opacity: 1, y: 0 }}
         className={`${PANEL} p-6 sm:p-8`}
       >
-        <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-cyan-400/50 bg-cyan-50 dark:bg-cyan-500/10">
-            <CircleCheck className="h-8 w-8 text-cyan-500 dark:text-cyan-300" strokeWidth={1.75} />
-          </div>
-          <h2 className={`mt-4 text-2xl font-bold ${TITLE}`}>გამოცდა დასრულებულია</h2>
-          <p className={`mt-1 text-sm ${MUTED}`}>
-            {subjectTitle} · {year} · {variant.label}
-          </p>
-          <p className={`mt-6 text-5xl font-black ${TITLE}`}>
-            {correctCount}
-            <span className={`text-2xl font-bold ${FAINT}`}>/{total}</span>
-          </p>
-          <p className="mt-1 text-sm font-semibold text-cyan-600 dark:text-cyan-300">
-            კითხვები · {percent}% სისწორე · დარჩა {formatClock(remaining)}
-          </p>
+        <QuestComplete
+          accent={accent}
+          title="გამოცდა დასრულებულია"
+          subtitle={`${subjectTitle} · ${year} · ${variant.label}`}
+          score={correctCount}
+          total={total}
+          stats={[
+            { label: "დარჩენილი დრო", value: formatClock(remaining) },
+            { label: "საუკეთესო სერია", value: `${bestStreak} ზედიზედ` },
+            { label: "სისწორე", value: `${percent}%` },
+          ]}
+        />
 
-          {essayGrading.result && passage?.essay && (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-300 bg-violet-50 px-4 py-1.5 text-sm font-bold text-violet-700 dark:border-violet-400/30 dark:bg-violet-500/10 dark:text-violet-200">
-              <PenLine className="h-3.5 w-3.5 stroke-[2]" />
-              წერითი დავალება: {essayGrading.result.totalScore}/
-              {ESSAY_TOTAL_MAX}
-            </p>
-          )}
-        </div>
+        {essayGrading.result && passage?.essay && (
+          <p
+            className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${ACCENT_PILL.violet}`}
+          >
+            <PenLine className="h-3.5 w-3.5 stroke-[2.5]" />
+            წერითი დავალება: {essayGrading.result.totalScore}/{ESSAY_TOTAL_MAX}
+          </p>
+        )}
 
         {essayGrading.result && (
           <div className="mt-8">
@@ -893,7 +922,7 @@ export function ExamSimulation({
                 return (
                   <div
                     key={category}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/60 px-4 py-3 dark:border-white/[0.06] dark:bg-white/[0.02]"
+                    className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 ${PLAIN_CARD}`}
                   >
                     <span className={`text-sm ${MUTED}`}>{meta.label}</span>
                     <span
@@ -913,7 +942,7 @@ export function ExamSimulation({
           <button
             type="button"
             onClick={restart}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:from-cyan-500 hover:to-blue-500"
+            className={`paper-sticker inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID[accent]}`}
           >
             <RefreshCw className="h-4 w-4 stroke-[2]" />
             თავიდან
@@ -921,7 +950,7 @@ export function ExamSimulation({
           <button
             type="button"
             onClick={onExit}
-            className={`inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold transition ${MUTED} hover:border-slate-300 hover:text-slate-900 dark:border-white/15 dark:hover:border-white/30 dark:hover:text-white`}
+            className={`inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition ${MUTED} ${PLAIN_CARD}`}
           >
             <ArrowLeft className="h-4 w-4 stroke-[1.75]" />
             არქივში დაბრუნება
@@ -938,9 +967,11 @@ export function ExamSimulation({
 
 function EditingStage({
   task,
+  accent,
   onDone,
 }: {
   task: NonNullable<ExamVariant["editingTask"]>;
+  accent: NotebookAccent;
   onDone: () => void;
 }) {
   // The source text is loaded straight into the editor so the student
@@ -1041,7 +1072,7 @@ function EditingStage({
         <button
           type="button"
           onClick={onDone}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+          className={`paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
         >
           II ნაწილზე გადასვლა
           <ArrowRight className="h-4 w-4 stroke-[2.5]" />
