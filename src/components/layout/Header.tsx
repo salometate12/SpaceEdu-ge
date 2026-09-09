@@ -36,7 +36,11 @@ export function Header({ variant }: HeaderProps) {
       />
     );
 
-  return <div className="hidden md:block">{header}</div>;
+  // `sticky` belongs on this wrapper, not on the <header> inside it: a
+  // sticky element can only travel within its containing block, and that
+  // block used to be this div — exactly as tall as the header, so the bar
+  // scrolled straight off the screen.
+  return <div className="sticky top-0 z-40 hidden md:block">{header}</div>;
 }
 
 export function HeaderByPath() {
