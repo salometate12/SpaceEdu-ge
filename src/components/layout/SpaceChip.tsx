@@ -43,7 +43,7 @@ export function SpaceChip({ space }: SpaceChipProps) {
   return (
     <Link
       href="/select-space"
-      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${ui.className}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border-2 px-2 py-1 text-[11px] font-bold transition-all hover:-translate-y-0.5 sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs ${ui.className}`}
     >
       {ui.icon}
       {ui.label}

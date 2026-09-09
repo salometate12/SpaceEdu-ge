@@ -123,13 +123,19 @@ export function DashboardHeader({
         </HeaderNav>
       )}
 
-      <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
+      {/* On phones the bottom dock already carries theme, profile and the
+          menu, so the bar keeps only what the dock has no room for. */}
+      <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-0">
         <span className="hidden items-center gap-1 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-300 xl:inline-flex">
           <Flame className="h-3.5 w-3.5" />
           {streak} სტრიქი
         </span>
-        <FocusModeToggle compact />
-        <ThemeToggle />
+        <span className="hidden md:inline-flex">
+          <FocusModeToggle compact />
+        </span>
+        <span className="hidden md:inline-flex">
+          <ThemeToggle />
+        </span>
         <Link
           href="/notifications"
           className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:border-[var(--border-hover)] hover:text-white"
@@ -139,7 +145,7 @@ export function DashboardHeader({
             <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
           )}
         </Link>
-        <div className={`relative ${hasOwnNav ? "md:hidden" : ""}`}>
+        <div className={`relative hidden md:block ${hasOwnNav ? "md:hidden" : ""}`}>
           <button
             type="button"
             onClick={() => setAvatarOpen((prev) => !prev)}

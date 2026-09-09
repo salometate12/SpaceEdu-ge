@@ -40,7 +40,7 @@ export function Header({ variant }: HeaderProps) {
   // sticky element can only travel within its containing block, and that
   // block used to be this div — exactly as tall as the header, so the bar
   // scrolled straight off the screen.
-  return <div className="sticky top-0 z-40 hidden md:block">{header}</div>;
+  return <div className="sticky top-0 z-40">{header}</div>;
 }
 
 export function HeaderByPath() {
