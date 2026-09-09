@@ -1,7 +1,8 @@
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import type { AboutContent } from "@/lib/about-content";
-import { Sun } from "./Doodles";
-import { ACCENT_CARD, ACCENT_LABEL, Segments } from "./AboutText";
+import { Sun } from "../notebook/Doodles";
+import { ACCENT_CARD, ACCENT_TEXT } from "../notebook/accents";
+import { Segments } from "./AboutText";
 
 export function AboutUsAudience({ content }: { content: AboutContent }) {
   return (
@@ -22,7 +23,7 @@ export function AboutUsAudience({ content }: { content: AboutContent }) {
             <div
               className={`h-full rounded-2xl border-2 p-5 transition-transform duration-300 hover:-rotate-1 ${ACCENT_CARD[item.accent]}`}
             >
-              <p className={`text-sm font-bold ${ACCENT_LABEL[item.accent]}`}>{item.label}</p>
+              <p className={`text-sm font-bold ${ACCENT_TEXT[item.accent]}`}>{item.label}</p>
               <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                 {item.text}
               </p>

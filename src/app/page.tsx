@@ -55,8 +55,14 @@ export default function LandingPage() {
       <Starfield />
       <div className="relative z-10">
         <AuthErrorNotice />
-        <Hero />
-        <HowItWorks />
+        {/* The notebook sheet: the part of the landing already redrawn in the
+            /about style, laid over the original neon surface. The sections
+            below still carry their own dark styling, so the seam is
+            deliberate until they follow. */}
+        <div className="notebook-paper relative overflow-hidden rounded-b-[2.5rem] shadow-[0_26px_60px_-32px_rgba(0,0,0,0.75)]">
+          <Hero />
+          <HowItWorks />
+        </div>
         <AbiturientCenter />
         <Features />
         <WhoItsFor />

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import type { AboutContent } from "@/lib/about-content";
-import { Mountains } from "./Doodles";
+import { Mountains } from "../notebook/Doodles";
 
 export function AboutUsSignature({ content }: { content: AboutContent }) {
   return (

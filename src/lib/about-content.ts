@@ -1,4 +1,5 @@
 import type { Language } from "@/components/LanguageProvider";
+import type { NotebookAccent } from "@/components/landing/notebook/accents";
 
 /**
  * Copy for the About page, kept in one place so the Georgian and English
@@ -10,7 +11,7 @@ import type { Language } from "@/components/LanguageProvider";
  * keywords.
  */
 
-export type AboutAccent = "blue" | "green" | "pink" | "amber";
+export type AboutAccent = NotebookAccent;
 
 export interface AboutSegment {
   text: string;

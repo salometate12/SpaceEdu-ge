@@ -1,198 +1,168 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { ArrowUpRight, Bot, Clock, Lock } from "lucide-react";
+import { Bulb, Flower, RainbowArc, Sparkle, Sun } from "./notebook/Doodles";
+import { ACCENT_CARD, ACCENT_PILL, ACCENT_TEXT, type NotebookAccent } from "./notebook/accents";
 
 const SUBTITLE_TEXT =
   "SpaceEdu — შენი პერსონალური სასწავლო სივრცე სკოლის, გამოცდებისა და უნივერსიტეტისთვის. AI გეგმავს, ხსნის და ამოწმებს — შენ მხოლოდ სწავლობ.";
 
-const PILLS = [
-  {
-    label: "სასწავლო გეგმა",
-    cls: "border-[#7C3AED]/80 bg-[#1a0a2e] text-[#bca8ff]",
-  },
-  {
-    label: "Active Recall Quiz",
-    cls: "border-[#22d3ee]/80 bg-[#042f3d] text-[#7ceeff]",
-  },
-  {
-    label: "AI მასწავლებელი",
-    cls: "border-[#22c55e]/80 bg-[#052e16] text-[#9bf7c2]",
-  },
-  {
-    label: "კონსპექტი",
-    cls: "border-[#f59e0b]/80 bg-[#2d1a00] text-[#ffd67e]",
-  },
-  { label: "ELI5", cls: "border-[#f472b6]/80 bg-[#4a044e] text-[#ffd1ee]" },
-  {
-    label: "ფლეშქარდები",
-    cls: "border-[#2dd4bf]/80 bg-[#042f2c] text-[#8ef4e4]",
-  },
+const PILLS: { label: string; accent: NotebookAccent }[] = [
+  { label: "სასწავლო გეგმა", accent: "blue" },
+  { label: "Active Recall Quiz", accent: "green" },
+  { label: "AI მასწავლებელი", accent: "pink" },
+  { label: "კონსპექტი", accent: "amber" },
+  { label: "ELI5", accent: "blue" },
+  { label: "ფლეშქარდები", accent: "green" },
 ];
 
-const HERO_CARDS = [
+const HERO_CARDS: {
+  title: string;
+  desc: string;
+  icon: typeof Lock;
+  accent: NotebookAccent;
+  tilt: string;
+}[] = [
   {
     title: "3 ინსტრუმენტი",
     desc: "გეგმა, კონსპექტი და ქვიზები ერთ სივრცეში",
     icon: Lock,
-    bg: "linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%)",
-    border: "#a78bfa",
-    text: "text-[#e9d8ff]",
+    accent: "blue",
+    tilt: "hover:-rotate-1",
   },
   {
     title: "AI Tutor",
     desc: "გიხსნის ყველაფერს ნაბიჯ-ნაბიჯ, 24/7",
     icon: Bot,
-    bg: "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-    border: "#22d3ee",
-    text: "text-[#d3f7ff]",
+    accent: "green",
+    tilt: "hover:rotate-1",
   },
   {
     title: "24/7",
     desc: "ხელმისაწვდომია ნებისმიერ დროს, ნებისმიერი მოწყობილობიდან",
     icon: Clock,
-    bg: "linear-gradient(135deg, #86198f 0%, #c026d3 100%)",
-    border: "#f472b6",
-    text: "text-[#ffd9f4]",
+    accent: "pink",
+    tilt: "hover:-rotate-1",
   },
 ];
 
 export function Hero() {
   return (
-    <section className="relative mx-auto w-full max-w-7xl overflow-hidden px-4 py-16 sm:px-6 lg:py-20">
-      <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-        <div className="relative mx-auto w-full max-w-5xl">
-          <div
-            className="pointer-events-none absolute top-[15%] left-1/2 -z-10 hidden h-[350px] w-[600px] -translate-x-1/2 select-none rounded-full bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-cyan-500/10 blur-[130px] md:block"
-            aria-hidden
-          />
+    <section className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:py-20">
+      {/* Margin doodles, as on /about. Hidden where the column already fills
+          the sheet. */}
+      <RainbowArc className="pointer-events-none absolute right-4 top-8 hidden w-24 -rotate-6 opacity-90 lg:block lg:w-32" />
+      <Sparkle className="pointer-events-none absolute left-10 top-24 hidden h-5 w-5 -rotate-12 text-amber-400 lg:block" />
+      <Sun className="pointer-events-none absolute left-4 bottom-40 hidden h-12 w-12 text-amber-500/70 xl:block dark:text-amber-300/60" />
+      <Flower className="pointer-events-none absolute right-8 bottom-32 hidden h-12 w-12 rotate-12 text-pink-400/70 xl:block dark:text-pink-400/50" />
 
-          <span
-            className="stagger-in mb-6 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/[0.06] px-4 py-1.5 text-xs font-medium text-purple-300"
-            style={{ animationDelay: "0ms" }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-purple-400" aria-hidden />
-            სასწავლო პლატფორმა შენთვის
+      <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+        <span
+          className="stagger-in mb-6 inline-flex items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100"
+          style={{ animationDelay: "0ms" }}
+        >
+          <Bulb className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+          სასწავლო პლატფორმა შენთვის
+        </span>
+
+        <h1 className="headline responsive-display mx-auto max-w-4xl text-center font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+          <span className="block">
+            <span className="headline-word-in" style={{ animationDelay: "120ms" }}>
+              ისწავლე
+            </span>{" "}
+            <span
+              className={`headline-word-in ${ACCENT_TEXT.blue}`}
+              style={{ animationDelay: "230ms" }}
+            >
+              უფრო
+            </span>{" "}
+            <span
+              className={`headline-word-in ${ACCENT_TEXT.blue}`}
+              style={{ animationDelay: "340ms" }}
+            >
+              ჭკვიანურად,
+            </span>
           </span>
+          <span className="block">
+            <span className="headline-word-in" style={{ animationDelay: "450ms" }}>
+              შექმენი
+            </span>{" "}
+            <span className="headline-word-in" style={{ animationDelay: "550ms" }}>
+              შენი
+            </span>{" "}
+            <span className="headline-word-in" style={{ animationDelay: "650ms" }}>
+              სასწავლო
+            </span>{" "}
+            <span
+              className={`headline-word-in ${ACCENT_TEXT.green}`}
+              style={{ animationDelay: "750ms" }}
+            >
+              Space-ი
+            </span>
+          </span>
+        </h1>
 
-          <h1 className="headline responsive-display mx-auto max-w-5xl text-center font-extrabold tracking-tight text-white">
-            <span className="block text-white">
-              <span className="headline-word-in" style={{ animationDelay: "120ms" }}>
-                ისწავლე
-              </span>{" "}
-              <span
-                className="headline-word-in animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent"
-                style={{ animationDelay: "230ms" }}
-              >
-                უფრო
-              </span>{" "}
-              <span
-                className="headline-word-in animate-gradient-text bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#22d3ee] bg-clip-text text-transparent"
-                style={{ animationDelay: "340ms" }}
-              >
-                ჭკვიანურად,
-              </span>
-            </span>
-            <span className="block text-white">
-              <span className="headline-word-in" style={{ animationDelay: "450ms" }}>
-                შექმენი
-              </span>{" "}
-              <span className="headline-word-in" style={{ animationDelay: "550ms" }}>
-                შენი
-              </span>{" "}
-              <span className="headline-word-in" style={{ animationDelay: "650ms" }}>
-                სასწავლო
-              </span>{" "}
-              <span
-                className="headline-word-in text-[#22d3ee]"
-                style={{ animationDelay: "750ms" }}
-              >
-                Space-ი
-              </span>
-              <span className="headline-cursor" style={{ animationDelay: "1150ms" }} aria-hidden />
-            </span>
-          </h1>
-        </div>
         <p
-          className="stagger-in mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-gray-400 sm:text-base md:text-lg"
+          className="stagger-in mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-slate-700 sm:text-base md:text-lg dark:text-slate-300"
           style={{ animationDelay: "950ms" }}
         >
           {SUBTITLE_TEXT}
         </p>
+
         <div
-          className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-4"
+          className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-3.5"
           style={{ animationDelay: "1050ms" }}
         >
+          {/* A hard offset shadow instead of a glow: on paper the button
+              should read as something stuck on, not lit from behind. */}
           <Link
             href="/select-space"
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-[length:200%_auto] px-8 py-4 text-base font-semibold text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-500 animate-shimmer hover:scale-[1.03] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] active:scale-[0.98]"
+            className="group inline-flex items-center gap-2 rounded-full border-2 border-violet-700 bg-violet-600 px-7 py-3.5 text-base font-bold text-white shadow-[0_5px_0_0_rgba(76,29,149,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_0_0_rgba(76,29,149,0.35)] active:translate-y-0.5 active:shadow-[0_2px_0_0_rgba(76,29,149,0.35)] dark:border-violet-300/40"
           >
-            <span
-              className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
-              aria-hidden
-            />
-            <span className="relative z-[1]">უფასოდ დაიწყე</span>
-            <ArrowUpRight className="relative z-[1] h-4 w-4 stroke-[2] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            უფასოდ დაიწყე
+            <ArrowUpRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
           <Link
             href="#how-it-works"
-            className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-base font-medium text-gray-300 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/50 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_25px_rgba(168,85,247,0.15)] active:scale-[0.98]"
+            className="inline-flex items-center rounded-full border-2 border-slate-400 bg-white/60 px-7 py-3.5 text-base font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
           >
             როგორ მუშაობს
           </Link>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-3">
+      <div className="mt-12 grid gap-4 sm:grid-cols-3">
         {HERO_CARDS.map((card, index) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
-              className="stagger-in landing-wow group relative overflow-hidden rounded-2xl border p-5"
-              style={{
-                background: card.bg,
-                borderColor: `${card.border}55`,
-                animationDelay: `${1150 + index * 100}ms`,
-              }}
+              className={`stagger-in h-full rounded-2xl border-2 p-5 transition-transform duration-300 ${card.tilt} ${ACCENT_CARD[card.accent]}`}
+              style={{ animationDelay: `${1150 + index * 100}ms` }}
             >
               <div
-                className="animate-card-blob pointer-events-none absolute -top-8 -right-8 h-28 w-28 rounded-full blur-2xl"
-                style={{ background: card.border, animationDelay: `${index * 0.7}s` }}
-                aria-hidden
-              />
-              <span
-                className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
-                aria-hidden
-              />
-              <div
-                className="animate-float-soft relative"
-                style={{ animationDelay: `${index * 1.3}s` }}
+                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[card.accent]}`}
               >
-                <div
-                  className="animate-icon-glow flex h-9 w-9 items-center justify-center rounded-xl border bg-white/10 transition-transform duration-300 group-hover:scale-110"
-                  style={
-                    {
-                      borderColor: `${card.border}66`,
-                      "--icon-glow-color": `${card.border}99`,
-                      animationDelay: `${index * 0.5}s`,
-                    } as CSSProperties
-                  }
-                >
-                  <Icon className={`h-4 w-4 stroke-[1.75] ${card.text}`} aria-hidden />
-                </div>
-                <p className={`headline mt-4 text-2xl font-bold ${card.text}`}>{card.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/70">{card.desc}</p>
+                <Icon
+                  className={`h-4 w-4 stroke-[2] ${ACCENT_TEXT[card.accent]}`}
+                  aria-hidden
+                />
               </div>
+              <p className={`headline mt-4 text-2xl font-bold ${ACCENT_TEXT[card.accent]}`}>
+                {card.title}
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                {card.desc}
+              </p>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
         {PILLS.map((pill, index) => (
           <span
             key={pill.label}
-            className={`stagger-in rounded-full border-2 px-5 py-2 text-sm font-semibold leading-none shadow-[0_6px_20px_rgba(3,7,18,0.45)] ${pill.cls}`}
+            className={`stagger-in rounded-full border-2 px-4 py-1.5 text-sm font-semibold leading-none ${ACCENT_PILL[pill.accent]}`}
             style={{ animationDelay: `${1500 + index * 60}ms` }}
           >
             {pill.label}
