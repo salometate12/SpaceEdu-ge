@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -10,109 +10,84 @@ import {
   ClipboardList,
   PenTool,
 } from "lucide-react";
+import {
+  Flower,
+  Pencil,
+  RainbowArc,
+  Ruler,
+  Sparkle,
+  Sun,
+} from "@/components/landing/notebook/Doodles";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  type NotebookAccent,
+} from "@/components/landing/notebook/accents";
 
 const GEORGIAN_SUBJECT_HREF = "/subject/georgian";
 
-type BadgeType = "purple" | "blue" | "rose" | "amber";
-type CtaVariant = "purple" | "cyan" | "rose" | "ghost";
-
-const BADGE_STYLES: Record<BadgeType, string> = {
-  purple: "border-2 border-purple-500/35 text-purple-300",
-  blue: "border-2 border-cyan-500/35 text-cyan-300",
-  rose: "border-2 border-rose-500/35 text-rose-300",
-  amber: "border-2 border-amber-500/35 text-amber-300",
-};
-
-const BADGE_DOT: Record<BadgeType, string> = {
-  purple: "bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.6)]",
-  blue: "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]",
-  rose: "bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.6)]",
-  amber: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]",
-};
-
-const CTA_STYLES: Record<CtaVariant, string> = {
-  purple:
-    "border-2 border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 text-white",
-  cyan: "border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 text-white",
-  rose: "border-2 border-transparent bg-gradient-to-r from-rose-600 to-violet-600 hover:from-rose-500 hover:to-violet-500 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/20 text-white",
-  ghost:
-    "border-2 border-white/15 bg-transparent text-white/90 hover:border-amber-500/40 hover:bg-white/[0.04]",
-};
-
 interface SubjectExerciseCardProps {
   title: string;
-  badgeText?: string;
-  badgeType?: BadgeType;
+  badgeText: string;
   description: string;
   icon: ReactNode;
   btnText: string;
-  glowColor: string;
   href: string;
-  ctaVariant?: CtaVariant;
-  hoverBorder?: string;
+  accent: NotebookAccent;
+  tilt: string;
+  /** A doodle tucked into the card's own corner. */
+  corner: ReactNode;
 }
 
 function SubjectExerciseCard({
   title,
   badgeText,
-  badgeType = "purple",
   description,
   icon,
   btnText,
-  glowColor,
   href,
-  ctaVariant = "purple",
-  hoverBorder = "hover:border-purple-500/30",
+  accent,
+  tilt,
+  corner,
 }: SubjectExerciseCardProps) {
   return (
     <article
-      className={`group relative flex min-h-[440px] flex-col justify-between overflow-hidden rounded-[32px] border-2 border-white/12 bg-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${hoverBorder}`}
+      className={`group relative flex min-h-[420px] flex-col justify-between overflow-hidden rounded-2xl border-2 p-6 transition-transform duration-300 ${tilt} ${ACCENT_CARD[accent]}`}
     >
-      <div
-        className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-[0.08] blur-2xl transition-all duration-300 group-hover:opacity-[0.16]"
-        style={{
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-20 -left-12 h-28 w-28 rounded-full opacity-[0.04] blur-2xl"
-        style={{
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
-        }}
-        aria-hidden
-      />
+      <span className="pointer-events-none absolute -right-2 -top-2 opacity-60" aria-hidden>
+        {corner}
+      </span>
 
-      <div className="relative z-[1]">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <h2 className="text-xl font-bold tracking-wide text-white">{title}</h2>
-          {badgeText && (
-            <span
-              className={`relative shrink-0 -rotate-1 rounded-full px-3.5 py-1.5 text-xs font-bold ${BADGE_STYLES[badgeType]}`}
-            >
-              {badgeText}
-              <span
-                className={`absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full ${BADGE_DOT[badgeType]}`}
-                aria-hidden
-              />
-            </span>
-          )}
-        </div>
-        <p className="text-sm leading-relaxed text-gray-400">{description}</p>
+      <div className="relative">
+        <span
+          className={`inline-flex rounded-full border-2 px-3.5 py-1 text-[11px] font-bold ${ACCENT_PILL[accent]}`}
+        >
+          {badgeText}
+        </span>
+        <h2 className="headline mt-3 text-xl font-bold text-slate-900 dark:text-slate-50">
+          {title}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+          {description}
+        </p>
       </div>
 
-      <div className="relative z-[1] flex flex-1 items-center justify-center py-8">
-        <div className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-white/12 bg-white/[0.02] transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/[0.04]">
+      <div className="relative flex flex-1 items-center justify-center py-8">
+        <span
+          className={`flex h-24 w-24 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[accent]} ${ACCENT_TEXT[accent]}`}
+        >
           {icon}
-        </div>
+        </span>
       </div>
 
       <Link
         href={href}
-        className={`relative z-[1] mt-4 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-all active:scale-[0.98] ${CTA_STYLES[ctaVariant]}`}
+        className={`paper-sticker relative flex w-full items-center justify-center gap-2 rounded-full border-2 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
       >
         {btnText}
-        <ArrowRight className="h-4 w-4 stroke-[1.5] transition-transform duration-200 group-hover:translate-x-0.5" />
+        <ArrowRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-0.5" />
       </Link>
     </article>
   );
@@ -120,98 +95,79 @@ function SubjectExerciseCard({
 
 export function GeorgianSubjectHub() {
   return (
-    <div className="relative min-h-full bg-transparent">
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-        <Link
-          href={GEORGIAN_SUBJECT_HREF}
-          className="mb-3 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+    <main className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      {/* Margin doodles, as on /about — kept to the edges so they decorate
+          the page rather than crowd the cards. */}
+      <RainbowArc className="pointer-events-none absolute right-6 top-6 hidden w-28 -rotate-6 opacity-80 lg:block" />
+      <Sun className="pointer-events-none absolute left-2 top-40 hidden h-11 w-11 text-amber-500/60 xl:block dark:text-amber-300/50" />
+      <Sparkle className="pointer-events-none absolute left-1/3 top-4 hidden h-4 w-4 -rotate-12 text-sky-400 opacity-70 xl:block" />
+      <Ruler className="pointer-events-none absolute -left-4 bottom-40 hidden w-20 rotate-12 text-slate-400 opacity-60 xl:block dark:text-slate-500" />
+      <Pencil className="pointer-events-none absolute -right-3 bottom-24 hidden h-11 w-11 -rotate-12 text-amber-600/50 xl:block dark:text-amber-400/40" />
+
+      <Link
+        href={GEORGIAN_SUBJECT_HREF}
+        className="mb-4 inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+      >
+        <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
+        საგნის სფეისზე დაბრუნება
+      </Link>
+
+      <header className="mb-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+        <span
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.pink} ${ACCENT_TEXT.pink}`}
         >
-          <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
-          საგნის სფეისზე დაბრუნება
-        </Link>
+          <BookOpen className="h-7 w-7 stroke-[2]" aria-hidden />
+        </span>
+        <div>
+          <h1 className="headline text-3xl font-bold text-slate-900 dark:text-slate-50">
+            ქართული ენა და ლიტერატურა
+          </h1>
+          <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+            აირჩიე სასურველი საგამოცდო კომპონენტი და დაიწყე მომზადება.
+          </p>
+        </div>
+      </header>
 
-        <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-violet-500/30 bg-violet-500/10 text-violet-300 shadow-[0_0_28px_rgba(139,92,246,0.22)]">
-            <BookOpen className="h-7 w-7 stroke-[1.5]" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">ქართული ენა და ლიტერატურა</h1>
-            <p className="mt-1 text-sm text-gray-400">
-              აირჩიე სასურველი საგამოცდო კომპონენტი და დაიწყე მომზადება.
-            </p>
-          </div>
-        </header>
+      <section
+        className="grid grid-cols-1 gap-5 md:grid-cols-3"
+        aria-label="საგამოცდო მოდულები"
+      >
+        <SubjectExerciseCard
+          title="ტექსტის რედაქტირება"
+          badgeText="სატესტო რეჟიმი"
+          description="პირველი სავარჯიშო. გაასწორე ორთოგრაფიული, პუნქტუაციური თუ სინტაქსური ხარვეზები და მიიღე დეტალური შეფასება."
+          icon={<ClipboardList className="h-10 w-10 stroke-[1.75]" aria-hidden />}
+          btnText="დაწყება"
+          href="/subject/georgian/text-editing"
+          accent="violet"
+          tilt="hover:-rotate-1"
+          corner={<Sparkle className="h-5 w-5 rotate-12 text-violet-400" />}
+        />
 
-        <section
-          className="grid grid-cols-1 gap-6 md:grid-cols-3"
-          aria-label="საგამოცდო მოდულები"
-        >
-          <SubjectExerciseCard
-            title="ტექსტის რედაქტირება"
-            badgeText="სატესტო რეჟიმი"
-            badgeType="purple"
-            description="პირველი სავარჯიშო. გაასწორე ორთოგრაფიული, პუნქტუაციური თუ სინტაქსური ხარვეზები და მიიღე დეტალური შეფასება."
-            icon={
-              <ClipboardList
-                className="h-10 w-10 stroke-[1.5] text-purple-400"
-                style={
-                  {
-                    filter: "drop-shadow(0 0 10px rgba(168,85,247,0.45))",
-                  } as CSSProperties
-                }
-              />
-            }
-            btnText="დაწყება"
-            glowColor="#8B5CF6"
-            href="/subject/georgian/text-editing"
-            ctaVariant="purple"
-          />
+        <SubjectExerciseCard
+          title="მეორე სავარჯიშო"
+          badgeText="წაკითხულის გააზრება"
+          description="იმუშავე მხატვრულ თუ საინფორმაციო ტექსტებზე. განავითარე წაკითხულის გააზრების, ანალიზისა და ლოგიკური დასკვნების უნარი."
+          icon={<BookText className="h-10 w-10 stroke-[1.75]" aria-hidden />}
+          btnText="ტესტის დაწყება"
+          href="/subject/georgian/reading-comprehension"
+          accent="blue"
+          tilt="hover:rotate-1"
+          corner={<Flower className="h-9 w-9 -rotate-12 text-sky-400/80" />}
+        />
 
-          <SubjectExerciseCard
-            title="მეორე სავარჯიშო"
-            badgeText="წაკითხულის გააზრება"
-            badgeType="blue"
-            description="იმუშავე მხატვრულ თუ საინფორმაციო ტექსტებზე. განავითარე წაკითხულის გააზრების, ანალიზისა და ლოგიკური დასკვნების უნარი."
-            icon={
-              <BookText
-                className="h-10 w-10 stroke-[1.5] text-cyan-400"
-                style={
-                  {
-                    filter: "drop-shadow(0 0 10px rgba(34,211,238,0.4))",
-                  } as CSSProperties
-                }
-              />
-            }
-            btnText="ტესტის დაწყება"
-            glowColor="#06B6D4"
-            href="/subject/georgian/reading-comprehension"
-            ctaVariant="cyan"
-            hoverBorder="hover:border-cyan-500/30"
-          />
-
-          <SubjectExerciseCard
-            title="წერითი დავალება (თემა)"
-            badgeText="ესე / თემა"
-            badgeType="rose"
-            description="დაწერე არგუმენტირებული ესეები და ლიტერატურული თემები. AI მასწავლებელი გაანალიზებს შენს სტილს და მოგცემს რეკომენდაციებს."
-            icon={
-              <PenTool
-                className="h-10 w-10 stroke-[1.5] text-rose-400"
-                style={
-                  {
-                    filter: "drop-shadow(0 0 10px rgba(244,63,94,0.4))",
-                  } as CSSProperties
-                }
-              />
-            }
-            btnText="დაწყება"
-            glowColor="#A855F7"
-            href="/lit-assistant"
-            ctaVariant="rose"
-            hoverBorder="hover:border-rose-500/25"
-          />
-        </section>
-      </main>
-    </div>
+        <SubjectExerciseCard
+          title="წერითი დავალება (თემა)"
+          badgeText="ესე / თემა"
+          description="დაწერე თემა წინა წლების რეალურ საგამოცდო დავალებაზე — თემა შემთხვევით ამოვა და AI შეაფასებს რუბრიკის მიხედვით."
+          icon={<PenTool className="h-10 w-10 stroke-[1.75]" aria-hidden />}
+          btnText="დაწყება"
+          href="/subject/georgian/essay-practice"
+          accent="pink"
+          tilt="hover:-rotate-1"
+          corner={<Sparkle className="h-5 w-5 -rotate-12 text-pink-400" />}
+        />
+      </section>
+    </main>
   );
 }
