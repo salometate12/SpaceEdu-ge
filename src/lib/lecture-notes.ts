@@ -209,7 +209,9 @@ export function saveLectureNotes(notes: LectureNote[]): void {
   window.dispatchEvent(new Event(LECTURE_NOTES_UPDATED_EVENT));
 }
 
-export function upsertLectureNote(notes: LectureNote[], next: LectureNote): LectureNote[] {
+/** Generic in the note type so stores that extend `LectureNote` — the
+ *  abiturient one adds a colour — keep their own shape through an edit. */
+export function upsertLectureNote<T extends LectureNote>(notes: T[], next: T): T[] {
   const index = notes.findIndex((note) => note.id === next.id);
   if (index === -1) return [next, ...notes];
   const copy = [...notes];
