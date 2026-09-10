@@ -7,6 +7,11 @@ import {
   getDashboardCalendarEvents,
   type DashboardCalendarEvent,
 } from "@/lib/syllabus-calendar";
+import {
+  ACCENT_CARD,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+} from "@/components/landing/notebook/accents";
 
 const TYPE_META: Record<DashboardCalendarEvent["type"], { label: string; badge: string }> = {
   midterm: {
@@ -43,12 +48,14 @@ export function SyllabusEventsPanel() {
   if (events.length === 0) return null;
 
   return (
-    <div className="dashboard-tool-card mb-6 rounded-[28px] p-5">
+    <div className="notebook-paper notebook-sheet mb-6 rounded-[26px] p-5">
       <div className="mb-3 flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl subject-icon-wrap">
-          <CalendarDays className="h-4 w-4 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
-        </div>
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
+        >
+          <CalendarDays className="h-4 w-4 stroke-[2]" aria-hidden />
+        </span>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50">
           სილაბუსიდან დამატებული თარიღები
         </h3>
       </div>
@@ -56,16 +63,16 @@ export function SyllabusEventsPanel() {
         {events.map((event) => {
           const meta = TYPE_META[event.type];
           return (
-            <div key={event.id} className="dashboard-glass-card rounded-2xl px-3 py-2.5">
+            <div key={event.id} className={`rounded-2xl border-2 px-3 py-2.5 ${PLAIN_CARD}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.badge}`}
                 >
                   {meta.label}
                 </span>
-                <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{event.title}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-slate-50">{event.title}</p>
               </div>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">{event.date}</p>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">{event.date}</p>
             </div>
           );
         })}
