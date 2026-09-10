@@ -12,19 +12,34 @@ import {
 } from "lucide-react";
 import {
   INITIAL_ATTEMPTS,
-  TEXT_EDITING_MAX_SCORE,
   buildAttemptPreview,
   evaluateTextEditing,
-  pickRandomSourceText,
   type TextEditingAttempt,
   type TextEditingEvaluation,
 } from "@/lib/georgian-text-editing";
 import {
+  paperLabel,
+  pastEditingTasks,
+  pickRandomEditingTask,
+  type PastEditingTask,
+} from "@/lib/georgian-past-paper-practice";
+import {
+  ACCENT_PILL,
   ACCENT_SOLID,
   PLAIN_CARD,
 } from "@/components/landing/notebook/accents";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
+
+/** How deep the Part I pool is, said on the page so the offer is concrete. */
+const ALL_TASKS = pastEditingTasks();
+const TASK_COUNT = ALL_TASKS.length;
+const YEAR_RANGE = (() => {
+  const years = ALL_TASKS.map((task) => task.year);
+  return years.length > 0
+    ? `${Math.min(...years)}–${Math.max(...years)}`
+    : "";
+})();
 const TYPEWRITER_ROLL_UP_MS = 850;
 const TYPING_IDLE_MS = 700;
 
@@ -301,14 +316,18 @@ export function TextEditingExercise() {
   const [isTesting, setIsTesting] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
   const [attempts, setAttempts] = useState<TextEditingAttempt[]>(INITIAL_ATTEMPTS);
-  const [sourceText, setSourceText] = useState("");
+  /** The Part I task currently being worked, drawn from the past papers. */
+  const [task, setTask] = useState<PastEditingTask | null>(null);
   const [correctedText, setCorrectedText] = useState("");
   const [evaluation, setEvaluation] = useState<TextEditingEvaluation | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [isRollingUp, setIsRollingUp] = useState(false);
 
   const startTest = () => {
-    setSourceText(pickRandomSourceText());
+    // A different paper each time — the point is not to learn one text.
+    const next = pickRandomEditingTask(task?.id);
+    if (!next) return;
+    setTask(next);
     setCorrectedText("");
     setEvaluation(null);
     setElapsedSec(0);
@@ -324,17 +343,18 @@ export function TextEditingExercise() {
   };
 
   const copySourceToEditor = async () => {
-    setCorrectedText(sourceText);
+    if (!task) return;
+    setCorrectedText(task.text);
     try {
-      await navigator.clipboard.writeText(sourceText);
+      await navigator.clipboard.writeText(task.text);
     } catch {
       /* clipboard optional */
     }
   };
 
   const submitForEvaluation = () => {
-    if (isRollingUp) return;
-    const result = evaluateTextEditing(sourceText, correctedText);
+    if (isRollingUp || !task) return;
+    const result = evaluateTextEditing(task.text, correctedText, task.points);
     setIsRollingUp(true);
     window.setTimeout(() => {
       setEvaluation(result);
@@ -356,7 +376,7 @@ export function TextEditingExercise() {
       const newAttempt: TextEditingAttempt = {
         id: `att-${Date.now()}`,
         dateLabel,
-        preview: buildAttemptPreview(correctedText || sourceText),
+        preview: buildAttemptPreview(correctedText || task?.text || ""),
         score: evaluation.score,
         maxScore: evaluation.maxScore,
       };
@@ -377,7 +397,7 @@ export function TextEditingExercise() {
     return () => window.clearInterval(id);
   }, [isTesting, showTimer]);
 
-  if (isTesting) {
+  if (isTesting && task) {
     return (
       <div className="relative min-h-full bg-transparent">
         <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
@@ -392,15 +412,23 @@ export function TextEditingExercise() {
 
           {showTimer && <TestTimerBadge seconds={elapsedSec} />}
 
-          <div className="mb-2">
-            <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">ტექსტი შეცდომებით</h2>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              ტექსტი შეცდომებით
+            </h2>
+            {/* Where this text came from — a real paper, not a mock. */}
+            <span
+              className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[11px] font-bold ${ACCENT_PILL.violet}`}
+            >
+              {paperLabel(task)} · I ნაწილი · {task.points} ქულა
+            </span>
           </div>
           <div className="select-none rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
             <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300">
               <span>wyaro.txt</span>
-              <span>{sourceText.length} სიმბოლო</span>
+              <span>{task.text.length} სიმბოლო</span>
             </div>
-            {sourceText.split("\n\n").map((paragraph, index) => (
+            {task.text.split("\n\n").map((paragraph, index) => (
               <p key={`p-${index}`} className="mb-4 last:mb-0">
                 {paragraph}
               </p>
@@ -445,6 +473,21 @@ export function TextEditingExercise() {
               <p className="text-2xl font-bold tracking-tight text-purple-400">
                 მიღებული ქულა: {evaluation.score} / {evaluation.maxScore}
               </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {paperLabel(task)} — შემფასებლის კრიტერიუმები
+              </p>
+              {/* What the paper's own marker was looking for, verbatim. */}
+              <ul className="mt-3 space-y-2">
+                {task.focusPoints.map((point) => (
+                  <li
+                    key={point}
+                    className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
+                  >
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
               <ul className="mt-4 space-y-2">
                 {evaluation.points.map((point) => (
                   <li
@@ -495,10 +538,14 @@ export function TextEditingExercise() {
                 aria-hidden
               />
             </span>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">ტექსტის რედაქტირება</h1>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">
+              ტექსტის რედაქტირება
+            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              ეროვნული გამოცდის სტანდარტის მიხედვით შეასწორე ტექსტი და მიიღე შეფასება
-              16-ბალიანი სკალით.
+              ეროვნული გამოცდის <strong className="font-bold">I ნაწილი</strong> — ყოველ
+              ჯერზე შემთხვევით ამოდის რეალური დავალება {TASK_COUNT} წინა წლის
+              ვარიანტიდან ({YEAR_RANGE}). გაასწორე ორთოგრაფია, პუნქტუაცია და სტილი,
+              შემდეგ შეადარე შემფასებლის კრიტერიუმებს.
             </p>
           </div>
         </header>
@@ -518,7 +565,9 @@ export function TextEditingExercise() {
         <section className="mt-8" aria-label="წინა მცდელობები">
           <h2 className="mb-4 mt-8 text-lg font-semibold text-white/80">წინა მცდელობები</h2>
           {attempts.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-300">ჯერ არ გაქვს დასრულებული მცდელობა.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              ჯერ არ გაქვს დასრულებული მცდელობა — დაიწყე ტესტი და აქ დაგროვდება.
+            </p>
           ) : (
             <ul className="space-y-5">
               {attempts.map((attempt) => (

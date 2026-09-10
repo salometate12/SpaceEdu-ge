@@ -30,14 +30,18 @@ import {
   X,
 } from "lucide-react";
 import {
-  READING_COMPREHENSION_PASSAGES,
   buildRandomQuestionQueue,
   passageCategoryLabel,
-  pickRandomPassage,
   questionTypeLabel,
   type Passage,
   type Question,
 } from "@/data/readingComprehensionData";
+import {
+  paperLabel,
+  pastPassages,
+  pickRandomPastPassage,
+  type PastPassage,
+} from "@/lib/georgian-past-paper-practice";
 import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { categoryFromTropeAnswer } from "@/lib/exam-categories";
@@ -192,7 +196,8 @@ const TYPE_BADGE: Record<
 
 export function ReadingComprehensionExercise() {
   const [phase, setPhase] = useState<Phase>("intro");
-  const [passage, setPassage] = useState<Passage | null>(null);
+  /** The Part II text being read, drawn from the past papers. */
+  const [passage, setPassage] = useState<PastPassage | null>(null);
   const [questionQueue, setQuestionQueue] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -217,7 +222,9 @@ export function ReadingComprehensionExercise() {
   /* --------------------------- lifecycle actions -------------------------- */
 
   const startNewSession = useCallback(() => {
-    const nextPassage = pickRandomPassage(passage?.id);
+    // A different text each time, straight from the archive.
+    const nextPassage = pickRandomPastPassage(passage?.id);
+    if (!nextPassage) return;
     const queue = buildRandomQuestionQueue(nextPassage);
     setPassage(nextPassage);
     setQuestionQueue(queue);
@@ -312,6 +319,7 @@ export function ReadingComprehensionExercise() {
         onStart={startNewSession}
         libraryHighlights={{
           passageCount: passageCount(),
+          yearRange: passageYearRange(),
         }}
       />
     );
@@ -446,7 +454,13 @@ export function ReadingComprehensionExercise() {
                 </h2>
                 <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">
                   ავტორი / წყარო:{" "}
-                  <span className="text-slate-600 dark:text-slate-300">{passage.authorOrSource}</span>
+                  <span className="text-slate-600 dark:text-slate-300">
+                    {passage.authorOrSource}
+                  </span>
+                </p>
+                {/* Which paper this text was set on. */}
+                <p className="mt-2 inline-flex items-center rounded-full border-2 border-cyan-500/30 px-2.5 py-0.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
+                  {paperLabel(passage)} · II ნაწილი
                 </p>
               </header>
 
@@ -685,7 +699,7 @@ function IntroScreen({
   libraryHighlights,
 }: {
   onStart: () => void;
-  libraryHighlights: { passageCount: number };
+  libraryHighlights: { passageCount: number; yearRange: string };
 }) {
   return (
     <div className="relative min-h-full bg-transparent">
@@ -714,7 +728,8 @@ function IntroScreen({
               წაკითხულის გააზრება
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              იმუშავე მხატვრულ თუ საინფორმაციო ტექსტებზე. ივარჯიშე მთავარი აზრის
+              იმუშავე ეროვნული გამოცდის რეალურ ტექსტებზე — ილიადან და ვაჟადან
+              გალაკტიონამდე და თანამედროვე პროზამდე. ივარჯიშე მთავარი აზრის
               ამოცნობაში, ნაგულისხმევი შინაარსის ანალიზსა და მხატვრული საშუალებების
               — მეტაფორის, გაპიროვნების, ეპითეტის, შედარების, ჰიპერბოლისა და
               ალეგორიის — გამორჩევაში.
@@ -727,9 +742,9 @@ function IntroScreen({
           aria-label="სავარჯიშოს მიმოხილვა"
         >
           <StatCard
-            label="ტექსტების ბანკი"
-            value={`${libraryHighlights.passageCount}+`}
-            hint="მხატვრული + საინფორმაციო"
+            label="გამოცდის ტექსტები"
+            value={`${libraryHighlights.passageCount}`}
+            hint={`წინა წლების ვარიანტებიდან · ${libraryHighlights.yearRange}`}
             icon={<BookText className="h-4 w-4 stroke-[1.75] text-violet-300" />}
             accent="border-violet-500/30 text-violet-300"
             dot="bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
@@ -784,9 +799,11 @@ function IntroScreen({
                 ტესტის დაწყება ავტომატური რენდომიზაციით
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                ყოველი დაწყებისას სისტემა შემთხვევით ამოირჩევს ერთ ტექსტს ბანკიდან
-                და მისთვის სპეციალურად ჩამოყალიბებულ კითხვათა კომპლექტს. მიიღებ
-                ქულებს სწორ პასუხებზე და ბონუსს — თუ ზედიზედ პასუხობ სწორად.
+                ყოველი დაწყებისას შემთხვევით ამოდის ეროვნული გამოცდის{" "}
+                <strong className="font-bold">II ნაწილის</strong> რეალური ტექსტი წინა
+                წლების ვარიანტებიდან — თავისი ავტორით, თავისი კითხვებით და პასუხების
+                განმარტებებით. მიიღებ ქულებს სწორ პასუხებზე და ბონუსს — თუ ზედიზედ
+                პასუხობ სწორად.
               </p>
               <div className="relative mt-5 inline-block">
                 <motion.span
@@ -1304,5 +1321,12 @@ function resolveOptionCircleClass({
 /* -------------------------------------------------------------------------- */
 
 function passageCount(): number {
-  return READING_COMPREHENSION_PASSAGES.length;
+  return pastPassages().length;
+}
+
+/** "2022–2025" — how far back the archive goes. */
+function passageYearRange(): string {
+  const years = pastPassages().map((passage) => passage.year);
+  if (years.length === 0) return "";
+  return `${Math.min(...years)}–${Math.max(...years)}`;
 }
