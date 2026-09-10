@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeft,
   ClipboardList,
@@ -30,7 +29,7 @@ import {
   ACCENT_TEXT,
   PLAIN_CARD,
 } from "@/components/landing/notebook/accents";
-import { Pencil, Ruler, Sparkle, Sun } from "@/components/landing/notebook/Doodles";
+import { Pencil, Sparkle, Sun } from "@/components/landing/notebook/Doodles";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 
@@ -43,8 +42,8 @@ const YEAR_RANGE = (() => {
     ? `${Math.min(...years)}–${Math.max(...years)}`
     : "";
 })();
-const TYPEWRITER_ROLL_UP_MS = 850;
-const TYPING_IDLE_MS = 700;
+/** How long the sheet takes to hand itself in. */
+const SUBMIT_HANDOFF_MS = 450;
 
 /** Bold Readymag-style pill color per score ratio, paired with scoreBadgeClass's text color. */
 /** The mark, written on the page in the pen the score deserves. */
@@ -133,182 +132,56 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
   );
 }
 
-function TypewriterInput({
+/**
+ * The editor the corrected text is written into.
+ *
+ * A sheet of the same paper as everything else, with its own header line
+ * and a footer that counts what has been written. The typewriter that used
+ * to sit here was three times the height for one textarea's worth of work.
+ */
+function CorrectionSheet({
   value,
   onChange,
-  isRollingUp,
+  isSubmitting,
+  sourceLength,
 }: {
   value: string;
   onChange: (value: string) => void;
-  isRollingUp: boolean;
+  isSubmitting: boolean;
+  sourceLength: number;
 }) {
-  const [isActive, setIsActive] = useState(false);
-  const idleTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (idleTimer.current) window.clearTimeout(idleTimer.current);
-    };
-  }, []);
-
-  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(event.target.value);
-    setIsActive(true);
-    if (idleTimer.current) window.clearTimeout(idleTimer.current);
-    idleTimer.current = window.setTimeout(() => setIsActive(false), TYPING_IDLE_MS);
-  };
-
-  const keys = Array.from({ length: 22 }, (_, index) => ({
-    index,
-    x: 46 + index * ((596 - 46) / 21),
-  }));
-  const knobClass = isActive
-    ? "animate-roller-spin"
-    : isRollingUp
-      ? "animate-roller-spin-fast"
-      : "";
+  const ratio = sourceLength > 0 ? Math.min(1, value.length / sourceLength) : 0;
 
   return (
-    <div className="typewriter-wrap relative mx-auto w-full max-w-2xl select-none">
-      <div
-        className={`typewriter-paper exam-paper-plain relative z-0 rounded-b-none px-5 pb-16 pt-6 ${isRollingUp ? "animate-paper-roll-up" : ""}`}
-      >
-        <div className="mb-3 flex items-center justify-between border-b-2 border-dashed border-slate-300/80 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:border-white/15 dark:text-slate-400">
-          <span>spaceedu.txt</span>
-          <span>{value.length} სიმბოლო</span>
-        </div>
-        <textarea
-          value={value}
-          onChange={handleChange}
-          disabled={isRollingUp}
-          placeholder="აქ ჩაწერე შესწორებული ტექსტი..."
-          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-200 dark:placeholder:text-slate-500"
-        />
+    <div
+      className={`exam-paper-plain overflow-hidden transition-opacity duration-300 ${
+        isSubmitting ? "opacity-60" : ""
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2 border-b-2 border-dashed border-slate-300/80 px-4 py-2.5 dark:border-white/15">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <Pencil className="h-3.5 w-3.5" aria-hidden />
+          შენი ვერსია
+        </span>
+        <span className="text-[11px] font-bold tabular-nums text-slate-500 dark:text-slate-400">
+          {value.length} / {sourceLength}
+        </span>
       </div>
 
-      <div className="relative z-10 -mt-12 drop-shadow-[0_20px_28px_rgba(15,23,42,0.28)] dark:drop-shadow-[0_20px_28px_rgba(0,0,0,0.5)]">
-        {isActive && (
-          <span
-            className="animate-type-blink pointer-events-none absolute left-1/2 top-3 z-20 h-1.5 w-1.5 rounded-full bg-violet-500"
-            aria-hidden
-          />
-        )}
-        <svg viewBox="-10 -20 660 212" className="block w-full" aria-hidden>
-          <defs>
-            <linearGradient id="tw-body" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#cdc6a1" />
-              <stop offset="100%" stopColor="#a99f79" />
-            </linearGradient>
-            <radialGradient id="tw-knob" cx="35%" cy="30%" r="75%">
-              <stop offset="0%" stopColor="#a49c78" />
-              <stop offset="100%" stopColor="#6f6950" />
-            </radialGradient>
-            <linearGradient id="tw-platen" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8f8865" />
-              <stop offset="100%" stopColor="#6b6349" />
-            </linearGradient>
-            <linearGradient id="tw-deck" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8f8865" />
-              <stop offset="100%" stopColor="#746c50" />
-            </linearGradient>
-          </defs>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={isSubmitting}
+        placeholder="ჩაწერე შესწორებული ტექსტი აქ..."
+        className="min-h-[280px] w-full resize-y bg-transparent px-4 py-4 text-sm leading-[1.9] text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed dark:text-slate-200 dark:placeholder:text-slate-500"
+      />
 
-          {/* paper guide tabs */}
-          <rect x="108" y="-8" width="6" height="18" rx="3" fill="#8f8865" />
-          <rect x="526" y="-8" width="6" height="18" rx="3" fill="#8f8865" />
-
-          {/* platen roller bar */}
-          <rect
-            x="96"
-            y="6"
-            width="448"
-            height="36"
-            rx="18"
-            fill="url(#tw-platen)"
-            className={isActive ? "animate-feed-glow" : ""}
-          />
-
-          {/* carriage return lever */}
-          <g transform="rotate(-35 582 24)">
-            <rect x="578" y="-16" width="8" height="30" rx="4" fill="#5f5a44" />
-            <rect x="571" y="-22" width="22" height="8" rx="4" fill="#403c30" />
-          </g>
-
-          {/* left knob */}
-          <g style={{ transformOrigin: "58px 24px" }} className={knobClass}>
-            <circle cx="58" cy="24" r="28" fill="url(#tw-knob)" />
-            <circle cx="50" cy="16" r="7" fill="#e8e2c9" opacity="0.55" />
-            {Array.from({ length: 6 }).map((_, i) => (
-              <line
-                key={i}
-                x1="58"
-                y1="4"
-                x2="58"
-                y2="10"
-                stroke="#403c30"
-                strokeWidth="2"
-                transform={`rotate(${i * 60} 58 24)`}
-              />
-            ))}
-          </g>
-
-          {/* right knob */}
-          <g style={{ transformOrigin: "582px 24px" }} className={knobClass}>
-            <circle cx="582" cy="24" r="28" fill="url(#tw-knob)" />
-            <circle cx="574" cy="16" r="7" fill="#e8e2c9" opacity="0.55" />
-            {Array.from({ length: 6 }).map((_, i) => (
-              <line
-                key={i}
-                x1="582"
-                y1="4"
-                x2="582"
-                y2="10"
-                stroke="#403c30"
-                strokeWidth="2"
-                transform={`rotate(${i * 60} 582 24)`}
-              />
-            ))}
-          </g>
-
-          {/* main chassis body */}
-          <rect x="8" y="42" width="624" height="100" rx="20" fill="url(#tw-body)" />
-
-          {/* brand plate */}
-          <rect x="270" y="54" width="100" height="18" rx="4" fill="#efe9d2" />
-          <text
-            x="320"
-            y="67"
-            textAnchor="middle"
-            fontSize="9"
-            fontFamily="monospace"
-            fontWeight="700"
-            letterSpacing="1"
-            fill="#5f5a44"
-          >
-            SPACEEDU
-          </text>
-
-          {/* lower keyboard deck */}
-          <rect x="8" y="132" width="624" height="48" rx="16" fill="url(#tw-deck)" />
-
-          {/* keys */}
-          {keys.map((key) => (
-            <circle
-              key={key.index}
-              cx={key.x}
-              cy="156"
-              r="6.5"
-              fill="#efe9d2"
-              stroke="#8f8865"
-              strokeWidth="1.2"
-              className={isActive ? "animate-key-bounce" : ""}
-              style={{
-                transformOrigin: `${key.x}px 156px`,
-                animationDelay: `${(key.index % 6) * 0.05}s`,
-              }}
-            />
-          ))}
-        </svg>
+      {/* How much of the source has been carried across. */}
+      <div className="h-1 w-full bg-slate-200/70 dark:bg-white/10">
+        <div
+          className="h-full bg-violet-500 transition-[width] duration-300 dark:bg-violet-400"
+          style={{ width: `${Math.round(ratio * 100)}%` }}
+        />
       </div>
     </div>
   );
@@ -361,7 +234,7 @@ export function TextEditingExercise() {
     window.setTimeout(() => {
       setEvaluation(result);
       setIsRollingUp(false);
-    }, TYPEWRITER_ROLL_UP_MS);
+    }, SUBMIT_HANDOFF_MS);
   };
 
   const finishExercise = () => {
@@ -402,71 +275,81 @@ export function TextEditingExercise() {
   if (isTesting && task) {
     return (
       <div className="relative min-h-full bg-transparent px-3 py-5 sm:px-5 sm:py-7">
-        <main className="notebook-paper notebook-sheet notebook-margin relative mx-auto w-full max-w-4xl overflow-hidden rounded-[1.75rem] px-4 py-6 sm:rounded-[2.5rem] sm:px-10 sm:py-8">
-          <Ruler className="pointer-events-none absolute -right-4 top-24 hidden w-24 rotate-12 text-slate-400 opacity-45 xl:block dark:text-slate-500" />
-          <button
-            type="button"
-            onClick={stopTest}
-            className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
-          >
-            <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
-            ტესტის შეწყვეტა
-          </button>
+        <main className="notebook-paper notebook-sheet relative mx-auto w-full max-w-5xl overflow-hidden rounded-[1.75rem] px-4 py-6 sm:rounded-[2.5rem] sm:px-8 sm:py-8">
+          {/* One line across the top: leave on the left, clock on the right. */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={stopTest}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-all hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50"
+            >
+              <ChevronLeft className="h-4 w-4 stroke-[2]" />
+              ტესტის შეწყვეტა
+            </button>
+            {showTimer && <TestTimerBadge seconds={elapsedSec} />}
+          </div>
 
-          {showTimer && <TestTimerBadge seconds={elapsedSec} />}
-
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">
-              ტექსტი შეცდომებით
-            </h2>
-            {/* Where this text came from — a real paper, not a mock. */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             <span
-              className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[11px] font-bold ${ACCENT_PILL.violet}`}
+              className={`inline-flex items-center rounded-full border-2 px-3 py-1 text-[11px] font-bold ${ACCENT_PILL.violet}`}
             >
               {paperLabel(task)} · I ნაწილი · {task.points} ქულა
             </span>
-          </div>
-          <div className="exam-paper-plain select-none px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200">
-            <div className="mb-3 flex items-center justify-between border-b-2 border-dashed border-slate-300/80 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:border-white/15 dark:text-slate-400">
-              <span>wyaro.txt</span>
-              <span>{task.text.length} სიმბოლო</span>
-            </div>
-            {task.text.split("\n\n").map((paragraph, index) => (
-              <p key={`p-${index}`} className="mb-4 last:mb-0">
-                {paragraph}
-              </p>
-            ))}
+            <button
+              type="button"
+              onClick={copySourceToEditor}
+              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-[11px] font-bold text-slate-700 transition-all dark:text-slate-200 ${PLAIN_CARD}`}
+            >
+              <Copy className="h-3.5 w-3.5 stroke-[2]" />
+              ტექსტის გადმოტანა
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={copySourceToEditor}
-            className={`mb-3 mr-auto mt-3 flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold text-slate-700 transition-all dark:text-slate-200 ${PLAIN_CARD}`}
+          {/* Source on the left, your version on the right — the two things
+              being compared, side by side on a screen wide enough for it. */}
+          <div
+            className={`grid grid-cols-1 gap-4 ${evaluation ? "" : "lg:grid-cols-2"}`}
           >
-            <Copy className="h-3.5 w-3.5 stroke-[1.5]" />
-            რედაქტორში გადმოყვანა
-          </button>
+            <div className="exam-paper-plain select-none overflow-hidden">
+              <div className="flex items-center justify-between gap-2 border-b-2 border-dashed border-slate-300/80 px-4 py-2.5 dark:border-white/15">
+                <span className="truncate text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  {task.year} · {task.variantLabel} · რედაქტირება
+                </span>
+                <span className="shrink-0 text-[11px] font-bold tabular-nums text-slate-500 dark:text-slate-400">
+                  {task.text.length}
+                </span>
+              </div>
+              <div className="px-4 py-4 text-sm leading-[1.9] text-slate-800 dark:text-slate-200">
+                {task.text.split("\n\n").map((paragraph, index) => (
+                  <p key={`p-${index}`} className="mb-4 last:mb-0">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {!evaluation && (
+              <div className="lg:sticky lg:top-6">
+                <CorrectionSheet
+                  value={correctedText}
+                  onChange={setCorrectedText}
+                  isSubmitting={isRollingUp}
+                  sourceLength={task.text.length}
+                />
+              </div>
+            )}
+          </div>
 
           {!evaluation && (
             <>
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-medium text-slate-900 dark:text-slate-50">თქვენი შესწორებული ტექსტი</h2>
-              </div>
-
-              <TypewriterInput
-                value={correctedText}
-                onChange={setCorrectedText}
-                isRollingUp={isRollingUp}
-              />
-
               <button
                 type="button"
                 onClick={submitForEvaluation}
                 disabled={isRollingUp}
-                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8 paper-sticker ${ACCENT_SOLID.violet}`}
+                className={`paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8 ${ACCENT_SOLID.violet}`}
               >
-                <Sparkles className="h-4 w-4 stroke-[1.5]" />
-                {isRollingUp ? "ფურცელი იხვევა..." : "გაგზავნა AI შეფასებისთვის"}
+                <Sparkles className="h-4 w-4 stroke-[2]" />
+                {isRollingUp ? "ვასწორებ..." : "გაგზავნა AI შეფასებისთვის"}
               </button>
             </>
           )}
@@ -520,7 +403,7 @@ export function TextEditingExercise() {
 
   return (
     <div className="relative min-h-full bg-transparent px-3 py-5 sm:px-5 sm:py-7">
-      <main className="notebook-paper notebook-sheet notebook-margin relative mx-auto w-full max-w-4xl overflow-hidden rounded-[1.75rem] px-4 py-6 sm:rounded-[2.5rem] sm:px-10 sm:py-8">
+      <main className="notebook-paper notebook-sheet relative mx-auto w-full max-w-4xl overflow-hidden rounded-[1.75rem] px-4 py-6 sm:rounded-[2.5rem] sm:px-10 sm:py-8">
         <Sparkle
           className={`pointer-events-none absolute right-6 top-6 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT.violet}`}
         />
