@@ -18,6 +18,7 @@ import {
   Plus,
   RefreshCw,
   X,
+  NotebookPen,
 } from "lucide-react";
 import {
   addManualCalendarEvent,
@@ -78,6 +79,14 @@ const TYPE_STYLE: Record<
     iconWrap: "bg-pink-400/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-300",
     label: "დედლაინი",
     mobileRow: "mobile-vivid-pink",
+  },
+  study: {
+    dot: "bg-emerald-400",
+    icon: NotebookPen,
+    iconWrap:
+      "bg-emerald-400/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300",
+    label: "სასწავლო დღე",
+    mobileRow: "mobile-vivid-emerald",
   },
 };
 
