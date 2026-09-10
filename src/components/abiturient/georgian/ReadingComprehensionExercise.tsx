@@ -38,10 +38,13 @@ import {
 } from "@/data/readingComprehensionData";
 import {
   paperLabel,
+  pastCategoryCounts,
   pastPassages,
+  pastQuestionCount,
   pickRandomPastPassage,
   type PastPassage,
 } from "@/lib/georgian-past-paper-practice";
+import { EXAM_CATEGORY_META } from "@/lib/exam-categories";
 import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { categoryFromTropeAnswer } from "@/lib/exam-categories";
@@ -320,6 +323,8 @@ export function ReadingComprehensionExercise() {
         libraryHighlights={{
           passageCount: passageCount(),
           yearRange: passageYearRange(),
+          questionCount: pastQuestionCount(),
+          perPassage: questionsPerPassage(),
         }}
       />
     );
@@ -685,21 +690,24 @@ export function ReadingComprehensionExercise() {
 /*                               INTRO SCREEN                                 */
 /* -------------------------------------------------------------------------- */
 
-const TROPE_CHIPS: { label: string; className: string }[] = [
-  { label: "მეტაფორა", className: "border-[3px] border-cyan-400 bg-transparent text-cyan-300" },
-  { label: "გაპიროვნება", className: "border-[3px] border-violet-400 bg-transparent text-violet-300" },
-  { label: "ეპითეტი", className: "border-[3px] border-transparent bg-amber-400 text-black" },
-  { label: "შედარება", className: "border-[3px] border-emerald-400 bg-transparent text-emerald-300" },
-  { label: "ჰიპერბოლა", className: "border-[3px] border-transparent bg-rose-500 text-white" },
-  { label: "ალეგორია", className: "border-[3px] border-transparent bg-blue-500 text-white" },
-];
+/**
+ * What the past papers actually ask, counted from the archive. The page
+ * used to advertise the six literary devices as the exercise; the exercise
+ * is the exam's own question set, and tropes are only part of it.
+ */
+const ASKED_CATEGORIES = pastCategoryCounts();
 
 function IntroScreen({
   onStart,
   libraryHighlights,
 }: {
   onStart: () => void;
-  libraryHighlights: { passageCount: number; yearRange: string };
+  libraryHighlights: {
+    passageCount: number;
+    yearRange: string;
+    questionCount: number;
+    perPassage: string;
+  };
 }) {
   return (
     <div className="relative min-h-full bg-transparent">
@@ -750,38 +758,45 @@ function IntroScreen({
             dot="bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
           />
           <StatCard
-            label="მხატვრული საშუალებები"
-            value="6"
-            hint="მეტაფორა, გაპიროვნება, ეპითეტი, შედარება, ჰიპერბოლა, ალეგორია"
+            label="გამოცდის კითხვები"
+            value={`${libraryHighlights.questionCount}`}
+            hint="ყველა კითხვა იმ ფურცლიდან, სადაც ტექსტი იდგა"
             icon={<Sparkles className="h-4 w-4 stroke-[1.75] text-cyan-300" />}
             accent="border-cyan-500/30 text-cyan-300"
             dot="bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
           />
           <StatCard
-            label="კითხვის ტიპები"
-            value="3"
-            hint="მთავარი აზრი · ნაგულისხმევი · მხატვრული ხერხი"
+            label="კითხვა ერთ ტექსტზე"
+            value={`${libraryHighlights.perPassage}`}
+            hint="როგორც გამოცდაზე — ტექსტი და მისი კითხვები"
             icon={<Trophy className="h-4 w-4 stroke-[1.75] text-amber-300" />}
             accent="border-amber-500/30 text-amber-300"
             dot="bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]"
           />
         </section>
 
-        <section className="mt-6" aria-label="მხატვრული საშუალებები, რომლებზეც ივარჯიშებ">
+        <section className="mt-6" aria-label="რას გეკითხებიან გამოცდაზე">
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            ივარჯიშებ ამ მხატვრულ საშუალებებზე
+            რას გეკითხებიან — არქივის {ASKED_CATEGORIES.length} სახის კითხვა
           </p>
-          <div className="flex flex-wrap gap-3">
-            {TROPE_CHIPS.map((chip, index) => (
-              <span
-                key={chip.label}
-                className={`inline-flex items-center rounded-full px-5 py-2.5 text-sm font-bold transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.04] ${
-                  index % 2 === 0 ? "-rotate-1" : "rotate-1"
-                } ${chip.className}`}
-              >
-                {chip.label}
-              </span>
-            ))}
+          <div className="flex flex-wrap gap-2.5">
+            {ASKED_CATEGORIES.map(({ category, count }, index) => {
+              const meta = EXAM_CATEGORY_META[category];
+              return (
+                <span
+                  key={category}
+                  title={meta.hint}
+                  className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-bold transition-transform duration-200 hover:-translate-y-1 ${
+                    index % 2 === 0 ? "-rotate-1" : "rotate-1"
+                  } ${meta.badgeClassLight} ${meta.badgeClass}`}
+                >
+                  {meta.label}
+                  <span className="rounded-full bg-black/[0.07] px-2 py-0.5 text-[11px] tabular-nums dark:bg-white/10">
+                    {count}
+                  </span>
+                </span>
+              );
+            })}
           </div>
         </section>
 
@@ -799,11 +814,11 @@ function IntroScreen({
                 ტესტის დაწყება ავტომატური რენდომიზაციით
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                ყოველი დაწყებისას შემთხვევით ამოდის ეროვნული გამოცდის{" "}
+                ზუსტად ისე, როგორც გამოცდაზე: შემთხვევით ამოდის{" "}
                 <strong className="font-bold">II ნაწილის</strong> რეალური ტექსტი წინა
-                წლების ვარიანტებიდან — თავისი ავტორით, თავისი კითხვებით და პასუხების
-                განმარტებებით. მიიღებ ქულებს სწორ პასუხებზე და ბონუსს — თუ ზედიზედ
-                პასუხობ სწორად.
+                წლების ვარიანტებიდან და მიჰყვება იმავე ფურცლის კითხვები — არა ცალკე
+                სავარჯიშო მხატვრულ საშუალებებზე, არამედ ის, რაც სინამდვილეში იკითხებოდა.
+                თითოეულ პასუხს განმარტება მოჰყვება.
               </p>
               <div className="relative mt-5 inline-block">
                 <motion.span
@@ -838,7 +853,7 @@ function IntroScreen({
                 border: "border-violet-500/30",
               },
               {
-                text: "მარცხნივ ნახავ ტექსტს, მარჯვნივ — მასთან დაკავშირებულ 3–4 კითხვას.",
+                text: `მარცხნივ ნახავ ტექსტს, მარჯვნივ — იმავე ფურცლის ${questionsPerPassage()} კითხვას.`,
                 circle: "bg-cyan-400 text-black",
                 border: "border-cyan-500/30",
               },
@@ -1322,6 +1337,15 @@ function resolveOptionCircleClass({
 
 function passageCount(): number {
   return pastPassages().length;
+}
+
+/** How many questions a text carries, as the papers set them. */
+function questionsPerPassage(): string {
+  const counts = pastPassages().map((passage) => passage.questions.length);
+  if (counts.length === 0) return "0";
+  const low = Math.min(...counts);
+  const high = Math.max(...counts);
+  return low === high ? `${low}` : `${low}–${high}`;
 }
 
 /** "2022–2025" — how far back the archive goes. */
