@@ -249,7 +249,9 @@ export function SyllabusAnalyzer() {
     // into a third of the screen for no reason.
     <div className="flex w-full flex-col gap-5">
       <section className="w-full">
-        <div className={`rounded-2xl border-2 p-5 ${ACCENT_CARD.violet}`}>
+        <div
+          className={`grid grid-cols-1 gap-4 rounded-2xl border-2 p-4 sm:p-5 lg:grid-cols-[1.1fr_1fr] ${ACCENT_CARD.violet}`}
+        >
           <label
             onDragOver={(event) => {
               event.preventDefault();
@@ -257,7 +259,7 @@ export function SyllabusAnalyzer() {
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={onDrop}
-            className={`exam-paper-plain flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed p-8 text-center transition-all ${
+            className={`exam-paper-plain flex h-full cursor-pointer flex-col items-center justify-center gap-2.5 border-2 border-dashed p-6 text-center transition-all ${
               dragActive
                 ? "border-violet-400 dark:border-violet-400/50"
                 : "border-slate-300 hover:border-violet-400 dark:border-white/15 dark:hover:border-violet-400/40"
@@ -281,13 +283,14 @@ export function SyllabusAnalyzer() {
             <p className="text-xs text-slate-500 dark:text-slate-400">მხარდაჭერა: მხოლოდ PDF</p>
           </label>
 
+          <div className="flex flex-col">
           {fileName && (
-            <div className={`mt-3 rounded-xl border-2 px-3 py-2 text-xs font-semibold ${ACCENT_PILL.green}`}>
+            <div className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold ${ACCENT_PILL.green}`}>
               ატვირთული ფაილი: {fileName}
             </div>
           )}
 
-          <label className="mt-4 block space-y-1.5 text-sm">
+          <label className="mt-3 block space-y-1.5 text-sm">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
               სემესტრის დაწყების თარიღი
             </span>
@@ -298,12 +301,13 @@ export function SyllabusAnalyzer() {
               required
               className="w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
             />
-            <p className="text-xs text-slate-500 dark:text-zinc-500">
-              სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების მაგივრად — ეს გვჭირდება, რომ AI-მ ისინი რეალურ თარიღებად გადათვალოს.
+            <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების ნაცვლად — ეს
+              გვჭირდება, რომ AI-მ რეალურ თარიღებად გადათვალოს.
             </p>
           </label>
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-1">
             {OPTIONS.map((item) => (
               <label
                 key={item.id}
@@ -326,15 +330,16 @@ export function SyllabusAnalyzer() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={isLoading || !syllabusFile || !semesterStartDate}
-            className={`paper-sticker mt-4 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
+            className={`paper-sticker mt-auto w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
           >
             {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
           </button>
           {error && (
-            <p className="mt-3 text-xs font-semibold text-rose-600 dark:text-rose-400">
+            <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
               {error}
             </p>
           )}
+          </div>
         </div>
       </section>
 
@@ -395,69 +400,70 @@ export function SyllabusAnalyzer() {
               </div>
             )}
 
-            <div className="relative space-y-0 pl-6">
-              <div
-                className="absolute bottom-2 left-[7px] top-2 w-0.5 rounded-full bg-slate-300 dark:bg-white/15"
-                aria-hidden
-              />
+            {/* A bento of landscape cards rather than one long column: a
+                semester is a dozen dates, and the point is to take them in
+                at a glance instead of scrolling past them one at a time.
+                The nearest date takes the wide tile. */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {visibleMilestones.map((item, index) => {
                 const added =
                   addedIds.has(item.id) || isMilestoneOnDashboard(item.id);
                 const meta = TYPE_META[item.type];
+                const Icon = meta.icon;
                 return (
                   <article
                     key={item.id}
-                    className={`stagger-in relative pb-4 ${index === visibleMilestones.length - 1 ? "pb-0" : ""}`}
+                    className={`stagger-in flex flex-col justify-between gap-3 rounded-2xl border-2 p-4 transition-transform duration-300 hover:-translate-y-1 ${PLAIN_CARD} ${
+                      index === 0 ? "sm:col-span-2" : ""
+                    }`}
                     style={{ animationDelay: `${index * 70}ms` }}
                   >
-                    <span
-                      className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 bg-white dark:bg-[#161a24] ${meta.dot}`}
-                      aria-hidden
-                    />
-                    <div className={`relative flex flex-wrap items-start justify-between gap-3 rounded-2xl border-2 p-4 sm:flex-nowrap ${PLAIN_CARD}`}>
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold ${meta.badge}`}
+                        >
+                          <Icon className="h-3 w-3 stroke-[2.5]" aria-hidden />
+                          {meta.label}
+                        </span>
+                        {item.week && (
                           <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.badge}`}
+                            className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 ${PLAIN_CARD}`}
                           >
-                            {meta.label}
+                            კვირა {item.week}
                           </span>
-                          {item.week && (
-                            <span className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 ${PLAIN_CARD}`}>
-                              კვირა {item.week}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-bold text-slate-900 dark:text-slate-50">
-                          {item.title}
-                        </p>
-                        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                          {formatIsoDateGeorgian(item.date)}
-                        </p>
-                        {item.topic && (
-                          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                            {item.topic}
-                          </p>
                         )}
                       </div>
-                      <div className="shrink-0">
-                        {added ? (
-                          <span className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${ACCENT_PILL.green}`}>
-                            <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-                            დამატებულია
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCalendar(item)}
-                            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            {index % 2 === 0 ? "დაამატე კალენდარში" : "მოინიშნე ეს დღე"}
-                          </button>
-                        )}
-                      </div>
+                      <p className="text-sm font-bold leading-snug text-slate-900 dark:text-slate-50">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        {formatIsoDateGeorgian(item.date)}
+                      </p>
+                      {item.topic && (
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
+                          {item.topic}
+                        </p>
+                      )}
                     </div>
+
+                    {added ? (
+                      <span
+                        className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${ACCENT_PILL.green}`}
+                      >
+                        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                        დამატებულია
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCalendar(item)}
+                        className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
+                      >
+                        <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                        დაამატე კალენდარში
+                      </button>
+                    )}
                   </article>
                 );
               })}
