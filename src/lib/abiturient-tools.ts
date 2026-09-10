@@ -66,10 +66,10 @@ export const ABITURIENT_TOOLS: AbiturientTool[] = [
     accent: NEON_SUBJECT_ACCENTS.georgian,
   },
   {
-    id: "abit-georgian-cards",
-    title: "ქართული: ბარათების სესია",
+    id: "abit-flashcards",
+    title: "Flashcards",
     description: "ინტერაქტიული ფლეშბარათები გამოცდის სიმოკლის გასაამაგრებლად",
-    href: "/generate?from=georgian",
+    href: "/generate",
     icon: Layers,
     accent: NEON_SUBJECT_ACCENTS.english,
   },
