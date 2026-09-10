@@ -25,6 +25,14 @@ import {
   type SyllabusMilestone,
   type SyllabusMilestoneType,
 } from "@/lib/syllabus-calendar";
+import { Pencil, Ruler, Sparkle } from "@/components/landing/notebook/Doodles";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+} from "@/components/landing/notebook/accents";
 import { SyllabusThinkingLoader } from "./SyllabusThinkingLoader";
 
 const MONTH_NAMES = [
@@ -236,9 +244,12 @@ export function SyllabusAnalyzer() {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 lg:flex-row">
-      <aside className="w-full lg:w-[360px] lg:shrink-0">
-        <div className="dashboard-tool-card rounded-[28px] p-5">
+    // The page reads top to bottom: drop the syllabus, then the dates it
+    // produced, each one under the last. Side by side squeezed the dates
+    // into a third of the screen for no reason.
+    <div className="flex w-full flex-col gap-5">
+      <section className="w-full">
+        <div className={`rounded-2xl border-2 p-5 ${ACCENT_CARD.violet}`}>
           <label
             onDragOver={(event) => {
               event.preventDefault();
@@ -246,10 +257,10 @@ export function SyllabusAnalyzer() {
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={onDrop}
-            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[rgb(228,216,189)] bg-[linear-gradient(135deg,#fefcf6_0%,#f6efdc_100%)] p-8 text-center transition-all dark:border-white/10 dark:bg-white/[0.02] ${
+            className={`exam-paper-plain flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed p-8 text-center transition-all ${
               dragActive
-                ? "border-violet-300 bg-violet-50 dark:border-violet-400/40 dark:bg-violet-500/10"
-                : "hover:border-violet-300 dark:hover:border-violet-400/40"
+                ? "border-violet-400 dark:border-violet-400/50"
+                : "border-slate-300 hover:border-violet-400 dark:border-white/15 dark:hover:border-violet-400/40"
             }`}
           >
             <input
@@ -258,16 +269,20 @@ export function SyllabusAnalyzer() {
               className="hidden"
               onChange={onFileChange}
             />
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300">
-              <CloudUpload className="h-3.5 w-3.5" />
-              PDF Upload
-            </div>
-            <p className="text-sm text-slate-700 dark:text-zinc-200">ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად</p>
-            <p className="text-xs text-slate-500 dark:text-zinc-500">მხარდაჭერა: მხოლოდ PDF</p>
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-bold ${ACCENT_PILL.violet}`}
+            >
+              <CloudUpload className="h-3.5 w-3.5 stroke-[2.5]" />
+              PDF
+            </span>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">მხარდაჭერა: მხოლოდ PDF</p>
           </label>
 
           {fileName && (
-            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/10 dark:text-rose-300">
+            <div className={`mt-3 rounded-xl border-2 px-3 py-2 text-xs font-semibold ${ACCENT_PILL.green}`}>
               ატვირთული ფაილი: {fileName}
             </div>
           )}
@@ -281,7 +296,7 @@ export function SyllabusAnalyzer() {
               value={semesterStartDate}
               onChange={(event) => setSemesterStartDate(event.target.value)}
               required
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:focus:border-rose-400/50 dark:focus:ring-rose-500/10"
+              className="w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
             />
             <p className="text-xs text-slate-500 dark:text-zinc-500">
               სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების მაგივრად — ეს გვჭირდება, რომ AI-მ ისინი რეალურ თარიღებად გადათვალოს.
@@ -292,7 +307,7 @@ export function SyllabusAnalyzer() {
             {OPTIONS.map((item) => (
               <label
                 key={item.id}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 transition hover:border-rose-200 hover:bg-rose-50/50 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-white/[0.12] dark:hover:bg-white/[0.04]"
+                className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
               >
                 <input
                   type="checkbox"
@@ -300,7 +315,7 @@ export function SyllabusAnalyzer() {
                   onChange={(event) =>
                     setEnabled((prev) => ({ ...prev, [item.id]: event.target.checked }))
                   }
-                  className="h-4 w-4 accent-rose-500"
+                  className="h-4 w-4 accent-violet-600"
                 />
                 {item.label}
               </label>
@@ -311,22 +326,29 @@ export function SyllabusAnalyzer() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={isLoading || !syllabusFile || !semesterStartDate}
-            className="mt-4 w-full rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+            className={`paper-sticker mt-4 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
           >
             {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
           </button>
           {error && (
-            <p className="mt-3 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+            <p className="mt-3 text-xs font-semibold text-rose-600 dark:text-rose-400">
+              {error}
+            </p>
           )}
         </div>
-      </aside>
+      </section>
 
-      <div className="dashboard-tool-card min-h-[520px] w-full min-w-0 flex-1 overflow-hidden rounded-[28px] p-5">
+      <div className="notebook-paper notebook-sheet relative min-h-[420px] w-full min-w-0 overflow-hidden rounded-[26px] p-5 sm:p-6">
+        <Sparkle
+          className={`pointer-events-none absolute right-5 top-5 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT.violet}`}
+        />
+        <Ruler className="pointer-events-none absolute bottom-6 right-8 hidden w-20 rotate-12 text-slate-400 opacity-50 xl:block dark:text-slate-500" />
         {isLoading ? (
           <SyllabusThinkingLoader />
         ) : !generated ? (
-          <div className="flex h-full min-h-[480px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
-            <p className="max-w-sm text-sm text-slate-500 dark:text-zinc-500">
+          <div className="flex h-full min-h-[380px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center dark:border-white/15">
+            <Pencil className="mb-3 h-10 w-10 -rotate-12 text-amber-600/50 dark:text-amber-400/40" />
+            <p className="max-w-sm text-sm text-slate-600 dark:text-slate-300">
               ატვირთე სილაბუსი სემესტრული კალენდრის დასაგენერირებლად.
             </p>
           </div>
@@ -334,21 +356,23 @@ export function SyllabusAnalyzer() {
           <div className="fade-in flex h-full flex-col">
             <div className="mb-5 flex flex-wrap items-start gap-3">
               <div className="flex min-w-0 flex-1 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl subject-icon-wrap">
-                  <CalendarDays className="h-5 w-5 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
-                </div>
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
+                >
+                  <CalendarDays className="h-5 w-5 stroke-[2]" aria-hidden />
+                </span>
                 <div className="min-w-0">
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  <h2 className="headline text-lg font-bold text-slate-900 dark:text-slate-50">
                     სილაბუსიდან გენერირებული თარიღები
                   </h2>
-                  <p className="text-sm text-slate-600 dark:text-zinc-400">
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
                     მონიშნე მნიშვნელოვანი დღეები დეშბორდის კალენდარში დასამატებლად.
                   </p>
                 </div>
               </div>
               {visibleMilestones.length > 0 && (
                 allMilestonesAdded ? (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold ${ACCENT_PILL.green}`}>
                     <Check className="h-3.5 w-3.5 shrink-0" />
                     ყველა დამატებულია
                   </span>
@@ -356,7 +380,7 @@ export function SyllabusAnalyzer() {
                   <button
                     type="button"
                     onClick={handleAddAllToCalendar}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-violet-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
+                    className={`paper-sticker inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold ${ACCENT_SOLID.violet}`}
                   >
                     <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
                     ყველას დამატება ({pendingMilestones.length})
@@ -366,14 +390,14 @@ export function SyllabusAnalyzer() {
             </div>
 
             {aiInsight && (
-              <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50/60 p-4 text-xs leading-relaxed text-slate-600 dark:border-rose-400/15 dark:bg-rose-500/[0.04] dark:text-zinc-400">
+              <div className={`mb-5 rounded-2xl border-2 p-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 ${ACCENT_CARD.amber}`}>
                 {aiInsight}
               </div>
             )}
 
             <div className="relative space-y-0 pl-6">
               <div
-                className="absolute bottom-2 left-[7px] top-2 w-px bg-gradient-to-b from-rose-300 via-slate-200 to-transparent dark:from-rose-400/40 dark:via-white/10 dark:to-transparent"
+                className="absolute bottom-2 left-[7px] top-2 w-0.5 rounded-full bg-slate-300 dark:bg-white/15"
                 aria-hidden
               />
               {visibleMilestones.map((item, index) => {
@@ -387,10 +411,10 @@ export function SyllabusAnalyzer() {
                     style={{ animationDelay: `${index * 70}ms` }}
                   >
                     <span
-                      className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 bg-white dark:bg-[#121214] ${meta.dot}`}
+                      className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 bg-white dark:bg-[#161a24] ${meta.dot}`}
                       aria-hidden
                     />
-                    <div className="dashboard-glass-card relative flex items-start justify-between gap-3 rounded-2xl py-3 pl-4 pr-28">
+                    <div className={`relative flex flex-wrap items-start justify-between gap-3 rounded-2xl border-2 p-4 sm:flex-nowrap ${PLAIN_CARD}`}>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap items-center gap-2">
                           <span
@@ -399,30 +423,34 @@ export function SyllabusAnalyzer() {
                             {meta.label}
                           </span>
                           {item.week && (
-                            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                            <span className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 ${PLAIN_CARD}`}>
                               კვირა {item.week}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{item.title}</p>
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-50">
+                          {item.title}
+                        </p>
+                        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
                           {formatIsoDateGeorgian(item.date)}
                         </p>
                         {item.topic && (
-                          <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-zinc-500">{item.topic}</p>
+                          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            {item.topic}
+                          </p>
                         )}
                       </div>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="shrink-0">
                         {added ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                            <Check className="h-3.5 w-3.5" />
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${ACCENT_PILL.green}`}>
+                            <Check className="h-3.5 w-3.5 stroke-[2.5]" />
                             დამატებულია
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleAddToCalendar(item)}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+                            className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
                           >
                             <Plus className="h-3.5 w-3.5" />
                             {index % 2 === 0 ? "დაამატე კალენდარში" : "მოინიშნე ეს დღე"}
@@ -437,7 +465,7 @@ export function SyllabusAnalyzer() {
 
             <Link
               href="/study-plan"
-              className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+              className={`mt-5 inline-flex items-center gap-2 text-xs font-bold ${ACCENT_TEXT.violet}`}
             >
               <Bell className="h-3.5 w-3.5" />
               გახსენი სრული კალენდარი სასწავლო გეგმაში
