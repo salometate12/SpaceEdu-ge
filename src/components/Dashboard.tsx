@@ -22,6 +22,7 @@ import { StudentStudyCalendar } from "./dashboard/StudentStudyCalendar";
 import { DailyGoals } from "./profile/DailyGoals";
 import { DASHBOARD_GOALS_STORAGE_KEY } from "@/lib/profile";
 import { DashboardJournalWidget } from "./lecture-notes/DashboardJournalWidget";
+import { ImportantDocuments } from "./dashboard/ImportantDocuments";
 import { DashboardLectureStickers } from "./lecture-notes/DashboardLectureStickers";
 import {
   DashboardMorphGrid,
@@ -305,6 +306,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           <StudentTools />
 
           <DashboardJournalWidget />
+
+          <ImportantDocuments />
 
           <DashboardLectureStickers />
 
