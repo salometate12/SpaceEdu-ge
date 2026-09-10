@@ -369,9 +369,6 @@ export function ChatInterface() {
               </button>
             </div>
           </div>
-          <p className="mt-2 hidden text-center text-[11px] text-[var(--text-muted)] sm:block">
-            Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
-          </p>
         </form>
       </div>
     </div>
