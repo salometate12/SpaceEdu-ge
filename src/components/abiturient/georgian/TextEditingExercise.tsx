@@ -19,6 +19,10 @@ import {
   type TextEditingAttempt,
   type TextEditingEvaluation,
 } from "@/lib/georgian-text-editing";
+import {
+  ACCENT_SOLID,
+  PLAIN_CARD,
+} from "@/components/landing/notebook/accents";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 const TYPEWRITER_ROLL_UP_MS = 850;
@@ -76,7 +80,7 @@ function TimerSwitch({
           />
         )}
       </span>
-      <span className="text-sm text-zinc-300">გამოაჩინე ტაიმერი</span>
+      <span className="text-sm text-slate-700 dark:text-slate-200">გამოაჩინე ტაიმერი</span>
     </button>
   );
 }
@@ -104,7 +108,7 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
       <span className="text-purple-300">ტაიმერი</span>
       <span
         key={seconds}
-        className="animate-timer-tick-pop font-mono font-semibold tabular-nums text-white"
+        className="animate-timer-tick-pop font-mono font-semibold tabular-nums text-slate-900 dark:text-slate-50"
       >
         {m}:{s}
       </span>
@@ -152,7 +156,7 @@ function TypewriterInput({
       <div
         className={`typewriter-paper relative z-0 rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pt-6 pb-16 shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${isRollingUp ? "animate-paper-roll-up" : ""}`}
       >
-        <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-zinc-500">
+        <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300">
           <span>spaceedu.txt</span>
           <span>{value.length} სიმბოლო</span>
         </div>
@@ -161,7 +165,7 @@ function TypewriterInput({
           onChange={handleChange}
           disabled={isRollingUp}
           placeholder="აქ ჩაწერე შესწორებული ტექსტი..."
-          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 placeholder:text-slate-600 dark:text-slate-300 focus:outline-none"
         />
       </div>
 
@@ -380,7 +384,7 @@ export function TextEditingExercise() {
           <button
             type="button"
             onClick={stopTest}
-            className="mb-6 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+            className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
           >
             <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
             ტესტის შეწყვეტა
@@ -389,10 +393,10 @@ export function TextEditingExercise() {
           {showTimer && <TestTimerBadge seconds={elapsedSec} />}
 
           <div className="mb-2">
-            <h2 className="text-sm font-medium text-gray-400">ტექსტი შეცდომებით</h2>
+            <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">ტექსტი შეცდომებით</h2>
           </div>
-          <div className="select-none rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-zinc-800 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
-            <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-zinc-500">
+          <div className="select-none rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+            <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300">
               <span>wyaro.txt</span>
               <span>{sourceText.length} სიმბოლო</span>
             </div>
@@ -415,7 +419,7 @@ export function TextEditingExercise() {
           {!evaluation && (
             <>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-medium text-white">თქვენი შესწორებული ტექსტი</h2>
+                <h2 className="text-sm font-medium text-slate-900 dark:text-slate-50">თქვენი შესწორებული ტექსტი</h2>
               </div>
 
               <TypewriterInput
@@ -428,7 +432,7 @@ export function TextEditingExercise() {
                 type="button"
                 onClick={submitForEvaluation}
                 disabled={isRollingUp}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/15 transition-all hover:from-purple-500 hover:to-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+                className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8 paper-sticker ${ACCENT_SOLID.violet}`}
               >
                 <Sparkles className="h-4 w-4 stroke-[1.5]" />
                 {isRollingUp ? "ფურცელი იხვევა..." : "გაგზავნა AI შეფასებისთვის"}
@@ -445,7 +449,7 @@ export function TextEditingExercise() {
                 {evaluation.points.map((point) => (
                   <li
                     key={point}
-                    className="flex gap-2 text-sm leading-relaxed text-zinc-300"
+                    className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
                   >
                     <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-purple-400" />
                     {point}
@@ -473,7 +477,7 @@ export function TextEditingExercise() {
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
         <Link
           href={GEORGIAN_HUB_HREF}
-          className="mb-6 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
         >
           <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
           ქართულის ცენტრში დაბრუნება
@@ -491,20 +495,20 @@ export function TextEditingExercise() {
                 aria-hidden
               />
             </span>
-            <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">ტექსტის რედაქტირება</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">ტექსტის რედაქტირება</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
               ეროვნული გამოცდის სტანდარტის მიხედვით შეასწორე ტექსტი და მიიღე შეფასება
               16-ბალიანი სკალით.
             </p>
           </div>
         </header>
 
-        <section className="flex flex-col gap-4 rounded-[28px] border-2 border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className={`flex flex-col gap-4 rounded-2xl border-2 p-5 sm:flex-row sm:items-center sm:justify-between ${PLAIN_CARD}`}>
           <TimerSwitch enabled={showTimer} onChange={setShowTimer} />
           <button
             type="button"
             onClick={startTest}
-            className="flex items-center justify-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className={`flex items-center justify-center gap-2 rounded-full border-2 px-6 py-3 text-sm font-bold paper-sticker ${ACCENT_SOLID.violet}`}
           >
             ტესტის დაწყება
             <ChevronLeft className="h-4 w-4 rotate-180 stroke-[1.5]" />
@@ -514,7 +518,7 @@ export function TextEditingExercise() {
         <section className="mt-8" aria-label="წინა მცდელობები">
           <h2 className="mb-4 mt-8 text-lg font-semibold text-white/80">წინა მცდელობები</h2>
           {attempts.length === 0 ? (
-            <p className="text-sm text-zinc-500">ჯერ არ გაქვს დასრულებული მცდელობა.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">ჯერ არ გაქვს დასრულებული მცდელობა.</p>
           ) : (
             <ul className="space-y-5">
               {attempts.map((attempt) => (
@@ -528,10 +532,10 @@ export function TextEditingExercise() {
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#f2e2c8] shadow-md transition-all delay-150 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-4 group-hover:translate-y-1.5 group-hover:-rotate-[3deg]" />
                   </div>
 
-                  <div className="relative z-10 flex flex-col gap-3 rounded-[24px] border-2 border-white/10 bg-[#121214]/70 p-4 backdrop-blur-md transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:border-purple-400/30 group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] sm:flex-row sm:items-center sm:justify-between">
+                  <div className={`relative z-10 flex flex-col gap-3 rounded-2xl border-2 p-4 transition-transform duration-300 ease-out group-hover:translate-x-1.5 sm:flex-row sm:items-center sm:justify-between ${PLAIN_CARD}`}>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-gray-500">{attempt.dateLabel}</p>
-                      <p className="mt-1 truncate text-sm text-zinc-300">{attempt.preview}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">{attempt.dateLabel}</p>
+                      <p className="mt-1 truncate text-sm text-slate-700 dark:text-slate-200">{attempt.preview}</p>
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-3">
                       <span

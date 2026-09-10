@@ -349,7 +349,7 @@ export function ReadingComprehensionExercise() {
           <button
             type="button"
             onClick={abandonSession}
-            className="inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
           >
             <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
             ტესტის შეწყვეტა
@@ -361,7 +361,7 @@ export function ReadingComprehensionExercise() {
               className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-semibold transition-colors duration-300 ${
                 streak > 0
                   ? "border-orange-500/30 bg-orange-500/10 text-orange-300"
-                  : "border-white/10 bg-transparent text-zinc-500"
+                  : "border-white/10 bg-transparent text-slate-600 dark:text-slate-300"
               }`}
               aria-label="მიმდინარე სერია"
             >
@@ -407,7 +407,7 @@ export function ReadingComprehensionExercise() {
           {/* ---------------------- LEFT: reading panel ---------------------- */}
           <section
             aria-label="საკითხავი ტექსტი"
-            className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-[#100f16]/70 p-6 backdrop-blur-xl sm:p-8"
+            className="notebook-paper notebook-sheet relative overflow-hidden rounded-[26px] p-6 sm:p-8"
             style={
               {
                 minHeight: "560px",
@@ -441,12 +441,12 @@ export function ReadingComprehensionExercise() {
                 />
               </div>
               <header className="mb-6">
-                <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">
+                <h2 className="text-xl font-bold leading-tight text-slate-900 dark:text-slate-50 sm:text-2xl">
                   {passage.title}
                 </h2>
-                <p className="mt-1.5 text-xs text-zinc-500">
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">
                   ავტორი / წყარო:{" "}
-                  <span className="text-zinc-400">{passage.authorOrSource}</span>
+                  <span className="text-slate-600 dark:text-slate-300">{passage.authorOrSource}</span>
                 </p>
               </header>
 
@@ -468,7 +468,7 @@ export function ReadingComprehensionExercise() {
           <section
             ref={rightPanelRef}
             aria-label="კითხვების ვიზარდი"
-            className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-[#100f16]/70 p-6 backdrop-blur-xl sm:p-8"
+            className="notebook-paper notebook-sheet relative overflow-hidden rounded-[26px] p-6 sm:p-8"
           >
             <div className="relative mb-8 inline-flex flex-col items-start">
               <span className="-rotate-2 rounded-full border-2 border-white/20 bg-white/[0.03] px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
@@ -528,7 +528,7 @@ export function ReadingComprehensionExercise() {
                     className={`absolute -right-2 -top-2 h-5 w-5 rounded-full ring-4 ring-[#100f16] ${typeBadge.dot}`}
                     aria-hidden
                   />
-                  <h3 className="text-[17px] font-semibold leading-relaxed text-white">
+                  <h3 className="text-[17px] font-semibold leading-relaxed text-slate-900 dark:text-slate-50">
                     {currentQuestion.questionText}
                   </h3>
                 </div>
@@ -631,7 +631,7 @@ export function ReadingComprehensionExercise() {
                         </>
                       )}
                     </span>
-                    <p className="text-[13.5px] leading-relaxed text-zinc-200">
+                    <p className="text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
                       {currentQuestion.explanation}
                     </p>
                   </div>
@@ -692,7 +692,7 @@ function IntroScreen({
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
         <Link
           href={GEORGIAN_HUB_HREF}
-          className="mb-6 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
         >
           <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
           ქართულის ცენტრში დაბრუნება
@@ -710,10 +710,10 @@ function IntroScreen({
                 aria-hidden
               />
             </span>
-            <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">
               წაკითხულის გააზრება
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-400">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
               იმუშავე მხატვრულ თუ საინფორმაციო ტექსტებზე. ივარჯიშე მთავარი აზრის
               ამოცნობაში, ნაგულისხმევი შინაარსის ანალიზსა და მხატვრული საშუალებების
               — მეტაფორის, გაპიროვნების, ეპითეტის, შედარების, ჰიპერბოლისა და
@@ -753,7 +753,7 @@ function IntroScreen({
         </section>
 
         <section className="mt-6" aria-label="მხატვრული საშუალებები, რომლებზეც ივარჯიშებ">
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             ივარჯიშებ ამ მხატვრულ საშუალებებზე
           </p>
           <div className="flex flex-wrap gap-3">
@@ -780,10 +780,10 @@ function IntroScreen({
               <Shuffle className="h-5 w-5 stroke-[1.5]" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
                 ტესტის დაწყება ავტომატური რენდომიზაციით
               </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-gray-400">
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 ყოველი დაწყებისას სისტემა შემთხვევით ამოირჩევს ერთ ტექსტს ბანკიდან
                 და მისთვის სპეციალურად ჩამოყალიბებულ კითხვათა კომპლექტს. მიიღებ
                 ქულებს სწორ პასუხებზე და ბონუსს — თუ ზედიზედ პასუხობ სწორად.
@@ -810,7 +810,7 @@ function IntroScreen({
         </section>
 
         <section className="mt-8" aria-label="სავარჯიშოს ინსტრუქცია">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             როგორ მუშაობს
           </h2>
           <ol className="relative space-y-3">
@@ -845,7 +845,7 @@ function IntroScreen({
                 >
                   {index + 1}
                 </span>
-                <span className="text-[13px] leading-relaxed text-zinc-300">
+                <span className="text-[13px] leading-relaxed text-slate-700 dark:text-slate-200">
                   {step.text}
                 </span>
               </li>
@@ -887,11 +887,11 @@ function StatCard({
           {icon}
         </div>
       )}
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-bold tracking-tight text-white">{value}</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{hint}</p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">{value}</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">{hint}</p>
     </div>
   );
 }
@@ -1023,7 +1023,7 @@ function ResultsScreen({
         <button
           type="button"
           onClick={onExit}
-          className="mb-6 inline-flex items-center gap-1.5 text-xs text-gray-400 transition-all hover:text-white"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
         >
           <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
           სავარჯიშოს გვერდზე დაბრუნება
@@ -1078,7 +1078,7 @@ function ResultsScreen({
                 </motion.div>
               ))}
             </div>
-            <p className="text-xs text-zinc-500">სიზუსტე: {percent}%</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">სიზუსტე: {percent}%</p>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -1101,11 +1101,11 @@ function ResultsScreen({
             />
           </div>
 
-          <p className="mt-6 text-sm leading-relaxed text-zinc-400">{rating.hint}</p>
+          <p className="mt-6 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{rating.hint}</p>
 
           {badges.length > 0 && (
             <div className="mt-6">
-              <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 <Award className="h-3.5 w-3.5 stroke-[1.75]" />
                 მიღწევები
               </p>
@@ -1148,7 +1148,7 @@ function ResultsScreen({
         </section>
 
         <section className="mt-8" aria-label="პასუხების მიმოხილვა">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             პასუხების მიმოხილვა — {passage.title}
           </h3>
           <ul className="space-y-3">
@@ -1164,7 +1164,7 @@ function ResultsScreen({
                   }`}
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white/15 text-[10px] font-bold text-zinc-400">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white/15 text-[10px] font-bold text-slate-600 dark:text-slate-300">
                       {index + 1}
                     </span>
                     <span
@@ -1192,10 +1192,10 @@ function ResultsScreen({
                       )}
                     </span>
                   </div>
-                  <p className="text-[13.5px] leading-relaxed text-zinc-200">
+                  <p className="text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
                     {q.questionText}
                   </p>
-                  <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                     <span className="text-emerald-300">სწორი პასუხი:</span>{" "}
                     {q.options[q.correctIndex]}
                   </p>
@@ -1231,7 +1231,7 @@ function ResultStat({
       className={`rounded-2xl p-4 transition-transform duration-200 hover:-translate-y-0.5 ${accent ?? "border-2 border-white/10 bg-white/[0.02]"}`}
     >
       <p
-        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${labelClass ?? "text-zinc-500"}`}
+        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${labelClass ?? "text-slate-600 dark:text-slate-300"}`}
       >
         {icon}
         {label}
@@ -1262,10 +1262,10 @@ function resolveOptionPillClass({
 }): string {
   if (isRevealed) {
     if (isCorrectOption) {
-      return "border-transparent bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20";
+      return "border-transparent border-emerald-600 bg-emerald-600 text-white";
     }
     if (isSelected) {
-      return "border-transparent bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20";
+      return "border-transparent border-pink-600 bg-pink-600 text-white";
     }
     return "border-white/10 bg-transparent text-white/25";
   }
