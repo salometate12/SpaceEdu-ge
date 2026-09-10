@@ -6,11 +6,23 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, Maximize2, Minimize2, Plus, Sparkles, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  BookOpen,
+  Dna,
+  Globe2,
+  Maximize2,
+  Minimize2,
+  Plus,
+  Sigma,
+  Sparkles,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { AI_PANEL_WIDTH_PX, useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { MessageBubble } from "./MessageBubble";
@@ -33,42 +45,40 @@ interface PendingSuggestions {
 
 type Accent = "emerald" | "cyan" | "violet" | "amber";
 
+/** Light and dark pairs, so the panel reads on /ai-teacher's own surface
+ *  rather than only on near-black. */
 const ACCENTS: Record<
   Accent,
-  { text: string; bg: string; border: string; grad: string; glow: string }
+  { text: string; bg: string; border: string; glow: string }
 > = {
   emerald: {
-    text: "text-emerald-300",
+    text: "text-emerald-700 dark:text-emerald-300",
     bg: "bg-emerald-500/10",
-    border: "border-emerald-400/30",
-    grad: "from-emerald-400 to-emerald-600",
+    border: "border-emerald-500/30 dark:border-emerald-400/30",
     glow: "rgba(16,185,129,0.4)",
   },
   cyan: {
-    text: "text-cyan-300",
+    text: "text-cyan-700 dark:text-cyan-300",
     bg: "bg-cyan-500/10",
-    border: "border-cyan-400/30",
-    grad: "from-cyan-400 to-cyan-600",
+    border: "border-cyan-500/30 dark:border-cyan-400/30",
     glow: "rgba(34,211,238,0.4)",
   },
   violet: {
-    text: "text-violet-300",
+    text: "text-violet-700 dark:text-violet-300",
     bg: "bg-violet-500/10",
-    border: "border-violet-400/30",
-    grad: "from-violet-400 to-violet-600",
+    border: "border-violet-500/30 dark:border-violet-400/30",
     glow: "rgba(167,139,250,0.4)",
   },
   amber: {
-    text: "text-amber-300",
+    text: "text-amber-700 dark:text-amber-300",
     bg: "bg-amber-500/10",
-    border: "border-amber-400/30",
-    grad: "from-amber-400 to-amber-600",
+    border: "border-amber-500/30 dark:border-amber-400/30",
     glow: "rgba(245,158,11,0.4)",
   },
 };
 
 const QUICK_ACTIONS: {
-  emoji: string;
+  icon: LucideIcon;
   title: string;
   subject: string;
   accent: Accent;
@@ -76,7 +86,7 @@ const QUICK_ACTIONS: {
   suggestions: SuggestionOption[];
 }[] = [
   {
-    emoji: "🧬",
+    icon: Dna,
     title: "ბიოლოგია",
     subject: "ბიოლოგია",
     accent: "emerald",
@@ -87,7 +97,7 @@ const QUICK_ACTIONS: {
     ],
   },
   {
-    emoji: "📐",
+    icon: Sigma,
     title: "ფორმულა",
     subject: "მათემატიკა",
     accent: "cyan",
@@ -98,7 +108,7 @@ const QUICK_ACTIONS: {
     ],
   },
   {
-    emoji: "📚",
+    icon: BookOpen,
     title: "ლიტერატურა",
     subject: "ქართული ენა და ლიტერატურა",
     accent: "violet",
@@ -109,7 +119,7 @@ const QUICK_ACTIONS: {
     ],
   },
   {
-    emoji: "🌍",
+    icon: Globe2,
     title: "ისტორია",
     subject: "ისტორია",
     accent: "amber",
@@ -282,7 +292,7 @@ export function AIChatSidePanel() {
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#0A0A0F] transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-20 md:z-[45] md:border-l md:border-white/[0.06] md:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
+      className={`ai-teacher-surface fixed inset-0 z-[60] flex flex-col overflow-hidden transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-20 md:z-[45] md:border-l md:border-white/60 md:shadow-[-8px_0_40px_rgba(15,23,42,0.16)] md:dark:border-white/[0.06] md:dark:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
         isOpen
           ? "translate-x-0"
           : "pointer-events-none -translate-x-full md:translate-x-full"
@@ -290,15 +300,6 @@ export function AIChatSidePanel() {
       style={{ width: isExpanded ? "100%" : `min(100%, ${AI_PANEL_WIDTH_PX}px)` }}
       aria-hidden={!isOpen}
     >
-      {/* ambient glow, purely decorative */}
-      <div
-        className="pointer-events-none absolute -right-16 -top-10 h-56 w-56 rounded-full bg-emerald-500/10 blur-[80px]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -left-16 top-1/3 h-48 w-48 rounded-full bg-cyan-500/[0.06] blur-[80px]"
-        aria-hidden
-      />
 
       <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -307,19 +308,18 @@ export function AIChatSidePanel() {
               type="button"
               onClick={goHome}
               aria-label="მთავარ გვერდზე დაბრუნება"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--text-primary)] dark:hover:bg-white/[0.08]"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
             </button>
           ) : null}
           <span
-            className="animate-icon-glow relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-[#0A0A0F]"
-            style={{ "--icon-glow-color": "rgba(45,212,191,0.55)" } as CSSProperties}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-6px_rgba(99,102,241,0.7)]"
           >
             <Sparkles className="h-4 w-4" strokeWidth={2} />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-zinc-100">AI მასწავლებელი</p>
+            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">AI მასწავლებელი</p>
             {subject ? (
               <span
                 className={`mt-0.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${activeAccent.border} ${activeAccent.bg} ${activeAccent.text}`}
@@ -327,7 +327,7 @@ export function AIChatSidePanel() {
                 {subject}
               </span>
             ) : (
-              <p className="truncate text-[11px] text-zinc-500">ნებისმიერ თემაზე მკითხე</p>
+              <p className="truncate text-[11px] text-[var(--text-muted)]">ნებისმიერ თემაზე მკითხე</p>
             )}
           </div>
         </div>
@@ -336,7 +336,7 @@ export function AIChatSidePanel() {
             type="button"
             onClick={toggleExpanded}
             aria-label={isExpanded ? "დავიწროება" : "მთელ ეკრანზე გაშლა"}
-            className="hidden h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100 md:inline-flex"
+            className="hidden h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--text-primary)] md:inline-flex dark:hover:bg-white/[0.08]"
           >
             {isExpanded ? (
               <Minimize2 className="h-4 w-4" strokeWidth={2} />
@@ -348,7 +348,7 @@ export function AIChatSidePanel() {
             type="button"
             onClick={startNewChat}
             aria-label="ახალი ჩატი"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-emerald-300"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--accent-primary)] dark:hover:bg-white/[0.08]"
           >
             <Plus className="h-4 w-4" strokeWidth={2} />
           </button>
@@ -356,13 +356,13 @@ export function AIChatSidePanel() {
             type="button"
             onClick={close}
             aria-label="დახურვა"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--text-primary)] dark:hover:bg-white/[0.08]"
           >
             <X className="h-4 w-4" strokeWidth={2} />
           </button>
         </div>
       </div>
-      <div className="relative z-[1] h-px shrink-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+      <div className="relative z-[1] h-px shrink-0 bg-gradient-to-r from-transparent via-black/10 to-transparent dark:via-white/[0.08]" />
 
       <div
         ref={feedRef}
@@ -370,13 +370,16 @@ export function AIChatSidePanel() {
       >
         {showHome ? (
           <div className="flex h-full flex-col justify-center px-1 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-cyan-500/20">
-              <Sparkles className="h-5 w-5 text-emerald-300" strokeWidth={1.75} />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06]">
+              <Sparkles
+                className="h-5 w-5 text-[var(--accent-primary)]"
+                strokeWidth={1.75}
+              />
             </div>
-            <h2 className="headline bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-xl font-bold text-transparent">
+            <h2 className="headline text-xl font-bold text-[var(--text-primary)]">
               გამარჯობა, რით დაგეხმარო?
             </h2>
-            <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+            <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">
               დამისვი ნებისმიერი კითხვა პირდაპირ, ან აირჩიე თემა სწრაფი დასაწყისისთვის
             </p>
 
@@ -384,7 +387,7 @@ export function AIChatSidePanel() {
               <button
                 type="button"
                 onClick={() => setView("chat")}
-                className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-400/30 hover:bg-white/[0.07] hover:text-emerald-200"
+                className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-4 py-2 text-xs font-medium text-[var(--text-secondary)] backdrop-blur-xl transition hover:text-[var(--text-primary)] dark:border-white/10 dark:bg-white/[0.06]"
               >
                 <ArrowLeft className="h-3.5 w-3.5 rotate-180" strokeWidth={2} />
                 გააგრძელე წინა საუბარი
@@ -399,7 +402,7 @@ export function AIChatSidePanel() {
                     key={action.title}
                     type="button"
                     onClick={() => pickSubject(action)}
-                    className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]"
+                    className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/70 p-3.5 text-left backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[0.06]"
                     onMouseEnter={(event) => {
                       event.currentTarget.style.boxShadow = `0 8px 24px -8px ${a.glow}`;
                     }}
@@ -408,11 +411,11 @@ export function AIChatSidePanel() {
                     }}
                   >
                     <span
-                      className={`mb-2 flex h-8 w-8 items-center justify-center rounded-xl border text-base ${a.border} ${a.bg}`}
+                      className={`mb-2 flex h-8 w-8 items-center justify-center rounded-xl border ${a.border} ${a.bg} ${a.text}`}
                     >
-                      {action.emoji}
+                      <action.icon className="h-4 w-4" strokeWidth={2} aria-hidden />
                     </span>
-                    <span className="block text-[13px] font-semibold text-zinc-100">
+                    <span className="block text-[13px] font-semibold text-[var(--text-primary)]">
                       {action.title}
                     </span>
                     <span className={`mt-0.5 block truncate text-[10px] ${a.text} opacity-80`}>
@@ -450,40 +453,49 @@ export function AIChatSidePanel() {
         )}
       </div>
 
-      <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 bg-[#0A0A0F] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
         {friendlyError ? (
-          <div className="mb-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+          <div className="mb-2 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-xs text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
           </div>
         ) : null}
         <form onSubmit={handleSubmit}>
+          {/* Two rows rather than one: what you write on top, what you do
+              with it underneath — the shape of the composer in the
+              reference, on /ai-teacher's own card. */}
           <div
-            className={`rounded-full p-[1.5px] transition-shadow duration-300 ${
+            className={`overflow-hidden rounded-[28px] border bg-white/70 shadow-[0_16px_44px_-16px_rgba(79,70,229,0.35)] backdrop-blur-xl transition-all duration-300 dark:bg-white/[0.06] ${
               inputFocused
-                ? "bg-gradient-to-r from-emerald-400/80 via-teal-400/80 to-cyan-400/80 shadow-[0_0_22px_rgba(45,212,191,0.2)]"
-                : "bg-white/[0.08]"
+                ? "border-[var(--accent-primary)]/50 shadow-[0_0_0_4px_rgba(124,58,237,0.12)]"
+                : "border-white/60 dark:border-white/10"
             }`}
           >
-            <div className="flex items-end gap-1.5 rounded-full bg-[#12121A] py-1.5 pl-4 pr-1.5">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                rows={1}
-                onChange={(event) => setInput(event.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                onKeyDown={handleKeyDown}
-                placeholder="დაწერე შენი კითხვა..."
-                className="max-h-32 min-h-[36px] flex-1 resize-none bg-transparent py-1.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500"
-              />
+            <textarea
+              ref={textareaRef}
+              value={input}
+              rows={1}
+              onChange={(event) => setInput(event.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                subject ? `${subject} — დაწერე შენი კითხვა...` : "დაწერე შენი კითხვა..."
+              }
+              className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-4 py-3 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+            />
+
+            <div className="flex items-center justify-between gap-2 border-t border-black/[0.06] px-3 py-2 dark:border-white/[0.08]">
+              <span className="hidden text-[11px] text-[var(--text-muted)] sm:block">
+                Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
+              </span>
               <button
                 type="submit"
                 disabled={!canSend}
                 aria-label="გაგზავნა"
-                className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+                className={`ml-auto inline-flex h-10 w-16 shrink-0 items-center justify-center rounded-full transition ${
                   canSend
-                    ? "bg-gradient-to-br from-emerald-400 to-cyan-500 text-[#0A0A0F] shadow-[0_0_14px_rgba(45,212,191,0.35)] hover:brightness-110 active:scale-95"
-                    : "bg-white/[0.06] text-zinc-600"
+                    ? "bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-4px_rgba(99,102,241,0.6)] hover:opacity-90 active:scale-95"
+                    : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
                 }`}
               >
                 <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
@@ -491,9 +503,6 @@ export function AIChatSidePanel() {
             </div>
           </div>
         </form>
-        <p className="mt-2 text-center text-[10px] text-zinc-600">
-          Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
-        </p>
       </div>
     </div>
   );
