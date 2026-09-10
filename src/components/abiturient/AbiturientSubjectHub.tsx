@@ -170,7 +170,7 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
             href={cardsHref}
             accent={accent}
             icon={Layers}
-            title="ბარათების სესია"
+            title="Flashcards"
             body="ინტერაქტიული ფლეშბარათები გამოცდის სიმოკლის გასაამაგრებლად."
             cta="გაგრძელება"
           />
