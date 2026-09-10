@@ -73,6 +73,12 @@ html.dark {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans), var(--font-noto-georgian), sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
+  /* The width at which the header's middle nav actually fits.
+     Measured, not guessed: the longest row (the student's five Georgian
+     labels) needs 399px of the pill at 860px and clips at 820. 55rem
+     leaves a little room on top of that. `lg` was hiding the nav on every
+     small laptop for no reason. */
+  --breakpoint-nav: 55rem;
 }
 
 body {
@@ -2019,7 +2025,12 @@ html.dark .exam-prose {
 
 .exam-prose-poem {
   white-space: pre-line;
-  line-height: 1.95;
+  /* Verse doesn't sit on the ruling the way prose does — the lines are
+     short and the stanzas irregular — so it gets its own air and a
+     measure narrow enough to read down rather than across. */
+  line-height: 2.1;
+  letter-spacing: 0.012em;
+  max-width: 60ch;
 }
 
 /* The paper surface behind the passage. */
@@ -2040,6 +2051,24 @@ html.dark .exam-prose {
 
 html.dark .exam-paper {
   --paper-rule: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: #161a24;
+}
+
+/* The same sheet without the ruling.
+ *
+ * For the long reads — the passage itself, the editing task's source, the
+ * previews on the choose screen — where the rules stop being decoration
+ * and start competing with the lines of text, especially in verse, whose
+ * lines never land on them. Everything else keeps the ruled paper. */
+.exam-paper-plain {
+  border-radius: 22px;
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  background-color: #faf6ec;
+  background-image: none;
+}
+
+html.dark .exam-paper-plain {
   border-color: rgba(255, 255, 255, 0.1);
   background-color: #161a24;
 }

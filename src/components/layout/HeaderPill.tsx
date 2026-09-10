@@ -57,10 +57,16 @@ export function HeaderBrand({ href }: { href: string }) {
   );
 }
 
-/** Centred link row. Collapses on narrow desktops so the pill never wraps. */
+/**
+ * Centred link row. It appears at the `nav` breakpoint (55rem) rather than
+ * `lg`: the row fits comfortably from about 860px, so hiding it until
+ * 1024 left every small laptop without the header's navigation for no
+ * reason. Below that it really doesn't fit, and clipping is worse than
+ * absence — the bottom dock covers those widths.
+ */
 export function HeaderNav({ children }: { children: ReactNode }) {
   return (
-    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
+    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 nav:flex">
       {children}
     </nav>
   );
