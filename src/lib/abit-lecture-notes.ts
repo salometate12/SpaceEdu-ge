@@ -13,6 +13,7 @@ import {
   upsertLectureNote,
   type LectureNote,
 } from "@/lib/lecture-notes";
+import { DEFAULT_NOTE_COLOR, NOTE_COLORS, type NoteColor } from "@/lib/note-colors";
 
 export const ABIT_LECTURE_NOTES_STORAGE_KEY = "spaceedu-abit-lecture-notes";
 export const ABIT_LECTURE_NOTES_UPDATED_EVENT =
@@ -25,6 +26,25 @@ export {
   upsertLectureNote,
 };
 export type { LectureNote };
+
+/**
+ * A note in the abiturient space, which — unlike the student journal —
+ * carries the colour it is written in. The extra field lives here rather
+ * than on the shared `LectureNote` so the two stores stay independent.
+ */
+export interface AbitLectureNote extends LectureNote {
+  color: NoteColor;
+}
+
+function readColor(value: unknown): NoteColor {
+  return typeof value === "string" && value in NOTE_COLORS
+    ? (value as NoteColor)
+    : DEFAULT_NOTE_COLOR;
+}
+
+export function createBlankAbitNote(): AbitLectureNote {
+  return { ...createBlankLectureNote(), color: DEFAULT_NOTE_COLOR };
+}
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -42,7 +62,7 @@ function isLectureNote(value: unknown): value is LectureNote {
   );
 }
 
-export function loadAbitLectureNotes(): LectureNote[] {
+export function loadAbitLectureNotes(): AbitLectureNote[] {
   if (!isBrowser()) return [];
   try {
     const raw = window.localStorage.getItem(ABIT_LECTURE_NOTES_STORAGE_KEY);
@@ -58,13 +78,15 @@ export function loadAbitLectureNotes(): LectureNote[] {
       ),
       createdAt: typeof note.createdAt === "number" ? note.createdAt : Date.now(),
       updatedAt: typeof note.updatedAt === "number" ? note.updatedAt : Date.now(),
+      // Notes written before colours existed open in the default one.
+      color: readColor((note as { color?: unknown }).color),
     }));
   } catch {
     return [];
   }
 }
 
-export function saveAbitLectureNotes(notes: LectureNote[]): void {
+export function saveAbitLectureNotes(notes: AbitLectureNote[]): void {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(

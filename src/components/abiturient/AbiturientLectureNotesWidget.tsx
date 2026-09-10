@@ -16,14 +16,19 @@ import type { LectureNotesKeywords } from "@/lib/ai/lecture-notes-schema";
 import { recordToolUsage } from "@/lib/activity";
 import {
   ABIT_LECTURE_NOTES_UPDATED_EVENT,
-  createBlankLectureNote,
+  createBlankAbitNote,
   extractLocalKeywords,
   formatGeorgianDate,
   loadAbitLectureNotes,
   saveAbitLectureNotes,
   upsertLectureNote,
-  type LectureNote,
+  type AbitLectureNote,
 } from "@/lib/abit-lecture-notes";
+import {
+  NOTE_COLOR_ORDER,
+  NOTE_COLORS,
+  noteColorScheme,
+} from "@/lib/note-colors";
 
 const QUICK_PROMPTS = [
   "ეს აბზაცი ვერ გავიგე — მარტივად ამიხსენი",
@@ -38,7 +43,7 @@ interface ChatTurn {
 }
 
 export function AbiturientLectureNotesWidget() {
-  const [notes, setNotes] = useState<LectureNote[]>([]);
+  const [notes, setNotes] = useState<AbitLectureNote[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [keywordBusy, setKeywordBusy] = useState(false);
@@ -54,13 +59,15 @@ export function AbiturientLectureNotesWidget() {
 
   const active =
     notes.find((note) => note.id === activeId) ?? notes[0] ?? null;
+  /** Every colour on this widget comes from the note being written. */
+  const palette = noteColorScheme(active?.color);
 
   useEffect(() => {
     const hydrate = () => {
       recordToolUsage("abit-lecture-notes", "აბიტურიენტის ნოტები");
       const loaded = loadAbitLectureNotes();
       if (loaded.length === 0) {
-        const blank = createBlankLectureNote();
+        const blank = createBlankAbitNote();
         setNotes([blank]);
         setActiveId(blank.id);
         saveAbitLectureNotes([blank]);
@@ -103,7 +110,7 @@ export function AbiturientLectureNotesWidget() {
   }, []);
 
   const patchActive = useCallback(
-    (patch: Partial<LectureNote>) => {
+    (patch: Partial<AbitLectureNote>) => {
       const stamp = Date.now();
       setNotes((prev) => {
         const current = prev.find((note) => note.id === activeId);
@@ -248,7 +255,7 @@ export function AbiturientLectureNotesWidget() {
   };
 
   const createNote = () => {
-    const blank = createBlankLectureNote();
+    const blank = createBlankAbitNote();
     setNotes((prev) => [blank, ...prev]);
     setActiveId(blank.id);
     setSelectedKeyword(null);
@@ -261,7 +268,7 @@ export function AbiturientLectureNotesWidget() {
     const removedId = active.id;
     const remaining = notes.filter((note) => note.id !== removedId);
     if (remaining.length === 0) {
-      const blank = createBlankLectureNote();
+      const blank = createBlankAbitNote();
       setNotes([blank]);
       setActiveId(blank.id);
     } else {
@@ -284,7 +291,7 @@ export function AbiturientLectureNotesWidget() {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <NotebookPen
-            className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
+            className={`h-6 w-6 ${palette.icon}`}
             strokeWidth={1.5}
           />
           <div>
@@ -300,7 +307,7 @@ export function AbiturientLectureNotesWidget() {
         <button
           type="button"
           onClick={createNote}
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition ${palette.solid}`}
         >
           <Plus className="h-4 w-4" />
           ახალი ნოტი
@@ -328,7 +335,7 @@ export function AbiturientLectureNotesWidget() {
                     }}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                       selected
-                        ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-400/15 dark:text-emerald-100"
+                        ? noteColorScheme(note.color).selected
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"
                     }`}
                   >
@@ -346,11 +353,11 @@ export function AbiturientLectureNotesWidget() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-3xl border border-emerald-200/80 bg-emerald-50/70 p-4 dark:border-emerald-300/15 dark:bg-emerald-300/[0.06] sm:p-5"
+              className={`rounded-3xl border p-4 sm:p-5 ${palette.card}`}
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-emerald-800/70 dark:text-emerald-200/80">
+                  <span className={`mb-1.5 block text-[11px] font-bold uppercase tracking-wide ${palette.label_}`}>
                     ნოტის სათაური
                   </span>
                   <input
@@ -359,11 +366,11 @@ export function AbiturientLectureNotesWidget() {
                       patchActive({ title: event.target.value })
                     }
                     placeholder="მაგ: ბიოლოგია — ფოტოსინთეზი"
-                    className="w-full rounded-2xl border border-emerald-900/10 bg-white/85 px-4 py-2.5 text-sm font-semibold text-stone-900 outline-none placeholder:text-stone-400 focus:border-emerald-600/40 dark:border-white/10 dark:bg-black/20 dark:text-white"
+                    className={`w-full rounded-2xl border bg-white/85 px-4 py-2.5 text-sm font-semibold text-stone-900 outline-none placeholder:text-stone-400 dark:bg-black/20 dark:text-white ${palette.field}`}
                   />
                 </label>
                 <label className="block sm:w-44">
-                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-emerald-800/70 dark:text-emerald-200/80">
+                  <span className={`mb-1.5 block text-[11px] font-bold uppercase tracking-wide ${palette.label_}`}>
                     თარიღი
                   </span>
                   <input
@@ -372,14 +379,41 @@ export function AbiturientLectureNotesWidget() {
                     onChange={(event) =>
                       patchActive({ date: event.target.value })
                     }
-                    className="w-full rounded-2xl border border-emerald-900/10 bg-white/85 px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none focus:border-emerald-600/40 dark:border-white/10 dark:bg-black/20 dark:text-white"
+                    className={`w-full rounded-2xl border bg-white/85 px-3 py-2.5 text-sm font-semibold text-stone-900 outline-none dark:bg-black/20 dark:text-white ${palette.field}`}
                   />
                 </label>
               </div>
 
-              <p className="mt-3 text-sm font-medium text-emerald-900/70 dark:text-emerald-100/70">
-                {displayTitle} — {formatGeorgianDate(active.date)}
-              </p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className={`text-sm font-medium ${palette.body}`}>
+                  {displayTitle} — {formatGeorgianDate(active.date)}
+                </p>
+
+                {/* The note's colour. Per note, not per widget — a page of
+                    notes is easier to scan when each one has its own. */}
+                <div className="flex items-center gap-1.5" role="radiogroup" aria-label="ნოტის ფერი">
+                  {NOTE_COLOR_ORDER.map((color) => {
+                    const scheme = NOTE_COLORS[color];
+                    const chosen = active.color === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        role="radio"
+                        aria-checked={chosen}
+                        aria-label={scheme.label}
+                        title={scheme.label}
+                        onClick={() => patchActive({ color })}
+                        className={`h-6 w-6 rounded-full border-2 transition ${scheme.swatch} ${
+                          chosen
+                            ? "border-slate-900 dark:border-white"
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
 
               <textarea
                 ref={textareaRef}
@@ -388,11 +422,11 @@ export function AbiturientLectureNotesWidget() {
                   patchActive({ content: event.target.value })
                 }
                 placeholder="ჩაწერე მასალა აქ... AI ავტომატურად ამოიღებს საკვანძო თემებს."
-                className="mt-3 min-h-[240px] w-full resize-y rounded-3xl border border-emerald-900/10 bg-white/80 p-4 text-sm leading-relaxed text-stone-900 outline-none placeholder:text-stone-400 focus:border-emerald-600/40 dark:border-white/10 dark:bg-black/25 dark:text-zinc-100"
+                className={`mt-3 min-h-[240px] w-full resize-y rounded-3xl border bg-white/80 p-4 text-sm leading-relaxed text-stone-900 outline-none placeholder:text-stone-400 dark:bg-black/25 dark:text-zinc-100 ${palette.field}`}
               />
 
               {selectedKeyword && (
-                <p className="mt-2 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+                <p className={`mt-2 text-xs font-semibold ${palette.label_}`}>
                   მონიშნული თემა: #{selectedKeyword}
                   {highlightCount > 0
                     ? ` · ${highlightCount} ხსენება ნოტში`
@@ -419,7 +453,7 @@ export function AbiturientLectureNotesWidget() {
                     AI საკვანძო თემები
                   </h4>
                   {keywordBusy && (
-                    <LoaderCircle className="h-4 w-4 animate-spin text-emerald-600" />
+                    <LoaderCircle className={`h-4 w-4 animate-spin ${palette.icon}`} />
                   )}
                 </div>
                 <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
@@ -440,8 +474,8 @@ export function AbiturientLectureNotesWidget() {
                           onClick={() => onKeywordClick(tag)}
                           className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                             on
-                              ? "border-emerald-400 bg-emerald-100 text-emerald-900 dark:border-emerald-300/40 dark:bg-emerald-400/20 dark:text-emerald-100"
-                              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
+                              ? palette.selected
+                              : "border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
                           }`}
                         >
                           #{tag.replace(/\s+/g, "_")}
@@ -454,7 +488,7 @@ export function AbiturientLectureNotesWidget() {
 
               <section className="flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-[#121214] sm:p-5">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+                  <Sparkles className={`h-4 w-4 ${palette.icon}`} />
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     კონტექსტური AI
                   </h4>
@@ -465,7 +499,7 @@ export function AbiturientLectureNotesWidget() {
                       key={prompt}
                       type="button"
                       onClick={() => void askAi(prompt)}
-                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-left text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100 dark:border-emerald-300/20 dark:bg-emerald-400/10 dark:text-emerald-100"
+                      className={`rounded-full border px-3 py-1.5 text-left text-[11px] font-semibold ${palette.chip}`}
                     >
                       {prompt}
                     </button>
@@ -484,7 +518,7 @@ export function AbiturientLectureNotesWidget() {
                         key={turn.id}
                         className={`whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                           turn.role === "user"
-                            ? "ml-6 bg-emerald-100 text-emerald-950 dark:bg-emerald-400/20 dark:text-emerald-50"
+                            ? `ml-6 ${palette.bubble}`
                             : "mr-4 bg-white text-slate-800 shadow-sm dark:bg-white/10 dark:text-zinc-100"
                         }`}
                       >
@@ -511,12 +545,12 @@ export function AbiturientLectureNotesWidget() {
                     value={chatInput}
                     onChange={(event) => setChatInput(event.target.value)}
                     placeholder="დასვი კითხვა ამ ნოტზე..."
-                    className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                    className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
                   />
                   <button
                     type="submit"
                     disabled={chatBusy || !chatInput.trim()}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition disabled:opacity-50 ${palette.solid}`}
                     aria-label="გაგზავნა"
                   >
                     {chatBusy ? (
