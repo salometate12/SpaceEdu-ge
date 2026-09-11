@@ -117,6 +117,9 @@ export interface LectureNote {
   title: string;
   date: string;
   content: string;
+  /** The right-hand page of the spread. Optional: notes written before the
+   *  journal had two writable pages simply have none. */
+  contentRight?: string;
   section: JournalSection;
   pinned: boolean;
   aiKeywords: string[];
