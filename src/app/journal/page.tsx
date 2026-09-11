@@ -11,7 +11,7 @@ export default function JournalRoute() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center bg-[#C2186B] text-sm font-semibold text-white/80">
+        <div className="under-site-header flex min-h-[50vh] items-center justify-center bg-[#C2186B] text-sm font-semibold text-white/80">
           რვეული იხსნება...
         </div>
       }

@@ -48,7 +48,7 @@ const STRUCTURED_DATA = {
 
 export default function LandingPage() {
   return (
-    <div id="hero" className="landing-dark-bg relative min-h-dvh overflow-hidden">
+    <div id="hero" className="landing-dark-bg under-site-header relative min-h-dvh overflow-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}

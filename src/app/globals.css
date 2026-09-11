@@ -1190,6 +1190,32 @@ html.dark .paper-sticker:active {
   }
 }
 
+/* How tall the sticky header strip is, and how a page runs underneath it.
+ *
+ * The strip is transparent but still reserves its height in flow, so a
+ * page whose first surface owns the top of the screen used to start
+ * *below* it — leaving a band of the bare document ground above, in a
+ * different colour from the page. `.under-site-header` pulls that surface
+ * back up through the strip and pads its content down again, so the header
+ * floats over the page instead of sitting on a seam.
+ *
+ * Below `md` there is no header at all (the dock is all of mobile
+ * navigation), which is why the height is 0 until then. */
+:root {
+  --site-header-h: 0px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --site-header-h: 5rem;
+  }
+}
+
+.under-site-header {
+  margin-top: calc(-1 * var(--site-header-h));
+  padding-top: var(--site-header-h);
+}
+
 /* The document's own ground.
  *
  * The scrollbar gutter is outside the layout viewport, so nothing inside
