@@ -24,10 +24,18 @@ import {
   type PastEditingTask,
 } from "@/lib/georgian-past-paper-practice";
 import {
+  ACCENT_CARD,
   ACCENT_PILL,
   ACCENT_SOLID,
+  ACCENT_TEXT,
   PLAIN_CARD,
 } from "@/components/landing/notebook/accents";
+import {
+  Flower,
+  Pencil,
+  Ruler,
+  Sparkle,
+} from "@/components/landing/notebook/Doodles";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 
@@ -46,9 +54,10 @@ const TYPING_IDLE_MS = 700;
 /** Bold Readymag-style pill color per score ratio, paired with scoreBadgeClass's text color. */
 function scoreBadgePillClass(score: number, maxScore: number): string {
   const ratio = maxScore > 0 ? score / maxScore : 0;
-  if (ratio >= 0.94) return "border-transparent bg-emerald-400 text-black";
-  if (ratio >= 0.75) return "border-[3px] border-purple-400 bg-transparent text-purple-300";
-  return "border-[3px] border-amber-400 bg-transparent text-amber-300";
+  if (ratio >= 0.94) return "border-2 border-transparent bg-emerald-400 text-emerald-950";
+  if (ratio >= 0.75)
+    return "border-2 border-violet-500 bg-violet-100 text-violet-800 dark:bg-violet-400/15 dark:text-violet-200";
+  return "border-2 border-amber-500 bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
 }
 
 function TimerSwitch({
@@ -70,8 +79,8 @@ function TimerSwitch({
         <span
           className={`relative h-6 w-11 shrink-0 rounded-full border transition-all duration-300 ${
             enabled
-              ? "border-purple-500/60 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-[0_0_14px_rgba(168,85,247,0.55)]"
-              : "border-white/[0.12] bg-white/[0.06]"
+              ? "border-violet-600 bg-violet-500"
+              : "border-slate-400 bg-slate-200 dark:border-white/20 dark:bg-white/10"
           }`}
         >
           <span
@@ -110,8 +119,8 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
     <div
       className={`relative mb-4 inline-flex items-center gap-2 overflow-hidden rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-500 ${
         isMinuteMark
-          ? "border-amber-400/60 bg-amber-500/10"
-          : "border-purple-500/25 bg-purple-500/[0.06]"
+          ? "border-2 border-amber-500 bg-amber-100 dark:bg-amber-400/15"
+          : "border-2 border-violet-400 bg-violet-100 dark:border-violet-400/40 dark:bg-violet-400/10"
       }`}
     >
       <span
@@ -119,8 +128,11 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
         className="animate-timer-ring-pulse pointer-events-none absolute inset-0 rounded-full"
         aria-hidden
       />
-      <Timer className="animate-timer-tick h-3.5 w-3.5 shrink-0 text-purple-400" aria-hidden />
-      <span className="text-purple-300">ტაიმერი</span>
+      <Timer
+        className="animate-timer-tick h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300"
+        aria-hidden
+      />
+      <span className="font-bold text-violet-700 dark:text-violet-200">ტაიმერი</span>
       <span
         key={seconds}
         className="animate-timer-tick-pop font-mono font-semibold tabular-nums text-slate-900 dark:text-slate-50"
@@ -169,9 +181,9 @@ function TypewriterInput({
   return (
     <div className="typewriter-wrap relative mx-auto w-full max-w-2xl select-none">
       <div
-        className={`typewriter-paper relative z-0 rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pt-6 pb-16 shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${isRollingUp ? "animate-paper-roll-up" : ""}`}
+        className={`typewriter-paper exam-paper-plain relative z-0 border-2 border-slate-300 px-5 pb-16 pt-6 dark:border-white/15 ${isRollingUp ? "animate-paper-roll-up" : ""}`}
       >
-        <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300">
+        <div className="mb-3 flex items-center justify-between border-b-2 border-dashed border-slate-400/60 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:border-white/20 dark:text-slate-300">
           <span>spaceedu.txt</span>
           <span>{value.length} სიმბოლო</span>
         </div>
@@ -180,14 +192,14 @@ function TypewriterInput({
           onChange={handleChange}
           disabled={isRollingUp}
           placeholder="აქ ჩაწერე შესწორებული ტექსტი..."
-          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 placeholder:text-slate-600 dark:text-slate-300 focus:outline-none"
+          className="min-h-[220px] w-full resize-none bg-transparent font-mono text-sm leading-relaxed text-slate-800 placeholder:text-slate-500 focus:outline-none dark:text-slate-200 dark:placeholder:text-slate-400"
         />
       </div>
 
       <div className="relative z-10 -mt-12 drop-shadow-[0_20px_28px_rgba(0,0,0,0.5)]">
         {isActive && (
           <span
-            className="animate-type-blink pointer-events-none absolute left-1/2 top-3 z-20 h-1.5 w-1.5 rounded-full bg-purple-400"
+            className="animate-type-blink pointer-events-none absolute left-1/2 top-3 z-20 h-1.5 w-1.5 rounded-full bg-violet-500"
             aria-hidden
           />
         )}
@@ -400,11 +412,14 @@ export function TextEditingExercise() {
   if (isTesting && task) {
     return (
       <div className="relative min-h-full bg-transparent">
-        <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+        <main className="relative mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+          <Ruler className="pointer-events-none absolute -left-6 top-24 hidden w-20 -rotate-12 text-slate-400 opacity-50 xl:block dark:text-slate-500" />
+          <Pencil className="pointer-events-none absolute -right-5 bottom-32 hidden h-11 w-11 rotate-12 text-amber-600/45 xl:block dark:text-amber-400/35" />
+
           <button
             type="button"
             onClick={stopTest}
-            className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
+            className="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-all hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50"
           >
             <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
             ტესტის შეწყვეტა
@@ -413,7 +428,7 @@ export function TextEditingExercise() {
           {showTimer && <TestTimerBadge seconds={elapsedSec} />}
 
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">
               ტექსტი შეცდომებით
             </h2>
             {/* Where this text came from — a real paper, not a mock. */}
@@ -423,8 +438,8 @@ export function TextEditingExercise() {
               {paperLabel(task)} · I ნაწილი · {task.points} ქულა
             </span>
           </div>
-          <div className="select-none rounded-t-md border border-amber-100/10 bg-[#f4ecd8] px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-slate-800 dark:text-slate-200 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
-            <div className="mb-3 flex items-center justify-between border-b border-dashed border-zinc-400/50 pb-2 text-[10px] uppercase tracking-widest text-slate-600 dark:text-slate-300">
+          <div className="exam-paper-plain select-none border-2 border-slate-300 px-5 pb-5 pt-6 font-mono text-sm leading-relaxed text-slate-800 dark:border-white/15 dark:text-slate-200">
+            <div className="mb-3 flex items-center justify-between border-b-2 border-dashed border-slate-400/60 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:border-white/20 dark:text-slate-300">
               <span>wyaro.txt</span>
               <span>{task.text.length} სიმბოლო</span>
             </div>
@@ -438,7 +453,7 @@ export function TextEditingExercise() {
           <button
             type="button"
             onClick={copySourceToEditor}
-            className="mb-3 mr-auto mt-3 flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2 text-xs text-white/90 transition-all hover:bg-white/[0.08]"
+            className={`mb-3 mr-auto mt-3 flex items-center gap-1.5 rounded-xl border-2 px-3 py-2 text-xs font-bold text-slate-700 transition-all dark:text-slate-200 ${PLAIN_CARD}`}
           >
             <Copy className="h-3.5 w-3.5 stroke-[1.5]" />
             რედაქტორში გადმოყვანა
@@ -447,7 +462,9 @@ export function TextEditingExercise() {
           {!evaluation && (
             <>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-medium text-slate-900 dark:text-slate-50">თქვენი შესწორებული ტექსტი</h2>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-50">
+                  თქვენი შესწორებული ტექსტი
+                </h2>
               </div>
 
               <TypewriterInput
@@ -469,8 +486,8 @@ export function TextEditingExercise() {
           )}
 
           {evaluation && (
-            <div className="mt-6 rounded-xl border border-purple-500/20 bg-purple-950/10 p-5">
-              <p className="text-2xl font-bold tracking-tight text-purple-400">
+            <div className={`mt-6 rounded-2xl border-2 p-5 ${ACCENT_CARD.violet}`}>
+              <p className={`text-2xl font-bold tracking-tight ${ACCENT_TEXT.violet}`}>
                 მიღებული ქულა: {evaluation.score} / {evaluation.maxScore}
               </p>
               <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -483,7 +500,7 @@ export function TextEditingExercise() {
                     key={point}
                     className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
                   >
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" />
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                     {point}
                   </li>
                 ))}
@@ -494,7 +511,7 @@ export function TextEditingExercise() {
                     key={point}
                     className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
                   >
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-purple-400" />
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />
                     {point}
                   </li>
                 ))}
@@ -503,7 +520,7 @@ export function TextEditingExercise() {
                 <button
                   type="button"
                   onClick={finishExercise}
-                  className="rounded-xl border border-purple-500/30 bg-purple-600/20 px-5 py-2.5 text-sm font-medium text-purple-200 transition-all hover:bg-purple-600/30"
+                  className={`paper-sticker rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID.violet}`}
                 >
                   სავარჯიშოს დასრულება
                 </button>
@@ -517,25 +534,32 @@ export function TextEditingExercise() {
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="relative mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+        <Flower className="pointer-events-none absolute -left-6 top-40 hidden h-10 w-10 rotate-12 text-pink-400/50 xl:block" />
+        <Pencil className="pointer-events-none absolute -right-5 top-64 hidden h-11 w-11 rotate-12 text-amber-600/45 xl:block dark:text-amber-400/35" />
+        <Ruler className="pointer-events-none absolute -left-8 bottom-40 hidden w-20 -rotate-12 text-slate-400 opacity-50 xl:block dark:text-slate-500" />
+
         <Link
           href={GEORGIAN_HUB_HREF}
-          className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-all hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50"
         >
           <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
           ქართულის ცენტრში დაბრუნება
         </Link>
 
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-purple-500/30 bg-purple-500/10 text-purple-300 shadow-[0_0_28px_rgba(168,85,247,0.22)]">
-            <ClipboardList className="h-7 w-7 stroke-[1.5]" />
+          <div
+            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
+          >
+            <ClipboardList className="h-7 w-7 stroke-[2]" />
           </div>
           <div>
-            <span className="relative -rotate-2 inline-flex items-center rounded-full border-2 border-purple-500/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-300/90">
+            <span
+              className={`relative -rotate-2 inline-flex items-center rounded-full border-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL.violet}`}
+            >
               პირველი სავარჯიშო
-              <span
-                className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.6)]"
-                aria-hidden
+              <Sparkle
+                className={`absolute -right-2.5 -top-2.5 h-4 w-4 -rotate-12 ${ACCENT_TEXT.violet}`}
               />
             </span>
             <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">
@@ -550,7 +574,7 @@ export function TextEditingExercise() {
           </div>
         </header>
 
-        <section className={`flex flex-col gap-4 rounded-2xl border-2 p-5 sm:flex-row sm:items-center sm:justify-between ${PLAIN_CARD}`}>
+        <section className="notebook-paper notebook-sheet relative flex flex-col gap-4 overflow-hidden rounded-[26px] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <TimerSwitch enabled={showTimer} onChange={setShowTimer} />
           <button
             type="button"
@@ -563,7 +587,9 @@ export function TextEditingExercise() {
         </section>
 
         <section className="mt-8" aria-label="წინა მცდელობები">
-          <h2 className="mb-4 mt-8 text-lg font-semibold text-white/80">წინა მცდელობები</h2>
+          <h2 className="mb-4 mt-8 text-lg font-bold text-slate-900 dark:text-slate-50">
+            წინა მცდელობები
+          </h2>
           {attempts.length === 0 ? (
             <p className="text-sm text-slate-600 dark:text-slate-300">
               ჯერ არ გაქვს დასრულებული მცდელობა — დაიწყე ტესტი და აქ დაგროვდება.
@@ -576,7 +602,7 @@ export function TextEditingExercise() {
                     aria-hidden
                     className="pointer-events-none absolute inset-y-3 left-0 z-0 w-9"
                   >
-                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-gradient-to-br from-purple-800/70 to-indigo-900/70 shadow-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-6 group-hover:-translate-y-1 group-hover:-rotate-[10deg]" />
+                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-violet-300/70 shadow-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-6 group-hover:-translate-y-1 group-hover:-rotate-[10deg] dark:bg-violet-500/40" />
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#e8ddb8] shadow-md transition-all delay-75 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-9 group-hover:translate-y-0.5 group-hover:rotate-[6deg]" />
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#f2e2c8] shadow-md transition-all delay-150 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-4 group-hover:translate-y-1.5 group-hover:-rotate-[3deg]" />
                   </div>
@@ -594,7 +620,7 @@ export function TextEditingExercise() {
                       </span>
                       <button
                         type="button"
-                        className="rounded-full border-[3px] border-transparent bg-purple-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-purple-400"
+                        className={`paper-sticker rounded-full border-2 px-3.5 py-1.5 text-xs font-bold ${ACCENT_SOLID.violet}`}
                       >
                         დეტალები →
                       </button>
