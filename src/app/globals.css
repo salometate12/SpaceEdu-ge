@@ -30,7 +30,10 @@
   --accent-orange: #d97706;
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  /* Was #94a3b8 — slate-400 on the light page is about 2.45:1, the same
+     failure the dark theme had in the other direction. Still clearly
+     dimmer than --text-secondary, now legible. */
+  --text-muted: #64748b;
   --border: #e2e8f0;
   --border-hover: #cbd5e1;
   --header-scrolled-bg: rgba(248, 250, 252, 0.92);
@@ -56,7 +59,10 @@ html.dark {
   --accent-orange: #f59e0b;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --text-muted: #475569;
+  /* Was #475569 — slate-600 on a near-black page is about 2.4:1, which
+     is under the 4.5 a reader needs. This keeps muted dimmer than
+     --text-secondary while staying legible. */
+  --text-muted: #7c879b;
   --border: #1e1e2e;
   --border-hover: #2d2d42;
   --header-scrolled-bg: rgba(10, 10, 15, 0.85);
@@ -371,9 +377,16 @@ html.dark .dashboard-glass-card:hover {
   background: linear-gradient(160deg, #fffafc 0%, #fdeef5 55%, #fbe2ee 100%);
 }
 
-/* Night keeps the rule — that is what distinguishes the cards there — and
- * only breathes the colour into the surface, so the dark dashboard does
- * not turn into five coloured panels. */
+html.dark .dashboard-tool-card {
+  border-color: rgb(255 255 255 / 0.06);
+  background: rgb(22 22 26 / 0.4);
+  box-shadow: none;
+}
+
+/* These must follow the base `html.dark .dashboard-tool-card` above: both
+ * selectors carry the same specificity, so whichever is written last wins
+ * — and when this block sat before it, night mode quietly dropped every
+ * tint and the cards were told apart only by their top rule. */
 html.dark .dashboard-tool-card--violet {
   border-color: rgb(139 92 246 / 0.24);
   background: rgb(139 92 246 / 0.07);
@@ -397,12 +410,6 @@ html.dark .dashboard-tool-card--amber {
 html.dark .dashboard-tool-card--pink {
   border-color: rgb(236 72 153 / 0.22);
   background: rgb(236 72 153 / 0.07);
-}
-
-html.dark .dashboard-tool-card {
-  border-color: rgb(255 255 255 / 0.06);
-  background: rgb(22 22 26 / 0.4);
-  box-shadow: none;
 }
 
 .dashboard-book-card {
@@ -1291,6 +1298,31 @@ html.dark .paper-sticker:active {
 .under-site-header {
   margin-top: calc(-1 * var(--site-header-h));
   padding-top: var(--site-header-h);
+}
+
+/* The dotted ground behind /login and /registration.
+ *
+ * It used to be an inline style — a hardcoded #09090b with a white dot —
+ * which meant those two pages stayed night-black while the app was in day
+ * mode, with a light card floating on top of them. As a class it can carry
+ * both themes. */
+.auth-ground {
+  background-color: #f8fafc;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(15, 23, 42, 0.07) 1px,
+    transparent 0
+  );
+  background-size: 32px 32px;
+}
+
+html.dark .auth-ground {
+  background-color: #09090b;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 0
+  );
 }
 
 /* The document's own ground.

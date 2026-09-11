@@ -484,10 +484,7 @@ export function AIChatSidePanel() {
               className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-4 py-3 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
             />
 
-            <div className="flex items-center justify-between gap-2 border-t border-black/[0.06] px-3 py-2 dark:border-white/[0.08]">
-              <span className="hidden text-[11px] text-[var(--text-muted)] sm:block">
-                Enter — გაგზავნა · Shift+Enter — ახალი ხაზი
-              </span>
+            <div className="flex items-center justify-end gap-2 border-t border-black/[0.06] px-3 py-2 dark:border-white/[0.08]">
               <button
                 type="submit"
                 disabled={!canSend}
