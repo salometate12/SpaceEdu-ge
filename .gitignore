@@ -40,8 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# PWA service worker artifacts generated at build time
-/public/sw.js
+# Generated Workbox artifacts (checked-in sw.js is the PWA worker)
 /public/sw.js.map
 /public/workbox-*.js
 /public/workbox-*.js.map
