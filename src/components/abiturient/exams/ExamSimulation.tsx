@@ -499,10 +499,18 @@ export function ExamSimulation({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span
-                      className={`inline-flex rounded-full border-2 px-3 py-1 text-[11px] font-bold ${MUTED} ${PLAIN_CARD}`}
-                    >
-                      {p.choiceLabel ?? `ტექსტი ${i + 1}`}
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <span
+                        className={`inline-flex rounded-full border-2 px-3 py-1 text-[11px] font-bold ${MUTED} ${PLAIN_CARD}`}
+                      >
+                        {p.choiceLabel ?? `ტექსტი ${i + 1}`}
+                      </span>
+                      {p.id === chosenId && (
+                        <span className="inline-flex items-center gap-1 rounded-full border-2 border-emerald-300/80 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-500/10 dark:text-emerald-300">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                          არჩეული
+                        </span>
+                      )}
                     </span>
                     <h3 className={`mt-2.5 text-lg font-bold ${TITLE}`}>{p.title}</h3>
                     <p className={`mt-0.5 text-xs ${FAINT}`}>{p.authorOrSource}</p>
@@ -535,16 +543,23 @@ export function ExamSimulation({
                 <button
                   type="button"
                   onClick={() => {
-                    setChosenId(p.id);
-                    setIndex(0);
-                    setPicked({});
-                    setRevealedIds({});
-                    setAnswers({});
+                    // Coming back to the text you were already on is
+                    // navigation, not a restart — only actually switching
+                    // texts throws the answers away, because they belong
+                    // to the questions of the text you are leaving.
+                    if (p.id !== chosenId) {
+                      setChosenId(p.id);
+                      setIndex(0);
+                      setPicked({});
+                      setRevealedIds({});
+                      setAnswers({});
+                    }
+                    setPreviewHighlight(null);
                     setStage("questions");
                   }}
                   className={`paper-sticker mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID[accent]}`}
                 >
-                  ამ ტექსტით გაგრძელება
+                  {p.id === chosenId ? "გაგრძელება" : "ამ ტექსტით გაგრძელება"}
                   <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                 </button>
               </motion.article>
