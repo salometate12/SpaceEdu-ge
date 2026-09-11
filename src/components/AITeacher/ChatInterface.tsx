@@ -250,13 +250,6 @@ export function ChatInterface() {
 
   const handleBackToDashboard = () => {
     setSidebarOpen(false);
-    // Prefer real browser history so the arrow returns to whichever
-    // dashboard (student, abiturient, admin-browsed, ...) the user actually
-    // came from, instead of guessing from the account's registered space.
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
     router.push(dashboardHrefForSpace(readSpaceeduSpace()));
   };
 
@@ -382,10 +375,11 @@ export function ChatInterface() {
           <button
             type="button"
             onClick={handleBackToDashboard}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
             aria-label="დეშბორდზე დაბრუნება"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            <span className="text-xs font-medium">უკან</span>
           </button>
           <span className="text-sm font-medium text-[var(--text-secondary)]">AI მასწავლებელი</span>
         </div>
@@ -423,10 +417,11 @@ export function ChatInterface() {
           <button
             type="button"
             onClick={handleBackToDashboard}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
             aria-label="დეშბორდზე დაბრუნება"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            <span className="text-xs font-medium">უკან</span>
           </button>
           <button
             type="button"

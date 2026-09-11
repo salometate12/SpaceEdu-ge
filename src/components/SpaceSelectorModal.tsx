@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Clock, GraduationCap, Rocket, Target } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, BookOpen, Clock, GraduationCap, Rocket, Target } from "lucide-react";
 import {
   DASHBOARD_ABIT_HREF,
   DASHBOARD_SCHOOL_HREF,
@@ -65,8 +66,27 @@ const SPACES: SpaceOption[] = [
  * and the landing's sheets rather than the old neon panel.
  */
 export function SpaceSelectorModal({ onSelect }: SpaceSelectorModalProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/");
+  };
+
   return (
     <section className="notebook-paper relative flex min-h-dvh w-full items-center justify-center overflow-hidden px-5 py-14 sm:px-8">
+      <button
+        type="button"
+        onClick={handleBack}
+        aria-label="უკან"
+        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 inline-flex items-center gap-1.5 rounded-full border-2 border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-bold text-slate-700 backdrop-blur-sm transition hover:border-slate-300 hover:bg-white dark:border-white/15 dark:bg-white/10 dark:text-slate-100 dark:hover:border-white/25 dark:hover:bg-white/15 sm:left-6"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.2} />
+        უკან
+      </button>
       <RainbowArc className="pointer-events-none absolute right-6 top-10 hidden w-28 -rotate-6 opacity-90 lg:block lg:w-36" />
       <Sun className="pointer-events-none absolute left-8 top-16 hidden h-12 w-12 text-amber-500/70 lg:block dark:text-amber-300/60" />
       <Sparkle className="pointer-events-none absolute left-1/4 top-8 hidden h-5 w-5 -rotate-12 text-sky-400 xl:block" />

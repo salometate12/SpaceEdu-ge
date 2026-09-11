@@ -18,7 +18,7 @@ export function AboutUsPage() {
   useDocumentLanguage();
 
   return (
-    <div className="notebook-paper notebook-margin relative flex-1 overflow-hidden">
+    <div className="notebook-paper notebook-margin under-site-header relative flex-1 overflow-hidden">
       <div className="mx-auto w-full max-w-3xl px-8 sm:px-12">
         <AboutUsHero content={content} />
         <AboutUsStory content={content} />

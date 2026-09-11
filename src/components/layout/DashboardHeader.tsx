@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Bell, Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
@@ -36,7 +35,6 @@ export function DashboardHeader({
   );
   const [streak, setStreak] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { isOpen: aiChatOpen, toggle: toggleAiChat } = useAIChatPanel();
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
   const pathname = usePathname();
@@ -114,27 +112,15 @@ export function DashboardHeader({
       <SpaceChip space={effectiveSpace} />
 
       <HeaderNav>
-        {navItems.map((item) =>
-          item.href === "/ai-teacher" ? (
-            <button
-              key={item.href}
-              type="button"
-              onClick={toggleAiChat}
-              aria-pressed={aiChatOpen}
-              className={headerNavItemClass(aiChatOpen)}
-            >
-              {item.label}
-            </button>
-          ) : (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={headerNavItemClass(Boolean(isActive(item.href)))}
-            >
-              {item.label}
-            </Link>
-          ),
-        )}
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={headerNavItemClass(Boolean(isActive(item.href)))}
+          >
+            {item.label}
+          </Link>
+        ))}
       </HeaderNav>
 
       {/* On phones the bottom dock already carries theme, profile and the
