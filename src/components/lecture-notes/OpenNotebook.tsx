@@ -16,6 +16,8 @@ interface OpenNotebookProps {
   onNextPage: () => void;
   canPrev: boolean;
   canNext: boolean;
+  /** What the forward arrow does here — the last page turns to a new one. */
+  nextLabel?: string;
   leftHeaderLeft: string;
   leftHeaderRight: string;
   rightHeaderLeft: string;
@@ -34,6 +36,7 @@ export function OpenNotebook({
   onNextPage,
   canPrev,
   canNext,
+  nextLabel = "შემდეგი გვერდი",
   leftHeaderLeft,
   leftHeaderRight,
   rightHeaderLeft,
@@ -147,24 +150,26 @@ export function OpenNotebook({
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-3">
+      {/* Page turning. The arrows say what they do — the forward one reads
+          "ახალი გვერდი" once there is nothing after the current page. */}
+      <div className="mt-4 flex items-center justify-center gap-2">
         <button
           type="button"
           onClick={onPrevPage}
           disabled={!canPrev}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30 disabled:opacity-30"
-          aria-label="წინა გვერდი"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white/20 py-2 pl-2.5 pr-4 text-xs font-bold text-white transition hover:bg-white/30 disabled:opacity-30"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4" />
+          წინა გვერდი
         </button>
         <button
           type="button"
           onClick={onNextPage}
           disabled={!canNext}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30 disabled:opacity-30"
-          aria-label="შემდეგი გვერდი"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white/20 py-2 pl-4 pr-2.5 text-xs font-bold text-white transition hover:bg-white/30 disabled:opacity-30"
         >
-          <ChevronRight className="h-5 w-5" />
+          {nextLabel}
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
     </div>

@@ -37,7 +37,6 @@ import {
   type JournalSection,
   type LectureNote,
 } from "@/lib/lecture-notes";
-import { JournalStickers } from "./JournalStickers";
 import { OpenNotebook } from "./OpenNotebook";
 
 const QUICK_PROMPTS = [
@@ -62,6 +61,12 @@ function fireSaveConfetti() {
     colors: ["#F9A8D4", "#FDE047", "#5EEAD4", "#C2186B", "#7DD3FC"],
     disableForReducedMotion: true,
   });
+}
+
+/** A note's whole spread — the left page and the right one. */
+function spreadText(note: { content: string; contentRight?: string }): string {
+  const right = note.contentRight?.trim();
+  return right ? `${note.content}\n\n${right}` : note.content;
 }
 
 export function JournalPage() {
@@ -98,7 +103,16 @@ export function JournalPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const notesRef = useRef<LectureNote[]>([]);
 
-  const sectionNotes = useMemo(() => notesInSection(notes, section), [notes, section]);
+  // Pages run oldest to newest, the way a notebook is written: page 1 is
+  // the first one filled in, and turning forward reaches later pages. (The
+  // shared helper sorts newest-first, which is right for a list of recent
+  // notes and wrong for a bound book.) `createdAt` rather than `updatedAt`,
+  // so going back to an old page does not shuffle it to the end.
+  const sectionNotes = useMemo(
+    () =>
+      [...notesInSection(notes, section)].sort((a, b) => a.createdAt - b.createdAt),
+    [notes, section],
+  );
   const active = sectionNotes.find((note) => note.id === activeId) ?? sectionNotes[0] ?? null;
   const pageIndex = active ? Math.max(0, sectionNotes.findIndex((note) => note.id === active.id)) : 0;
   notesRef.current = notes;
@@ -202,7 +216,8 @@ export function JournalPage() {
     if (!active) return;
     const noteId = active.id;
     const title = active.title;
-    const content = active.content;
+    // Both halves of the spread are the note.
+    const content = spreadText(active);
     if (keywordTimer.current) window.clearTimeout(keywordTimer.current);
     keywordTimer.current = window.setTimeout(() => {
       const local = extractLocalKeywords(content);
@@ -236,7 +251,7 @@ export function JournalPage() {
     return () => {
       if (keywordTimer.current) window.clearTimeout(keywordTimer.current);
     };
-  }, [active?.content, active?.id, active?.title, applyKeywords]);
+  }, [active?.content, active?.contentRight, active?.id, active?.title, applyKeywords]);
 
   const askAi = async (message: string, keyword?: string | null) => {
     if (!active || chatBusy) return;
@@ -257,7 +272,7 @@ export function JournalPage() {
           payload: {
             mode: "chat",
             title: active.title,
-            content: active.content,
+            content: spreadText(active),
             message: trimmed,
             keyword: keyword ?? selectedKeyword ?? undefined,
           },
@@ -282,7 +297,7 @@ export function JournalPage() {
     const next = selectedKeyword === tag ? null : tag;
     setSelectedKeyword(next);
     if (!next || !active) return;
-    const count = active.content.split(tag).length - 1;
+    const count = spreadText(active).split(tag).length - 1;
     textareaRef.current?.focus();
     void askAi(
       `"${tag}" — მოკლედ ამიხსენი ამ ლექციის კონტექსტში.${count > 0 ? ` ნოტში ${count}-ჯერ გვხვდება.` : ""}`,
@@ -373,21 +388,6 @@ export function JournalPage() {
     window.setTimeout(() => setXpBurst(null), 1600);
   };
 
-  const unlockSticker = (id: string) => {
-    setProgress((prev) => {
-      const next = { ...prev, unlocked: { ...prev.unlocked, [id]: true } };
-      saveJournalProgress(next);
-      return next;
-    });
-    confetti({
-      particleCount: 28,
-      spread: 50,
-      origin: { x: 0.68, y: 0.45 },
-      colors: ["#FDE047", "#F9A8D4", "#5EEAD4"],
-      disableForReducedMotion: true,
-    });
-  };
-
   if (!hydrated || !active) {
     return (
       <div className="under-site-header flex min-h-[50vh] items-center justify-center bg-[#C2186B] text-sm font-semibold text-white/80">
@@ -465,9 +465,18 @@ export function JournalPage() {
         flipDirection={flipDirection}
         onNewNote={() => createNote(section)}
         onPrevPage={() => goToPage(pageIndex - 1)}
-        onNextPage={() => goToPage(pageIndex + 1)}
+        // Turning past the last page opens a fresh one, the way a notebook
+        // does — so the arrows are never both dead, even on a new journal.
+        onNextPage={() =>
+          pageIndex < sectionNotes.length - 1
+            ? goToPage(pageIndex + 1)
+            : createNote(section)
+        }
         canPrev={pageIndex > 0}
-        canNext={pageIndex < sectionNotes.length - 1}
+        canNext
+        nextLabel={
+          pageIndex < sectionNotes.length - 1 ? "შემდეგი გვერდი" : "ახალი გვერდი"
+        }
         leftHeaderLeft={studentLabel}
         leftHeaderRight={formatGeorgianDate(active.date)}
         rightHeaderLeft={meta.label}
@@ -513,22 +522,22 @@ export function JournalPage() {
         }
         rightPage={
           <div className="flex min-h-0 flex-1 flex-col">
-            <p
-              className="text-3xl font-black tracking-tight sm:text-4xl"
+            {/* The right-hand page carries on from the left one. It used to
+                be a shelf of stickers, which is not what the second half of
+                an open notebook is for. */}
+            <textarea
+              value={active.contentRight ?? ""}
+              onChange={(event) => patchActive({ contentRight: event.target.value })}
+              placeholder="…გააგრძელე აქ"
+              className="min-h-[320px] w-full flex-1 resize-none bg-transparent text-[15px] text-stone-700 outline-none placeholder:text-stone-400"
               style={{
-                color: "#FB7185",
-                WebkitTextStroke: "1.5px #FB7185",
+                lineHeight: "32px",
+                backgroundImage:
+                  "repeating-linear-gradient(transparent, transparent 31px, rgba(196,80,120,0.22) 32px)",
+                backgroundAttachment: "local",
               }}
-            >
-              სტიკერები
-            </p>
-            <JournalStickers
-              xp={progress.xp}
-              streak={progress.streak}
-              unlocked={progress.unlocked}
-              onUnlock={unlockSticker}
             />
-            <div className="mt-auto border-t border-[#E8A0B8] pt-4">
+            <div className="mt-4 border-t border-[#E8A0B8] pt-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xl font-black tracking-tight text-pink-400" style={{ WebkitTextStroke: "1px #F472B6" }}>
                   თემები
