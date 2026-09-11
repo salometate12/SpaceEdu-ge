@@ -14,7 +14,6 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
-  MessageSquare,
   MessageSquareText,
   Settings,
   Shield,
@@ -201,10 +200,7 @@ export function buildRailGroups({
     { title: "ზოგადი", items: GENERAL_ITEMS.map(withHref) },
     {
       title: "ხელსაწყოები",
-      items: [
-        { id: "ai-chat", label: "AI ჩატი", icon: MessageSquare, onClick: onAiChat, active: aiChatOpen },
-        ...TOOL_ITEMS.map(withHref),
-      ],
+      items: TOOL_ITEMS.map(withHref),
     },
     { title: "ანგარიში", items: ACCOUNT_ITEMS.map(withHref) },
   ];

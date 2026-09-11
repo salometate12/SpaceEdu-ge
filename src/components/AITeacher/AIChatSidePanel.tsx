@@ -276,6 +276,14 @@ export function AIChatSidePanel() {
 
   const goHome = () => setView("home");
 
+  const handleBack = () => {
+    if (!showHome && hasMessages) {
+      goHome();
+      return;
+    }
+    close();
+  };
+
   const pickSubject = (action: (typeof QUICK_ACTIONS)[number]) => {
     setSubject(action.subject);
     setSubjectAccent(action.accent);
@@ -299,20 +307,20 @@ export function AIChatSidePanel() {
       }`}
       style={{ width: isExpanded ? "100%" : `min(100%, ${AI_PANEL_WIDTH_PX}px)` }}
       aria-hidden={!isOpen}
+      inert={!isOpen || undefined}
     >
 
-      <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 py-3.5">
+      <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 pb-3.5 pt-[max(0.875rem,env(safe-area-inset-top))] md:pt-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
-          {!showHome && hasMessages ? (
-            <button
-              type="button"
-              onClick={goHome}
-              aria-label="მთავარ გვერდზე დაბრუნება"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--text-primary)] dark:hover:bg-white/[0.08]"
-            >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="უკან"
+            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-1.5 text-[var(--text-secondary)] transition hover:bg-black/[0.05] hover:text-[var(--text-primary)] dark:hover:bg-white/[0.08]"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            <span className="pr-1 text-xs font-medium">უკან</span>
+          </button>
           <span
             className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-6px_rgba(99,102,241,0.7)]"
           >

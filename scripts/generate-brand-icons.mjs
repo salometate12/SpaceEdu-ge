@@ -28,14 +28,15 @@ function logoSvg(size, { padding = 0.22, radiusRatio = 0.22 } = {}) {
 </svg>`;
 }
 
-function pngToIco(png) {
+function pngToIco(png, size) {
   const header = Buffer.alloc(6);
   header.writeUInt16LE(0, 0);
   header.writeUInt16LE(1, 2);
   header.writeUInt16LE(1, 4);
   const entry = Buffer.alloc(16);
-  entry.writeUInt8(0, 0);
-  entry.writeUInt8(0, 1);
+  // ICO directory stores 256 as 0; any other size must match the PNG.
+  entry.writeUInt8(size >= 256 ? 0 : size, 0);
+  entry.writeUInt8(size >= 256 ? 0 : size, 1);
   entry.writeUInt8(0, 2);
   entry.writeUInt8(0, 3);
   entry.writeUInt16LE(1, 4);
@@ -69,8 +70,8 @@ writeFileSync(join(iconsDir, "icon-48x48.png"), any48);
 writeFileSync(join(iconsDir, "icon-maskable-512x512.png"), mask512);
 writeFileSync(join(appDir, "icon.png"), any48);
 writeFileSync(join(appDir, "apple-icon.png"), apple180);
-writeFileSync(join(appDir, "favicon.ico"), pngToIco(icoPng));
-writeFileSync(join(root, "public/favicon.ico"), pngToIco(icoPng));
+writeFileSync(join(appDir, "favicon.ico"), pngToIco(icoPng, 48));
+writeFileSync(join(root, "public/favicon.ico"), pngToIco(icoPng, 48));
 writeFileSync(join(root, "public/favicon-32x32.png"), any32);
 writeFileSync(join(root, "public/favicon-48x48.png"), any48);
 

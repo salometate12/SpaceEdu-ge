@@ -1283,8 +1283,10 @@ html.dark .paper-sticker:active {
  * back up through the strip and pads its content down again, so the header
  * floats over the page instead of sitting on a seam.
  *
- * Below `md` there is no header at all (the dock is all of mobile
- * navigation), which is why the height is 0 until then. */
+ * Below `md` there is no header at all on app pages (the dock is all of
+ * mobile navigation), which is why the height is 0 until then. The
+ * landing keeps a slim header on phones for its menu, so those routes
+ * raise the variable themselves via `data-landing-header`. */
 :root {
   --site-header-h: 0px;
 }
@@ -1292,6 +1294,13 @@ html.dark .paper-sticker:active {
 @media (min-width: 768px) {
   :root {
     --site-header-h: 5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  html[data-ground="landing"],
+  html[data-landing-header] {
+    --site-header-h: 4.5rem;
   }
 }
 

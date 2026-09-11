@@ -14,12 +14,34 @@ interface HeaderProps {
 export function Header({ variant }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
   }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 55rem)");
+    const onChange = () => {
+      if (media.matches) setMobileOpen(false);
+    };
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (variant !== "landing") return;
+    document.documentElement.dataset.landingHeader = "true";
+    return () => {
+      delete document.documentElement.dataset.landingHeader;
+    };
+  }, [variant]);
 
   const header =
     variant === "landing" ? (
@@ -41,15 +63,23 @@ export function Header({ variant }: HeaderProps) {
   // block used to be this div — exactly as tall as the header, so the bar
   // scrolled straight off the screen.
   //
-  // Phones get no header at all: the floating dock at the bottom of the
-  // screen is the whole of mobile navigation, and it starts exactly where
-  // this bar stops (`md`).
+  // The app still hides this bar on phones (the dock is the navigation
+  // there). The landing keeps it so a plain menu can hold the same links
+  // the desktop pill shows.
   //
   // The strip stays transparent so only the pill travels down the page —
   // a painted one would drag a full-width rectangle along with it. What
   // shows through above the first section is the document ground, which
   // `DocumentGround` keeps correct per route.
-  return <div className="sticky top-0 z-40 hidden md:block">{header}</div>;
+  return (
+    <div
+      className={`sticky top-0 z-40 ${
+        variant === "landing" ? "block" : "hidden md:block"
+      }`}
+    >
+      {header}
+    </div>
+  );
 }
 
 export function HeaderByPath() {
