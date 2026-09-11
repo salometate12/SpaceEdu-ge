@@ -390,7 +390,7 @@ export function JournalPage() {
 
   if (!hydrated || !active) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center bg-[#C2186B] text-sm font-semibold text-white/80">
+      <div className="under-site-header flex min-h-[50vh] items-center justify-center bg-[#C2186B] text-sm font-semibold text-white/80">
         რვეული იხსნება...
       </div>
     );
@@ -400,7 +400,7 @@ export function JournalPage() {
   const studentLabel = firstName || "SpaceEdu";
 
   return (
-    <div className="relative min-h-[calc(100dvh-4rem)] overflow-x-clip bg-[#C2186B]">
+    <div className="under-site-header relative min-h-[calc(100dvh-4rem)] overflow-x-clip bg-[#C2186B]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_36%),radial-gradient(circle_at_80%_80%,rgba(0,0,0,0.12),transparent_40%)]" />
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 pb-1 pt-5 sm:px-6">
