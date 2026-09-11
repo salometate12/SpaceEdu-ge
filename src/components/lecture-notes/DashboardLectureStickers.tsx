@@ -32,7 +32,7 @@ export function DashboardLectureStickers() {
 
   if (pinned.length === 0) {
     return (
-      <section className="rounded-3xl border border-dashed border-amber-200 bg-[#F5EFE0]/70 p-5 dark:border-amber-300/20 dark:bg-amber-300/10">
+      <section className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--amber rounded-[32px] p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-wide text-amber-800/80 dark:text-amber-200">
           ლექციის ნოტები
         </p>

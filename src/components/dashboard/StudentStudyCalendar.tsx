@@ -101,7 +101,7 @@ export function StudentStudyCalendar() {
   };
 
   return (
-    <section className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+    <section className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--emerald rounded-[32px] p-6 sm:p-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="headline flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">

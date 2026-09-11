@@ -56,7 +56,7 @@ export function SemesterSubjects() {
   };
 
   return (
-    <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+    <div className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--violet rounded-[32px] p-6 sm:p-8">
       <div className="mb-1 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500/10 text-violet-700 dark:bg-white/20 dark:text-white">
