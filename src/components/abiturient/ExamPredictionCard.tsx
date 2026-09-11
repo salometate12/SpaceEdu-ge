@@ -6,9 +6,10 @@ import {
   type PredictionStatus,
 } from "@/lib/exam-calculator/prediction-status";
 import type { CalculatorPrediction } from "@/lib/exam-calculator/types";
+import { formatCount } from "@/lib/format-number";
 
 function formatScore(value: number): string {
-  return value.toLocaleString("ka-GE");
+  return formatCount(value);
 }
 
 interface ExamPredictionCardProps {

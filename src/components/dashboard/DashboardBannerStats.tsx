@@ -16,6 +16,15 @@ const COUNTDOWN_LABEL: Record<DashboardWorkspace, string> = {
   student: "სესიებამდე დარჩა",
 };
 
+/**
+ * The streak comes from localStorage and the countdown from today's date,
+ * so neither exists on the server: it renders 0 and an em dash, the
+ * browser renders the real pair, and React counts that as a failed
+ * hydration — which throws away the whole tree's event handlers, leaving
+ * the dashboard's widgets looking fine but dead to clicks. These two
+ * numbers are declared client-only instead, which is what
+ * `suppressHydrationWarning` is for.
+ */
 export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
   const [streak, setStreak] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -53,7 +62,10 @@ export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
           <Flame className="h-5 w-5" strokeWidth={2} fill={streakActiveToday ? "currentColor" : "none"} />
         </span>
         <div>
-          <p className="mono text-2xl font-bold leading-none text-orange-500 dark:text-orange-400 dark:drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] mobile-vivid-stat-value">
+          <p
+            suppressHydrationWarning
+            className="mono text-2xl font-bold leading-none text-orange-500 dark:text-orange-400 dark:drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] mobile-vivid-stat-value"
+          >
             {streak}
           </p>
           <p className="mt-1 text-[11px] font-medium tracking-wide text-orange-600/80 dark:text-orange-400/80 mobile-vivid-stat-label">
@@ -68,7 +80,10 @@ export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
           <Hourglass className="h-5 w-5" strokeWidth={2} />
         </span>
         <div>
-          <p className="mono text-2xl font-bold leading-none text-cyan-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.25)] mobile-vivid-stat-value">
+          <p
+            suppressHydrationWarning
+            className="mono text-2xl font-bold leading-none text-cyan-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.25)] mobile-vivid-stat-value"
+          >
             {countdown ?? "—"}
           </p>
           <p className="mt-1 max-w-[8rem] text-[11px] font-medium leading-tight tracking-wide text-cyan-700/80 dark:text-cyan-400/80 mobile-vivid-stat-label">

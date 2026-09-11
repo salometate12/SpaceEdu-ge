@@ -20,6 +20,7 @@ import {
   type AbiturientLastActive,
   type AbiturientSubjectCard,
 } from "@/lib/abiturient-subjects";
+import { formatCount } from "@/lib/format-number";
 
 function neonVars(accent: ReturnType<typeof getNeonAccent>): CSSProperties {
   return {
@@ -110,8 +111,8 @@ function ActiveLearningCard({
               {subject.title}
             </h3>
             <p className="mt-1 text-xs text-slate-600 dark:text-gray-400">
-              {subject.answered.toLocaleString("ka-GE")} /{" "}
-              {subject.total.toLocaleString("ka-GE")} კითხვა · {subject.percent}%
+              {formatCount(subject.answered)} /{" "}
+              {formatCount(subject.total)} კითხვა · {subject.percent}%
             </p>
             <NeonProgressBar
               percent={subject.percent}
