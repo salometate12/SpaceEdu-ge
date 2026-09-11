@@ -45,6 +45,19 @@ import {
 import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { categoryFromTropeAnswer } from "@/lib/exam-categories";
+import {
+  ACCENT_CARD,
+  ACCENT_PILL,
+  ACCENT_SOLID,
+  ACCENT_TEXT,
+  PLAIN_CARD,
+} from "@/components/landing/notebook/accents";
+import {
+  Flower,
+  Pencil,
+  Ruler,
+  Sparkle,
+} from "@/components/landing/notebook/Doodles";
 
 const GEORGIAN_HUB_HREF = "/subject/georgian/space";
 
@@ -130,7 +143,7 @@ function HighlightedExcerpt({
   const paragraphs = useMemo(() => text.split(/\n{2,}/), [text]);
 
   return (
-    <div className="reading-panel-body space-y-5 text-[15.5px] leading-[2] text-white/90">
+    <div className="reading-panel-body space-y-5 text-[15.5px] leading-[2] text-slate-800 dark:text-slate-100">
       {paragraphs.map((paragraph, index) => {
         if (!highlight || !paragraph.includes(highlight)) {
           return <p key={`p-${index}`}>{paragraph}</p>;
@@ -147,7 +160,7 @@ function HighlightedExcerpt({
                     initial={{ backgroundColor: "rgba(34,211,238,0)" }}
                     animate={{ backgroundColor: "rgba(34,211,238,0.16)" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="rounded-md bg-cyan-500/15 px-1 py-0.5 text-cyan-200 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.25)]"
+                    className="rounded-md bg-sky-200/70 px-1 py-0.5 text-sky-900 dark:bg-sky-400/20 dark:text-sky-100"
                   >
                     {part}
                   </motion.mark>
@@ -174,19 +187,19 @@ const TYPE_BADGE: Record<
     label: questionTypeLabel("main_idea"),
     className: "border-violet-500/25 bg-violet-500/10 text-violet-300",
     icon: <BookText className="h-3.5 w-3.5 stroke-[1.75]" />,
-    dot: "bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]",
+    dot: "bg-violet-500",
   },
   implied_meaning: {
     label: questionTypeLabel("implied_meaning"),
     className: "border-amber-500/25 bg-amber-500/10 text-amber-300",
     icon: <Lightbulb className="h-3.5 w-3.5 stroke-[1.75]" />,
-    dot: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]",
+    dot: "bg-amber-500",
   },
   literary_trope: {
     label: questionTypeLabel("literary_trope"),
-    className: "border-cyan-500/25 bg-cyan-500/10 text-cyan-300",
+    className: `${ACCENT_PILL.blue}`,
     icon: <Sparkles className="h-3.5 w-3.5 stroke-[1.75]" />,
-    dot: "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]",
+    dot: "bg-sky-500",
   },
 };
 
@@ -352,7 +365,9 @@ export function ReadingComprehensionExercise() {
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="relative mx-auto w-full max-w-7xl overflow-x-clip px-4 py-6 sm:px-6 sm:py-10">
+        <Ruler className="pointer-events-none absolute left-0 top-28 hidden w-20 -rotate-12 text-slate-400 opacity-50 2xl:block dark:text-slate-500" />
+        <Pencil className="pointer-events-none absolute bottom-32 right-1 hidden h-11 w-11 rotate-12 text-amber-600/45 2xl:block dark:text-amber-400/35" />
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
@@ -369,7 +384,7 @@ export function ReadingComprehensionExercise() {
               className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-semibold transition-colors duration-300 ${
                 streak > 0
                   ? "border-orange-500/30 bg-orange-500/10 text-orange-300"
-                  : "border-white/10 bg-transparent text-slate-600 dark:text-slate-300"
+                  : "border-slate-300 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-300"
               }`}
               aria-label="მიმდინარე სერია"
             >
@@ -388,7 +403,7 @@ export function ReadingComprehensionExercise() {
             </div>
 
             <div
-              className="relative flex items-center gap-1.5 rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-200"
+              className={`relative flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-[11px] font-bold ${ACCENT_PILL.blue}`}
               aria-label="ქულა"
             >
               <Gem className="h-3.5 w-3.5 stroke-[1.75]" />
@@ -434,7 +449,7 @@ export function ReadingComprehensionExercise() {
               <div
                 className={`relative mb-6 inline-flex -rotate-1 items-center gap-1.5 rounded-full border-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
                   passage.category === "მხატვრული"
-                    ? "border-purple-500/30 text-purple-300"
+                    ? ACCENT_PILL.violet
                     : "border-emerald-500/30 text-emerald-300"
                 }`}
               >
@@ -442,8 +457,8 @@ export function ReadingComprehensionExercise() {
                 <span
                   className={`absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full ${
                     passage.category === "მხატვრული"
-                      ? "bg-purple-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
-                      : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
+                      ? "bg-violet-500"
+                      : "bg-emerald-500"
                   }`}
                   aria-hidden
                 />
@@ -459,7 +474,7 @@ export function ReadingComprehensionExercise() {
                   </span>
                 </p>
                 {/* Which paper this text was set on. */}
-                <p className="mt-2 inline-flex items-center rounded-full border-2 border-cyan-500/30 px-2.5 py-0.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
+                <p className={`mt-2 inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[11px] font-bold ${ACCENT_PILL.blue}`}>
                   {paperLabel(passage)} · II ნაწილი
                 </p>
               </header>
@@ -470,7 +485,7 @@ export function ReadingComprehensionExercise() {
               />
 
               {currentQuestion.highlightPhrase && (
-                <p className="mt-6 flex items-center gap-2 rounded-lg border border-cyan-500/15 bg-cyan-500/[0.03] px-3 py-2 text-[11px] leading-relaxed text-cyan-200/80">
+                <p className={`mt-6 flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-[11px] font-semibold leading-relaxed ${ACCENT_PILL.blue}`}>
                   <Info className="h-3.5 w-3.5 shrink-0 stroke-[1.75]" />
                   ხაზგასმულია მიმდინარე კითხვასთან დაკავშირებული მონაკვეთი.
                 </p>
@@ -485,7 +500,7 @@ export function ReadingComprehensionExercise() {
             className="notebook-paper notebook-sheet relative overflow-hidden rounded-[26px] p-6 sm:p-8"
           >
             <div className="relative mb-8 inline-flex flex-col items-start">
-              <span className="-rotate-2 rounded-full border-2 border-white/20 bg-white/[0.03] px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
+              <span className="-rotate-2 rounded-full border-2 border-slate-300 dark:border-white/20  px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                 კითხვა {currentIndex + 1} / {totalQuestions}
               </span>
               <span
@@ -507,7 +522,7 @@ export function ReadingComprehensionExercise() {
                   key={q.id}
                   className={`h-1.5 flex-1 overflow-hidden rounded-full transition-colors duration-300 ${
                     i < currentIndex
-                      ? "bg-cyan-400"
+                      ? "bg-sky-500"
                       : i === currentIndex
                         ? "bg-white/10"
                         : "bg-white/[0.06]"
@@ -522,7 +537,7 @@ export function ReadingComprehensionExercise() {
                         duration: isRevealed ? 0.4 : 1.1,
                         ease: "easeOut",
                       }}
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400"
+                      className="h-full rounded-full bg-sky-500 dark:bg-sky-400"
                     />
                   )}
                 </div>
@@ -537,7 +552,7 @@ export function ReadingComprehensionExercise() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-                <div className="relative mb-6 rounded-[28px] border-2 border-white/15 bg-white/[0.02] p-6">
+                <div className="relative mb-6 rounded-[28px] border-2  p-6">
                   <span
                     className={`absolute -right-2 -top-2 h-5 w-5 rounded-full ring-4 ring-[#100f16] ${typeBadge.dot}`}
                     aria-hidden
@@ -629,7 +644,7 @@ export function ReadingComprehensionExercise() {
                     <span
                       className={`mb-3 -rotate-1 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider ${
                         selectedIndex === currentQuestion.correctIndex
-                          ? "bg-emerald-400 text-black"
+                          ? "bg-emerald-500 text-black"
                           : "bg-rose-500 text-white"
                       }`}
                     >
@@ -659,7 +674,7 @@ export function ReadingComprehensionExercise() {
                   type="button"
                   onClick={revealAnswer}
                   disabled={selectedIndex === null}
-                  className="flex-1 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`paper-sticker flex-1 rounded-full border-2 px-5 py-3 text-sm font-bold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.blue}`}
                 >
                   პასუხის შემოწმება
                 </button>
@@ -667,7 +682,7 @@ export function ReadingComprehensionExercise() {
                 <button
                   type="button"
                   onClick={goNext}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold transition-all active:scale-[0.98] ${ACCENT_SOLID.blue}`}
                 >
                   {isLastQuestion ? "შედეგების ნახვა" : "შემდეგი კითხვა"}
                   <ArrowRight className="h-4 w-4 stroke-[1.75]" />
@@ -688,7 +703,7 @@ export function ReadingComprehensionExercise() {
 const TROPE_CHIPS: { label: string; className: string }[] = [
   { label: "მეტაფორა", className: "border-[3px] border-cyan-400 bg-transparent text-cyan-300" },
   { label: "გაპიროვნება", className: "border-[3px] border-violet-400 bg-transparent text-violet-300" },
-  { label: "ეპითეტი", className: "border-[3px] border-transparent bg-amber-400 text-black" },
+  { label: "ეპითეტი", className: "border-[3px] border-transparent bg-amber-500 text-black" },
   { label: "შედარება", className: "border-[3px] border-emerald-400 bg-transparent text-emerald-300" },
   { label: "ჰიპერბოლა", className: "border-[3px] border-transparent bg-rose-500 text-white" },
   { label: "ალეგორია", className: "border-[3px] border-transparent bg-blue-500 text-white" },
@@ -703,7 +718,10 @@ function IntroScreen({
 }) {
   return (
     <div className="relative min-h-full bg-transparent">
-      <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="relative mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+        <Flower className="pointer-events-none absolute -left-6 top-40 hidden h-10 w-10 rotate-12 text-pink-400/50 xl:block" />
+        <Pencil className="pointer-events-none absolute -right-5 top-64 hidden h-11 w-11 rotate-12 text-amber-600/45 xl:block dark:text-amber-400/35" />
+        <Ruler className="pointer-events-none absolute -left-8 bottom-40 hidden w-20 -rotate-12 text-slate-400 opacity-50 xl:block dark:text-slate-500" />
         <Link
           href={GEORGIAN_HUB_HREF}
           className="mb-6 inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 transition-all hover:text-slate-900 dark:text-slate-50"
@@ -713,14 +731,14 @@ function IntroScreen({
         </Link>
 
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)] animate-float-soft">
+          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.blue} ${ACCENT_TEXT.blue}`}>
             <BookText className="h-7 w-7 stroke-[1.5]" />
           </div>
           <div>
-            <span className="relative -rotate-2 inline-flex items-center rounded-full border-2 border-cyan-500/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300/90">
+            <span className={`relative -rotate-2 inline-flex items-center rounded-full border-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider ${ACCENT_PILL.blue}`}>
               მეორე სავარჯიშო
               <span
-                className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+                className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-sky-500"
                 aria-hidden
               />
             </span>
@@ -747,15 +765,15 @@ function IntroScreen({
             hint={`წინა წლების ვარიანტებიდან · ${libraryHighlights.yearRange}`}
             icon={<BookText className="h-4 w-4 stroke-[1.75] text-violet-300" />}
             accent="border-violet-500/30 text-violet-300"
-            dot="bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.6)]"
+            dot="bg-violet-500"
           />
           <StatCard
             label="მხატვრული საშუალებები"
             value="6"
             hint="მეტაფორა, გაპიროვნება, ეპითეტი, შედარება, ჰიპერბოლა, ალეგორია"
             icon={<Sparkles className="h-4 w-4 stroke-[1.75] text-cyan-300" />}
-            accent="border-cyan-500/30 text-cyan-300"
-            dot="bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+            accent={`${ACCENT_CARD.blue} ${ACCENT_TEXT.blue}`}
+            dot="bg-sky-500"
           />
           <StatCard
             label="კითხვის ტიპები"
@@ -763,7 +781,7 @@ function IntroScreen({
             hint="მთავარი აზრი · ნაგულისხმევი · მხატვრული ხერხი"
             icon={<Trophy className="h-4 w-4 stroke-[1.75] text-amber-300" />}
             accent="border-amber-500/30 text-amber-300"
-            dot="bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]"
+            dot="bg-amber-500"
           />
         </section>
 
@@ -785,13 +803,13 @@ function IntroScreen({
           </div>
         </section>
 
-        <section className="relative mt-8 overflow-hidden rounded-[32px] border-2 border-cyan-500/25 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-8">
+        <section className="relative mt-8 overflow-hidden rounded-[32px] border-2 p-6 backdrop-blur-xl sm:p-8">
           <span
-            className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+            className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-sky-500"
             aria-hidden
           />
           <div className="flex flex-wrap items-start gap-5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.blue} ${ACCENT_TEXT.blue}`}>
               <Shuffle className="h-5 w-5 stroke-[1.5]" />
             </div>
             <div className="min-w-0 flex-1">
@@ -808,14 +826,14 @@ function IntroScreen({
               <div className="relative mt-5 inline-block">
                 <motion.span
                   aria-hidden
-                  className="absolute inset-0 rounded-full bg-cyan-400/30 blur-md"
+                  className="absolute inset-0 rounded-full bg-sky-500/30 blur-md"
                   animate={{ opacity: [0.35, 0.7, 0.35], scale: [1, 1.06, 1] }}
                   transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <button
                   type="button"
                   onClick={onStart}
-                  className="relative z-[1] inline-flex items-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/15 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+                  className={`paper-sticker relative z-[1] inline-flex items-center gap-2 rounded-full border-2 px-6 py-3 text-sm font-bold transition-all active:scale-[0.98] ${ACCENT_SOLID.blue}`}
                 >
                   <Sparkles className="h-4 w-4 stroke-[1.75]" />
                   ტესტის დაწყება
@@ -834,28 +852,28 @@ function IntroScreen({
             {[
               {
                 text: "სისტემა ბანკიდან შემთხვევით ამოირჩევს ერთ ტექსტს — მხატვრულს ან საინფორმაციოს.",
-                circle: "bg-violet-400 text-black",
+                circle: "bg-violet-500 text-black",
                 border: "border-violet-500/30",
               },
               {
                 text: "მარცხნივ ნახავ ტექსტს, მარჯვნივ — მასთან დაკავშირებულ 3–4 კითხვას.",
-                circle: "bg-cyan-400 text-black",
-                border: "border-cyan-500/30",
+                circle: "bg-sky-500 text-black",
+                border: ACCENT_CARD.blue,
               },
               {
                 text: "პასუხის შემოწმებისას მიიღებ დეტალურ განმარტებას და ქულებს — ზედიზედ სწორი პასუხები მეტ ქულას გაძლევს.",
-                circle: "bg-amber-400 text-black",
+                circle: "bg-amber-500 text-black",
                 border: "border-amber-500/30",
               },
               {
                 text: "ბოლოს ნახავ ვარსკვლავურ შეფასებას, ჯამურ ქულასა და მოპოვებულ მიღწევებს.",
-                circle: "bg-emerald-400 text-black",
+                circle: "bg-emerald-500 text-black",
                 border: "border-emerald-500/30",
               },
             ].map((step, index) => (
               <li
                 key={`step-${index}`}
-                className={`relative z-[1] flex items-center gap-3 rounded-[24px] border-2 bg-white/[0.02] p-3 transition-all duration-200 hover:-translate-y-0.5 ${step.border}`}
+                className={`relative z-[1] flex items-center gap-3 rounded-[24px] border-2  p-3 transition-all duration-200 hover:-translate-y-0.5 ${step.border}`}
               >
                 <span
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-black ${step.circle}`}
@@ -890,7 +908,7 @@ function StatCard({
   dot?: string;
 }) {
   return (
-    <div className="group relative rounded-[28px] border-2 border-white/12 bg-white/[0.02] p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/20">
+    <div className="group relative rounded-[28px] border-2  p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-white/25">
       {dot && (
         <span
           className={`absolute -right-1.5 -top-1.5 h-3.5 w-3.5 rounded-full ${dot}`}
@@ -899,7 +917,7 @@ function StatCard({
       )}
       {icon && (
         <div
-          className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full border-2 ${accent ?? "border-white/15 text-white/70"}`}
+          className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full border-2 ${accent ?? "border-slate-300 dark:border-white/15 text-slate-600 dark:text-slate-300"}`}
         >
           {icon}
         </div>
@@ -942,7 +960,7 @@ function computeBadges({
     badges.push({
       icon: <Trophy className="h-3.5 w-3.5 stroke-[1.75]" />,
       label: "იდეალური შედეგი",
-      className: "border-[3px] border-transparent bg-amber-400 text-black",
+      className: "border-[3px] border-transparent bg-amber-500 text-black",
     });
   }
 
@@ -1036,7 +1054,9 @@ function ResultsScreen({
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="relative mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+        <Sparkle className={`pointer-events-none absolute right-2 top-8 hidden h-5 w-5 -rotate-12 xl:block ${ACCENT_TEXT.blue}`} />
+        <Flower className="pointer-events-none absolute -left-6 bottom-44 hidden h-10 w-10 rotate-12 text-pink-400/50 xl:block" />
         <button
           type="button"
           onClick={onExit}
@@ -1046,18 +1066,18 @@ function ResultsScreen({
           სავარჯიშოს გვერდზე დაბრუნება
         </button>
 
-        <section className="relative overflow-hidden rounded-[32px] border-2 border-white/12 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-8">
+        <section className="relative overflow-hidden rounded-[32px] border-2  p-6 backdrop-blur-xl sm:p-8">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-cyan-500/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_28px_rgba(34,211,238,0.18)]">
+            <div className={`flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.blue} ${ACCENT_TEXT.blue}`}>
               <Trophy className="h-7 w-7 stroke-[1.5]" />
             </div>
             <div>
-              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-cyan-300/90">
+              <p className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT.blue}`}>
                 სესიის შედეგი
                 <span
                   className={`relative inline-flex items-center rounded-full border-2 px-2.5 py-1 text-[9px] font-bold normal-case tracking-normal ${
                     passage.category === "მხატვრული"
-                      ? "border-purple-500/30 text-purple-300"
+                      ? ACCENT_PILL.violet
                       : "border-emerald-500/30 text-emerald-300"
                   }`}
                 >
@@ -1071,7 +1091,7 @@ function ResultsScreen({
           </div>
 
           {/* animated star rating — the "level complete" moment */}
-          <div className="mt-6 flex flex-col items-center gap-2 rounded-[28px] border-2 border-white/10 bg-white/[0.02] py-6">
+          <div className="mt-6 flex flex-col items-center gap-2 rounded-[28px] border-2  py-6">
             <div className="flex items-center gap-2">
               {[0, 1, 2].map((i) => (
                 <motion.div
@@ -1088,8 +1108,8 @@ function ResultsScreen({
                   <Star
                     className={`h-9 w-9 stroke-[1.5] ${
                       i < starCount
-                        ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.45)]"
-                        : "fill-transparent text-white/15"
+                        ? "fill-amber-400 text-amber-400"
+                        : "fill-transparent text-slate-300 dark:text-slate-600"
                     }`}
                   />
                 </motion.div>
@@ -1149,7 +1169,7 @@ function ResultsScreen({
             <button
               type="button"
               onClick={onRestartNew}
-              className="inline-flex items-center gap-2 rounded-full border-2 border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/10 transition-all hover:from-cyan-500 hover:to-blue-500 active:scale-[0.98]"
+              className={`paper-sticker inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${ACCENT_SOLID.blue}`}
             >
               <RefreshCw className="h-4 w-4 stroke-[1.75]" />
               ახალი ტესტი (სხვა ტექსტი)
@@ -1157,7 +1177,7 @@ function ResultsScreen({
             <button
               type="button"
               onClick={onExit}
-              className="rounded-full border-2 border-white/15 bg-transparent px-5 py-2.5 text-sm text-white/85 transition-all hover:border-white/30 hover:bg-white/[0.04]"
+              className={`rounded-full border-2 px-5 py-2.5 text-sm font-bold text-slate-700 transition-all dark:text-slate-200 ${PLAIN_CARD}`}
             >
               შესვლის ეკრანზე დაბრუნება
             </button>
@@ -1181,7 +1201,7 @@ function ResultsScreen({
                   }`}
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white/15 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-slate-300 dark:border-white/15 text-[10px] font-bold text-slate-600 dark:text-slate-300">
                       {index + 1}
                     </span>
                     <span
@@ -1193,7 +1213,7 @@ function ResultsScreen({
                     <span
                       className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
                         record.correct
-                          ? "bg-emerald-400 text-black"
+                          ? "bg-emerald-500 text-black"
                           : "bg-rose-500 text-white"
                       }`}
                     >
@@ -1245,7 +1265,7 @@ function ResultStat({
 }) {
   return (
     <div
-      className={`rounded-2xl p-4 transition-transform duration-200 hover:-translate-y-0.5 ${accent ?? "border-2 border-white/10 bg-white/[0.02]"}`}
+      className={`rounded-2xl p-4 transition-transform duration-200 hover:-translate-y-0.5 ${accent ?? "border-2 "}`}
     >
       <p
         className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${labelClass ?? "text-slate-600 dark:text-slate-300"}`}
@@ -1284,12 +1304,12 @@ function resolveOptionPillClass({
     if (isSelected) {
       return "border-transparent border-pink-600 bg-pink-600 text-white";
     }
-    return "border-white/10 bg-transparent text-white/25";
+    return "border-slate-300 dark:border-white/10 bg-transparent text-slate-400 dark:text-slate-500";
   }
   if (isSelected) {
-    return "border-transparent bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20";
+    return `paper-sticker ${ACCENT_SOLID.blue}`;
   }
-  return "border-white/15 bg-transparent text-zinc-200 group-hover:border-cyan-400/50 group-hover:bg-cyan-500/[0.03]";
+  return `text-slate-700 group-hover:border-sky-400 dark:text-slate-200 ${PLAIN_CARD}`;
 }
 
 function resolveOptionCircleClass({
@@ -1308,12 +1328,12 @@ function resolveOptionCircleClass({
     if (isSelected) {
       return "border-transparent bg-gradient-to-br from-rose-500 to-rose-600 text-white";
     }
-    return "border-white/10 text-white/20";
+    return "border-slate-300 dark:border-white/10 text-slate-400 dark:text-slate-500";
   }
   if (isSelected) {
-    return "border-transparent bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-[0_0_16px_rgba(34,211,238,0.35)]";
+    return `paper-sticker ${ACCENT_SOLID.blue}`;
   }
-  return "border-white/15 text-white/60 group-hover:border-cyan-400/50 group-hover:text-cyan-200";
+  return "border-slate-300 text-slate-600 group-hover:border-sky-400 group-hover:text-sky-700 dark:border-white/15 dark:text-slate-400 dark:group-hover:text-sky-200";
 }
 
 /* -------------------------------------------------------------------------- */
