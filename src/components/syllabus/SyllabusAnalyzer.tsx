@@ -12,6 +12,7 @@ import {
   CloudUpload,
   GraduationCap,
   Plus,
+  NotebookPen,
 } from "lucide-react";
 import { fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
@@ -78,6 +79,13 @@ const TYPE_META: Record<
     dot: "border-pink-400 dark:border-pink-400/60",
     badge:
       "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
+  },
+  study: {
+    label: "სასწავლო დღე",
+    icon: NotebookPen,
+    dot: "border-emerald-400 dark:border-emerald-400/60",
+    badge:
+      "border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300",
   },
 };
 

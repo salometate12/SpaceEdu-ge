@@ -1,4 +1,7 @@
-export type SyllabusMilestoneType = "midterm" | "quiz" | "deadline";
+/** What a dated entry on the dashboard calendar is.
+ *  `study` covers the days of a saved study plan, which are neither an
+ *  exam nor something due — just work planned for that date. */
+export type SyllabusMilestoneType = "midterm" | "quiz" | "deadline" | "study";
 
 export interface SyllabusMilestone {
   id: string;
@@ -193,6 +196,7 @@ const STUDY_PROMPT_TYPE_LABEL: Record<SyllabusMilestoneType, string> = {
   midterm: "შუალედური გამოცდა",
   quiz: "ქვიზი",
   deadline: "დავალების დედლაინი",
+  study: "სასწავლო დღე",
 };
 
 /** Turns a calendar entry the student added into a first message for the

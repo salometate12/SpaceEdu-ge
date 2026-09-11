@@ -1,4 +1,5 @@
 import { recordDailyActivity } from "./daily-streak";
+import type { SyllabusMilestone } from "@/lib/syllabus-calendar";
 
 export type StudyPlanSpace = "student" | "abiturient";
 
@@ -81,4 +82,34 @@ export function clearSavedStudyPlan(space: StudyPlanSpace): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(storageKey(space));
   notifyStudyPlanCalendarUpdated();
+}
+
+/* -------------------------------------------------------------------------- */
+/*                     PUTTING A PLAN ON THE DASHBOARD CALENDAR               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A plan day, expressed as a dated calendar entry.
+ *
+ * The id is derived from the space and the date rather than generated, so
+ * adding the same day twice replaces its entry instead of piling up
+ * duplicates, and "is this day already on the calendar?" is answerable
+ * without storing anything extra.
+ */
+export function studyDayCalendarId(space: StudyPlanSpace, date: string): string {
+  return `study-plan-${space}-${date}`;
+}
+
+export function studyDayAsMilestone(
+  space: StudyPlanSpace,
+  subject: string,
+  day: StudyPlanCalendarDay,
+): SyllabusMilestone {
+  return {
+    id: studyDayCalendarId(space, day.date),
+    title: `${subject} — ${day.topics.join(", ")}`,
+    date: day.date,
+    topic: `${day.hours} საათი · ${day.day_name}`,
+    type: "study",
+  };
 }

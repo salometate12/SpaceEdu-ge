@@ -29,6 +29,11 @@ const TYPE_META: Record<DashboardCalendarEvent["type"], { label: string; badge: 
     badge:
       "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
   },
+  study: {
+    label: "სასწავლო დღე",
+    badge:
+      "border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300",
+  },
 };
 
 export function SyllabusEventsPanel() {
