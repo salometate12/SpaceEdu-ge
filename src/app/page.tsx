@@ -19,7 +19,7 @@ const STRUCTURED_DATA = {
       "@id": "https://www.spaceedu.ge/#organization",
       name: "SpaceEdu",
       url: "https://www.spaceedu.ge",
-      logo: "https://www.spaceedu.ge/favicon.ico",
+      logo: "https://www.spaceedu.ge/icons/icon-512x512.png",
       description:
         "SpaceEdu — ქართული AI სასწავლო პლატფორმა აბიტურიენტებისთვის, სტუდენტებისთვის და მოსწავლეებისთვის.",
       sameAs: [],
