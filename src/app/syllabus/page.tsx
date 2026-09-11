@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function SyllabusPage() {
   return (
-    <main className="relative mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <main className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <Sparkle
         className={`pointer-events-none absolute right-6 top-6 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT.violet}`}
       />
