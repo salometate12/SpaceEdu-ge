@@ -121,13 +121,13 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 shadow-2xl backdrop-blur-xl">
+    <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
       <header className="space-y-3 text-center">
         <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-purple-500/25 bg-purple-600/20">
           <Rocket className="h-5 w-5 stroke-[1.5] text-purple-300" />
         </div>
-        <h1 className="headline text-2xl font-bold text-white">შესვლა</h1>
-        <p className="text-sm text-gray-400">{roleSubtext}</p>
+        <h1 className="headline text-2xl font-bold text-slate-900 dark:text-white">შესვლა</h1>
+        <p className="text-sm text-slate-600 dark:text-gray-400">{roleSubtext}</p>
       </header>
 
       {showDevBypass && role && (
@@ -147,45 +147,45 @@ export function LoginForm() {
         <>
           <GoogleAuthButton role={role} label="შესვლა Google-ით" />
           <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-white/[0.08]" />
-            <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">
               ან
             </span>
-            <div className="h-px flex-1 bg-white/[0.08]" />
+            <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
           </div>
         </>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor="login-email" className="text-xs font-medium text-gray-400">
+          <label htmlFor="login-email" className="text-xs font-medium text-slate-600 dark:text-gray-400">
             ელ-ფოსტა
           </label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
             <input
               id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
               placeholder="name@example.com"
             />
           </div>
         </div>
 
         <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor="login-password" className="text-xs font-medium text-gray-400">
+          <label htmlFor="login-password" className="text-xs font-medium text-slate-600 dark:text-gray-400">
             პაროლი
           </label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
             <input
               id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
               placeholder="პაროლი"
             />
           </div>
@@ -229,7 +229,7 @@ export function LoginForm() {
         </button>
       </form>
 
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-slate-500 dark:text-gray-500">
         ანგარიში არ გაქვს?{" "}
         <Link
           href={role ? `/registration?role=${role}` : "/select-space"}

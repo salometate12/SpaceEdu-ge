@@ -42,12 +42,12 @@ interface FormFieldProps {
 function FormField({ id, label, icon: Icon, error, children }: FormFieldProps) {
   return (
     <div className="relative flex flex-col space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium text-gray-400">
+      <label htmlFor={id} className="text-xs font-medium text-slate-600 dark:text-gray-400">
         {label}
       </label>
       <div className="relative">
         <Icon
-          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-[1.5] text-gray-500"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-[1.5] text-slate-400 dark:text-gray-500"
           aria-hidden
         />
         {children}
@@ -149,8 +149,8 @@ export function RegistrationForm() {
 
   if (!role) {
     return (
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 text-center backdrop-blur-xl">
-        <p className="text-sm text-gray-400">
+      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-8 text-center backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
+        <p className="text-sm text-slate-600 dark:text-gray-400">
           რეგისტრაციისთვის ჯერ აირჩიე სასწავლო სივრცე.
         </p>
         <Link
@@ -165,21 +165,21 @@ export function RegistrationForm() {
 
   if (awaitingConfirmation) {
     return (
-      <div className="w-full max-w-md space-y-5 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 text-center shadow-2xl backdrop-blur-xl">
+      <div className="w-full max-w-md space-y-5 rounded-2xl border border-slate-200 bg-white/90 p-8 text-center shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-600/15">
           <MailCheck className="h-6 w-6 stroke-[1.5] text-emerald-300" />
         </div>
         <div>
-          <h1 className="headline text-xl font-bold text-white">დაადასტურე ელ-ფოსტა</h1>
-          <p className="mt-2 text-sm leading-relaxed text-gray-400">
+          <h1 className="headline text-xl font-bold text-slate-900 dark:text-white">დაადასტურე ელ-ფოსტა</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-gray-400">
             გამოგიგზავნეთ დადასტურების ბმული მისამართზე{" "}
-            <span className="font-medium text-white">{email.trim()}</span>. გახსენი ის და
+            <span className="font-medium text-slate-900 dark:text-white">{email.trim()}</span>. გახსენი ის და
             დააჭირე ბმულს, რომ შესვლა შესაძლებელი გახდეს.
           </p>
         </div>
         <Link
           href={`/login?role=${role}`}
-          className="inline-flex w-full items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 text-sm font-medium text-white transition-all hover:border-purple-500/30 hover:bg-white/[0.06]"
+          className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-800 transition-all hover:border-purple-500/40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:hover:border-purple-500/30 dark:hover:bg-white/[0.06]"
         >
           შესვლის გვერდზე გადასვლა
         </Link>
@@ -189,7 +189,7 @@ export function RegistrationForm() {
 
   return (
     <div
-      className="w-full max-w-md space-y-6 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-8 shadow-2xl backdrop-blur-xl"
+      className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40"
       style={{
         backgroundImage:
           "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.12), transparent)",
@@ -203,8 +203,8 @@ export function RegistrationForm() {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
             SpaceEdu
           </p>
-          <h1 className="headline mt-2 text-2xl font-bold text-white">შექმენი ანგარიში</h1>
-          <p className="mt-2 text-sm leading-relaxed text-gray-400">{roleSubtext}</p>
+          <h1 className="headline mt-2 text-2xl font-bold text-slate-900 dark:text-white">შექმენი ანგარიში</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-gray-400">{roleSubtext}</p>
         </div>
       </header>
 
@@ -229,9 +229,9 @@ export function RegistrationForm() {
       <GoogleAuthButton role={role} label="გააგრძელე Google-ით" />
 
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-white/[0.08]" />
-        <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">ან</span>
-        <div className="h-px flex-1 bg-white/[0.08]" />
+        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">ან</span>
+        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
@@ -246,7 +246,7 @@ export function RegistrationForm() {
               clearFieldError("name");
             }}
             placeholder="მაგ: ნინო ბერიძე"
-            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -261,7 +261,7 @@ export function RegistrationForm() {
               clearFieldError("email");
             }}
             placeholder="name@example.com"
-            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -276,7 +276,7 @@ export function RegistrationForm() {
               clearFieldError("password");
             }}
             placeholder="მინიმუმ 6 სიმბოლო"
-            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -289,9 +289,9 @@ export function RegistrationForm() {
                 setTermsAccepted(e.target.checked);
                 clearFieldError("terms");
               }}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/[0.1] bg-white/[0.02] text-purple-600 focus:ring-0 focus:ring-offset-0 checked:border-purple-500 checked:bg-purple-600"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 bg-white text-purple-600 checked:border-purple-500 checked:bg-purple-600 focus:ring-0 focus:ring-offset-0 dark:border-white/[0.1] dark:bg-white/[0.02]"
             />
-            <span className="text-xs leading-relaxed text-gray-400">
+            <span className="text-xs leading-relaxed text-slate-600 dark:text-gray-400">
               ვეთანხმები SpaceEdu-ს{" "}
               <Link href="/privacy" className="text-purple-400/90 hover:text-purple-300">
                 წესებსა და პირობებს
@@ -323,7 +323,7 @@ export function RegistrationForm() {
         </button>
       </form>
 
-      <p className="text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-slate-500 dark:text-gray-500">
         უკვე გაქვს ანგარიში?{" "}
         <Link
           href={`/login?role=${role}`}
