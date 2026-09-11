@@ -7,9 +7,7 @@ import { SiteFooter } from "./SiteFooter";
 
 const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
 const CUSTOM_FOOTER_PATHS = new Set(["/"]);
-// Routes whose page is the whole screen: a site footer below one of these
-// only shows up as dead space under a full-height surface.
-const NO_FOOTER_PATHS = new Set(["/privacy", "/terms", "/about", "/ai-teacher"]);
+const NO_FOOTER_PATHS = new Set(["/privacy", "/terms", "/about"]);
 
 export function FooterByPath() {
   const pathname = usePathname();
@@ -18,7 +16,6 @@ export function FooterByPath() {
     focusMode ||
     isPremiumAssistantPath(pathname) ||
     FULL_BLEED_PATHS.has(pathname ?? "") ||
-    pathname?.startsWith("/journal") ||
     CUSTOM_FOOTER_PATHS.has(pathname ?? "") ||
     NO_FOOTER_PATHS.has(pathname ?? "") ||
     pathname?.startsWith("/admin")
