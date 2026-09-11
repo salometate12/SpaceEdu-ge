@@ -69,7 +69,7 @@ export function ImportantDocuments() {
   const full = docs.length >= MAX_DOCUMENTS;
 
   return (
-    <section className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+    <section className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--sky rounded-[32px] p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300">

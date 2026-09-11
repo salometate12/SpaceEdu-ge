@@ -322,6 +322,83 @@ html.dark .dashboard-glass-card:hover {
   opacity: 0.5;
 }
 
+/* One paper card per section was making the student dashboard read as a
+ * single beige column — five stacked cards with nothing to tell them apart
+ * at a glance. These modifiers keep the same paper edge and shadow and
+ * give each section its own tint plus a coloured rule along the top, so a
+ * reader can find "the green one" without reading every heading. */
+.dashboard-tool-card--tinted {
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-tool-card--tinted::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 4px;
+  background: var(--card-accent, transparent);
+}
+
+.dashboard-tool-card--violet {
+  --card-accent: #8b5cf6;
+  border-color: rgb(139 92 246 / 0.28);
+  background: linear-gradient(160deg, #fbfaff 0%, #f3effe 55%, #ece5fd 100%);
+}
+
+.dashboard-tool-card--sky {
+  --card-accent: #0ea5e9;
+  border-color: rgb(14 165 233 / 0.26);
+  background: linear-gradient(160deg, #f8fdff 0%, #eaf6fe 55%, #dceffb 100%);
+}
+
+.dashboard-tool-card--emerald {
+  --card-accent: #10b981;
+  border-color: rgb(16 185 129 / 0.26);
+  background: linear-gradient(160deg, #f7fefb 0%, #e9f9f2 55%, #dcf4e9 100%);
+}
+
+.dashboard-tool-card--amber {
+  --card-accent: #f59e0b;
+  border-color: rgb(245 158 11 / 0.3);
+  background: linear-gradient(160deg, #fffdf5 0%, #fdf5e2 55%, #f9ecd2 100%);
+}
+
+.dashboard-tool-card--pink {
+  --card-accent: #ec4899;
+  border-color: rgb(236 72 153 / 0.26);
+  background: linear-gradient(160deg, #fffafc 0%, #fdeef5 55%, #fbe2ee 100%);
+}
+
+/* Night keeps the rule — that is what distinguishes the cards there — and
+ * only breathes the colour into the surface, so the dark dashboard does
+ * not turn into five coloured panels. */
+html.dark .dashboard-tool-card--violet {
+  border-color: rgb(139 92 246 / 0.24);
+  background: rgb(139 92 246 / 0.07);
+}
+
+html.dark .dashboard-tool-card--sky {
+  border-color: rgb(14 165 233 / 0.22);
+  background: rgb(14 165 233 / 0.07);
+}
+
+html.dark .dashboard-tool-card--emerald {
+  border-color: rgb(16 185 129 / 0.22);
+  background: rgb(16 185 129 / 0.07);
+}
+
+html.dark .dashboard-tool-card--amber {
+  border-color: rgb(245 158 11 / 0.24);
+  background: rgb(245 158 11 / 0.07);
+}
+
+html.dark .dashboard-tool-card--pink {
+  border-color: rgb(236 72 153 / 0.22);
+  background: rgb(236 72 153 / 0.07);
+}
+
 html.dark .dashboard-tool-card {
   border-color: rgb(255 255 255 / 0.06);
   background: rgb(22 22 26 / 0.4);

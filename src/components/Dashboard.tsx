@@ -20,6 +20,7 @@ import { StudentTools } from "./dashboard/StudentTools";
 import { SemesterSubjects } from "./dashboard/SemesterSubjects";
 import { StudentStudyCalendar } from "./dashboard/StudentStudyCalendar";
 import { DailyGoals } from "./profile/DailyGoals";
+import { SubjectProgress } from "./profile/SubjectProgress";
 import { DASHBOARD_GOALS_STORAGE_KEY } from "@/lib/profile";
 import { DashboardJournalWidget } from "./lecture-notes/DashboardJournalWidget";
 import { ImportantDocuments } from "./dashboard/ImportantDocuments";
@@ -316,7 +317,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           <StudentStudyCalendar />
 
           {goalsOnDashboard && (
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--pink rounded-[32px] p-6 sm:p-8">
               <DailyGoals title="ჩემი მიზნები" />
             </div>
           )}
@@ -380,28 +381,10 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           </section>
 
           <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <article className="rounded-[28px] border border-slate-200 bg-white p-5 dark:border-2 dark:border-white/10 dark:bg-[#121214]">
-              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">საგნობრივი პროგრესი</h3>
-              {[
-                ["მონაცემთა სტრუქტურები", 68, "#a78bfa"],
-                ["ალგორითმები", 84, "#22d3ee"],
-                ["მათემატიკა", 55, "#4ade80"],
-                ["სტატისტიკა", 41, "#fbbf24"],
-              ].map(([subject, val, color]) => (
-                <div key={String(subject)} className="mb-4 last:mb-0">
-                  <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-zinc-300">
-                    <span>{subject}</span>
-                    <span>{val}%</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]">
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${Number(val)}%`, backgroundColor: String(color) }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </article>
+            {/* The real subjects, from the semester the student set up — the
+                four names and percentages that used to sit here were
+                invented, and stayed the same whatever anyone studied. */}
+            <SubjectProgress />
 
             <article className="rounded-[28px] border border-slate-200 bg-white p-5 dark:border-2 dark:border-white/10 dark:bg-[#121214]">
               <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">სწრაფი ქმედება</h3>
