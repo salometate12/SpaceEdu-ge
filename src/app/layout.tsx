@@ -21,6 +21,7 @@ import { FocusModeExitPill } from "@/components/layout/FocusModeToggle";
 import { MobileSideMenuProvider } from "@/contexts/MobileSideMenuContext";
 import { MobileSideMenuDrawer } from "@/components/dashboard/MobileSideMenuDrawer";
 import { ka } from "@/lib/i18n";
+import { PwaRegister } from "@/components/pwa/PwaRegister";
 import "./globals.css";
 
 const notoGeorgian = Noto_Sans_Georgian({
@@ -159,6 +160,7 @@ export default function RootLayout({
                     <FooterByPath />
                     <MobileGlassDockByPath />
                     <FocusModeExitPill />
+                    <PwaRegister />
                   </div>
                   <SiteThemeAccess />
                 </FocusModeProvider>
