@@ -146,3 +146,33 @@ export function pickRandomPastPassage(
 export function paperLabel(item: { year: number; variantLabel: string }): string {
   return `${item.year} · ${item.variantLabel}`;
 }
+
+/** How many questions the archive's Part II texts carry in total. */
+export function pastQuestionCount(subjectId = "georgian"): number {
+  return pastPassages(subjectId).reduce(
+    (total, passage) => total + passage.questions.length,
+    0,
+  );
+}
+
+/**
+ * What the papers actually ask, counted — so the practice page can say
+ * "these are the questions" rather than advertising a list of tropes.
+ */
+export function pastCategoryCounts(
+  subjectId = "georgian",
+): { category: ExamCategory; count: number }[] {
+  const counts = new Map<ExamCategory, number>();
+  for (const year of getExamYears(subjectId)) {
+    for (const variant of year.variants) {
+      for (const passage of variant.passages) {
+        for (const question of passage.questions) {
+          counts.set(question.category, (counts.get(question.category) ?? 0) + 1);
+        }
+      }
+    }
+  }
+  return [...counts.entries()]
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+}

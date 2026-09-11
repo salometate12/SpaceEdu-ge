@@ -3,7 +3,7 @@ import { LiteraryParallelsTablePage } from "@/components/abiturient/georgian/Lit
 
 function TableFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-sm text-gray-500">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] text-sm text-slate-500 dark:text-gray-500">
       იტვირთება...
     </div>
   );
