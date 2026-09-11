@@ -229,7 +229,7 @@ export function PremiumStreamAssistant({
         <button
           type="button"
           onClick={handleReset}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-white/[0.16] hover:bg-white/[0.08]"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-white/[0.16] dark:hover:bg-white/[0.08]"
         >
           ახალი თემა
         </button>
@@ -250,7 +250,7 @@ export function PremiumStreamAssistant({
         disabled={isLoading}
         maxLength={maxLength}
         rows={3}
-        className="min-h-[72px] flex-1 resize-none bg-transparent px-2 py-1 text-sm text-white placeholder-gray-500 focus:outline-none"
+        className="min-h-[72px] flex-1 resize-none bg-transparent px-2 py-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:text-white dark:placeholder-gray-500"
       />
     ) : (
       <input
@@ -260,7 +260,7 @@ export function PremiumStreamAssistant({
         placeholder={ui.searchPlaceholder}
         disabled={isLoading}
         maxLength={maxLength}
-        className="flex-1 bg-transparent px-2 text-sm text-white placeholder-gray-500 focus:outline-none"
+        className="flex-1 bg-transparent px-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:text-white dark:placeholder-gray-500"
       />
     );
 
@@ -269,7 +269,7 @@ export function PremiumStreamAssistant({
       onSubmit={handleSubmit}
       className={
         className ??
-        "flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#121214]/80 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-purple-500/40"
+        "flex w-full max-w-xl items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-purple-500/40 dark:border-white/[0.08] dark:bg-[#121214]/80"
       }
     >
       {inputMode === "textarea" ? (
@@ -290,7 +290,7 @@ export function PremiumStreamAssistant({
             </button>
           </div>
           {charCountLabel && (
-            <p className="px-2 text-right text-[11px] text-gray-500">
+            <p className="px-2 text-right text-[11px] text-slate-500 dark:text-gray-500">
               {value.length} / {maxLength} {charCountLabel}
             </p>
           )}
@@ -327,7 +327,7 @@ export function PremiumStreamAssistant({
         />
       </div>
 
-      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#09090b]">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
         <div
           className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/5 blur-[120px]"
           aria-hidden
@@ -338,8 +338,8 @@ export function PremiumStreamAssistant({
             <div className="mb-4 rounded-2xl border border-purple-500/10 bg-purple-500/5 p-4">
               {emptyIcon ?? defaultEmptyIcon}
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-white">{ui.pageTitle}</h1>
-            <p className="mt-2 max-w-md text-center text-sm leading-relaxed text-gray-400">
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{ui.pageTitle}</h1>
+            <p className="mt-2 max-w-md text-center text-sm leading-relaxed text-slate-600 dark:text-gray-400">
               {ui.emptyHint}
             </p>
             <div className="mt-6 flex w-full flex-col items-center justify-center">
@@ -359,13 +359,13 @@ export function PremiumStreamAssistant({
         ) : (
           <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
             {(isSearchingPhase || (error && displayContent.length > 0)) && (
-              <div className="shrink-0 space-y-2 border-b border-white/[0.06] px-4 py-3 lg:px-6">
+              <div className="shrink-0 space-y-2 border-b border-slate-200 px-4 py-3 lg:px-6 dark:border-white/[0.06]">
                 {isSearchingPhase && (
                   <div className="flex items-center gap-2 text-xs text-purple-300">
                     <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
                     {ui.searching}
                     {activeQuery && (
-                      <span className="truncate text-gray-500">— {activeQuery}</span>
+                      <span className="truncate text-slate-500 dark:text-gray-500">— {activeQuery}</span>
                     )}
                   </div>
                 )}
@@ -403,7 +403,7 @@ export function PremiumStreamAssistant({
                       <button
                         type="button"
                         onClick={stop}
-                        className="inline-flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-xs text-gray-300 hover:bg-white/[0.06]"
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:bg-slate-50 dark:border-white/[0.06] dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                       >
                         <Square className="h-3 w-3 stroke-[1.5]" />
                         {ui.stop}
@@ -423,7 +423,7 @@ export function PremiumStreamAssistant({
               />
             </div>
 
-            <div className="shrink-0 border-t border-white/[0.06] p-4 lg:px-8">
+            <div className="shrink-0 border-t border-slate-200 p-4 lg:px-8 dark:border-white/[0.06]">
               <div className="mx-auto max-w-xl">{searchForm()}</div>
             </div>
           </div>
