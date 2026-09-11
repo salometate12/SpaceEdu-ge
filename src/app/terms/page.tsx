@@ -87,25 +87,25 @@ const SECTIONS: Section[] = [
 
 export default function TermsOfServicePage() {
   return (
-    <main className="relative min-h-dvh bg-[#09090b] px-4 py-12 sm:px-6">
+    <main className="relative min-h-dvh bg-[var(--bg-primary)] px-4 py-12 sm:px-6">
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-8 flex items-center justify-between gap-3">
           <div>
-            <h1 className="headline text-3xl font-bold text-white">წესები და პირობები</h1>
-            <p className="mt-2 text-sm text-gray-500">ბოლო განახლება: {LAST_UPDATED}</p>
+            <h1 className="headline text-3xl font-bold text-slate-900 dark:text-white">წესები და პირობები</h1>
+            <p className="mt-2 text-sm text-slate-500 dark:text-gray-500">ბოლო განახლება: {LAST_UPDATED}</p>
           </div>
           <Link href="/">
             <Button variant="ghost">← მთავარი</Button>
           </Link>
         </div>
 
-        <div className="space-y-8 rounded-2xl border border-white/[0.08] bg-[#121214]/40 p-6 backdrop-blur-xl sm:p-8">
+        <div className="space-y-8 rounded-2xl border border-slate-200 bg-white/80 p-6 backdrop-blur-xl sm:p-8 dark:border-white/[0.08] dark:bg-[#121214]/40">
           {SECTIONS.map((section) => (
             <section key={section.title}>
-              <h2 className="headline text-lg font-semibold text-white">{section.title}</h2>
+              <h2 className="headline text-lg font-semibold text-slate-900 dark:text-white">{section.title}</h2>
               <div className="mt-2 space-y-2">
                 {section.body.map((paragraph) => (
-                  <p key={paragraph} className="text-sm leading-relaxed text-gray-400">
+                  <p key={paragraph} className="text-sm leading-relaxed text-slate-600 dark:text-gray-400">
                     {paragraph}
                   </p>
                 ))}
