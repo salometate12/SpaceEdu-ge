@@ -89,6 +89,13 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
   { path: "/ai-teacher", space: "student", match: "exact" },
   { path: "/lecture-notes", space: "student", match: "prefix" },
   { path: "/journal", space: "student", match: "prefix" },
+  // The rest of the student side rail. Without these the header falls
+  // through to the account's own space, so an admin whose account is
+  // abiturient saw the abiturient chip — and an abiturient "Dashboard"
+  // link — while standing on a student-only tool.
+  { path: "/presentation", space: "student", match: "prefix" },
+  { path: "/syllabus", space: "student", match: "prefix" },
+  { path: "/cv", space: "student", match: "prefix" },
 ];
 
 /**

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Check,
   LoaderCircle,
   NotebookPen,
   Plus,
+  Save,
   Send,
   Sparkles,
   StickyNote,
@@ -20,6 +22,7 @@ import {
   extractLocalKeywords,
   formatGeorgianDate,
   loadAbitLectureNotes,
+  previewAbitNote,
   saveAbitLectureNotes,
   upsertLectureNote,
   type AbitLectureNote,
@@ -51,6 +54,8 @@ export function AbiturientLectureNotesWidget() {
   const [chatInput, setChatInput] = useState("");
   const [chatBusy, setChatBusy] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  /** A saved note folds down to a sticker; writing one opens it back up. */
+  const [collapsed, setCollapsed] = useState(false);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
 
   const keywordTimer = useRef<number | null>(null);
@@ -260,7 +265,15 @@ export function AbiturientLectureNotesWidget() {
     setActiveId(blank.id);
     setSelectedKeyword(null);
     setTurns([]);
+    setCollapsed(false);
     textareaRef.current?.focus();
+  };
+
+  /** Writing is already saved as you type; this is the gesture that says
+   *  "done" and folds the note away. */
+  const saveAndCollapse = () => {
+    saveAbitLectureNotes(notes);
+    setCollapsed(true);
   };
 
   const deleteActive = () => {
@@ -277,6 +290,7 @@ export function AbiturientLectureNotesWidget() {
     }
     setTurns([]);
     setSelectedKeyword(null);
+    setCollapsed(false);
   };
 
   const highlightCount = useMemo(() => {
@@ -332,6 +346,7 @@ export function AbiturientLectureNotesWidget() {
                       setActiveId(note.id);
                       setTurns([]);
                       setSelectedKeyword(null);
+                      setCollapsed(false);
                     }}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                       selected
@@ -349,10 +364,50 @@ export function AbiturientLectureNotesWidget() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+          {collapsed ? (
+            /* Saved: the whole desk folds down to one sticker. Tapping it —
+               or starting a new note — opens it back up. */
+            <motion.button
+              key="sticker"
+              type="button"
+              onClick={() => setCollapsed(false)}
+              initial={{ opacity: 0, scale: 0.9, y: -8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className={`block w-full max-w-xs rounded-3xl border p-4 text-left transition hover:-translate-y-1 sm:max-w-sm ${palette.card}`}
+            >
+              <span className="flex items-center gap-2">
+                <StickyNote className={`h-4 w-4 shrink-0 ${palette.icon}`} />
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-stone-900 dark:text-white">
+                  {displayTitle}
+                </span>
+                <span className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-bold ${palette.label_}`}>
+                  <Check className="h-3.5 w-3.5" />
+                  შენახულია
+                </span>
+              </span>
+              <span className={`mt-1 block text-[11px] font-semibold ${palette.body}`}>
+                {formatGeorgianDate(active.date)}
+              </span>
+              <span className="mt-2 line-clamp-2 block text-xs text-stone-600 dark:text-zinc-300">
+                {previewAbitNote(active.content)}
+              </span>
+              <span className={`mt-3 block text-[11px] font-bold ${palette.label_}`}>
+                დააჭირე გასახსნელად
+                {active.aiKeywords.length > 0
+                  ? ` · ${active.aiKeywords.length} თემა`
+                  : ""}
+              </span>
+            </motion.button>
+          ) : (
+          <motion.div
+            key="editor"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]"
+          >
+            <div
               className={`rounded-3xl border p-4 sm:p-5 ${palette.card}`}
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
@@ -434,7 +489,7 @@ export function AbiturientLectureNotesWidget() {
                 </p>
               )}
 
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={deleteActive}
@@ -443,8 +498,16 @@ export function AbiturientLectureNotesWidget() {
                   <Trash2 className="h-4 w-4" />
                   ნოტის წაშლა
                 </button>
+                <button
+                  type="button"
+                  onClick={saveAndCollapse}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition ${palette.solid}`}
+                >
+                  <Save className="h-4 w-4" />
+                  ნოტის შენახვა
+                </button>
               </div>
-            </motion.div>
+            </div>
 
             <div className="flex flex-col gap-4">
               <section className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-[#121214] sm:p-5">
@@ -562,7 +625,8 @@ export function AbiturientLectureNotesWidget() {
                 </form>
               </section>
             </div>
-          </div>
+          </motion.div>
+          )}
         </>
       )}
     </section>
