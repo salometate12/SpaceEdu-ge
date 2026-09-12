@@ -1,4 +1,5 @@
 import { POST as aiPost } from "@/app/api/ai/route";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -8,6 +9,9 @@ export const maxDuration = 120;
  * Kept as a thin proxy for backward compatibility.
  */
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   const body = (await request.json()) as {
     subject?: string;
     topics?: string;

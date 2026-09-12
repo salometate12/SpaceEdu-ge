@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
 
@@ -18,6 +19,9 @@ const GoalsSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("profile-goals");
     const body = BodySchema.parse(await request.json());

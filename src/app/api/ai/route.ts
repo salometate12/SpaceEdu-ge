@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { buildUserPrompt } from "@/lib/ai/build-user-prompt";
 import { CvRequestSchema, CvResponseSchema, type CvResponse } from "@/lib/ai/cv-schema";
 import {
@@ -286,6 +287,9 @@ async function handleMultipartPost(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("ai");
 

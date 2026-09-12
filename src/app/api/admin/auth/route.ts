@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { verifyAdminPassword } from "@/lib/admin/auth";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  // Five tries a minute per IP — no legitimate login needs more, and it
+  // turns password guessing from seconds into years.
+  const limited = await enforceRateLimit(request, "admin-login");
+  if (limited) return limited;
+
   let password = "";
   try {
     const body = (await request.json()) as { password?: string };
