@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { findPricingTier, isTrialTier } from "@/lib/landing-pricing-plans";
+import { isPaywallEnabled } from "@/lib/subscription";
 
 /** How long each paid tier runs, in days. */
 const TIER_DAYS: Record<string, number> = {
@@ -24,6 +25,15 @@ const TIER_DAYS: Record<string, number> = {
  * checkout itself is a local stub.
  */
 export async function POST(request: Request) {
+  // No paywall, no payments: refuse to write a plan onto an account while
+  // the paywall is off. This also closes, for launch, the standing hole
+  // where any signed-in caller could grant themselves a paid entitlement
+  // with no verification — when payments go live, that verification lands
+  // here before the updateUser below.
+  if (!isPaywallEnabled()) {
+    return NextResponse.json({ error: "payments-disabled" }, { status: 503 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

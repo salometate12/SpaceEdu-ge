@@ -4,6 +4,7 @@ import { getSupabaseAnonKey, getSupabaseUrl } from "@/utils/supabase/env";
 import { getSpaceRedirectHref, isAdminEmail } from "@/lib/access-control";
 import {
   hasActivePlan,
+  isPaywallEnabled,
   isPaywalledPath,
   isTrialExpired,
   PAYWALL_REASON_PARAM,
@@ -134,8 +135,10 @@ export async function middleware(request: NextRequest) {
 
   // The three-day trial. Counted from the account's own creation time, so
   // nothing extra has to be stored, and lifted the moment a payment writes
-  // an entitlement.
+  // an entitlement. Gated by isPaywallEnabled() — off until a live payment
+  // provider exists, so no one is sent to a checkout that cannot charge.
   if (
+    isPaywallEnabled() &&
     isPaywalledPath(pathname) &&
     !hasActivePlan(readEntitlement(metadata)) &&
     isTrialExpired(user.created_at)

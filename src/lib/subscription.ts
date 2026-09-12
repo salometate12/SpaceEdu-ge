@@ -99,6 +99,20 @@ const PAYWALLED_PREFIXES = [
   "/notifications",
 ];
 
+/**
+ * Whether the paywall is switched on at all.
+ *
+ * Off by default, and turned on only when `PAYWALL_ENABLED` is exactly
+ * "true". The trial and the checkout redirect exist in code, but there is
+ * no live payment provider yet — so shipping with them on would send every
+ * trial-expired user to a checkout that cannot take money and strand them.
+ * Launch with this unset; flip it to "true" in the environment once the
+ * bank integration is live, with no code change.
+ */
+export function isPaywallEnabled(): boolean {
+  return process.env.PAYWALL_ENABLED === "true";
+}
+
 export function isPaywalledPath(pathname: string): boolean {
   return PAYWALLED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
