@@ -1,4 +1,5 @@
 import { google } from "@ai-sdk/google";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import {
   buildHistoryUserPrompt,
   HISTORY_ASSISTANT_SYSTEM_PROMPT,
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   try {
     requireApiKey("history-assistant");
 

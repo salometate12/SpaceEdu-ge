@@ -1,4 +1,5 @@
 import { requireApiKey } from "@/lib/ai/parse-form-data";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import {
   buildCivicsUserPrompt,
@@ -13,6 +14,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   try {
     requireApiKey("civics-assistant");
 

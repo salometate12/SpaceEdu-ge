@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import {
   filterPrograms,
   pickPrimaryPrediction,
@@ -7,6 +8,9 @@ import { handbookAvailable, loadHandbook } from "@/lib/exam-calculator/load-hand
 import { normalizeScores } from "@/lib/exam-calculator/subjects";
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   try {
     if (!(await handbookAvailable())) {
       return NextResponse.json(

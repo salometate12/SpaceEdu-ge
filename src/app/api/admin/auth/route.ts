@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { verifyAdminPassword } from "@/lib/admin/auth";
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   let password = "";
   try {
     const body = (await request.json()) as { password?: string };

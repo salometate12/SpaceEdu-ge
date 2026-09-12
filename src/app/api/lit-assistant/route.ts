@@ -3,6 +3,7 @@ import {
   LIT_SEARCH_SYSTEM_PROMPT,
 } from "@/lib/ai/lit-assistant-prompts";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import {
   getSmartSpaceSystemInstruction,
@@ -13,6 +14,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   try {
     requireApiKey("lit-assistant");
 

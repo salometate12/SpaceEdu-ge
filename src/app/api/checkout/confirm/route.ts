@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { createClient } from "@/utils/supabase/server";
 import { findPricingTier, isTrialTier } from "@/lib/landing-pricing-plans";
 
@@ -24,6 +25,9 @@ const TIER_DAYS: Record<string, number> = {
  * checkout itself is a local stub.
  */
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   let body: unknown;
   try {
     body = await request.json();

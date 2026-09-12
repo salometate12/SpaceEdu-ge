@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { findPricingTier, isTrialTier, roleForTier } from "@/lib/landing-pricing-plans";
 
 /**
@@ -14,6 +15,9 @@ import { findPricingTier, isTrialTier, roleForTier } from "@/lib/landing-pricing
  * may follow it (development only — see `CheckoutPage`).
  */
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   let body: unknown;
   try {
     body = await request.json();

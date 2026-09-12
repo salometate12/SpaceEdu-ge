@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { getPasswordFromRequest, unauthorizedResponse, verifyAdminPassword } from "@/lib/admin/auth";
 import {
   handbookAvailable,
@@ -15,6 +16,9 @@ function assertAuthorized(request: Request) {
 
 /** POST — seed Supabase from bundled data/universities.json (one-time migration). */
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   const authError = assertAuthorized(request);
   if (authError) return authError;
 

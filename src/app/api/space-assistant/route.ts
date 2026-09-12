@@ -1,4 +1,5 @@
 import { requireApiKey } from "@/lib/ai/parse-form-data";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import {
   getSmartSpaceSystemInstruction,
@@ -19,6 +20,9 @@ const BASE_SYSTEM_PROMPT = `შენ ხარ SpaceEdu-ს მრავალ�
 const MAX_QUERY_LENGTH = 12000;
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   try {
     requireApiKey("space-assistant");
 

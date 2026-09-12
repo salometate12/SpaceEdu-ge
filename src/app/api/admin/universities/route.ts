@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import {
   getPasswordFromRequest,
   unauthorizedResponse,
@@ -36,6 +37,9 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   const authError = assertAuthorized(request);
   if (authError) return authError;
 
