@@ -37,6 +37,13 @@ export function PwaRegister() {
 
     const register = async () => {
       if (!("serviceWorker" in navigator)) return;
+      // No worker in development: it would serve yesterday's chunks over a
+      // dev server that rebuilds on every keystroke.
+      if (process.env.NODE_ENV === "development") {
+        const existing = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(existing.map((registration) => registration.unregister()));
+        return;
+      }
       try {
         const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
