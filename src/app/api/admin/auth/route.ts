@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { verifyAdminPassword } from "@/lib/admin/auth";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
   // Five tries a minute per IP — no legitimate login needs more, and it
   // turns password guessing from seconds into years.
   const limited = await enforceRateLimit(request, "admin-login");

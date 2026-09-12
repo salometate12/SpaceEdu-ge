@@ -1,4 +1,5 @@
 import { google } from "@ai-sdk/google";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import {
   buildHistoryUserPrompt,
@@ -15,6 +16,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
   const limited = await enforceRateLimit(request, "ai");
   if (limited) return limited;
 

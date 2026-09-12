@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { createClient } from "@/utils/supabase/server";
 import { findPricingTier, isTrialTier } from "@/lib/landing-pricing-plans";
 import { isPaywallEnabled } from "@/lib/subscription";
@@ -25,6 +26,8 @@ const TIER_DAYS: Record<string, number> = {
  * checkout itself is a local stub.
  */
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
   // No paywall, no payments: refuse to write a plan onto an account while
   // the paywall is off. This also closes, for launch, the standing hole
   // where any signed-in caller could grant themselves a paid entitlement
