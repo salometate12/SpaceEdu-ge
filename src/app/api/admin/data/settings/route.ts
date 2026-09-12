@@ -31,8 +31,6 @@ function sanitizeForClient(settings: AdminSettings): AdminSettings {
     ai: {
       ...settings.ai,
       googleGenerativeAiApiKey: maskKey(settings.ai.googleGenerativeAiApiKey),
-      groqApiKey: maskKey(settings.ai.groqApiKey),
-      openrouterApiKey: maskKey(settings.ai.openrouterApiKey),
       openaiApiKey: maskKey(settings.ai.openaiApiKey),
       anthropicApiKey: maskKey(settings.ai.anthropicApiKey),
     },
@@ -78,11 +76,6 @@ export async function PUT(request: Request) {
         incoming.ai.googleGenerativeAiApiKey,
         current.ai.googleGenerativeAiApiKey,
       ),
-      groqApiKey: mergeKey(incoming.ai.groqApiKey, current.ai.groqApiKey),
-      openrouterApiKey: mergeKey(
-        incoming.ai.openrouterApiKey,
-        current.ai.openrouterApiKey,
-      ),
       openaiApiKey: mergeKey(incoming.ai.openaiApiKey, current.ai.openaiApiKey),
       anthropicApiKey: mergeKey(
         incoming.ai.anthropicApiKey,
@@ -90,9 +83,6 @@ export async function PUT(request: Request) {
       ),
       providerOrder: incoming.ai.providerOrder?.trim() || current.ai.providerOrder,
       geminiModel: incoming.ai.geminiModel?.trim() || current.ai.geminiModel,
-      groqModel: incoming.ai.groqModel?.trim() || current.ai.groqModel,
-      openrouterModel:
-        incoming.ai.openrouterModel?.trim() || current.ai.openrouterModel,
       openaiModel: incoming.ai.openaiModel?.trim() || current.ai.openaiModel,
       anthropicModel: incoming.ai.anthropicModel?.trim() || current.ai.anthropicModel,
     },
