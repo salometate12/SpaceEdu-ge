@@ -15,8 +15,31 @@ const PUBLIC_PATHS = new Set([
   "/auth/complete",
 ]);
 
+/**
+ * Files Next generates from `app/` that carry no dot in their URL.
+ *
+ * The dot test below is what lets `/favicon.ico` and `/manifest.webmanifest`
+ * through, and these have no extension to catch — so the gate was sending
+ * every crawler that asked for the link-preview card to /select-space and
+ * handing it an HTML page instead of a PNG. That is why search and social
+ * showed the wrong image.
+ */
+const PUBLIC_METADATA_PATHS = new Set([
+  "/opengraph-image",
+  "/twitter-image",
+  "/icon",
+  "/apple-icon",
+  "/sitemap.xml",
+  "/robots.txt",
+  "/manifest.webmanifest",
+]);
+
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
+  if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
+  // Next appends a cache-busting segment to generated metadata routes,
+  // e.g. /opengraph-image/opengraph-image.png or /icon/route-id.
+  if (/^\/(opengraph-image|twitter-image|icon|apple-icon)(\/|-|$)/.test(pathname)) return true;
   if (pathname.startsWith("/admin")) return true; // has its own password gate
   if (pathname.startsWith("/api/")) return true; // API routes enforce their own auth
   if (pathname.includes(".")) return true; // static files (favicon, images, robots.txt, etc.)
