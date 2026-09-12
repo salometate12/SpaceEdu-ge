@@ -1297,11 +1297,33 @@ html.dark .paper-sticker:active {
   }
 }
 
+/* The gap above the header pill on phones.
+ *
+ * `viewport-fit=cover` lets the page run under the status bar, so a pill
+ * pinned at `top: 0` sits beneath the clock and the battery on any notched
+ * phone — which is what made the landing's menu look jammed against the
+ * top edge. This is the safe-area inset, with a small floor so phones
+ * without a notch still get a little breathing room. Zero from `md` up,
+ * where the desktop bar already has its own spacing. */
+:root {
+  --site-header-gap: 0px;
+}
+
 @media (max-width: 767.98px) {
+  :root {
+    --site-header-gap: max(0.5rem, env(safe-area-inset-top, 0px));
+  }
+
   html[data-ground="landing"],
   html[data-landing-header] {
-    --site-header-h: 4.5rem;
+    --site-header-h: calc(4.5rem + var(--site-header-gap));
   }
+}
+
+/* Sits on the sticky strip that carries the pill, so the gap travels with
+   it and `--site-header-h` above stays the strip's true height. */
+.site-header-strip {
+  padding-top: var(--site-header-gap);
 }
 
 .under-site-header {
