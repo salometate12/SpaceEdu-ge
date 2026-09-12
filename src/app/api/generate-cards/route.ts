@@ -1,4 +1,5 @@
 import { GEORGIAN_FLASHCARD_SYSTEM_PROMPT } from "@/lib/ai/prompts";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { FLASHCARD_JSON_OUTPUT_RULE } from "@/lib/ai/parse-flashcards-json";
 import {
   parseGenerationFormData,
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("generate-cards");
 

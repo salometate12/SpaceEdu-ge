@@ -16,9 +16,17 @@ export async function POST(request: Request) {
     prompt?: string;
   };
 
+  // Carry the caller's IP forward: /api/ai runs the rate-limit guard, and
+  // without these headers every ai-teacher request would share one bucket.
+  const forwardHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  const xff = request.headers.get("x-forwarded-for");
+  if (xff) forwardHeaders["x-forwarded-for"] = xff;
+  const xri = request.headers.get("x-real-ip");
+  if (xri) forwardHeaders["x-real-ip"] = xri;
+
   const proxied = new Request(request.url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: forwardHeaders,
     body: JSON.stringify({
       pageType: "ai-teacher",
       payload: {

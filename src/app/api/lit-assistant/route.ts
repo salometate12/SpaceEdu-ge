@@ -4,6 +4,7 @@ import {
 } from "@/lib/ai/lit-assistant-prompts";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { enforceJsonBodyLimit } from "@/lib/request-limits";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import {
   getSmartSpaceSystemInstruction,
@@ -16,6 +17,8 @@ export const maxDuration = 120;
 export async function POST(request: Request) {
   const tooLarge = enforceJsonBodyLimit(request);
   if (tooLarge) return tooLarge;
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
 
   try {
     requireApiKey("lit-assistant");
