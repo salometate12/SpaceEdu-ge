@@ -1,4 +1,5 @@
 import { google } from "@ai-sdk/google";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import {
   buildHistoryUserPrompt,
   HISTORY_ASSISTANT_SYSTEM_PROMPT,
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("history-assistant");
 

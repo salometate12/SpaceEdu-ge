@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import {
   filterPrograms,
   pickPrimaryPrediction,
@@ -7,6 +8,9 @@ import { handbookAvailable, loadHandbook } from "@/lib/exam-calculator/load-hand
 import { normalizeScores } from "@/lib/exam-calculator/subjects";
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     if (!(await handbookAvailable())) {
       return NextResponse.json(

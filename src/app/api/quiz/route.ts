@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { extractTextFromPdfFile, PdfExtractError } from "@/lib/ai/extract-pdf-text";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
@@ -90,6 +91,9 @@ async function extractTextFromTextFile(file: File): Promise<string> {
 }
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("quiz");
 

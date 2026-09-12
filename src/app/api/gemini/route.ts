@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateLlmText } from "@/lib/gemini";
 
@@ -9,6 +10,9 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "ai");
+  if (limited) return limited;
+
   try {
     requireApiKey("gemini");
     const body = BodySchema.parse(await request.json());
