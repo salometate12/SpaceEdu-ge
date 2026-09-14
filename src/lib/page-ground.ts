@@ -13,6 +13,7 @@ export function pageGround(pathname: string | null | undefined): PageGround {
   if (pathname === "/") return "landing";
   if (
     pathname === "/about" ||
+    pathname === "/contact" ||
     pathname === "/select-space" ||
     pathname === "/checkout" ||
     pathname.startsWith("/checkout/")

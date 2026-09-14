@@ -9,7 +9,7 @@ const PRODUCT_LINKS = [
 
 const COMPANY_LINKS = [
   { href: "/about", label: "ჩვენს შესახებ" },
-  { href: "/#pricing", label: "კონტაქტი" },
+  { href: "/contact", label: "კონტაქტი" },
   { href: "/privacy", label: "კონფიდენციალურობა" },
   { href: "/terms", label: "წესები და პირობები" },
 ];

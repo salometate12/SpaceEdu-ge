@@ -99,6 +99,9 @@ export function HeaderByPath() {
     return null;
   }
   const landingVariant =
-    pathname === "/" || pathname === "/pricing" || pathname === "/about";
+    pathname === "/" ||
+    pathname === "/pricing" ||
+    pathname === "/about" ||
+    pathname === "/contact";
   return <Header variant={landingVariant ? "landing" : "dashboard"} />;
 }
