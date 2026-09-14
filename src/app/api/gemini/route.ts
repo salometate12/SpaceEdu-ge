@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateLlmText } from "@/lib/gemini";
@@ -6,10 +7,12 @@ import { errorJsonResponse, generateLlmText } from "@/lib/gemini";
 export const maxDuration = 120;
 
 const BodySchema = z.object({
-  prompt: z.string().min(1),
+  prompt: z.string().min(1).max(20000),
 });
 
 export async function POST(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
   const limited = await enforceRateLimit(request, "ai");
   if (limited) return limited;
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import {
   getPasswordFromRequest,
   unauthorizedResponse,
@@ -58,6 +59,9 @@ function parseUpdatePayload(body: unknown): UpdateProgramPayload | null {
 
 /** PATCH a single program row and persist to data/universities.json */
 export async function PATCH(request: Request) {
+  const tooLarge = enforceJsonBodyLimit(request);
+  if (tooLarge) return tooLarge;
+
   const authError = assertAuthorized(request);
   if (authError) return authError;
 
