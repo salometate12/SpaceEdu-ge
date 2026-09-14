@@ -73,7 +73,7 @@ export function Header({ variant }: HeaderProps) {
   // `DocumentGround` keeps correct per route.
   return (
     <div
-      className={`sticky top-0 z-40 ${
+      className={`site-header-strip sticky top-0 z-40 ${
         variant === "landing" ? "block" : "hidden md:block"
       }`}
     >
