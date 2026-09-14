@@ -125,7 +125,7 @@ export function PricingCards() {
 
       <div className="mx-auto mb-10 max-w-2xl text-center">
         <p
-          className={`text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
+          className={`text-sm font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
         >
           ფასების პაკეტები
         </p>
