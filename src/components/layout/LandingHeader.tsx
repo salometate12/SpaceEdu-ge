@@ -19,9 +19,9 @@ interface LandingHeaderProps {
 }
 
 const NAV_LINKS = [
-  { href: "/#school", label: "სკოლა" },
+  { href: "/#audience", label: "სკოლა" },
   { href: "/#exam", label: "გამოცდები" },
-  { href: "/#university", label: "უნივერსიტეტი" },
+  { href: "/#audience", label: "უნივერსიტეტი" },
   { href: "/#how-it-works", label: "როგორ მუშაობს" },
   { href: "/#pricing", label: "ფასი" },
   { href: "/about", label: "ჩვენს შესახებ" },
@@ -31,6 +31,38 @@ const MENU_ACTIONS = [
   { href: "/login", label: "შესვლა" },
   { href: "/select-space", label: "დაიწყე უფასოდ" },
 ];
+
+
+/**
+ * A landing header nav link. In-page anchors (`/#…`) render as a plain <a>
+ * so the browser's native hash scroll runs — it honours scroll-padding-top
+ * and actually moves, which a same-page Next <Link> does not. Route links
+ * (e.g. /about) keep <Link> for SPA navigation.
+ */
+function HeaderAnchorLink({
+  href,
+  label,
+  className,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  className: string;
+  onClick?: () => void;
+}) {
+  if (href.startsWith("/#")) {
+    return (
+      <a href={href} onClick={onClick} className={className}>
+        {label}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} onClick={onClick} className={className}>
+      {label}
+    </Link>
+  );
+}
 
 export function LandingHeader({
   scrolled,
@@ -57,9 +89,12 @@ export function LandingHeader({
 
         <HeaderNav>
           {NAV_LINKS.map((item) => (
-            <Link key={item.href} href={item.href} className={headerNavItemClass()}>
-              {item.label}
-            </Link>
+            <HeaderAnchorLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              className={headerNavItemClass()}
+            />
           ))}
         </HeaderNav>
 
@@ -109,14 +144,13 @@ export function LandingHeader({
             className="relative z-[41] mx-3 mb-2 rounded-2xl border border-white/[0.08] bg-[#111118] px-1.5 py-1.5 nav:hidden"
           >
             {NAV_LINKS.map((item) => (
-              <Link
+              <HeaderAnchorLink
                 key={item.href}
                 href={item.href}
+                label={item.label}
                 onClick={closeMenu}
                 className="block rounded-xl px-3.5 py-2.5 text-sm text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white"
-              >
-                {item.label}
-              </Link>
+              />
             ))}
             <div className="mx-3.5 my-1.5 h-px bg-white/[0.08]" />
             {MENU_ACTIONS.map((item) => (

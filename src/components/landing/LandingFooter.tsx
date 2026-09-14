@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin } from "lucide-react";
 
 const PRODUCT_LINKS = [
-  { href: "/#school", label: "სკოლა" },
+  { href: "/#audience", label: "სკოლა" },
   { href: "/#features", label: "ინსტრუმენტები" },
   { href: "/#pricing", label: "ფასი" },
 ];
@@ -13,6 +13,28 @@ const COMPANY_LINKS = [
   { href: "/privacy", label: "კონფიდენციალურობა" },
   { href: "/terms", label: "წესები და პირობები" },
 ];
+
+
+/**
+ * A footer nav link. In-page anchors (`/#…`) render as a plain <a> so the
+ * browser does its native hash scroll — which honours scroll-padding-top and,
+ * unlike a same-page Next <Link>, actually moves. Route links keep <Link>.
+ */
+function FooterNavLink({ href, label }: { href: string; label: string }) {
+  const className = "text-sm text-gray-500 transition-colors hover:text-white";
+  if (href.startsWith("/#")) {
+    return (
+      <a href={href} className={className}>
+        {label}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className}>
+      {label}
+    </Link>
+  );
+}
 
 export function LandingFooter() {
   return (
@@ -33,13 +55,7 @@ export function LandingFooter() {
             <p className="mb-3 text-sm font-semibold text-white">პროდუქტი</p>
             <nav className="flex flex-col gap-2.5">
               {PRODUCT_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="text-sm text-gray-500 transition-colors hover:text-white"
-                >
-                  {link.label}
-                </Link>
+                <FooterNavLink key={link.label} href={link.href} label={link.label} />
               ))}
             </nav>
           </div>
@@ -48,13 +64,7 @@ export function LandingFooter() {
             <p className="mb-3 text-sm font-semibold text-white">კომპანია</p>
             <nav className="flex flex-col gap-2.5">
               {COMPANY_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="text-sm text-gray-500 transition-colors hover:text-white"
-                >
-                  {link.label}
-                </Link>
+                <FooterNavLink key={link.label} href={link.href} label={link.label} />
               ))}
             </nav>
           </div>
