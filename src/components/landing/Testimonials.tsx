@@ -76,7 +76,7 @@ export function Testimonials() {
 
       <div className="mx-auto mb-12 max-w-2xl text-center">
         <p
-          className={`text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
+          className={`text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
         >
           გამოცდილებები
         </p>
