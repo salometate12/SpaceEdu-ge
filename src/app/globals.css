@@ -1309,6 +1309,15 @@ html.dark .paper-sticker:active {
   padding-top: var(--site-header-h);
 }
 
+/* In-page anchor jumps (the landing's #audience, #exam, #pricing …) must
+ * clear the sticky header, or the section title lands hidden underneath it.
+ * scroll-padding-top offsets every hash jump by the header's height plus a
+ * little air. Uses the same variable the header itself is sized from, so it
+ * tracks the header across breakpoints. */
+html {
+  scroll-padding-top: calc(var(--site-header-h) + 1rem);
+}
+
 /* The dotted ground behind /login and /registration.
  *
  * It used to be an inline style — a hardcoded #09090b with a white dot —
