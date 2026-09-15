@@ -52,9 +52,9 @@ export function HeaderBrand({ href }: { href: string }) {
       <img
         src="/spaceedu-logo.png"
         alt="SpaceEdu"
-        width={40}
-        height={40}
-        className="h-10 w-auto sm:h-11"
+        width={52}
+        height={52}
+        className="h-12 w-auto sm:h-[52px]"
       />
     </Link>
   );
