@@ -13,6 +13,15 @@ export const contentType = "image/png";
  * renders in an isolated environment with a Latin-only default, so the
  * subtitle came out as a row of tofu boxes without this.
  */
+async function logoDataUri(): Promise<string | null> {
+  try {
+    const file = await readFile(path.join(process.cwd(), "public/spaceedu-logo.png"));
+    return `data:image/png;base64,${file.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 async function georgianFont(): Promise<ArrayBuffer | null> {
   try {
     const file = await readFile(
@@ -28,7 +37,7 @@ async function georgianFont(): Promise<ArrayBuffer | null> {
 }
 
 export default async function OpenGraphImage() {
-  const font = await georgianFont();
+  const [font, logo] = await Promise.all([georgianFont(), logoDataUri()]);
 
   return new ImageResponse(
     (
@@ -44,29 +53,12 @@ export default async function OpenGraphImage() {
           fontFamily: font ? "Georgian" : undefined,
         }}
       >
-        <div
-          style={{
-            width: 180,
-            height: 180,
-            borderRadius: 44,
-            background: "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: 92,
-            fontWeight: 700,
-          }}
-        >
-          🚀
-        </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ color: "white", fontSize: 72, fontWeight: 800, letterSpacing: -1.5 }}>
-            SpaceEdu
-          </div>
-          <div style={{ color: "#94a3b8", fontSize: 32, marginTop: 14 }}>
-            AI სასწავლო პლატფორმა
-          </div>
+        {/* The logo already carries the SPACEEDU wordmark. */}
+        {logo ? (
+          <img src={logo} alt="" width={360} height={360} />
+        ) : null}
+        <div style={{ color: "#94a3b8", fontSize: 34 }}>
+          AI სასწავლო პლატფორმა
         </div>
       </div>
     ),

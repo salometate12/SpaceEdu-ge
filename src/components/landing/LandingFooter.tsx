@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 
 const PRODUCT_LINKS = [
   { href: "/#audience", label: "სკოლა" },
@@ -42,10 +41,14 @@ export function LandingFooter() {
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-1.5 text-white">
-              <MapPin className="h-4 w-4 text-purple-400" aria-hidden />
-              <span className="headline text-lg font-bold">SpaceEdu</span>
-            </div>
+            {/* The logo carries the wordmark, so no separate text. */}
+            <img
+              src="/spaceedu-logo.png"
+              alt="SpaceEdu"
+              width={72}
+              height={72}
+              className="h-16 w-auto"
+            />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-500">
               შენი პერსონალური სასწავლო სივრცე — სკოლიდან უნივერსიტეტამდე.
             </p>

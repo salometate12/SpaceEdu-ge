@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Rocket } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
@@ -47,12 +46,16 @@ export function HeaderBrand({ href }: { href: string }) {
       href={href}
       className="group flex shrink-0 items-center gap-2 rounded-full transition-opacity hover:opacity-90 sm:gap-2.5 sm:pr-2"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-[0_0_18px_rgba(124,58,237,0.45)] sm:h-9 sm:w-9">
-        <Rocket className="h-4 w-4 text-white" strokeWidth={2.2} />
-      </span>
-      <span className="headline text-sm font-bold tracking-tight text-white sm:text-[15px]">
-        SpaceEdu
-      </span>
+      {/* The brand logo already carries the "SpaceEdu" wordmark, so no
+          separate text. The header pill is dark in both themes, which is
+          the ground this logo is drawn for. */}
+      <img
+        src="/spaceedu-logo.png"
+        alt="SpaceEdu"
+        width={40}
+        height={40}
+        className="h-10 w-auto sm:h-11"
+      />
     </Link>
   );
 }
