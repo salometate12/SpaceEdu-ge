@@ -5,7 +5,7 @@ import { AuthCompleteView } from "@/components/registration/AuthCompleteView";
 function AuthCompleteFallback() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#09090b]">
-      <Loader2 className="h-6 w-6 animate-spin stroke-[1.5] text-purple-400" aria-hidden />
+      <Loader2 className="h-6 w-6 animate-spin stroke-[1.5] text-pink-400" aria-hidden />
     </main>
   );
 }

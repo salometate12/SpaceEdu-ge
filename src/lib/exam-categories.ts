@@ -60,8 +60,8 @@ export const EXAM_CATEGORY_META: Record<ExamCategory, CategoryMeta> = {
   personification: {
     label: "გაპიროვნება",
     hint: "უსულო საგნისთვის ცოცხალი არსების თვისების მინიჭება",
-    badgeClass: "border-violet-500/25 bg-violet-500/10 text-violet-300",
-    badgeClassLight: "border-violet-300 bg-violet-50 text-violet-700 dark:border-transparent dark:bg-transparent dark:text-inherit",
+    badgeClass: "border-pink-500/25 bg-pink-500/10 text-pink-300",
+    badgeClassLight: "border-pink-300 bg-pink-50 text-pink-700 dark:border-transparent dark:bg-transparent dark:text-inherit",
     accent: "#a78bfa",
   },
   allegory: {

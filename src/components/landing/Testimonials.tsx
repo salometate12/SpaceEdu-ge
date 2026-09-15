@@ -72,7 +72,7 @@ export function Testimonials() {
       id="testimonials"
       className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
     >
-      <Sparkle className="pointer-events-none absolute left-8 top-14 hidden h-5 w-5 rotate-12 text-violet-400 xl:block" />
+      <Sparkle className="pointer-events-none absolute left-8 top-14 hidden h-5 w-5 rotate-12 text-pink-400 xl:block" />
 
       <div className="mx-auto mb-12 max-w-2xl text-center">
         <p

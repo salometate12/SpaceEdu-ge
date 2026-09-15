@@ -231,7 +231,7 @@ export function ResearchPlatform() {
           <SpaceBackLink className="inline-flex items-center gap-1.5 text-xs text-gray-400 transition-colors hover:text-white" />
         </Suspense>
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-500 sm:h-11 sm:w-11 dark:border-purple-500/25 dark:bg-purple-500/10 dark:text-purple-300">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-pink-200 bg-pink-50 text-pink-500 sm:h-11 sm:w-11 dark:border-pink-500/25 dark:bg-pink-500/10 dark:text-pink-300">
             <Sparkles className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <div className="min-w-0">
@@ -257,8 +257,8 @@ export function ResearchPlatform() {
               onDrop={onDrop}
               className={`group relative flex cursor-pointer flex-col items-center justify-center gap-2.5 overflow-hidden rounded-2xl border border-dashed px-4 py-10 text-center transition-all duration-300 ${
                 isDragging
-                  ? "scale-[1.01] border-violet-400/70 bg-violet-50 dark:border-purple-400/50 dark:bg-purple-500/10"
-                  : "border-slate-200 hover:border-violet-400/50 hover:bg-violet-50/40 dark:border-white/10 dark:hover:border-purple-500/30 dark:hover:bg-purple-500/[0.04]"
+                  ? "scale-[1.01] border-pink-400/70 bg-pink-50 dark:border-pink-400/50 dark:bg-pink-500/10"
+                  : "border-slate-200 hover:border-pink-400/50 hover:bg-pink-50/40 dark:border-white/10 dark:hover:border-pink-500/30 dark:hover:bg-pink-500/[0.04]"
               }`}
             >
               <input
@@ -270,12 +270,12 @@ export function ResearchPlatform() {
               <span
                 className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 ${
                   isDragging
-                    ? "border-violet-400/60 bg-violet-100 dark:border-purple-400/50 dark:bg-purple-500/20"
+                    ? "border-pink-400/60 bg-pink-100 dark:border-pink-400/50 dark:bg-pink-500/20"
                     : "border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.03]"
                 }`}
               >
                 <UploadCloud
-                  className="h-5 w-5 text-violet-500 transition-transform duration-300 group-hover:-translate-y-0.5 dark:text-purple-300"
+                  className="h-5 w-5 text-pink-500 transition-transform duration-300 group-hover:-translate-y-0.5 dark:text-pink-300"
                   strokeWidth={1.75}
                 />
               </span>
@@ -288,10 +288,10 @@ export function ResearchPlatform() {
             </label>
 
             {fileName && uploadedKind && (
-              <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-violet-300/50 bg-violet-50 px-3 py-2.5 text-xs text-violet-700 dark:border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-300">
+              <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-pink-300/50 bg-pink-50 px-3 py-2.5 text-xs text-pink-700 dark:border-pink-500/20 dark:bg-pink-500/10 dark:text-pink-300">
                 <uploadedKind.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate">{fileName}</span>
-                <span className="shrink-0 rounded-full bg-white/60 px-2 py-0.5 text-[10px] font-medium text-violet-600 dark:bg-black/20 dark:text-purple-200">
+                <span className="shrink-0 rounded-full bg-white/60 px-2 py-0.5 text-[10px] font-medium text-pink-600 dark:bg-black/20 dark:text-pink-200">
                   {uploadedKind.label}
                 </span>
               </div>
@@ -314,15 +314,15 @@ export function ResearchPlatform() {
                     aria-pressed={active}
                     className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
                       active
-                        ? "border-violet-400/60 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15)] dark:border-purple-500/40 dark:bg-purple-500/[0.08]"
-                        : "border-slate-200 bg-white hover:border-violet-300 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-purple-500/25"
+                        ? "border-pink-400/60 bg-pink-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15)] dark:border-pink-500/40 dark:bg-pink-500/[0.08]"
+                        : "border-slate-200 bg-white hover:border-pink-300 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-pink-500/25"
                     }`}
                   >
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
                         active
-                          ? "bg-violet-500 text-white dark:bg-purple-500"
-                          : "bg-slate-100 text-slate-500 group-hover:text-violet-500 dark:bg-white/[0.05] dark:text-zinc-500 dark:group-hover:text-purple-300"
+                          ? "bg-pink-500 text-white dark:bg-pink-500"
+                          : "bg-slate-100 text-slate-500 group-hover:text-pink-500 dark:bg-white/[0.05] dark:text-zinc-500 dark:group-hover:text-pink-300"
                       }`}
                     >
                       <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -331,7 +331,7 @@ export function ResearchPlatform() {
                       <span
                         className={`block text-sm font-medium transition-colors ${
                           active
-                            ? "text-violet-800 dark:text-purple-200"
+                            ? "text-pink-800 dark:text-pink-200"
                             : "text-slate-700 dark:text-zinc-300"
                         }`}
                       >
@@ -344,7 +344,7 @@ export function ResearchPlatform() {
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${
                         active
-                          ? "scale-100 border-violet-500 bg-violet-500 text-white opacity-100 dark:border-purple-400 dark:bg-purple-500"
+                          ? "scale-100 border-pink-500 bg-pink-500 text-white opacity-100 dark:border-pink-400 dark:bg-pink-500"
                           : "scale-90 border-slate-300 bg-transparent text-transparent opacity-0 group-hover:scale-100 group-hover:opacity-100 dark:border-white/15"
                       }`}
                     >
@@ -359,7 +359,7 @@ export function ResearchPlatform() {
               type="button"
               onClick={() => void startAnalysis()}
               disabled={isLoading}
-              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500 hover:shadow-purple-500/20 active:scale-[0.98] disabled:opacity-60"
+              className="mt-5 w-full rounded-2xl bg-gradient-to-r from-pink-600 to-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-pink-500/10 transition-all hover:from-pink-500 hover:to-indigo-500 hover:shadow-pink-500/20 active:scale-[0.98] disabled:opacity-60"
             >
               {isLoading
                 ? isPdf
@@ -382,7 +382,7 @@ export function ResearchPlatform() {
           )}
           {!analysisStarted ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-50 text-violet-400 dark:bg-purple-500/10 dark:text-purple-300/70">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-50 text-pink-400 dark:bg-pink-500/10 dark:text-pink-300/70">
                 <Sparkles className="h-5 w-5" strokeWidth={1.5} />
               </span>
               <p className="max-w-xs text-sm text-slate-500 dark:text-gray-500">
@@ -414,8 +414,8 @@ export function ResearchPlatform() {
                         onClick={() => setActiveTab(tab)}
                         className={`rounded-full px-3 py-1.5 text-xs transition ${
                           active
-                            ? "border border-violet-400/50 bg-violet-50 text-violet-700 dark:border-purple-500/35 dark:bg-purple-500/10 dark:text-purple-300"
-                            : "border border-slate-200 bg-white text-slate-600 hover:text-violet-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
+                            ? "border border-pink-400/50 bg-pink-50 text-pink-700 dark:border-pink-500/35 dark:bg-pink-500/10 dark:text-pink-300"
+                            : "border border-slate-200 bg-white text-slate-600 hover:text-pink-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
                         }`}
                       >
                         {TAB_LABELS[tab]}
@@ -426,7 +426,7 @@ export function ResearchPlatform() {
                 <ReadAloudButton key={readableText} text={readableText} />
               </div>
 
-              <div className="rounded-2xl border-2 border-violet-300/70 bg-gradient-to-br from-white to-violet-50/30 p-5 shadow-[0_0_24px_rgba(139,92,246,0.08)] dark:border-purple-500/45 dark:bg-none dark:bg-[#121018] dark:shadow-[0_0_28px_rgba(139,92,246,0.12)]">
+              <div className="rounded-2xl border-2 border-pink-300/70 bg-gradient-to-br from-white to-pink-50/30 p-5 shadow-[0_0_24px_rgba(139,92,246,0.08)] dark:border-pink-500/45 dark:bg-none dark:bg-[#121018] dark:shadow-[0_0_28px_rgba(139,92,246,0.12)]">
                 <p className="text-xs text-slate-500 dark:text-zinc-500">
                   ანალიზის პროფილი • აქტიური ოპციები: {selectedCount}
                 </p>
@@ -439,7 +439,7 @@ export function ResearchPlatform() {
                     <p className="whitespace-pre-wrap">{result.summary}</p>
                     {toggles.theses && result.theses && result.theses.length > 0 && (
                       <div>
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
                           ძირითადი თეზისები
                         </p>
                         <ul className="list-disc space-y-1.5 pl-5">
@@ -451,7 +451,7 @@ export function ResearchPlatform() {
                     )}
                     {toggles.methodology && result.methodology && (
                       <div>
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
                           მეთოდოლოგია
                         </p>
                         <p className="whitespace-pre-wrap">{result.methodology}</p>
@@ -459,7 +459,7 @@ export function ResearchPlatform() {
                     )}
                     {toggles.literature && result.literatureReview && (
                       <div>
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
                           ლიტერატურის მიმოხილვა
                         </p>
                         <p className="whitespace-pre-wrap">{result.literatureReview}</p>
@@ -467,7 +467,7 @@ export function ResearchPlatform() {
                     )}
                     {toggles.criticalAnalysis && result.criticalAnalysis && (
                       <div>
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
                           კრიტიკული ანალიზი
                         </p>
                         <p className="whitespace-pre-wrap">{result.criticalAnalysis}</p>
@@ -475,7 +475,7 @@ export function ResearchPlatform() {
                     )}
                     {toggles.conclusions && result.conclusions && (
                       <div>
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
                           დასკვნები და რჩევები
                         </p>
                         <p className="whitespace-pre-wrap">{result.conclusions}</p>
@@ -489,7 +489,7 @@ export function ResearchPlatform() {
                     {result.sources.map((source, index) => (
                       <li
                         key={`${source.citation}-${index}`}
-                        className="rounded-xl border border-violet-200 bg-white p-4 text-base dark:border-purple-500/25 dark:bg-white/[0.02]"
+                        className="rounded-xl border border-pink-200 bg-white p-4 text-base dark:border-pink-500/25 dark:bg-white/[0.02]"
                       >
                         <p className="font-medium text-slate-900 dark:text-zinc-100">{source.citation}</p>
                         <p className="mt-2 leading-7 text-slate-600 dark:text-zinc-300">{source.relevance}</p>
@@ -503,7 +503,7 @@ export function ResearchPlatform() {
                     {result.quotes.map((item, index) => (
                       <li
                         key={`${item.quote.slice(0, 24)}-${index}`}
-                        className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4 text-base dark:border-purple-500/25 dark:bg-purple-500/[0.05]"
+                        className="rounded-xl border border-pink-200/80 bg-pink-50/40 p-4 text-base dark:border-pink-500/25 dark:bg-pink-500/[0.05]"
                       >
                         <p className="italic leading-8 text-slate-800 dark:text-zinc-200">
                           &ldquo;{item.quote}&rdquo;

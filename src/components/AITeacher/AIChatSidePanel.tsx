@@ -64,9 +64,9 @@ const ACCENTS: Record<
     glow: "rgba(34,211,238,0.4)",
   },
   violet: {
-    text: "text-violet-700 dark:text-violet-300",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/30 dark:border-violet-400/30",
+    text: "text-pink-700 dark:text-pink-300",
+    bg: "bg-pink-500/10",
+    border: "border-pink-500/30 dark:border-pink-400/30",
     glow: "rgba(167,139,250,0.4)",
   },
   amber: {

@@ -52,7 +52,7 @@ const PROGRESS_FILL: Record<NotebookAccent, string> = {
   green: "bg-emerald-500 dark:bg-emerald-400",
   pink: "bg-pink-500 dark:bg-pink-400",
   amber: "bg-amber-500 dark:bg-amber-400",
-  violet: "bg-violet-500 dark:bg-violet-400",
+  violet: "bg-pink-500 dark:bg-pink-400",
 };
 
 const PANEL = "notebook-paper notebook-sheet rounded-[26px]";

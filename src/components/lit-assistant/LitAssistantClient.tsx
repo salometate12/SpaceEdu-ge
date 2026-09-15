@@ -25,7 +25,7 @@ export function LitAssistantClient() {
       accent="violet"
       downloadPrefix="ლიტერატურა-კონსპექტი"
       withSources
-      emptyIcon={<BookOpen className="h-8 w-8 stroke-[1.5] text-purple-500/80" />}
+      emptyIcon={<BookOpen className="h-8 w-8 stroke-[1.5] text-pink-500/80" />}
     />
   );
 }

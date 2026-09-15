@@ -533,7 +533,7 @@ export function ExamSimulation({
 
                 {p.essay && (
                   <p
-                    className={`mt-3 rounded-xl border border-violet-200 bg-violet-50/70 px-3 py-2 text-[12px] leading-relaxed text-violet-800 dark:border-violet-400/20 dark:bg-violet-500/[0.06] dark:text-violet-200/85`}
+                    className={`mt-3 rounded-xl border border-pink-200 bg-pink-50/70 px-3 py-2 text-[12px] leading-relaxed text-pink-800 dark:border-pink-400/20 dark:bg-pink-500/[0.06] dark:text-pink-200/85`}
                   >
                     <span className="font-bold">წერითი დავალება: </span>
                     {p.essay.prompt}
@@ -828,7 +828,7 @@ export function ExamSimulation({
                 "ოთხ-ხუთ წინადადებამდე შემოფარგლული ნაშრომი საერთოდ არ სწორდება.",
               ].map((tip) => (
                 <li key={tip} className="flex gap-2">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-violet-400" />
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-pink-400" />
                   {tip}
                 </li>
               ))}
@@ -858,7 +858,7 @@ export function ExamSimulation({
                 value={essayDraft}
                 onChange={(event) => setEssayDraft(event.target.value)}
                 placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
-                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
               />
 
               <button

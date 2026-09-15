@@ -19,7 +19,7 @@ export function ToolPageHeader({
       <div className="flex items-start gap-3">
         <Link
           href={backHref}
-          className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-purple-400/30 dark:hover:bg-purple-500/10 dark:hover:text-white"
+          className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
           aria-label="Dashboard"
         >
           ←

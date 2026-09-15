@@ -197,7 +197,7 @@ export function PremiumStreamAssistant({
   }, [activeQuery, runQuery]);
 
   const errorPanel = (
-    <div className="mx-auto mt-2 flex w-full max-w-xl flex-col items-start gap-3 rounded-2xl border border-rose-500/25 bg-gradient-to-br from-rose-500/[0.08] via-[#121214]/70 to-purple-500/[0.05] p-5 text-left shadow-[0_18px_48px_rgba(244,63,94,0.12)] backdrop-blur-xl">
+    <div className="mx-auto mt-2 flex w-full max-w-xl flex-col items-start gap-3 rounded-2xl border border-rose-500/25 bg-gradient-to-br from-rose-500/[0.08] via-[#121214]/70 to-pink-500/[0.05] p-5 text-left shadow-[0_18px_48px_rgba(244,63,94,0.12)] backdrop-blur-xl">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300">
           <AlertCircle className="h-4 w-4 stroke-[1.5]" />
@@ -221,7 +221,7 @@ export function PremiumStreamAssistant({
           type="button"
           onClick={handleRetry}
           disabled={!activeQuery.trim()}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-purple-600 px-3.5 py-2 text-xs font-medium text-white shadow-md shadow-rose-500/20 transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-3.5 py-2 text-xs font-medium text-white shadow-md shadow-rose-500/20 transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className="h-3.5 w-3.5 stroke-[1.5]" />
           ხელახლა გენერაცია
@@ -238,7 +238,7 @@ export function PremiumStreamAssistant({
   );
 
   const defaultEmptyIcon = (
-    <Sparkles className="h-8 w-8 animate-pulse stroke-[1.5] text-purple-500/80" />
+    <Sparkles className="h-8 w-8 animate-pulse stroke-[1.5] text-pink-500/80" />
   );
 
   const inputField =
@@ -269,7 +269,7 @@ export function PremiumStreamAssistant({
       onSubmit={handleSubmit}
       className={
         className ??
-        "flex w-full max-w-xl items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-purple-500/40 dark:border-white/[0.08] dark:bg-[#121214]/80"
+        "flex w-full max-w-xl items-center gap-2 rounded-2xl border border-slate-200 bg-white/85 p-2 shadow-2xl backdrop-blur-md transition-all focus-within:border-pink-500/40 dark:border-white/[0.08] dark:bg-[#121214]/80"
       }
     >
       {inputMode === "textarea" ? (
@@ -279,7 +279,7 @@ export function PremiumStreamAssistant({
             <button
               type="submit"
               disabled={!value.trim() || isLoading}
-              className="flex shrink-0 items-center gap-1.5 self-end rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex shrink-0 items-center gap-1.5 self-end rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
@@ -301,7 +301,7 @@ export function PremiumStreamAssistant({
           <button
             type="submit"
             disabled={!value.trim() || isLoading}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-2 text-xs font-medium text-white transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
@@ -329,13 +329,13 @@ export function PremiumStreamAssistant({
 
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/5 blur-[120px]"
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-600/5 blur-[120px]"
           aria-hidden
         />
 
         {showEmptyCanvas ? (
           <div className="relative z-[1] flex flex-1 flex-col items-center justify-center p-8">
-            <div className="mb-4 rounded-2xl border border-purple-500/10 bg-purple-500/5 p-4">
+            <div className="mb-4 rounded-2xl border border-pink-500/10 bg-pink-500/5 p-4">
               {emptyIcon ?? defaultEmptyIcon}
             </div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{ui.pageTitle}</h1>
@@ -361,7 +361,7 @@ export function PremiumStreamAssistant({
             {(isSearchingPhase || (error && displayContent.length > 0)) && (
               <div className="shrink-0 space-y-2 border-b border-slate-200 px-4 py-3 lg:px-6 dark:border-white/[0.06]">
                 {isSearchingPhase && (
-                  <div className="flex items-center gap-2 text-xs text-purple-300">
+                  <div className="flex items-center gap-2 text-xs text-pink-300">
                     <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
                     {ui.searching}
                     {activeQuery && (
@@ -385,7 +385,7 @@ export function PremiumStreamAssistant({
                 isLoading={isSearchingPhase}
                 loadingBanner={
                   isWritingPhase ? (
-                    <div className="flex shrink-0 items-center gap-2 border-b border-purple-500/20 bg-purple-950/20 px-4 py-2 text-xs font-medium text-purple-200 lg:px-8">
+                    <div className="flex shrink-0 items-center gap-2 border-b border-pink-500/20 bg-pink-950/20 px-4 py-2 text-xs font-medium text-pink-200 lg:px-8">
                       <Cpu className="h-3.5 w-3.5 animate-pulse stroke-[1.5]" />
                       {ui.writing}
                     </div>
@@ -413,7 +413,7 @@ export function PremiumStreamAssistant({
                       <button
                         type="button"
                         onClick={handleReset}
-                        className="text-xs font-medium text-purple-400 hover:text-purple-300"
+                        className="text-xs font-medium text-pink-400 hover:text-pink-300"
                       >
                         {ui.resetLabel}
                       </button>

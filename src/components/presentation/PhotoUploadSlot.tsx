@@ -30,7 +30,7 @@ export function PhotoUploadSlot({
 }: PhotoUploadSlotProps) {
   return (
     <div className="dashboard-glass-card rounded-2xl p-2">
-      <label className="relative block h-24 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-[rgb(228,216,189)] bg-[linear-gradient(135deg,#fefcf6_0%,#f6efdc_100%)] transition hover:border-violet-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-violet-400/40">
+      <label className="relative block h-24 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-[rgb(228,216,189)] bg-[linear-gradient(135deg,#fefcf6_0%,#f6efdc_100%)] transition hover:border-pink-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-pink-400/40">
         {image ? (
           <img src={image} alt={`upload-${index + 1}`} className="h-full w-full object-cover" />
         ) : (

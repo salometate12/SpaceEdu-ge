@@ -61,7 +61,7 @@ function AiConspectusCard({ isLive, cardClass }: { isLive: boolean; cardClass: s
               კონსპექტების გენერაცია საგნის მიხედვით
             </p>
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-violet-600 dark:text-purple-400">
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-pink-600 dark:text-pink-400">
             გენერაცია
             <ChevronRight className="h-3.5 w-3.5" />
           </span>
@@ -77,7 +77,7 @@ function AiConspectusCard({ isLive, cardClass }: { isLive: boolean; cardClass: s
               კონსპექტების გენერაცია საგნის მიხედვით
             </p>
           </div>
-          <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-violet-600 transition group-hover:text-violet-800 dark:text-purple-400 dark:group-hover:text-purple-300">
+          <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-pink-600 transition group-hover:text-pink-800 dark:text-pink-400 dark:group-hover:text-pink-300">
             გენერაცია
             <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
           </span>

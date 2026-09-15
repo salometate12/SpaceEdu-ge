@@ -21,7 +21,7 @@ export function SummaryScreen({
 
   return (
     <div className="flex w-full max-w-md flex-col items-center text-center">
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400">
+      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 dark:bg-pink-950/50 dark:text-pink-400">
         <Trophy className="h-8 w-8" />
       </div>
 
@@ -31,7 +31,7 @@ export function SummaryScreen({
       <p className="mt-2 text-zinc-500 dark:text-zinc-400">{deckTitle}</p>
 
       <div className="mt-8 w-full rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-3xl font-bold text-violet-600 dark:text-violet-400">
+        <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">
           {result.known}/{result.total}
         </p>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
@@ -39,7 +39,7 @@ export function SummaryScreen({
         </p>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
           <div
-            className="h-full rounded-full bg-violet-600 transition-all duration-700"
+            className="h-full rounded-full bg-pink-600 transition-all duration-700"
             style={{ width: `${masteryPercent}%` }}
           />
         </div>
@@ -52,7 +52,7 @@ export function SummaryScreen({
         <button
           type="button"
           onClick={onRestart}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-violet-700 active:scale-[0.98]"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-pink-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-pink-700 active:scale-[0.98]"
         >
           <RotateCcw className="h-4 w-4" />
           {ka.summary.restart}

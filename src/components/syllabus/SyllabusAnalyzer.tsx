@@ -62,9 +62,9 @@ const TYPE_META: Record<
   midterm: {
     label: "შუალედური",
     icon: GraduationCap,
-    dot: "border-violet-400 dark:border-violet-400/60",
+    dot: "border-pink-400 dark:border-pink-400/60",
     badge:
-      "border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-300",
+      "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
   },
   quiz: {
     label: "ქვიზი",
@@ -269,8 +269,8 @@ export function SyllabusAnalyzer() {
             onDrop={onDrop}
             className={`exam-paper-plain flex h-full cursor-pointer flex-col items-center justify-center gap-2.5 border-2 border-dashed p-6 text-center transition-all ${
               dragActive
-                ? "border-violet-400 dark:border-violet-400/50"
-                : "border-slate-300 hover:border-violet-400 dark:border-white/15 dark:hover:border-violet-400/40"
+                ? "border-pink-400 dark:border-pink-400/50"
+                : "border-slate-300 hover:border-pink-400 dark:border-white/15 dark:hover:border-pink-400/40"
             }`}
           >
             <input
@@ -307,7 +307,7 @@ export function SyllabusAnalyzer() {
               value={semesterStartDate}
               onChange={(event) => setSemesterStartDate(event.target.value)}
               required
-              className="w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
+              className="w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
             />
             <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
               სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების ნაცვლად — ეს
@@ -327,7 +327,7 @@ export function SyllabusAnalyzer() {
                   onChange={(event) =>
                     setEnabled((prev) => ({ ...prev, [item.id]: event.target.checked }))
                   }
-                  className="h-4 w-4 accent-violet-600"
+                  className="h-4 w-4 accent-pink-600"
                 />
                 {item.label}
               </label>

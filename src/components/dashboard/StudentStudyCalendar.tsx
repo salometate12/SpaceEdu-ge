@@ -105,7 +105,7 @@ export function StudentStudyCalendar() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="headline flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500/10 text-violet-700 dark:bg-white/20 dark:text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-500/10 text-pink-700 dark:bg-white/20 dark:text-white">
               <CalendarDays className="h-4 w-4 stroke-[2]" />
             </span>
             შენი სასწავლო კალენდარი

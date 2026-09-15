@@ -70,7 +70,7 @@ export function CategoryScrollBar({
               onClick={() => onChange(value)}
               className={`flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition-all ${
                 isActive
-                  ? "border-violet-500/50 bg-violet-600 text-white shadow-md shadow-violet-500/20"
+                  ? "border-pink-500/50 bg-pink-600 text-white shadow-md shadow-pink-500/20"
                   : "border-zinc-200/80 bg-white/70 text-zinc-600 backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-400"
               }`}
             >

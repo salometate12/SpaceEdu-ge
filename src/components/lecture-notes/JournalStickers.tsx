@@ -48,7 +48,7 @@ export function JournalStickers({ xp, streak, unlocked, onUnlock }: JournalStick
         whileHover={hover}
         whileTap={{ scale: 0.94, rotate: -8 }}
         onClick={() => onUnlock("subject")}
-        className="absolute bottom-2 left-10 flex h-[72px] w-[72px] -rotate-3 flex-col items-center justify-center rounded-2xl border-[3px] border-white bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-[0_8px_18px_rgba(109,40,217,0.3)]"
+        className="absolute bottom-2 left-10 flex h-[72px] w-[72px] -rotate-3 flex-col items-center justify-center rounded-2xl border-[3px] border-white bg-gradient-to-br from-pink-500 to-fuchsia-500 shadow-[0_8px_18px_rgba(109,40,217,0.3)]"
         aria-label="საგნის სტიკერი"
       >
         <Atom className="h-6 w-6 text-white" />

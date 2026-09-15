@@ -79,8 +79,8 @@ export function ReadAloudButton({ text, className = "" }: ReadAloudButtonProps) 
       aria-pressed={status === "speaking"}
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 ${
         status === "speaking"
-          ? "border-violet-400/60 bg-violet-100 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
-          : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
+          ? "border-pink-400/60 bg-pink-100 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
+          : "border-slate-200 bg-white text-slate-600 hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:text-white"
       } ${className}`}
     >
       <Icon

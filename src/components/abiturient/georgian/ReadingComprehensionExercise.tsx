@@ -188,9 +188,9 @@ const TYPE_BADGE: Record<
 > = {
   main_idea: {
     label: questionTypeLabel("main_idea"),
-    className: "border-violet-500/25 bg-violet-500/10 text-violet-300",
+    className: "border-pink-500/25 bg-pink-500/10 text-pink-300",
     icon: <BookText className="h-3.5 w-3.5 stroke-[1.75]" />,
-    dot: "bg-violet-500",
+    dot: "bg-pink-500",
   },
   implied_meaning: {
     label: questionTypeLabel("implied_meaning"),
@@ -462,7 +462,7 @@ export function ReadingComprehensionExercise() {
                 <span
                   className={`absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full ${
                     passage.category === "მხატვრული"
-                      ? "bg-violet-500"
+                      ? "bg-pink-500"
                       : "bg-emerald-500"
                   }`}
                   aria-hidden
@@ -771,9 +771,9 @@ function IntroScreen({
             label="გამოცდის ტექსტები"
             value={`${libraryHighlights.passageCount}`}
             hint={`წინა წლების ვარიანტებიდან · ${libraryHighlights.yearRange}`}
-            icon={<BookText className="h-4 w-4 stroke-[1.75] text-violet-300" />}
-            accent="border-violet-500/30 text-violet-300"
-            dot="bg-violet-500"
+            icon={<BookText className="h-4 w-4 stroke-[1.75] text-pink-300" />}
+            accent="border-pink-500/30 text-pink-300"
+            dot="bg-pink-500"
           />
           <StatCard
             label="გამოცდის კითხვები"
@@ -867,8 +867,8 @@ function IntroScreen({
             {[
               {
                 text: "სისტემა ბანკიდან შემთხვევით ამოირჩევს ერთ ტექსტს — მხატვრულს ან საინფორმაციოს.",
-                circle: "bg-violet-500 text-black",
-                border: "border-violet-500/30",
+                circle: "bg-pink-500 text-black",
+                border: "border-pink-500/30",
               },
               {
                 text: `მარცხნივ ნახავ ტექსტს, მარჯვნივ — იმავე ფურცლის ${questionsPerPassage()} კითხვას.`,

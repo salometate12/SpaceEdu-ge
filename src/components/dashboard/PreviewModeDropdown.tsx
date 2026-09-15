@@ -58,7 +58,7 @@ export function PreviewModeDropdown() {
         aria-haspopup="listbox"
         className="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/80 px-3 py-2 text-sm text-slate-600 shadow-sm transition-colors duration-300 ease-in-out hover:border-slate-300 hover:bg-white dark:border-white/[0.08] dark:bg-[#0f1420]/70 dark:text-zinc-300 dark:hover:border-white/15 dark:hover:bg-[#12121A]/90"
       >
-        <Layers className="h-4 w-4 shrink-0 text-violet-500 dark:text-purple-300" strokeWidth={1.5} />
+        <Layers className="h-4 w-4 shrink-0 text-pink-500 dark:text-pink-300" strokeWidth={1.5} />
         <span className="whitespace-nowrap">{BUTTON_LABEL[previewMode]}</span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-300 ease-in-out dark:text-zinc-500 ${open ? "rotate-180" : ""}`}
@@ -92,7 +92,7 @@ export function PreviewModeDropdown() {
                     className={`h-2 w-2 shrink-0 rounded-full transition-colors duration-300 ease-in-out ${
                       active
                         ? option.id === "mock"
-                          ? "bg-violet-500 shadow-[0_0_8px_rgba(124,58,237,0.6)]"
+                          ? "bg-pink-500 shadow-[0_0_8px_rgba(124,58,237,0.6)]"
                           : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
                         : "bg-slate-300/80 dark:bg-white/20"
                     }`}

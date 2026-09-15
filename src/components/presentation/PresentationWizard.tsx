@@ -162,9 +162,9 @@ export function PresentationWizard() {
                 <span
                   className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all ${
                     isActive
-                      ? "border-violet-500 bg-violet-600 text-white shadow-[0_0_0_4px_rgba(124,58,237,0.15)] dark:border-violet-400 dark:bg-violet-500"
+                      ? "border-pink-500 bg-pink-600 text-white shadow-[0_0_0_4px_rgba(124,58,237,0.15)] dark:border-pink-400 dark:bg-pink-500"
                       : isDone
-                        ? "border-violet-300 bg-violet-50 text-violet-600 dark:border-violet-400/40 dark:bg-violet-500/10 dark:text-violet-300"
+                        ? "border-pink-300 bg-pink-50 text-pink-600 dark:border-pink-400/40 dark:bg-pink-500/10 dark:text-pink-300"
                         : "border-slate-200 bg-white text-slate-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-600"
                   }`}
                 >
@@ -177,7 +177,7 @@ export function PresentationWizard() {
                 <span
                   className={`text-[11px] font-semibold ${
                     isActive
-                      ? "text-violet-700 dark:text-violet-300"
+                      ? "text-pink-700 dark:text-pink-300"
                       : "text-slate-500 dark:text-zinc-500"
                   }`}
                 >
@@ -187,7 +187,7 @@ export function PresentationWizard() {
               {i < STEPS.length - 1 && (
                 <span
                   className={`mx-2 h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                    isDone ? "bg-violet-300 dark:bg-violet-500/40" : "bg-slate-200 dark:bg-white/10"
+                    isDone ? "bg-pink-300 dark:bg-pink-500/40" : "bg-slate-200 dark:bg-white/10"
                   }`}
                 />
               )}
@@ -264,7 +264,7 @@ export function PresentationWizard() {
               type="button"
               disabled={step === 1 || loading}
               onClick={() => setStep((s) => Math.max(1, s - 1))}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
               უკან
@@ -274,7 +274,7 @@ export function PresentationWizard() {
                 type="button"
                 disabled={loading}
                 onClick={() => setStep((s) => Math.min(3, s + 1))}
-                className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+                className="inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
               >
                 შემდეგი
                 <ChevronRight className="h-4 w-4" strokeWidth={2} />
@@ -285,7 +285,7 @@ export function PresentationWizard() {
                 type="button"
                 disabled={loading}
                 onClick={generate}
-                className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+                className="inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
               >
                 <Sparkles className="h-4 w-4" strokeWidth={2} />
                 გენერაცია

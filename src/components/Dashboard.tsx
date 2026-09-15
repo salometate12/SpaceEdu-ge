@@ -78,7 +78,7 @@ const STUDENT_METRICS = [
   {
     key: "quiz" as const,
     label: "Quiz სიზუსტე",
-    color: "text-purple-300",
+    color: "text-pink-300",
     card: "border border-pink-200 bg-pink-100 dark:border-transparent dark:bg-pink-400",
     mobileVivid: "mobile-vivid-metric-pink",
     text: "text-zinc-900 dark:text-black",
@@ -323,20 +323,20 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
           )}
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <article className="relative overflow-hidden rounded-[32px] border border-violet-200 bg-violet-100 p-6 transition-all duration-300 hover:-translate-y-1 dark:border-transparent dark:bg-violet-500 sm:p-8">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-500/10 text-violet-700 dark:bg-white/20 dark:text-white">
+            <article className="relative overflow-hidden rounded-[32px] border border-pink-200 bg-pink-100 p-6 transition-all duration-300 hover:-translate-y-1 dark:border-transparent dark:bg-pink-500 sm:p-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-pink-500/10 text-pink-700 dark:bg-white/20 dark:text-white">
                 <BriefcaseBusiness className="h-5 w-5 stroke-[1.75]" />
               </div>
-              <p className="mt-4 text-xs font-bold uppercase tracking-wide text-violet-700/70 dark:text-white/70">კარიერა</p>
-              <h3 className="mt-1 text-lg font-bold text-violet-950 dark:text-white">AI CV გენერატორი</h3>
-              <p className="mt-2 text-sm leading-relaxed text-violet-900/70 dark:text-white/80">
+              <p className="mt-4 text-xs font-bold uppercase tracking-wide text-pink-700/70 dark:text-white/70">კარიერა</p>
+              <h3 className="mt-1 text-lg font-bold text-pink-950 dark:text-white">AI CV გენერატორი</h3>
+              <p className="mt-2 text-sm leading-relaxed text-pink-900/70 dark:text-white/80">
                 შეავსე ინფორმაცია — AI შეგიქმნის პროფესიულ CV-ს სტაჟირებისა და ვაკანსიისთვის.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {["სტაჟირება", "ვაკანსია", "ATS-ოპტიმიზაცია", "PDF ექსპორტი"].map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-white/15 dark:text-white"
+                    className="rounded-full bg-pink-500/10 px-3 py-1 text-xs font-semibold text-pink-700 dark:bg-white/15 dark:text-white"
                   >
                     {tag}
                   </span>
@@ -344,7 +344,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
               </div>
               <Link
                 href="/cv"
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-violet-700 active:scale-[0.98] dark:bg-white dark:text-violet-700 dark:hover:bg-white/90"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-pink-700 active:scale-[0.98] dark:bg-white dark:text-pink-700 dark:hover:bg-white/90"
               >
                 <BriefcaseBusiness className="h-4 w-4" />
                 CV-ის შექმნა
@@ -426,7 +426,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
                     const Icon = ACTIVITY_ICON[entry.category];
                     const dot =
                       entry.category === "quiz"
-                        ? "bg-violet-500"
+                        ? "bg-pink-500"
                         : entry.category === "study"
                           ? "bg-cyan-500"
                           : entry.category === "ai"

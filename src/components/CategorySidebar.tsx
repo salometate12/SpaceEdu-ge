@@ -70,10 +70,10 @@ export function CategorySidebar({
         <button
           type="button"
           onClick={() => setAccordionOpen((prev) => !prev)}
-          className="group flex w-full items-center justify-between rounded-xl border border-zinc-200/80 bg-white/80 px-3 py-2.5 text-left text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:border-violet-200 hover:bg-violet-50/60 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-200 dark:hover:border-violet-800/50 dark:hover:bg-zinc-800/80"
+          className="group flex w-full items-center justify-between rounded-xl border border-zinc-200/80 bg-white/80 px-3 py-2.5 text-left text-sm font-semibold text-zinc-700 shadow-sm transition-all hover:border-pink-200 hover:bg-pink-50/60 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-200 dark:hover:border-pink-800/50 dark:hover:bg-zinc-800/80"
         >
           <span className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-violet-100 group-hover:text-violet-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-violet-950/40 dark:group-hover:text-violet-300">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-pink-100 group-hover:text-pink-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-pink-950/40 dark:group-hover:text-pink-300">
               🗂️
             </span>
             <span>ყველა საგანი</span>
@@ -97,7 +97,7 @@ export function CategorySidebar({
                 onClick={() => onChange("all")}
                 className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all ${
                   selected === "all"
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-500/25"
+                    ? "bg-pink-600 text-white shadow-md shadow-pink-500/25"
                     : "text-zinc-600 hover:bg-zinc-100/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80"
                 }`}
               >
@@ -121,7 +121,7 @@ export function CategorySidebar({
 
               const baseClassName = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-violet-600 text-white shadow-md shadow-violet-500/25"
+                  ? "bg-pink-600 text-white shadow-md shadow-pink-500/25"
                   : "text-zinc-600 hover:bg-zinc-100/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80"
               }`;
 

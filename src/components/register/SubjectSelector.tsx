@@ -9,7 +9,7 @@ interface SubjectSelectorProps {
 
 const ACCENT = {
   purple: {
-    selected: "border-[#7C3AED] bg-[#1a0a2e] text-[#c4b5fd]",
+    selected: "border-[#d81878] bg-[#2a0a1a] text-[#f5b8d4]",
   },
   cyan: {
     selected: "border-[#22d3ee] bg-[#042f3d] text-[#67e8f9]",

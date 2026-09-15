@@ -124,7 +124,7 @@ export function PwaRegister() {
               type="button"
               disabled={busy}
               onClick={() => void install()}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#7c3aed] px-3.5 py-1.5 text-xs font-bold text-white disabled:opacity-60"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#d81878] px-3.5 py-1.5 text-xs font-bold text-white disabled:opacity-60"
             >
               <Download className="h-3.5 w-3.5" />
               {busy ? "იხსნება..." : "დაყენება"}

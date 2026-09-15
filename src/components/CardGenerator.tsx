@@ -241,8 +241,8 @@ export function CardGenerator() {
               }}
               className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-all ${
                 activeTab === id
-                  ? "bg-violet-600 text-white shadow-sm"
-                  : "border border-zinc-200 bg-white text-zinc-600 hover:border-violet-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
+                  ? "bg-pink-600 text-white shadow-sm"
+                  : "border border-zinc-200 bg-white text-zinc-600 hover:border-pink-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -262,7 +262,7 @@ export function CardGenerator() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder={ka.generator.topicPlaceholder}
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none transition-colors focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-violet-900/30"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-pink-900/30"
               />
             </div>
             <div>
@@ -275,7 +275,7 @@ export function CardGenerator() {
                 max={25}
                 value={cardCount}
                 onChange={(e) => setCardCount(Number(e.target.value))}
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none transition-colors focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-violet-900/30"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-pink-900/30"
               />
             </div>
           </div>
@@ -286,7 +286,7 @@ export function CardGenerator() {
               onChange={(e) => setText(e.target.value)}
               placeholder={ka.generator.textPlaceholder}
               rows={8}
-              className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-relaxed outline-none transition-colors focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-violet-900/30"
+              className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-relaxed outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-pink-900/30"
             />
           )}
 
@@ -298,7 +298,7 @@ export function CardGenerator() {
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
                 placeholder={ka.generator.youtubePlaceholder}
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-violet-900/30"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-pink-400 focus:ring-2 focus:ring-pink-100 dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-pink-900/30"
               />
             </div>
           )}
@@ -331,11 +331,11 @@ export function CardGenerator() {
                 }}
                 className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 transition-all ${
                   isDragging
-                    ? "border-violet-400 bg-violet-50 dark:bg-violet-950/20"
-                    : "border-zinc-200 hover:border-violet-300 dark:border-zinc-700"
+                    ? "border-pink-400 bg-pink-50 dark:bg-pink-950/20"
+                    : "border-zinc-200 hover:border-pink-300 dark:border-zinc-700"
                 }`}
               >
-                <Upload className="mb-3 h-8 w-8 text-violet-500" />
+                <Upload className="mb-3 h-8 w-8 text-pink-500" />
                 <p className="text-center text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   {dropzoneLabel}
                 </p>
@@ -345,7 +345,7 @@ export function CardGenerator() {
                   </p>
                 )}
                 {file && (
-                  <p className="mt-3 rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">
+                  <p className="mt-3 rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-700 dark:bg-pink-950/50 dark:text-pink-300">
                     {file.name}
                   </p>
                 )}
@@ -363,7 +363,7 @@ export function CardGenerator() {
             type="button"
             onClick={handleContinue}
             disabled={isModalOpen && isGenerating}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-pink-600 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
           >
             <Sparkles className="h-4 w-4" />
             {ka.generator.continue}

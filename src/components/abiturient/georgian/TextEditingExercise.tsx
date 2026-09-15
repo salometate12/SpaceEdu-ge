@@ -55,7 +55,7 @@ function scoreBadgePillClass(score: number, maxScore: number): string {
   const ratio = maxScore > 0 ? score / maxScore : 0;
   if (ratio >= 0.94) return "border-2 border-transparent bg-emerald-400 text-emerald-950";
   if (ratio >= 0.75)
-    return "border-2 border-violet-500 bg-violet-100 text-violet-800 dark:bg-violet-400/15 dark:text-violet-200";
+    return "border-2 border-pink-500 bg-pink-100 text-pink-800 dark:bg-pink-400/15 dark:text-pink-200";
   return "border-2 border-amber-500 bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
 }
 
@@ -78,7 +78,7 @@ function TimerSwitch({
         <span
           className={`relative h-6 w-11 shrink-0 rounded-full border transition-all duration-300 ${
             enabled
-              ? "border-violet-600 bg-violet-500"
+              ? "border-pink-600 bg-pink-500"
               : "border-slate-400 bg-slate-200 dark:border-white/20 dark:bg-white/10"
           }`}
         >
@@ -119,7 +119,7 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
       className={`relative mb-4 inline-flex items-center gap-2 overflow-hidden rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-500 ${
         isMinuteMark
           ? "border-2 border-amber-500 bg-amber-100 dark:bg-amber-400/15"
-          : "border-2 border-violet-400 bg-violet-100 dark:border-violet-400/40 dark:bg-violet-400/10"
+          : "border-2 border-pink-400 bg-pink-100 dark:border-pink-400/40 dark:bg-pink-400/10"
       }`}
     >
       <span
@@ -128,10 +128,10 @@ function TestTimerBadge({ seconds }: { seconds: number }) {
         aria-hidden
       />
       <Timer
-        className="animate-timer-tick h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300"
+        className="animate-timer-tick h-3.5 w-3.5 shrink-0 text-pink-600 dark:text-pink-300"
         aria-hidden
       />
-      <span className="font-bold text-violet-700 dark:text-violet-200">ტაიმერი</span>
+      <span className="font-bold text-pink-700 dark:text-pink-200">ტაიმერი</span>
       <span
         key={seconds}
         className="animate-timer-tick-pop font-mono font-semibold tabular-nums text-slate-900 dark:text-slate-50"
@@ -189,7 +189,7 @@ function CorrectionSheet({
       {/* How much of the source has been carried across. */}
       <div className="h-1 w-full bg-slate-200/70 dark:bg-white/10">
         <div
-          className="h-full bg-violet-500 transition-[width] duration-300 dark:bg-violet-400"
+          className="h-full bg-pink-500 transition-[width] duration-300 dark:bg-pink-400"
           style={{ width: `${Math.round(ratio * 100)}%` }}
         />
       </div>
@@ -392,7 +392,7 @@ export function TextEditingExercise() {
                     key={point}
                     className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
                   >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" />
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pink-500" />
                     {point}
                   </li>
                 ))}
@@ -483,7 +483,7 @@ export function TextEditingExercise() {
                     aria-hidden
                     className="pointer-events-none absolute inset-y-3 left-0 z-0 w-9"
                   >
-                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-violet-300/70 shadow-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-6 group-hover:-translate-y-1 group-hover:-rotate-[10deg] dark:bg-violet-500/40" />
+                    <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-pink-300/70 shadow-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-6 group-hover:-translate-y-1 group-hover:-rotate-[10deg] dark:bg-pink-500/40" />
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#e8ddb8] shadow-md transition-all delay-75 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-9 group-hover:translate-y-0.5 group-hover:rotate-[6deg]" />
                     <span className="absolute inset-y-0 left-0 h-full w-full origin-bottom-left rounded-md bg-[#f2e2c8] shadow-md transition-all delay-150 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-x-4 group-hover:translate-y-1.5 group-hover:-rotate-[3deg]" />
                   </div>

@@ -17,7 +17,7 @@ const TYPE_META: Record<DashboardCalendarEvent["type"], { label: string; badge: 
   midterm: {
     label: "შუალედური",
     badge:
-      "border-violet-200 bg-violet-50 text-violet-600 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-300",
+      "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
   },
   quiz: {
     label: "ქვიზი",

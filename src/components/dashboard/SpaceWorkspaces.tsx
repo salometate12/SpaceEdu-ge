@@ -85,7 +85,7 @@ export function SchoolSpaceWorkspace({
               key={suggestion}
               type="button"
               onClick={() => submitPrompt(suggestion)}
-              className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-all hover:border-violet-200 hover:text-violet-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300 dark:hover:border-violet-700"
+              className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-all hover:border-pink-200 hover:text-pink-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300 dark:hover:border-pink-700"
             >
               {suggestion}
             </button>
@@ -97,12 +97,12 @@ export function SchoolSpaceWorkspace({
             value={promptInput}
             onChange={(event) => setPromptInput(event.target.value)}
             placeholder="შეიყვანე კითხვა ან თემა..."
-            className="h-11 flex-1 rounded-xl border border-zinc-200 bg-white/90 px-3 text-sm text-zinc-800 outline-none ring-violet-500/30 transition focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+            className="h-11 flex-1 rounded-xl border border-zinc-200 bg-white/90 px-3 text-sm text-zinc-800 outline-none ring-pink-500/30 transition focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
           />
           <button
             type="submit"
             disabled={isLoading}
-            className="rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
+            className="rounded-xl bg-pink-600 px-4 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
           >
             გაგზავნა
           </button>
@@ -278,9 +278,9 @@ export function UniversitySpaceWorkspace({
       <label
         onDragOver={(event) => event.preventDefault()}
         onDrop={onDrop}
-        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-400/50 bg-zinc-50/50 px-5 py-10 text-center transition hover:border-violet-500/40 hover:bg-violet-50/30 dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:border-violet-700 dark:hover:bg-violet-950/10"
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-400/50 bg-zinc-50/50 px-5 py-10 text-center transition hover:border-pink-500/40 hover:bg-pink-50/30 dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:border-pink-700 dark:hover:bg-pink-950/10"
       >
-        <UploadCloud className="h-6 w-6 text-violet-500" />
+        <UploadCloud className="h-6 w-6 text-pink-500" />
         <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
           📂 Syllabus Optimizer & PDF AI
         </p>
@@ -303,7 +303,7 @@ export function UniversitySpaceWorkspace({
             onClick={() => setActiveMode(id)}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
               activeMode === id
-                ? "bg-violet-600 text-white"
+                ? "bg-pink-600 text-white"
                 : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
             }`}
           >
@@ -340,13 +340,13 @@ export function UniversitySpaceWorkspace({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="რა ტიპის კონსპექტი გჭირდება?"
-                className="min-h-[96px] w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2 text-sm text-zinc-800 outline-none ring-violet-500/30 transition focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
+                className="min-h-[96px] w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2 text-sm text-zinc-800 outline-none ring-pink-500/30 transition focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100"
               />
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
+                  className="rounded-xl bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
                 >
                   გენერაცია
                 </button>

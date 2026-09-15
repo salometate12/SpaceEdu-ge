@@ -25,7 +25,7 @@ export function HistoryAssistantClient() {
       accent="amber"
       downloadPrefix="ისტორია-კონსპექტი"
       withSources
-      emptyIcon={<Compass className="h-8 w-8 stroke-[1.5] text-purple-500/80" />}
+      emptyIcon={<Compass className="h-8 w-8 stroke-[1.5] text-pink-500/80" />}
     />
   );
 }

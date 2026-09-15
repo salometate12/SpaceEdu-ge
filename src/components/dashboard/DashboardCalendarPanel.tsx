@@ -60,9 +60,9 @@ const TYPE_STYLE: Record<
   }
 > = {
   midterm: {
-    dot: "bg-violet-400",
+    dot: "bg-pink-400",
     icon: GraduationCap,
-    iconWrap: "bg-violet-400/15 text-violet-500 dark:bg-violet-400/20 dark:text-violet-300",
+    iconWrap: "bg-pink-400/15 text-pink-500 dark:bg-pink-400/20 dark:text-pink-300",
     label: "შუალედური",
     mobileRow: "mobile-vivid-violet",
   },

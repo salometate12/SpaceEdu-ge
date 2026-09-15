@@ -121,7 +121,7 @@ function MiniNotebook({ preview }: { preview: string }) {
         <div className="relative w-1/2 p-3">
           <span className="absolute left-4 top-4 h-8 w-8 -rotate-6 rounded-full bg-orange-200" />
           <span className="absolute right-5 top-10 h-6 w-10 rotate-8 rounded-full bg-teal-400" />
-          <span className="absolute bottom-5 left-6 h-7 w-7 -rotate-3 rounded-md bg-violet-500" />
+          <span className="absolute bottom-5 left-6 h-7 w-7 -rotate-3 rounded-md bg-pink-500" />
         </div>
       </div>
     </motion.div>

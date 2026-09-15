@@ -65,7 +65,7 @@ export function MobileSideMenuDrawer() {
     >
       <div className="flex items-center justify-between border-b border-white/10 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4">
         <Link href="/select-space" className="flex items-center gap-2" onClick={close}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#7C3AED]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#d81878]">
             <Rocket className="h-4 w-4 text-white" />
           </div>
           <span className="headline text-base font-medium text-white">SpaceEdu</span>

@@ -198,7 +198,7 @@ export default function QuizPage() {
           <button
             type="button"
             onClick={restart}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-white/[0.15] dark:hover:text-white"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-white/[0.15] dark:hover:text-white"
           >
             თავიდან
           </button>
@@ -225,8 +225,8 @@ export default function QuizPage() {
             onDragLeave={() => setIsDragActive(false)}
             className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-300 ${
               isDragActive
-                ? "border-violet-400/60 bg-violet-50 dark:border-purple-500/40 dark:bg-none dark:bg-purple-500/[0.06]"
-                : "border-slate-200 bg-gradient-to-br from-white to-violet-50/40 hover:border-violet-400/60 dark:border-white/[0.08] dark:bg-none dark:bg-[#121214]/20 dark:hover:border-purple-500/40"
+                ? "border-pink-400/60 bg-pink-50 dark:border-pink-500/40 dark:bg-none dark:bg-pink-500/[0.06]"
+                : "border-slate-200 bg-gradient-to-br from-white to-pink-50/40 hover:border-pink-400/60 dark:border-white/[0.08] dark:bg-none dark:bg-[#121214]/20 dark:hover:border-pink-500/40"
             }`}
           >
             <input
@@ -237,8 +237,8 @@ export default function QuizPage() {
               onChange={onFileInputChange}
             />
 
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 transition group-hover:border-violet-300 group-hover:from-violet-50 group-hover:to-indigo-50 dark:border-white/[0.08] dark:bg-none dark:bg-white/[0.03] dark:group-hover:border-purple-500/30 dark:group-hover:bg-purple-500/10">
-              <Upload className="h-6 w-6 text-violet-600 dark:text-purple-300" strokeWidth={1.5} />
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 transition group-hover:border-pink-300 group-hover:from-pink-50 group-hover:to-indigo-50 dark:border-white/[0.08] dark:bg-none dark:bg-white/[0.03] dark:group-hover:border-pink-500/30 dark:group-hover:bg-pink-500/10">
+              <Upload className="h-6 w-6 text-pink-600 dark:text-pink-300" strokeWidth={1.5} />
             </div>
 
             <p className="text-sm font-medium text-slate-800 dark:text-zinc-200">
@@ -249,7 +249,7 @@ export default function QuizPage() {
             </p>
 
             {file && (
-              <div className="mt-5 flex items-center gap-2 rounded-xl border border-violet-300/50 bg-violet-50 px-3 py-2 text-xs text-violet-700 dark:border-purple-500/25 dark:bg-none dark:bg-purple-500/10 dark:text-purple-200">
+              <div className="mt-5 flex items-center gap-2 rounded-xl border border-pink-300/50 bg-pink-50 px-3 py-2 text-xs text-pink-700 dark:border-pink-500/25 dark:bg-none dark:bg-pink-500/10 dark:text-pink-200">
                 <FileText className="h-4 w-4 shrink-0" strokeWidth={1.5} />
                 <span className="truncate">
                   {file.name} ({formatFileSize(file.size)})
@@ -274,8 +274,8 @@ export default function QuizPage() {
                     aria-pressed={isActive}
                     className={`min-w-[3.25rem] rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
                       isActive
-                        ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-purple-500/20 dark:hover:text-white"
+                        ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-pink-500/20 dark:hover:text-white"
                     }`}
                   >
                     {count}
@@ -286,8 +286,8 @@ export default function QuizPage() {
               <label
                 className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
                   isCustomCount
-                    ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
-                    : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-violet-300 hover:text-violet-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-purple-500/20 dark:hover:text-white"
+                    ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
+                    : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-pink-300 hover:text-pink-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-pink-500/20 dark:hover:text-white"
                 }`}
               >
                 <input
@@ -318,7 +318,7 @@ export default function QuizPage() {
             type="button"
             onClick={handleQuizGeneration}
             disabled={isLoading || !file}
-            className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/10 transition hover:from-purple-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-500/10 transition hover:from-pink-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             ქვიზის გენერირება
           </button>
@@ -342,12 +342,12 @@ export default function QuizPage() {
         <section className="dashboard-section p-6 backdrop-blur-xl sm:p-8">
           <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/[0.06]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-violet-600 dark:text-purple-300/80">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
             კითხვა {currentQuestionIndex + 1} / {questions.length}
           </p>
           <h2 className="mb-6 text-lg font-semibold leading-relaxed text-slate-900 dark:text-white">
@@ -360,7 +360,7 @@ export default function QuizPage() {
               const isCorrectOption =
                 optionIndex === currentQuestion.correctAnswerIndex;
               let stateClass =
-                "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-300 dark:hover:bg-white/[0.04] dark:hover:border-purple-500/30";
+                "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:bg-pink-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-300 dark:hover:bg-white/[0.04] dark:hover:border-pink-500/30";
 
               if (isSubmitted) {
                 if (isCorrectOption) {
@@ -375,7 +375,7 @@ export default function QuizPage() {
                 }
               } else if (isSelected) {
                 stateClass =
-                  "border-violet-400/50 bg-violet-50 text-violet-800 dark:border-purple-500/40 dark:bg-purple-500/[0.06] dark:text-purple-100";
+                  "border-pink-400/50 bg-pink-50 text-pink-800 dark:border-pink-500/40 dark:bg-pink-500/[0.06] dark:text-pink-100";
               }
 
               return (
@@ -397,19 +397,19 @@ export default function QuizPage() {
               type="button"
               onClick={checkAnswer}
               disabled={selectedOptionIndex === null}
-              className="mt-6 w-full rounded-xl border border-violet-300/60 bg-violet-50 px-4 py-3 text-sm font-medium text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-200 dark:hover:bg-purple-500/20"
+              className="mt-6 w-full rounded-xl border border-pink-300/60 bg-pink-50 px-4 py-3 text-sm font-medium text-pink-700 transition hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-500/30 dark:bg-pink-500/10 dark:text-pink-200 dark:hover:bg-pink-500/20"
             >
               შემოწმება
             </button>
           ) : (
             <>
-              <div className="animate-fade-in mt-4 rounded-xl border border-violet-200/80 bg-violet-50/50 p-4 text-xs leading-relaxed text-slate-600 dark:border-purple-500/[0.1] dark:bg-purple-500/[0.03] dark:text-gray-400">
+              <div className="animate-fade-in mt-4 rounded-xl border border-pink-200/80 bg-pink-50/50 p-4 text-xs leading-relaxed text-slate-600 dark:border-pink-500/[0.1] dark:bg-pink-500/[0.03] dark:text-gray-400">
                 {currentQuestion.explanation}
               </div>
               <button
                 type="button"
                 onClick={goNext}
-                className="mt-4 w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:from-purple-500 hover:to-indigo-500"
+                className="mt-4 w-full rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:from-pink-500 hover:to-indigo-500"
               >
                 {currentQuestionIndex + 1 >= questions.length
                   ? "შედეგების ნახვა"
@@ -423,7 +423,7 @@ export default function QuizPage() {
       {phase === "results" && (
         <section className="dashboard-section p-8 backdrop-blur-xl">
           <h2 className="headline text-xl font-bold text-slate-900 dark:text-white">შედეგები</h2>
-          <p className="mono mt-3 text-3xl font-bold text-violet-600 dark:text-purple-300">
+          <p className="mono mt-3 text-3xl font-bold text-pink-600 dark:text-pink-300">
             {score} / {questions.length}
           </p>
           <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">სიზუსტე: {percentScore}%</p>
@@ -438,13 +438,13 @@ export default function QuizPage() {
             <button
               type="button"
               onClick={restart}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-700 transition hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:text-zinc-300 dark:hover:border-purple-500/30 dark:hover:text-white"
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-700 transition hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:text-zinc-300 dark:hover:border-pink-500/30 dark:hover:text-white"
             >
               ახალი ქვიზი
             </button>
             <Link
               href="/"
-              className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:from-purple-500 hover:to-indigo-500"
+              className="rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:from-pink-500 hover:to-indigo-500"
             >
               მთავარზე დაბრუნება
             </Link>

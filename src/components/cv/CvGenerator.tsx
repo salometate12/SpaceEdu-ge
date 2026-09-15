@@ -28,7 +28,7 @@ const TEMPLATES: Array<{
     id: "minimal-tech",
     title: "Minimal Tech",
     subtitle: "სუფთა სტილი დეველოპერებისთვის",
-    previewClass: "from-purple-500/20 to-violet-700/20",
+    previewClass: "from-pink-500/20 to-pink-700/20",
   },
   {
     id: "creative-ui",
@@ -91,7 +91,7 @@ export function CvGenerator() {
     }
     return {
       pageBg: "bg-[linear-gradient(135deg,#121023_0%,#1a102a_40%,#22103a_100%)]",
-      accent: "text-purple-300",
+      accent: "text-pink-300",
     };
   }, [selectedTemplate]);
 
@@ -179,7 +179,7 @@ export function CvGenerator() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10";
+    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10";
   const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
 
   return (
@@ -197,7 +197,7 @@ export function CvGenerator() {
                     onClick={() => setStep(item.id)}
                     className={`mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                       active
-                        ? "bg-violet-600 text-white dark:bg-violet-500 dark:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
+                        ? "bg-pink-600 text-white dark:bg-pink-500 dark:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
                         : "border border-slate-200 bg-white text-slate-400 dark:border-white/[0.08] dark:bg-[#161619] dark:text-gray-500"
                     }`}
                   >
@@ -335,7 +335,7 @@ export function CvGenerator() {
                       key={tool}
                       type="button"
                       onClick={() => setTools((prev) => prev.filter((item) => item !== tool))}
-                      className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+                      className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
                     >
                       {tool} ✕
                     </button>
@@ -413,7 +413,7 @@ export function CvGenerator() {
                 <div className="mb-3 flex items-center justify-end">
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
+                    className="inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 dark:bg-pink-500 dark:hover:bg-pink-400"
                   >
                     <Download className="h-4 w-4" strokeWidth={1.5} />
                     PDF ექსპორტი
@@ -516,7 +516,7 @@ export function CvGenerator() {
             type="button"
             onClick={goBack}
             disabled={step === 1 || cvLoading}
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
           >
             უკან
           </button>
@@ -525,7 +525,7 @@ export function CvGenerator() {
               type="button"
               onClick={goNext}
               disabled={cvLoading}
-              className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+              className="rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
             >
               {step === 3 ? (cvLoading ? "იტვირთება..." : "CV-ს გენერირება") : "შემდეგი"}
             </button>
@@ -541,7 +541,7 @@ export function CvGenerator() {
                 setHighlightedSkills([]);
                 setOptimizationTips([]);
               }}
-              className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400"
+              className="rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 dark:bg-pink-500 dark:hover:bg-pink-400"
             >
               ახალი CV
             </button>

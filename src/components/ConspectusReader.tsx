@@ -15,7 +15,7 @@ export function ConspectusReader({ conspectus }: ConspectusReaderProps) {
     <div className="space-y-4">
       <Link
         href="/generate"
-        className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-violet-600 dark:text-zinc-400 print:hidden"
+        className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-pink-600 dark:text-zinc-400 print:hidden"
       >
         <ArrowLeft className="h-4 w-4" />
         {ka.conspectus.back}

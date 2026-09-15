@@ -37,7 +37,7 @@ export function AbiturientDashboard() {
 
           <section className="dashboard-panel p-5 sm:p-6">
             <div
-              className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full bg-violet-400/30 blur-[80px] dark:bg-purple-600/15"
+              className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full bg-pink-400/30 blur-[80px] dark:bg-pink-600/15"
               aria-hidden
             />
             <div

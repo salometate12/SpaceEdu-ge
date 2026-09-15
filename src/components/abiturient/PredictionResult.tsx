@@ -97,7 +97,7 @@ export function PredictionResult() {
                 >
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-zinc-500" />
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-purple-600 text-xs text-white">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-pink-600 text-xs text-white">
                       {idx + 1}
                     </span>
                     <div>
@@ -107,7 +107,7 @@ export function PredictionResult() {
                       </p>
                     </div>
                   </div>
-                  <span className="rounded-full border border-purple-500/25 bg-purple-500/10 px-2 py-0.5 text-[10px] text-purple-300">
+                  <span className="rounded-full border border-pink-500/25 bg-pink-500/10 px-2 py-0.5 text-[10px] text-pink-300">
                     პრიორიტეტული
                   </span>
                 </div>
@@ -117,7 +117,7 @@ export function PredictionResult() {
             <div className="mt-4 flex items-center justify-between gap-3">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white"
               >
                 <Share2 className="h-4 w-4" />
                 სიის გაზიარება

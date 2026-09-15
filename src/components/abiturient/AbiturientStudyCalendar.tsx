@@ -63,7 +63,7 @@ export function AbiturientStudyCalendar() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl dark:text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-purple-500/15 dark:text-purple-300">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300">
               <CalendarDays className="h-4.5 w-4.5" strokeWidth={2} />
             </span>
             შენი სასწავლო კალენდარი
@@ -76,7 +76,7 @@ export function AbiturientStudyCalendar() {
         </div>
         <Link
           href="/study-plan/abit"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-violet-300/60 bg-violet-50 px-3 py-2 text-xs font-medium text-violet-700 transition hover:bg-violet-100 dark:border-purple-500/25 dark:bg-purple-500/10 dark:text-purple-200 dark:hover:bg-purple-500/20"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-pink-300/60 bg-pink-50 px-3 py-2 text-xs font-medium text-pink-700 transition hover:bg-pink-100 dark:border-pink-500/25 dark:bg-pink-500/10 dark:text-pink-200 dark:hover:bg-pink-500/20"
         >
           <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
           {plan ? "ახალი გეგმა" : "გეგმის შექმნა"}
@@ -93,20 +93,20 @@ export function AbiturientStudyCalendar() {
         </div>
       ) : (
         <>
-          <div className="mb-5 flex items-center gap-3 rounded-xl border border-violet-200/60 bg-violet-50/50 px-3 py-2.5 dark:border-purple-500/20 dark:bg-purple-500/[0.06]">
+          <div className="mb-5 flex items-center gap-3 rounded-xl border border-pink-200/60 bg-pink-50/50 px-3 py-2.5 dark:border-pink-500/20 dark:bg-pink-500/[0.06]">
             <span className="text-lg" aria-hidden>
               {finished ? "🏆" : progressPct === 0 ? "🌱" : "🔥"}
             </span>
             <div className="flex-1">
-              <div className="flex items-center justify-between text-xs font-medium text-violet-700 dark:text-purple-200">
+              <div className="flex items-center justify-between text-xs font-medium text-pink-700 dark:text-pink-200">
                 <span>
                   {doneCount}/{plan.totalDays} დღე შესრულებული
                 </span>
                 <span>{progressPct}%</span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-violet-100 dark:bg-white/[0.06]">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-pink-100 dark:bg-white/[0.06]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500 dark:from-purple-500 dark:to-indigo-400"
+                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 transition-all duration-500 dark:from-pink-500 dark:to-indigo-400"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -122,7 +122,7 @@ export function AbiturientStudyCalendar() {
             </div>
           ) : (
             <>
-              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-200 dark:[&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-track]:bg-transparent">
+              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-pink-200 dark:[&::-webkit-scrollbar-thumb]:bg-pink-500/30 [&::-webkit-scrollbar-track]:bg-transparent">
                 {upcoming.map((day) => {
                   const level = FOCUS_LEVEL_CONFIG[day.focus_level];
                   const LevelIcon = level.icon;
@@ -145,9 +145,9 @@ export function AbiturientStudyCalendar() {
                           setExpandedDate((prev) => (prev === day.date ? null : day.date));
                         }
                       }}
-                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-violet-50/30 p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
+                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-pink-50/30 p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
                         done ? "opacity-60" : ""
-                      } ${isExpanded ? "ring-2 ring-violet-500 ring-offset-2 ring-offset-white dark:ring-purple-400 dark:ring-offset-[#0c0d10]" : ""}`}
+                      } ${isExpanded ? "ring-2 ring-pink-500 ring-offset-2 ring-offset-white dark:ring-pink-400 dark:ring-offset-[#0c0d10]" : ""}`}
                     >
                       <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${level.bar}`} />
                       <div className="flex items-start justify-between gap-2">
@@ -168,7 +168,7 @@ export function AbiturientStudyCalendar() {
                           className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all active:scale-90 ${
                             done
                               ? "border-emerald-400/60 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"
-                              : "border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:text-violet-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-purple-400/40 dark:hover:text-purple-300"
+                              : "border-slate-200 bg-white text-slate-400 hover:border-pink-300 hover:text-pink-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-pink-400/40 dark:hover:text-pink-300"
                           }`}
                         >
                           <Check className="h-4 w-4" strokeWidth={2.5} />
@@ -177,7 +177,7 @@ export function AbiturientStudyCalendar() {
 
                       <div className="flex flex-wrap items-center gap-1.5">
                         {isToday ? (
-                          <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-purple-500">
+                          <span className="rounded-full bg-pink-600 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-pink-500">
                             დღეს
                           </span>
                         ) : (
@@ -229,7 +229,7 @@ export function AbiturientStudyCalendar() {
                       const isToday = expandedDay.date === today;
                       return (
                         <div
-                          className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-violet-50/40 p-4 pl-5 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5 sm:pl-6"
+                          className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-pink-50/40 p-4 pl-5 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5 sm:pl-6"
                         >
                           <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
                           <div className="flex flex-wrap items-center gap-2">
@@ -260,7 +260,7 @@ export function AbiturientStudyCalendar() {
                                 key={topic}
                                 className="flex items-start gap-2 text-sm text-slate-800 dark:text-zinc-200"
                               >
-                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500 dark:bg-purple-400" />
+                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pink-500 dark:bg-pink-400" />
                                 {topic}
                               </li>
                             ))}
@@ -272,7 +272,7 @@ export function AbiturientStudyCalendar() {
                             className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
                               done
                                 ? "bg-emerald-500 text-white"
-                                : "bg-violet-600 text-white hover:bg-violet-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                                : "bg-pink-600 text-white hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600"
                             }`}
                           >
                             <Check className="h-4 w-4" strokeWidth={2.5} />

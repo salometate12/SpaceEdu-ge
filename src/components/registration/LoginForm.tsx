@@ -123,8 +123,8 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
       <header className="space-y-3 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-purple-500/25 bg-purple-600/20">
-          <Rocket className="h-5 w-5 stroke-[1.5] text-purple-300" />
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-pink-500/25 bg-pink-600/20">
+          <Rocket className="h-5 w-5 stroke-[1.5] text-pink-300" />
         </div>
         <h1 className="headline text-2xl font-bold text-slate-900 dark:text-white">შესვლა</h1>
         <p className="text-sm text-slate-600 dark:text-gray-400">{roleSubtext}</p>
@@ -168,7 +168,7 @@ export function LoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
               placeholder="name@example.com"
             />
           </div>
@@ -185,7 +185,7 @@ export function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
               placeholder="პაროლი"
             />
           </div>
@@ -205,7 +205,7 @@ export function LoginForm() {
                     type="button"
                     onClick={() => void handleResend()}
                     disabled={resendState === "sending"}
-                    className="font-medium text-purple-300 underline underline-offset-2 hover:text-purple-200 disabled:opacity-50"
+                    className="font-medium text-pink-300 underline underline-offset-2 hover:text-pink-200 disabled:opacity-50"
                   >
                     {resendState === "sending"
                       ? "იგზავნება..."
@@ -222,7 +222,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 py-3 text-sm font-medium text-white shadow-lg shadow-purple-600/20 hover:bg-purple-500 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-pink-600 py-3 text-sm font-medium text-white shadow-lg shadow-pink-600/20 hover:bg-pink-500 disabled:opacity-50"
         >
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           შესვლა
@@ -233,7 +233,7 @@ export function LoginForm() {
         ანგარიში არ გაქვს?{" "}
         <Link
           href={role ? `/registration?role=${role}` : "/select-space"}
-          className="font-medium text-purple-400 hover:text-purple-300"
+          className="font-medium text-pink-400 hover:text-pink-300"
         >
           რეგისტრაცია
         </Link>

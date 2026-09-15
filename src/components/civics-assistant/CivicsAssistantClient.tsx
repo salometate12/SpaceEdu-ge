@@ -25,7 +25,7 @@ export function CivicsAssistantClient() {
       accent="emerald"
       downloadPrefix="სამოქალაქო-კონსპექტი"
       maxLength={500}
-      emptyIcon={<Scale className="h-8 w-8 stroke-[1.5] text-purple-500/80" />}
+      emptyIcon={<Scale className="h-8 w-8 stroke-[1.5] text-pink-500/80" />}
     />
   );
 }

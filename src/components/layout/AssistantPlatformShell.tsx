@@ -36,9 +36,9 @@ function SubjectNav({
           return (
             <div
               key={item.id}
-              className="group flex w-full items-center gap-2.5 rounded-xl border border-zinc-200/70 bg-white/70 px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition-all hover:border-violet-200 hover:bg-violet-50/60 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:border-violet-800/50 dark:hover:bg-zinc-800/70"
+              className="group flex w-full items-center gap-2.5 rounded-xl border border-zinc-200/70 bg-white/70 px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition-all hover:border-pink-200 hover:bg-pink-50/60 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:border-pink-800/50 dark:hover:bg-zinc-800/70"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-violet-100 group-hover:text-violet-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-violet-950/40 dark:group-hover:text-violet-300">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-pink-100 group-hover:text-pink-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-pink-950/40 dark:group-hover:text-pink-300">
                 <Icon className="h-3.5 w-3.5" />
               </span>
               <span className="leading-snug">{item.label}</span>
@@ -180,7 +180,7 @@ export function AssistantPlatformShell({ children }: { children: ReactNode }) {
                 <ThemeToggle />
               </div>
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-600 text-white shadow-sm">
                   <GraduationCap className="h-4 w-4" />
                 </span>
                 <div>
