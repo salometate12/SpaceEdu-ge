@@ -24,7 +24,7 @@ export function ThemeToggle({ showLabel = false, className = "" }: ThemeTogglePr
       {isDark ? (
         <Sun className="h-4 w-4 shrink-0 text-amber-400" />
       ) : (
-        <Moon className="h-4 w-4 shrink-0 text-violet-600" />
+        <Moon className="h-4 w-4 shrink-0 text-pink-600" />
       )}
       {showLabel ? (
         <span className="text-xs font-medium">

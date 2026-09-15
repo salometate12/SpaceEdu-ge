@@ -59,7 +59,7 @@ export function AdminShell() {
           })}
         </nav>
 
-        <div className="mt-auto rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs text-zinc-400">
+        <div className="mt-auto rounded-xl border border-pink-500/20 bg-pink-500/5 p-3 text-xs text-zinc-400">
           JSON stores under <span className="font-mono text-cyan-300/80">data/admin/</span>
         </div>
       </aside>

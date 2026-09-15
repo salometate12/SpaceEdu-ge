@@ -16,10 +16,10 @@ const STAGES: QuizStage[] = [
   {
     icon: FileSearch,
     text: () => "ვკითხულობ ატვირთულ მასალას...",
-    badge: "bg-gradient-to-br from-violet-500 to-indigo-500",
+    badge: "bg-gradient-to-br from-pink-500 to-indigo-500",
     glow: "shadow-[0_0_28px_rgba(139,92,246,0.4)]",
-    dot: "bg-violet-500 dark:bg-purple-400",
-    sparkle: "bg-violet-400",
+    dot: "bg-pink-500 dark:bg-pink-400",
+    sparkle: "bg-pink-400",
   },
   {
     icon: Lightbulb,
@@ -95,7 +95,7 @@ export function QuizThinkingLoader({ questionCount, hint }: QuizThinkingLoaderPr
       className="flex min-h-[360px] flex-col items-center justify-center gap-5 text-center"
     >
       {hint && (
-        <p className="text-xs font-medium text-violet-600 dark:text-purple-300/90">{hint}</p>
+        <p className="text-xs font-medium text-pink-600 dark:text-pink-300/90">{hint}</p>
       )}
 
       <div className="relative flex h-24 w-24 items-center justify-center">
@@ -119,7 +119,7 @@ export function QuizThinkingLoader({ questionCount, hint }: QuizThinkingLoaderPr
           />
         ))}
 
-        <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/10 dark:bg-purple-500/10" />
+        <span className="absolute inset-0 animate-ping rounded-full bg-pink-400/10 dark:bg-pink-500/10" />
         <span className="absolute inset-2 rounded-full border border-slate-200 dark:border-white/[0.08]" />
         <span
           className={`relative flex h-16 w-16 items-center justify-center rounded-full transition-all duration-500 ${stage.badge} ${stage.glow}`}

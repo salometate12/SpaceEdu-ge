@@ -87,7 +87,7 @@ export function AbiturientLibrary() {
   return (
     <section className="dashboard-section p-5">
       <div id="abit-library" className="mb-4 scroll-mt-24">
-        <BookOpen className="mb-2 h-6 w-6 text-violet-600 dark:text-purple-400" strokeWidth={1.5} />
+        <BookOpen className="mb-2 h-6 w-6 text-pink-600 dark:text-pink-400" strokeWidth={1.5} />
         <h3 className="text-xl font-semibold text-slate-900 dark:text-white">სასწავლო ბიბლიოთეკა</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
           ეროვნული გამოცდების პროგრამით გათვალისწინებული სახელმძღვანელოები საგნების მიხედვით
@@ -104,8 +104,8 @@ export function AbiturientLibrary() {
               onClick={() => setTab(filter.id)}
               className={`rounded-xl px-4 py-1.5 text-xs transition-all ${
                 active
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-200/50 dark:from-purple-600 dark:to-purple-600 dark:shadow-purple-500/10"
-                  : "border border-slate-200/80 bg-white text-slate-600 hover:border-violet-200 hover:text-violet-700 dark:border-white/[0.08] dark:bg-[#161619]/60 dark:text-gray-400 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-pink-600 to-indigo-600 text-white shadow-md shadow-pink-200/50 dark:from-pink-600 dark:to-pink-600 dark:shadow-pink-500/10"
+                  : "border border-slate-200/80 bg-white text-slate-600 hover:border-pink-200 hover:text-pink-700 dark:border-white/[0.08] dark:bg-[#161619]/60 dark:text-gray-400 dark:hover:text-white"
               }`}
             >
               {filter.label}
@@ -127,11 +127,11 @@ export function AbiturientLibrary() {
             >
               {isLive ? (
                 <>
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:border-white/[0.04] dark:bg-[#1a1a1e]/40">
-                    <FileText className="h-5 w-5 text-violet-600 dark:text-purple-400" strokeWidth={1.5} />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-gradient-to-br from-pink-50 via-white to-indigo-50 dark:border-white/[0.04] dark:bg-[#1a1a1e]/40">
+                    <FileText className="h-5 w-5 text-pink-600 dark:text-pink-400" strokeWidth={1.5} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-violet-600 dark:text-purple-400/80">{book.subject}</p>
+                    <p className="text-xs font-medium text-pink-600 dark:text-pink-400/80">{book.subject}</p>
                     <p className="line-clamp-1 text-sm font-medium text-slate-900 dark:text-white">{book.title}</p>
                     <p className="text-xs text-slate-500 dark:text-gray-400">{book.author}</p>
                   </div>
@@ -142,10 +142,10 @@ export function AbiturientLibrary() {
               ) : (
                 <>
                   <div>
-                    <div className="mb-3 flex h-28 w-full items-center justify-center rounded-xl border border-slate-200/80 bg-gradient-to-br from-violet-50 via-white to-indigo-50 transition-all group-hover:from-violet-100 group-hover:to-indigo-100 dark:border-white/[0.04] dark:bg-none dark:bg-[#1a1a1e]/40 dark:group-hover:bg-[#1a1a1e]/70">
-                      <FileText className="h-7 w-7 text-violet-600 dark:text-purple-400" strokeWidth={1.5} />
+                    <div className="mb-3 flex h-28 w-full items-center justify-center rounded-xl border border-slate-200/80 bg-gradient-to-br from-pink-50 via-white to-indigo-50 transition-all group-hover:from-pink-100 group-hover:to-indigo-100 dark:border-white/[0.04] dark:bg-none dark:bg-[#1a1a1e]/40 dark:group-hover:bg-[#1a1a1e]/70">
+                      <FileText className="h-7 w-7 text-pink-600 dark:text-pink-400" strokeWidth={1.5} />
                     </div>
-                    <p className="mb-1 text-xs font-medium text-violet-600 dark:text-purple-400/80">
+                    <p className="mb-1 text-xs font-medium text-pink-600 dark:text-pink-400/80">
                       {book.subject}
                     </p>
                     <p className="line-clamp-1 text-sm font-medium text-slate-900 dark:text-white">

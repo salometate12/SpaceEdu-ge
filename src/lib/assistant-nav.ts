@@ -47,9 +47,9 @@ export const assistantNavAccentClasses: Record<
   { active: string; idle: string; icon: string }
 > = {
   violet: {
-    active: "bg-violet-600 text-white shadow-sm",
-    idle: "text-zinc-600 hover:bg-violet-50 hover:text-violet-700 dark:text-zinc-400 dark:hover:bg-violet-950/40 dark:hover:text-violet-300",
-    icon: "text-violet-600 dark:text-violet-400",
+    active: "bg-pink-600 text-white shadow-sm",
+    idle: "text-zinc-600 hover:bg-pink-50 hover:text-pink-700 dark:text-zinc-400 dark:hover:bg-pink-950/40 dark:hover:text-pink-300",
+    icon: "text-pink-600 dark:text-pink-400",
   },
   amber: {
     active: "bg-amber-600 text-white shadow-sm",

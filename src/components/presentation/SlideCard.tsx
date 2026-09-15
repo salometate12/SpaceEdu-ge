@@ -7,7 +7,7 @@ interface SlideCardProps {
 }
 
 const TYPE_COLOR: Record<GeneratedSlide["type"], string> = {
-  cover: "bg-purple-500/20 text-purple-200",
+  cover: "bg-pink-500/20 text-pink-200",
   content: "bg-cyan-500/20 text-cyan-200",
   image: "bg-pink-500/20 text-pink-200",
   stats: "bg-amber-500/20 text-amber-200",

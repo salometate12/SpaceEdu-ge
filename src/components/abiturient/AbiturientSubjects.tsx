@@ -88,8 +88,8 @@ function ActiveLearningCard({
   const accent = getNeonAccent(subject.id);
   const Icon = subject.icon;
   const cardClass = isLive
-    ? "mb-6 flex min-h-[104px] flex-row items-center gap-4 border-violet-300/60 bg-gradient-to-r from-violet-100/80 via-violet-50/50 to-indigo-50 p-4 sm:p-5 dark:border-purple-500/35 dark:bg-none dark:bg-gradient-to-r dark:from-purple-900/25 dark:via-white/[0.02] dark:to-indigo-900/20"
-    : "mb-8 border-violet-300/60 bg-gradient-to-r from-violet-100/80 via-violet-50/50 to-indigo-50 dark:border-purple-500/35 dark:bg-none dark:bg-gradient-to-r dark:from-purple-900/25 dark:via-white/[0.02] dark:to-indigo-900/20 p-6";
+    ? "mb-6 flex min-h-[104px] flex-row items-center gap-4 border-pink-300/60 bg-gradient-to-r from-pink-100/80 via-pink-50/50 to-indigo-50 p-4 sm:p-5 dark:border-pink-500/35 dark:bg-none dark:bg-gradient-to-r dark:from-pink-900/25 dark:via-white/[0.02] dark:to-indigo-900/20"
+    : "mb-8 border-pink-300/60 bg-gradient-to-r from-pink-100/80 via-pink-50/50 to-indigo-50 dark:border-pink-500/35 dark:bg-none dark:bg-gradient-to-r dark:from-pink-900/25 dark:via-white/[0.02] dark:to-indigo-900/20 p-6";
 
   return (
     <DashboardGlowCard
@@ -104,7 +104,7 @@ function ActiveLearningCard({
             <Icon className={`h-6 w-6 ${accent.iconClass}`} strokeWidth={1.5} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-purple-300">
+            <p className="text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-300">
               განაგრძე სწავლა
             </p>
             <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
@@ -121,7 +121,7 @@ function ActiveLearningCard({
             />
           </div>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-violet-600 transition group-hover:text-violet-800 dark:text-purple-200 dark:group-hover:text-white">
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-pink-600 transition group-hover:text-pink-800 dark:text-pink-200 dark:group-hover:text-white">
           გახსნა
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" strokeWidth={1.5} />
         </span>
@@ -254,7 +254,7 @@ export function AbiturientSubjects() {
 
       <Link
         href="/dashboard-abit"
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white via-violet-50/50 to-cyan-50/50 py-3 text-sm text-slate-600 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/60 hover:text-violet-700 hover:shadow-md hover:shadow-violet-100/40 dark:border-white/10 dark:bg-none dark:bg-white/[0.02] dark:text-gray-400 dark:hover:border-purple-500/30 dark:hover:bg-white/[0.04] dark:hover:text-gray-200 dark:hover:shadow-[0_0_16px_rgba(168,85,247,0.15)]"
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-gradient-to-r from-white via-pink-50/50 to-cyan-50/50 py-3 text-sm text-slate-600 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-300/60 hover:text-pink-700 hover:shadow-md hover:shadow-pink-100/40 dark:border-white/10 dark:bg-none dark:bg-white/[0.02] dark:text-gray-400 dark:hover:border-pink-500/30 dark:hover:bg-white/[0.04] dark:hover:text-gray-200 dark:hover:shadow-[0_0_16px_rgba(168,85,247,0.15)]"
       >
         სრული პროგრამის ხედვა
         <ArrowRight className="h-4 w-4" strokeWidth={1.5} />

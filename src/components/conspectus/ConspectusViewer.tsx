@@ -34,14 +34,14 @@ interface ConspectusViewerProps {
 
 const accentSpinner: Record<ConspectusAccent, string> = {
   amber: "border-t-amber-600",
-  violet: "border-t-violet-600",
+  violet: "border-t-pink-600",
   sky: "border-t-sky-600",
   emerald: "border-t-emerald-600",
 };
 
 const accentCursor: Record<ConspectusAccent, string> = {
   amber: "bg-amber-500",
-  violet: "bg-violet-500",
+  violet: "bg-pink-500",
   sky: "bg-sky-500",
   emerald: "bg-emerald-500",
 };

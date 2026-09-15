@@ -57,7 +57,7 @@ export function ExamPredictionCard({ prediction }: ExamPredictionCardProps) {
           </span>
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-3 rounded-xl bg-gradient-to-r from-slate-50 via-cyan-50/50 to-violet-50/40 p-4 sm:grid-cols-3 sm:gap-4 dark:bg-[#0f1420]">
+        <div className="mt-3 grid grid-cols-1 gap-3 rounded-xl bg-gradient-to-r from-slate-50 via-cyan-50/50 to-pink-50/40 p-4 sm:grid-cols-3 sm:gap-4 dark:bg-[#0f1420]">
           <Metric label="შენი ქულა" value={formatScore(prediction.userScore)} />
           <Metric
             label="გასული წლის ზღვარი"

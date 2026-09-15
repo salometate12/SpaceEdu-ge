@@ -47,14 +47,14 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
     <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <Link
         href={subjectId === "georgian" ? "/subject/georgian" : `/subject/${subjectId}`}
-        className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-zinc-300 transition hover:border-violet-400/30 hover:text-white"
+        className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-zinc-300 transition hover:border-pink-400/30 hover:text-white"
         aria-label="დაბრუნება"
       >
         <ArrowLeft className="h-4 w-4" />
       </Link>
 
       <header className="rounded-2xl border border-white/10 bg-[#0D0D15]/80 p-6 backdrop-blur-xl">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/25 bg-violet-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-500/25 bg-pink-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-pink-300">
           <ScrollText className="h-3 w-3 stroke-[2]" />
           {subject?.title ?? "ქართული ენა"}
         </span>
@@ -76,7 +76,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
               placeholder="მაგ: რა როლს თამაშობს ტრადიცია თანამედროვე საზოგადოებაში?"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-400/50"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-pink-400/50"
             />
           </label>
 
@@ -86,7 +86,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
                 key={sample}
                 type="button"
                 onClick={() => setPrompt(sample)}
-                className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-1 text-[10px] font-medium text-zinc-400 transition hover:border-violet-400/30 hover:text-violet-200"
+                className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2.5 py-1 text-[10px] font-medium text-zinc-400 transition hover:border-pink-400/30 hover:text-pink-200"
               >
                 {sample}
               </button>
@@ -104,7 +104,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
               value={essay}
               onChange={(event) => setEssay(event.target.value)}
               placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა, სამი ნაწილით: შესავალი, არგუმენტები, დასკვნა."
-              className="min-h-[400px] w-full resize-y rounded-xl border border-white/10 bg-[#08080d]/80 p-4 font-sans text-[15px] leading-[1.9] text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-violet-400/50"
+              className="min-h-[400px] w-full resize-y rounded-xl border border-white/10 bg-[#08080d]/80 p-4 font-sans text-[15px] leading-[1.9] text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-pink-400/50"
             />
           </label>
 
@@ -112,7 +112,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
             type="button"
             onClick={() => void grade(essay, prompt)}
             disabled={busy || wordCount === 0}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-pink-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
           >
             {busy ? (
               <>

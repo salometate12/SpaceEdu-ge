@@ -19,14 +19,14 @@ export function UniRankingsPanel() {
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-purple-600 text-xs font-semibold text-white">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-pink-600 text-xs font-semibold text-white">
                   {row.idx}
                 </span>
                 <p className="truncate text-sm text-zinc-200">{row.title}</p>
               </div>
               <p className="mt-0.5 text-xs text-zinc-500">{row.code}</p>
             </div>
-            <span className="rounded-full border border-purple-500/25 bg-purple-500/10 px-2 py-0.5 text-[10px] font-medium text-purple-300">
+            <span className="rounded-full border border-pink-500/25 bg-pink-500/10 px-2 py-0.5 text-[10px] font-medium text-pink-300">
               Mock
             </span>
           </div>

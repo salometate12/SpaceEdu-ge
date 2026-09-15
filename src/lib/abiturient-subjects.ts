@@ -27,13 +27,13 @@ export interface SubjectTheme {
 export const SUBJECT_THEMES: Record<string, SubjectTheme> = {
   history: {
     glow: "#A855F7",
-    progressStroke: "stroke-purple-400",
-    progressLabel: "text-purple-300",
-    iconRing: "border-purple-500/30 bg-purple-500/10",
-    iconText: "text-purple-300",
-    ctaText: "text-purple-400",
-    hoverBorder: "hover:border-purple-500/25",
-    badgeBg: "bg-purple-500",
+    progressStroke: "stroke-pink-400",
+    progressLabel: "text-pink-300",
+    iconRing: "border-pink-500/30 bg-pink-500/10",
+    iconText: "text-pink-300",
+    ctaText: "text-pink-400",
+    hoverBorder: "hover:border-pink-500/25",
+    badgeBg: "bg-pink-500",
   },
   english: {
     glow: "#F59E0B",

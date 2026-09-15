@@ -41,7 +41,7 @@ function AccordionRowItem({
         aria-expanded={expanded}
         aria-controls={panelId}
         className={`flex w-full items-center gap-4 px-5 py-4 text-left transition-all duration-300 sm:px-6 sm:py-4.5 ${
-          expanded ? "bg-purple-500/[0.03]" : "hover:bg-purple-500/[0.02]"
+          expanded ? "bg-pink-500/[0.03]" : "hover:bg-pink-500/[0.02]"
         }`}
       >
         <span className="min-w-0 flex-1 text-sm font-semibold leading-snug text-slate-900 sm:text-[15px] dark:text-white">
@@ -57,7 +57,7 @@ function AccordionRowItem({
         </span>
         <ChevronDown
           className={`h-5 w-5 shrink-0 stroke-[1.5] text-slate-500 transition-transform duration-300 dark:text-gray-500 ${
-            expanded ? "rotate-180 text-purple-400/80" : ""
+            expanded ? "rotate-180 text-pink-400/80" : ""
           }`}
           aria-hidden
         />
@@ -75,10 +75,10 @@ function AccordionRowItem({
           <div className="border-b border-t border-slate-200 bg-slate-50/70 p-5 sm:p-6 dark:border-white/[0.06] dark:bg-white/[0.02]">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="min-w-0">
-                <span className="mb-2 inline-block rounded-md border border-purple-500/15 bg-purple-500/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
+                <span className="mb-2 inline-block rounded-md border border-pink-500/15 bg-pink-500/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">
                   ლიტერატურული პარალელი
                 </span>
-                <p className="break-words text-sm leading-relaxed text-purple-200/90">
+                <p className="break-words text-sm leading-relaxed text-pink-200/90">
                   {parallel}
                 </p>
               </div>
@@ -133,11 +133,11 @@ export function LiteraryParallelsTablePage({
         </Link>
 
         <header className="mb-8 flex flex-wrap items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-purple-500/20 bg-purple-500/10">
-            <GitMerge className="h-6 w-6 stroke-[1.5] text-purple-400" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10">
+            <GitMerge className="h-6 w-6 stroke-[1.5] text-pink-400" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">
               არგუმენტების ბანკი
             </p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">

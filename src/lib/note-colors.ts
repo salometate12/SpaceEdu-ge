@@ -98,18 +98,18 @@ export const NOTE_COLORS: Record<NoteColor, NoteColorScheme> = {
   },
   violet: {
     label: "იისფერი",
-    card: "border-violet-200/80 bg-violet-50/70 dark:border-violet-300/15 dark:bg-violet-300/[0.06]",
-    label_: "text-violet-800/70 dark:text-violet-200/80",
-    body: "text-violet-900/70 dark:text-violet-100/70",
-    field: "border-violet-900/10 focus:border-violet-600/40 dark:border-white/10",
+    card: "border-pink-200/80 bg-pink-50/70 dark:border-pink-300/15 dark:bg-pink-300/[0.06]",
+    label_: "text-pink-800/70 dark:text-pink-200/80",
+    body: "text-pink-900/70 dark:text-pink-100/70",
+    field: "border-pink-900/10 focus:border-pink-600/40 dark:border-white/10",
     selected:
-      "border-violet-400 bg-violet-100 text-violet-900 dark:border-violet-300/40 dark:bg-violet-400/20 dark:text-violet-100",
-    chip: "border-violet-200 bg-violet-50 text-violet-900 hover:bg-violet-100 dark:border-violet-300/20 dark:bg-violet-400/10 dark:text-violet-100",
-    bubble: "bg-violet-100 text-violet-950 dark:bg-violet-400/20 dark:text-violet-50",
+      "border-pink-400 bg-pink-100 text-pink-900 dark:border-pink-300/40 dark:bg-pink-400/20 dark:text-pink-100",
+    chip: "border-pink-200 bg-pink-50 text-pink-900 hover:bg-pink-100 dark:border-pink-300/20 dark:bg-pink-400/10 dark:text-pink-100",
+    bubble: "bg-pink-100 text-pink-950 dark:bg-pink-400/20 dark:text-pink-50",
     solid:
-      "bg-violet-600 text-white hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400",
-    icon: "text-violet-600 dark:text-violet-400",
-    swatch: "bg-violet-500",
+      "bg-pink-600 text-white hover:bg-pink-500 dark:bg-pink-500 dark:hover:bg-pink-400",
+    icon: "text-pink-600 dark:text-pink-400",
+    swatch: "bg-pink-500",
   },
 };
 

@@ -14,7 +14,7 @@ export const ACCENT_TEXT: Record<NotebookAccent, string> = {
   green: "text-emerald-600 dark:text-emerald-300",
   pink: "text-pink-600 dark:text-pink-300",
   amber: "text-amber-600 dark:text-amber-300",
-  violet: "text-violet-600 dark:text-violet-300",
+  violet: "text-pink-600 dark:text-pink-300",
 };
 
 /** Underline drawn beneath a highlighted phrase in body copy. */
@@ -23,7 +23,7 @@ export const ACCENT_UNDERLINE: Record<NotebookAccent, string> = {
   green: "decoration-emerald-400/50 dark:decoration-emerald-400/40",
   pink: "decoration-pink-400/50 dark:decoration-pink-400/40",
   amber: "decoration-amber-400/60 dark:decoration-amber-400/40",
-  violet: "decoration-violet-400/50 dark:decoration-violet-400/40",
+  violet: "decoration-pink-400/50 dark:decoration-pink-400/40",
 };
 
 /** Border and fill for a card stuck onto the page. */
@@ -34,7 +34,7 @@ export const ACCENT_CARD: Record<NotebookAccent, string> = {
   pink: "border-pink-300/70 bg-pink-100/50 dark:border-pink-400/25 dark:bg-pink-400/[0.07]",
   amber: "border-amber-300/70 bg-amber-100/50 dark:border-amber-400/25 dark:bg-amber-400/[0.07]",
   violet:
-    "border-violet-300/70 bg-violet-100/50 dark:border-violet-400/25 dark:bg-violet-400/[0.07]",
+    "border-pink-300/70 bg-pink-100/50 dark:border-pink-400/25 dark:bg-pink-400/[0.07]",
 };
 
 /** Same as `ACCENT_CARD`, but reading as a small pill rather than a card. */
@@ -46,7 +46,7 @@ export const ACCENT_PILL: Record<NotebookAccent, string> = {
   amber:
     "border-amber-400/70 bg-amber-100/70 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200",
   violet:
-    "border-violet-400/70 bg-violet-100/70 text-violet-700 dark:border-violet-400/30 dark:bg-violet-400/10 dark:text-violet-200",
+    "border-pink-400/70 bg-pink-100/70 text-pink-700 dark:border-pink-400/30 dark:bg-pink-400/10 dark:text-pink-200",
 };
 
 /**
@@ -60,7 +60,7 @@ export const ACCENT_SOLID: Record<NotebookAccent, string> = {
   green: "border-emerald-700 bg-emerald-600 text-white dark:border-emerald-300/40",
   pink: "border-pink-700 bg-pink-600 text-white dark:border-pink-300/40",
   amber: "border-amber-600 bg-amber-500 text-white dark:border-amber-300/40",
-  violet: "border-violet-700 bg-violet-600 text-white dark:border-violet-300/40",
+  violet: "border-pink-700 bg-pink-600 text-white dark:border-pink-300/40",
 };
 
 /** Neutral card: the same paper edge, without picking up a pen colour. */

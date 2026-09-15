@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Clock, GraduationCap, Rocket, Target } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, GraduationCap, Target } from "lucide-react";
 import {
   DASHBOARD_ABIT_HREF,
   DASHBOARD_SCHOOL_HREF,
@@ -96,11 +96,15 @@ export function SpaceSelectorModal({ onSelect }: SpaceSelectorModalProps) {
 
       <div className="relative z-10 w-full max-w-5xl">
         <div className="stagger-in mb-9 text-center" style={{ animationDelay: "120ms" }}>
-          <div className="mb-4 flex items-center justify-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600">
-              <Rocket className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
-            </span>
-            <span className="headline text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <div className="mb-4 flex items-center justify-center gap-2.5">
+            <img
+              src="/spaceedu-mark.png"
+              alt=""
+              width={44}
+              height={44}
+              className="h-11 w-auto"
+            />
+            <span className="headline text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
               SpaceEdu
             </span>
           </div>

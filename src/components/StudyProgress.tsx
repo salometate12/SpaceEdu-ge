@@ -22,7 +22,7 @@ export function StudyProgress({ current, total }: StudyProgressProps) {
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
         <div
-          className="h-full rounded-full bg-violet-600 transition-all duration-300 ease-out"
+          className="h-full rounded-full bg-pink-600 transition-all duration-300 ease-out"
           style={{ width: `${percent}%` }}
         />
       </div>

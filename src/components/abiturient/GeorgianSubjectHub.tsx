@@ -141,7 +141,7 @@ export function GeorgianSubjectHub() {
           href="/subject/georgian/text-editing"
           accent="violet"
           tilt="hover:-rotate-1"
-          corner={<Sparkle className="h-5 w-5 rotate-12 text-violet-400" />}
+          corner={<Sparkle className="h-5 w-5 rotate-12 text-pink-400" />}
         />
 
         <SubjectExerciseCard

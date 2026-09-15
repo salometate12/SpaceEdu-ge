@@ -47,7 +47,7 @@ export function AssistantBackToTopFab() {
       type="button"
       onClick={scrollToTop}
       aria-label="ზევით დაბრუნება"
-      className="fixed bottom-24 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-purple-500/25 bg-[#121214]/80 text-purple-300 shadow-[0_0_24px_rgba(139,92,246,0.15)] backdrop-blur-xl transition-all hover:border-purple-400/40 hover:text-white hover:shadow-[0_0_32px_rgba(139,92,246,0.25)] active:scale-95 lg:bottom-8 lg:right-8"
+      className="fixed bottom-24 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-pink-500/25 bg-[#121214]/80 text-pink-300 shadow-[0_0_24px_rgba(139,92,246,0.15)] backdrop-blur-xl transition-all hover:border-pink-400/40 hover:text-white hover:shadow-[0_0_32px_rgba(139,92,246,0.25)] active:scale-95 lg:bottom-8 lg:right-8"
     >
       <ArrowUp className="h-4 w-4 stroke-[1.5]" />
     </button>

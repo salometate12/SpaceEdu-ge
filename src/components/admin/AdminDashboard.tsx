@@ -193,7 +193,7 @@ export function AdminDashboard({ password }: AdminDashboardProps) {
           </button>
         </nav>
 
-        <div className="mt-auto rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs text-zinc-400">
+        <div className="mt-auto rounded-xl border border-pink-500/20 bg-pink-500/5 p-3 text-xs text-zinc-400">
           {rows.length} program rows loaded
           {dirty ? " · unsaved edits" : ""}
         </div>
@@ -284,7 +284,7 @@ export function AdminDashboard({ password }: AdminDashboardProps) {
                             {row.faculty}
                           </td>
                           <td className="font-mono text-cyan-200">{row.threshold}</td>
-                          <td className="font-mono text-purple-200">
+                          <td className="font-mono text-pink-200">
                             {row.slots ?? "—"}
                           </td>
                           <td className="text-right">

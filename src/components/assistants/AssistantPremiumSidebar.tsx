@@ -72,7 +72,7 @@ export function AssistantPremiumSidebar({
             onClick={handleBackToDashboard}
             className="group mb-2 flex items-center gap-2 self-start px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-all hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
           >
-            <ArrowLeft className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:-translate-x-0.5 group-hover:text-purple-400 dark:text-gray-500" />
+            <ArrowLeft className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:-translate-x-0.5 group-hover:text-pink-400 dark:text-gray-500" />
             <span>დეშბორდზე დაბრუნება</span>
           </button>
 
@@ -102,7 +102,7 @@ export function AssistantPremiumSidebar({
                   href={item.href}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                     active
-                      ? "border border-purple-500/20 bg-purple-500/[0.08] text-purple-400"
+                      ? "border border-pink-500/20 bg-pink-500/[0.08] text-pink-400"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-white"
                   }`}
                 >
@@ -128,7 +128,7 @@ export function AssistantPremiumSidebar({
                   type="button"
                   disabled={pillsDisabled}
                   onClick={() => onHistorySelect(entry.query)}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-slate-600 transition-all hover:bg-purple-500/[0.06] hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-purple-500/[0.04] dark:hover:text-purple-400"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-slate-600 transition-all hover:bg-pink-500/[0.06] hover:text-pink-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-pink-500/[0.04] dark:hover:text-pink-400"
                 >
                   <FileText className="h-3.5 w-3.5 shrink-0 stroke-[1.5]" />
                   <span className="truncate">{truncateLabel(entry.query)}</span>
@@ -150,7 +150,7 @@ export function AssistantPremiumSidebar({
               type="button"
               disabled={pillsDisabled}
               onClick={() => onPillSelect(pill)}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600 transition-all hover:border-purple-500/40 hover:text-slate-900 disabled:opacity-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400 dark:hover:text-white"
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600 transition-all hover:border-pink-500/40 hover:text-slate-900 disabled:opacity-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400 dark:hover:text-white"
             >
               {pill}
             </button>
@@ -180,7 +180,7 @@ export function AssistantQuickPills({
           type="button"
           disabled={disabled}
           onClick={() => onPillSelect(pill)}
-          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600 transition-all hover:border-purple-500/40 hover:text-slate-900 disabled:opacity-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400 dark:hover:text-white"
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600 transition-all hover:border-pink-500/40 hover:text-slate-900 disabled:opacity-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400 dark:hover:text-white"
         >
           {pill}
         </button>

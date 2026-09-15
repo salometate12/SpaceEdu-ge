@@ -23,9 +23,9 @@ function FlashcardStreamSkeleton({ cards }: { cards: FlashcardDraft[] }) {
       {cards.map((card) => (
         <div
           key={card.question}
-          className="rounded-xl border border-violet-500/15 bg-[#121214]/40 p-3 backdrop-blur-sm"
+          className="rounded-xl border border-pink-500/15 bg-[#121214]/40 p-3 backdrop-blur-sm"
         >
-          <p className="text-xs font-medium text-violet-200">{card.question}</p>
+          <p className="text-xs font-medium text-pink-200">{card.question}</p>
           <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">
             {card.answer}
           </p>
@@ -84,7 +84,7 @@ export function GenerationChoiceModal({
         {isLoading ? (
           <div className="flex w-full flex-col py-4">
             <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-violet-600 stroke-[1.5]" />
+              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-pink-600 stroke-[1.5]" />
               <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
                 {loadingMessage}
               </p>
@@ -92,7 +92,7 @@ export function GenerationChoiceModal({
 
             {showCardStream ? (
               <>
-                <p className="mt-3 text-xs text-violet-400">
+                <p className="mt-3 text-xs text-pink-400">
                   {ka.generator.modal.cardsLoading} ({streamingCards.length})
                 </p>
                 <FlashcardStreamSkeleton cards={streamingCards} />
@@ -125,7 +125,7 @@ export function GenerationChoiceModal({
               <button
                 type="button"
                 onClick={() => onSelect("flashcards")}
-                className="group flex flex-col items-start rounded-xl border-2 border-zinc-200 bg-zinc-50 p-4 text-left transition-all hover:border-violet-400 hover:bg-violet-50 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-violet-500 dark:hover:bg-violet-950/30"
+                className="group flex flex-col items-start rounded-xl border-2 border-zinc-200 bg-zinc-50 p-4 text-left transition-all hover:border-pink-400 hover:bg-pink-50 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-pink-500 dark:hover:bg-pink-950/30"
               >
                 <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
                   <Lightbulb className="h-5 w-5" />
@@ -141,7 +141,7 @@ export function GenerationChoiceModal({
               <button
                 type="button"
                 onClick={() => onSelect("summary")}
-                className="group flex flex-col items-start rounded-xl border-2 border-zinc-200 bg-zinc-50 p-4 text-left transition-all hover:border-violet-400 hover:bg-violet-50 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-violet-500 dark:hover:bg-violet-950/30"
+                className="group flex flex-col items-start rounded-xl border-2 border-zinc-200 bg-zinc-50 p-4 text-left transition-all hover:border-pink-400 hover:bg-pink-50 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-pink-500 dark:hover:bg-pink-950/30"
               >
                 <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
                   <FileText className="h-5 w-5" />

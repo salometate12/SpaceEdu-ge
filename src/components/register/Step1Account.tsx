@@ -78,7 +78,7 @@ export function Step1Account({
             value={state.firstName}
             onChange={(e) => onChange("firstName", e.target.value)}
             placeholder="სახელი"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#7C3AED]"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#d81878]"
           />
           {errors.firstName && <p className="mt-1 text-[11px] text-[#f472b6]">{errors.firstName}</p>}
         </div>
@@ -87,7 +87,7 @@ export function Step1Account({
             value={state.lastName}
             onChange={(e) => onChange("lastName", e.target.value)}
             placeholder="გვარი"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#7C3AED]"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#d81878]"
           />
           {errors.lastName && <p className="mt-1 text-[11px] text-[#f472b6]">{errors.lastName}</p>}
         </div>
@@ -99,13 +99,13 @@ export function Step1Account({
           value={state.email}
           onChange={(e) => onChange("email", e.target.value)}
           placeholder="ელ-ფოსტა"
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#7C3AED]"
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#d81878]"
         />
         {errors.email && <p className="mt-1 text-[11px] text-[#f472b6]">{errors.email}</p>}
       </div>
 
       <div className="mt-3">
-        <div className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] pr-2 focus-within:border-[#7C3AED]">
+        <div className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] pr-2 focus-within:border-[#d81878]">
           <input
             type={showPassword ? "text" : "password"}
             value={state.password}
@@ -126,7 +126,7 @@ export function Step1Account({
           <select
             value={spaceFieldValue}
             onChange={(e) => onChange("examYear", e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#7C3AED]"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#d81878]"
           >
             <option value="2026">2026</option>
             <option value="2027">2027</option>
@@ -140,7 +140,7 @@ export function Step1Account({
                 : onChange("university", e.target.value)
             }
             placeholder={spaceExtraLabel(state.space)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#7C3AED]"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm outline-none focus:border-[#d81878]"
           />
         )}
         {errors.spaceField && <p className="mt-1 text-[11px] text-[#f472b6]">{errors.spaceField}</p>}
@@ -158,7 +158,7 @@ export function Step1Account({
         </Button>
       </div>
       <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
-        უკვე გაქვს ანგარიში? <a href="/login" className="text-[#a78bfa]">შესვლა ↗</a>
+        უკვე გაქვს ანგარიში? <a href="/login" className="text-[#ee7ab0]">შესვლა ↗</a>
       </p>
     </>
   );

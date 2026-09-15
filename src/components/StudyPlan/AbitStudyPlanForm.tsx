@@ -94,7 +94,7 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
                 className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
                   active
                     ? `${item.theme.iconRing} ${item.theme.iconText}`
-                    : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-purple-500/25"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-pink-300 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-pink-500/25"
                 }`}
               >
                 <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -123,7 +123,7 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97] ${
                         active
                           ? `${subject.theme.iconRing} ${subject.theme.iconText}`
-                          : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-purple-500/25"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-pink-300 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-pink-500/25"
                       }`}
                     >
                       {topic}
@@ -138,7 +138,7 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
                 {customTopics.map((topic) => (
                   <span
                     key={topic}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/60 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-200"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-pink-300/60 bg-pink-50 px-3 py-1.5 text-xs font-medium text-pink-700 dark:border-pink-500/30 dark:bg-pink-500/10 dark:text-pink-200"
                   >
                     {topic}
                     <button
@@ -160,14 +160,14 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
                 onChange={(event) => setCustomTopic(event.target.value)}
                 onKeyDown={handleCustomTopicKeyDown}
                 placeholder="დაამატე სხვა თემა..."
-                className="tool-input flex-1 focus:border-purple-500/50"
+                className="tool-input flex-1 focus:border-pink-500/50"
               />
               <button
                 type="button"
                 onClick={addCustomTopic}
                 disabled={!customTopic.trim()}
                 aria-label="თემის დამატება"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-violet-300 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-purple-500/25 dark:hover:text-white"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-pink-300 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-pink-500/25 dark:hover:text-white"
               >
                 <Plus className="h-4 w-4" strokeWidth={2} />
               </button>
@@ -189,12 +189,12 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
             min={new Date().toISOString().slice(0, 10)}
             onChange={(event) => setExamDate(event.target.value)}
             required
-            className="tool-input flex-1 focus:border-purple-500/50"
+            className="tool-input flex-1 focus:border-pink-500/50"
           />
           <button
             type="button"
             onClick={applyEstimatedDate}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-violet-300/50 bg-violet-50 px-3 py-2.5 text-xs font-medium text-violet-700 transition hover:bg-violet-100 dark:border-purple-500/25 dark:bg-purple-500/10 dark:text-purple-200 dark:hover:bg-purple-500/20"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-pink-300/50 bg-pink-50 px-3 py-2.5 text-xs font-medium text-pink-700 transition hover:bg-pink-100 dark:border-pink-500/25 dark:bg-pink-500/10 dark:text-pink-200 dark:hover:bg-pink-500/20"
           >
             <Dices className="h-3.5 w-3.5" strokeWidth={2} />
             სავარაუდო
@@ -222,8 +222,8 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
                 aria-pressed={isActive}
                 className={`min-w-[3.25rem] rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
                   isActive
-                    ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-purple-500/20 dark:hover:text-white"
+                    ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-pink-500/20 dark:hover:text-white"
                 }`}
               >
                 {hour} სთ
@@ -234,8 +234,8 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
           <label
             className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
               isCustomHours
-                ? "border-violet-400/60 bg-violet-50 text-violet-700 dark:border-purple-400/50 dark:bg-purple-500/15 dark:text-purple-200"
-                : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-violet-300 hover:text-violet-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-purple-500/20 dark:hover:text-white"
+                ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
+                : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-pink-300 hover:text-pink-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-pink-500/20 dark:hover:text-white"
             }`}
           >
             <input
@@ -269,7 +269,7 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
       <button
         type="submit"
         disabled={loading || !canSubmit}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-medium text-white shadow-lg shadow-purple-500/10 transition-all hover:from-purple-500 hover:to-indigo-500 hover:shadow-purple-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 py-3 font-medium text-white shadow-lg shadow-pink-500/10 transition-all hover:from-pink-500 hover:to-indigo-500 hover:shadow-pink-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {loading ? "გეგმა იქმნება..." : "გეგმის გენერაცია"}
       </button>

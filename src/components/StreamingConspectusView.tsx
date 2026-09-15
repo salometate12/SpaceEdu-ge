@@ -167,7 +167,7 @@ export function StreamingConspectusView({
     <div className="space-y-4">
       <Link
         href="/generate"
-        className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-violet-600 dark:text-zinc-400"
+        className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition-colors hover:text-pink-600 dark:text-zinc-400"
         onClick={(e) => {
           if (isLoading) {
             e.preventDefault();
@@ -179,7 +179,7 @@ export function StreamingConspectusView({
         {ka.conspectus.back}
       </Link>
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-500">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-pink-500">
           AI კონსპექტი
         </p>
         <h1 className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-50">
@@ -203,7 +203,7 @@ export function StreamingConspectusView({
             <button
               type="button"
               onClick={retryStream}
-              className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-medium text-purple-200 hover:border-purple-400/50"
+              className="inline-flex items-center gap-1 rounded-full border border-pink-500/30 bg-pink-500/10 px-2.5 py-1 text-[11px] font-medium text-pink-200 hover:border-pink-400/50"
             >
               <RotateCcw className="h-3 w-3 stroke-[1.5]" />
               {ka.conspectus.retry}
@@ -224,7 +224,7 @@ export function StreamingConspectusView({
           <button
             type="button"
             onClick={retryStream}
-            className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-medium text-purple-200"
+            className="inline-flex items-center gap-1 rounded-full border border-pink-500/30 bg-pink-500/10 px-2.5 py-1 text-[11px] font-medium text-pink-200"
           >
             <RotateCcw className="h-3 w-3 stroke-[1.5]" />
             {ka.conspectus.retry}
@@ -245,12 +245,12 @@ export function StreamingConspectusView({
         isLoading={isSearchingPhase}
         loadingBanner={
           isWritingPhase ? (
-            <div className="flex shrink-0 items-center gap-2 border-b border-violet-200/50 bg-violet-50/50 px-4 py-2 text-xs font-medium text-violet-800 dark:border-violet-900/30 dark:bg-violet-950/20 dark:text-violet-200 lg:px-8">
+            <div className="flex shrink-0 items-center gap-2 border-b border-pink-200/50 bg-pink-50/50 px-4 py-2 text-xs font-medium text-pink-800 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-200 lg:px-8">
               <Cpu className="h-3.5 w-3.5 animate-pulse stroke-[1.5]" />
               {ka.generator.modal.loadingSummary}
             </div>
           ) : isSearchingPhase ? (
-            <div className="flex shrink-0 items-center gap-2 border-b border-violet-200/50 bg-violet-50/50 px-4 py-2 text-xs font-medium text-violet-800 dark:border-violet-900/30 dark:bg-violet-950/20 dark:text-violet-200 lg:px-8">
+            <div className="flex shrink-0 items-center gap-2 border-b border-pink-200/50 bg-pink-50/50 px-4 py-2 text-xs font-medium text-pink-800 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-200 lg:px-8">
               <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
               {ka.generator.modal.loadingSummary}
             </div>

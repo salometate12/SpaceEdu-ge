@@ -64,7 +64,7 @@ export function AvatarDropdown({
           <div className="my-1 h-px bg-[var(--border)]" />
           <Link
             href="/admin"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-violet-700 transition-colors hover:bg-violet-100 dark:text-[#c4b5fd] dark:hover:bg-[#1a0a2e] dark:hover:text-[#a78bfa]"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-pink-700 transition-colors hover:bg-pink-100 dark:text-[#f5b8d4] dark:hover:bg-[#2a0a1a] dark:hover:text-[#ee7ab0]"
           >
             <Shield className="h-4 w-4" />
             Admin Panel

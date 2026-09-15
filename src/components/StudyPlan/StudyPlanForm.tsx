@@ -38,7 +38,7 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           required
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
         />
       </label>
       <label className="block space-y-1.5 text-sm">
@@ -49,7 +49,7 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
           value={topics}
           onChange={(e) => setTopics(e.target.value)}
           required
-          className="min-h-28 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10"
+          className="min-h-28 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
         />
       </label>
       <div className="space-y-1.5 text-sm">
@@ -63,7 +63,7 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
             min={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setExamDate(e.target.value)}
             required
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
           />
         </label>
         <p className="text-xs text-slate-500 dark:text-zinc-500">
@@ -85,8 +85,8 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
                 onClick={() => setHoursPerDay(hour)}
                 className={`rounded-xl border px-2 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "border-violet-400 bg-violet-50 text-violet-700 dark:border-violet-400/50 dark:bg-violet-500/10 dark:text-violet-300"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-white"
+                    ? "border-pink-400 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/10 dark:text-pink-300"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
                 }`}
               >
                 {hour} სთ
@@ -99,7 +99,7 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-500 dark:hover:bg-violet-400"
+        className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-pink-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
       >
         {loading ? "გეგმა იქმნება..." : "გეგმის გენერაცია"}
       </button>

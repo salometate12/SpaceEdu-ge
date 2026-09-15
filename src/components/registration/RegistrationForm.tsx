@@ -155,7 +155,7 @@ export function RegistrationForm() {
         </p>
         <Link
           href="/select-space"
-          className="inline-flex text-sm font-medium text-purple-400 transition-colors hover:text-purple-300"
+          className="inline-flex text-sm font-medium text-pink-400 transition-colors hover:text-pink-300"
         >
           სივრცის არჩევაზე გადასვლა
         </Link>
@@ -179,7 +179,7 @@ export function RegistrationForm() {
         </div>
         <Link
           href={`/login?role=${role}`}
-          className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-800 transition-all hover:border-purple-500/40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:hover:border-purple-500/30 dark:hover:bg-white/[0.06]"
+          className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-800 transition-all hover:border-pink-500/40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:hover:border-pink-500/30 dark:hover:bg-white/[0.06]"
         >
           შესვლის გვერდზე გადასვლა
         </Link>
@@ -196,11 +196,11 @@ export function RegistrationForm() {
       }}
     >
       <header className="space-y-3 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-purple-500/25 bg-purple-600/20 shadow-[0_0_24px_rgba(124,58,237,0.15)]">
-          <Rocket className="h-5 w-5 stroke-[1.5] text-purple-300" />
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-pink-500/25 bg-pink-600/20 shadow-[0_0_24px_rgba(124,58,237,0.15)]">
+          <Rocket className="h-5 w-5 stroke-[1.5] text-pink-300" />
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400/90">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">
             SpaceEdu
           </p>
           <h1 className="headline mt-2 text-2xl font-bold text-slate-900 dark:text-white">შექმენი ანგარიში</h1>
@@ -246,7 +246,7 @@ export function RegistrationForm() {
               clearFieldError("name");
             }}
             placeholder="მაგ: ნინო ბერიძე"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -261,7 +261,7 @@ export function RegistrationForm() {
               clearFieldError("email");
             }}
             placeholder="name@example.com"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -276,7 +276,7 @@ export function RegistrationForm() {
               clearFieldError("password");
             }}
             placeholder="მინიმუმ 6 სიმბოლო"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -289,11 +289,11 @@ export function RegistrationForm() {
                 setTermsAccepted(e.target.checked);
                 clearFieldError("terms");
               }}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 bg-white text-purple-600 checked:border-purple-500 checked:bg-purple-600 focus:ring-0 focus:ring-offset-0 dark:border-white/[0.1] dark:bg-white/[0.02]"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 bg-white text-pink-600 checked:border-pink-500 checked:bg-pink-600 focus:ring-0 focus:ring-offset-0 dark:border-white/[0.1] dark:bg-white/[0.02]"
             />
             <span className="text-xs leading-relaxed text-slate-600 dark:text-gray-400">
               ვეთანხმები SpaceEdu-ს{" "}
-              <Link href="/privacy" className="text-purple-400/90 hover:text-purple-300">
+              <Link href="/privacy" className="text-pink-400/90 hover:text-pink-300">
                 წესებსა და პირობებს
               </Link>
             </span>
@@ -310,7 +310,7 @@ export function RegistrationForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="flex w-full items-center justify-center space-x-2 rounded-xl bg-purple-600 py-3 text-sm font-medium text-white shadow-lg shadow-purple-600/20 transition-all duration-200 hover:bg-purple-500 disabled:opacity-50"
+          className="flex w-full items-center justify-center space-x-2 rounded-xl bg-pink-600 py-3 text-sm font-medium text-white shadow-lg shadow-pink-600/20 transition-all duration-200 hover:bg-pink-500 disabled:opacity-50"
         >
           {isLoading ? (
             <>
@@ -327,7 +327,7 @@ export function RegistrationForm() {
         უკვე გაქვს ანგარიში?{" "}
         <Link
           href={`/login?role=${role}`}
-          className="font-medium text-purple-400 transition-colors hover:text-purple-300"
+          className="font-medium text-pink-400 transition-colors hover:text-pink-300"
         >
           შესვლა
         </Link>

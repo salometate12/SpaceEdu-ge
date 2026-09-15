@@ -21,12 +21,12 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-violet-400/50 dark:focus:ring-violet-500/10";
+    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10";
   const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
   const pillActive =
-    "border-violet-300 bg-violet-50 text-violet-700 shadow-sm dark:border-violet-400/30 dark:bg-violet-500/10 dark:text-violet-300";
+    "border-pink-300 bg-pink-50 text-pink-700 shadow-sm dark:border-pink-400/30 dark:bg-pink-500/10 dark:text-pink-300";
   const pillInactive =
-    "border-slate-200 bg-white text-slate-500 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-violet-400/30 dark:hover:bg-violet-500/10 dark:hover:text-violet-300";
+    "border-slate-200 bg-white text-slate-500 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-pink-300";
 
   const toggleTag = (tag: string) => {
     const hasTag = form.extraInstructions.includes(tag);
@@ -47,7 +47,7 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
   return (
     <section className="space-y-5">
       <div className="flex items-center gap-3">
-        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-violet-600 dark:text-violet-400">
+        <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-pink-600 dark:text-pink-400">
           <FileText className="h-4 w-4" />
         </span>
         <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">

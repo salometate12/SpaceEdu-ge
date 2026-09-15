@@ -36,7 +36,7 @@ export function ConspectusPageClient() {
         </h1>
         <Link
           href="/generate"
-          className="mt-4 inline-block text-violet-600 hover:underline"
+          className="mt-4 inline-block text-pink-600 hover:underline"
         >
           {ka.conspectus.back}
         </Link>

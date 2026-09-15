@@ -53,13 +53,13 @@ export function StudyPlanThinkingLoader() {
           style={{ "--star-delay": "0.8s", "--star-duration": "3.2s" } as CSSProperties}
         />
         <span
-          className="animate-star-twinkle absolute bottom-0 right-3 h-1 w-1 rounded-full bg-violet-300"
+          className="animate-star-twinkle absolute bottom-0 right-3 h-1 w-1 rounded-full bg-pink-300"
           style={{ "--star-delay": "1.3s", "--star-duration": "2.8s" } as CSSProperties}
         />
 
-        <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/15 dark:bg-violet-500/15" />
-        <span className="absolute inset-0 rounded-full border border-violet-200 dark:border-violet-500/20" />
-        <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-violet-600 dark:bg-violet-500 dark:shadow-[0_0_24px_rgba(139,92,246,0.35)]">
+        <span className="absolute inset-0 animate-ping rounded-full bg-pink-400/15 dark:bg-pink-500/15" />
+        <span className="absolute inset-0 rounded-full border border-pink-200 dark:border-pink-500/20" />
+        <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-pink-600 dark:bg-pink-500 dark:shadow-[0_0_24px_rgba(139,92,246,0.35)]">
           <StageIcon
             key={stageIndex}
             className="research-thinking-icon h-7 w-7 text-white"
@@ -82,7 +82,7 @@ export function StudyPlanThinkingLoader() {
         >
           {stage.text}
         </p>
-        <span className="text-xs font-semibold text-violet-600 dark:text-violet-300">
+        <span className="text-xs font-semibold text-pink-600 dark:text-pink-300">
           {totalXp} XP შეგროვდა
         </span>
       </div>
@@ -90,7 +90,7 @@ export function StudyPlanThinkingLoader() {
       <div className="w-full max-w-[280px]">
         <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]">
           <div
-            className="h-full rounded-full bg-violet-500 transition-all duration-500 ease-out dark:bg-violet-400"
+            className="h-full rounded-full bg-pink-500 transition-all duration-500 ease-out dark:bg-pink-400"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -107,7 +107,7 @@ export function StudyPlanThinkingLoader() {
               style={{ animationDelay: `${index * 60}ms` }}
               className={`study-plan-quest-row-in flex items-center gap-2 rounded-lg px-2 py-1 text-xs transition-colors ${
                 active
-                  ? "bg-violet-50 font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-200"
+                  ? "bg-pink-50 font-semibold text-pink-700 dark:bg-pink-500/10 dark:text-pink-200"
                   : done
                     ? "text-emerald-600 dark:text-emerald-300"
                     : "text-slate-400 dark:text-zinc-600"
@@ -118,7 +118,7 @@ export function StudyPlanThinkingLoader() {
                   done
                     ? "study-plan-quest-check-pop bg-emerald-500 text-white"
                     : active
-                      ? "bg-violet-600 text-white"
+                      ? "bg-pink-600 text-white"
                       : "bg-slate-100 dark:bg-white/[0.06]"
                 }`}
               >

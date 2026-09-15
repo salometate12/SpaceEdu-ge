@@ -14,8 +14,8 @@ export const NEON_SUBJECT_ACCENTS: Record<string, NeonSubjectAccent> = {
   history: {
     accent: "#a855f7",
     glow: "rgba(168, 85, 247, 0.45)",
-    gradientBeforeClass: "before:from-purple-400/30 dark:before:from-purple-500/20",
-    iconClass: "text-purple-600 dark:text-purple-400",
+    gradientBeforeClass: "before:from-pink-400/30 dark:before:from-pink-500/20",
+    iconClass: "text-pink-600 dark:text-pink-400",
   },
   math: {
     accent: "#06b6d4",
@@ -60,8 +60,8 @@ export function getNeonAccent(subjectId: string): NeonSubjectAccent {
     NEON_SUBJECT_ACCENTS[subjectId] ?? {
       accent: "#a855f7",
       glow: "rgba(168, 85, 247, 0.4)",
-      gradientBeforeClass: "before:from-purple-400/30 dark:before:from-purple-500/20",
-      iconClass: "text-purple-600 dark:text-purple-400",
+      gradientBeforeClass: "before:from-pink-400/30 dark:before:from-pink-500/20",
+      iconClass: "text-pink-600 dark:text-pink-400",
     }
   );
 }

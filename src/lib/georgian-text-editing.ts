@@ -87,6 +87,6 @@ export function evaluateTextEditing(
 export function scoreBadgeClass(score: number, maxScore: number): string {
   const ratio = score / maxScore;
   if (ratio >= 0.94) return "text-emerald-400";
-  if (ratio >= 0.75) return "text-purple-400";
+  if (ratio >= 0.75) return "text-pink-400";
   return "text-amber-400";
 }

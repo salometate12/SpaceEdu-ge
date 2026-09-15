@@ -17,7 +17,7 @@ const SPACE_STYLE: Record<
     label: "სკოლა",
     icon: <School className="h-3.5 w-3.5" />,
     className:
-      "border-violet-300 bg-violet-100 text-violet-700 hover:bg-violet-200/70 dark:border-[#7C3AED] dark:bg-[#1a0a2e] dark:text-[#c4b5fd] dark:hover:bg-[#1a0a2e]/80",
+      "border-pink-300 bg-pink-100 text-pink-700 hover:bg-pink-200/70 dark:border-[#7C3AED] dark:bg-[#1a0a2e] dark:text-[#c4b5fd] dark:hover:bg-[#1a0a2e]/80",
   },
   abiturient: {
     label: "აბიტურიენტი",

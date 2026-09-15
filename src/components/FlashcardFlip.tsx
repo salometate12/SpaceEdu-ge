@@ -31,7 +31,7 @@ export function FlashcardFlip({ card, isFlipped, onFlip }: FlashcardFlipProps) {
             className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
             style={{ backfaceVisibility: "hidden" }}
           >
-            <span className="mb-3 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+            <span className="mb-3 text-xs font-semibold uppercase tracking-widest text-pink-600 dark:text-pink-400">
               {ka.study.question}
             </span>
             <p className="text-center text-xl font-medium leading-relaxed text-zinc-900 sm:text-2xl dark:text-zinc-50">
@@ -44,13 +44,13 @@ export function FlashcardFlip({ card, isFlipped, onFlip }: FlashcardFlipProps) {
           </div>
 
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 p-8 shadow-lg dark:border-violet-800/50 dark:bg-violet-950/30"
+            className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-pink-200 bg-pink-50 p-8 shadow-lg dark:border-pink-800/50 dark:bg-pink-950/30"
             style={{
               backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
             }}
           >
-            <span className="mb-3 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+            <span className="mb-3 text-xs font-semibold uppercase tracking-widest text-pink-600 dark:text-pink-400">
               {ka.study.answer}
             </span>
             <p className="text-center text-base leading-relaxed text-zinc-700 sm:text-lg dark:text-zinc-200">

@@ -266,7 +266,7 @@ function SubjectUsageBreakdown({
 function EmptyUsageState() {
   return (
     <div className="dashboard-tool-card rounded-[32px] p-8 text-center sm:p-10">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-500/10 text-violet-700 dark:bg-white/20 dark:text-white">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-pink-500/10 text-pink-700 dark:bg-white/20 dark:text-white">
         <Sparkles className="h-6 w-6" strokeWidth={1.75} />
       </div>
       <h3 className="headline mt-4 text-lg font-bold text-[var(--text-primary)]">
@@ -341,7 +341,7 @@ export function StatsView({ user }: StatsViewProps) {
         <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">სტატისტიკა</h1>
         <Link
           href="/profile"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-violet-400 hover:text-violet-600"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-all hover:border-pink-400 hover:text-pink-600"
         >
           <ChevronLeft className="h-4 w-4 stroke-[1.75]" />
           პროფილზე
@@ -431,7 +431,7 @@ export function StatsView({ user }: StatsViewProps) {
               <h3 className="headline text-lg font-bold text-[var(--text-primary)]">პროგრესის რგოლები</h3>
               <p className="mt-1 text-xs font-medium text-[var(--text-muted)]">სწრაფი მიმოხილვა</p>
               <div className="mt-5 flex items-start justify-around gap-2">
-                <ProgressRing value={avgSubjectProgress} color="#7c3aed" label="საგნების პროგრესი" />
+                <ProgressRing value={avgSubjectProgress} color="#d81878" label="საგნების პროგრესი" />
                 <ProgressRing value={user.avgQuizScore} color="#0891b2" label="Quiz სიზუსტე" />
                 <ProgressRing
                   value={Math.round((user.currentStreak / Math.max(user.personalBestStreak, 1)) * 100)}

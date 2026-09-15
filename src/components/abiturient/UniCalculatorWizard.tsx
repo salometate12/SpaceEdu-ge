@@ -94,7 +94,7 @@ export function UniCalculatorWizard() {
         </div>
         <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-pink-600 transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -121,9 +121,9 @@ export function UniCalculatorWizard() {
               <Lock className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} />
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-violet-500/40 bg-violet-500/10 p-4 text-sm text-white shadow-[0_0_20px_rgba(139,92,246,0.12)]">
+            <div className="flex items-center justify-between rounded-xl border border-pink-500/40 bg-pink-500/10 p-4 text-sm text-white shadow-[0_0_20px_rgba(139,92,246,0.12)]">
               <span>ინგლისური ენა</span>
-              <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-violet-400/50 bg-violet-600 text-white">
+              <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-pink-400/50 bg-pink-600 text-white">
                 <Check className="h-3 w-3 stroke-[2]" />
               </span>
             </div>
@@ -137,14 +137,14 @@ export function UniCalculatorWizard() {
                   onClick={() => toggleElective(subject)}
                   className={`rounded-xl border p-4 text-left text-sm transition-all hover:bg-white/[0.04] ${
                     selected
-                      ? "border-violet-500/40 bg-violet-500/10 text-white"
+                      ? "border-pink-500/40 bg-pink-500/10 text-white"
                       : "border-white/[0.06] bg-[#121214]/60 text-white"
                   }`}
                 >
                   <span className="flex items-center justify-between gap-2">
                     {subject}
                     {selected && (
-                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white">
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pink-600 text-white">
                         <Check className="h-3 w-3 stroke-[2]" />
                       </span>
                     )}
@@ -181,7 +181,7 @@ export function UniCalculatorWizard() {
                         [subject]: Number(event.target.value),
                       }))
                     }
-                    className="mt-2 w-full accent-violet-500"
+                    className="mt-2 w-full accent-pink-500"
                   />
                 </div>
                 <div className="inline-flex justify-center rounded-xl border border-white/[0.06] bg-black/20 px-4 py-2 font-mono text-sm text-white">
@@ -203,7 +203,7 @@ export function UniCalculatorWizard() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="ძებნა სახელით ან კოდით..."
-              className="w-full rounded-xl border border-white/[0.06] bg-[#121214]/60 py-2.5 pl-10 pr-3 text-sm text-white outline-none transition focus:border-violet-500/50"
+              className="w-full rounded-xl border border-white/[0.06] bg-[#121214]/60 py-2.5 pl-10 pr-3 text-sm text-white outline-none transition focus:border-pink-500/50"
             />
           </label>
 
@@ -233,7 +233,7 @@ export function UniCalculatorWizard() {
                   }
                   className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition ${
                     pickedPrograms.includes(program.code)
-                      ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                      ? "border-pink-500/40 bg-pink-500/10 text-pink-300"
                       : "border-white/[0.06] bg-white/[0.03] text-zinc-400"
                   }`}
                 >
@@ -263,7 +263,7 @@ export function UniCalculatorWizard() {
           type="button"
           onClick={goNext}
           disabled={step === 3}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-2.5 text-xs font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-5 py-2.5 text-xs font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
         >
           შემდეგი
           <ArrowRight className="h-3.5 w-3.5 stroke-[1.5]" />

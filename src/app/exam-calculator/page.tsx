@@ -366,7 +366,7 @@ export default function ExamCalculatorPage() {
                   .map((field) => (
                     <label
                       key={field.id}
-                      className="tool-field block border-violet-300/50 dark:border-violet-500/20"
+                      className="tool-field block border-pink-300/50 dark:border-pink-500/20"
                     >
                       <span className="text-sm font-medium text-slate-800 dark:text-zinc-200">
                         {field.label}
@@ -377,7 +377,7 @@ export default function ExamCalculatorPage() {
                         max={field.maxScore}
                         value={scores[field.id] || ""}
                         onChange={(e) => updateScore(field.id, e.target.value)}
-                        className="tool-input mt-2 ring-violet-500/40 focus:ring-2"
+                        className="tool-input mt-2 ring-pink-500/40 focus:ring-2"
                       />
                     </label>
                   ))}
@@ -406,7 +406,7 @@ export default function ExamCalculatorPage() {
         {step === 2 ? (
           <>
             <section className="dashboard-section p-5 sm:p-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300/90">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-pink-700 dark:text-pink-300/90">
                 ნაბიჯი 2 — უნივერსიტეტი და ფაკულტეტი
               </h2>
               <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">
@@ -447,7 +447,7 @@ export default function ExamCalculatorPage() {
                       value={selectedProgramCode}
                       onChange={(e) => void handleFacultyChange(e.target.value)}
                       disabled={!selectedGroup || loading}
-                      className="tool-select mt-2 ring-violet-500/30 focus:ring-2 disabled:opacity-50"
+                      className="tool-select mt-2 ring-pink-500/30 focus:ring-2 disabled:opacity-50"
                     >
                       <option value="">აირჩიეთ ფაკულტეტი...</option>
                       {selectedGroup?.programs.map((program) => (

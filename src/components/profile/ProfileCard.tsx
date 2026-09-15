@@ -7,7 +7,7 @@ interface ProfileCardProps {
 }
 
 const SPACE_BADGE: Record<UserProfile["space"], string> = {
-  school: "border-violet-300 bg-violet-100 text-violet-700",
+  school: "border-pink-300 bg-pink-100 text-pink-700",
   abiturient: "border-cyan-300 bg-cyan-100 text-cyan-700",
   student: "border-emerald-300 bg-emerald-100 text-emerald-700",
 };

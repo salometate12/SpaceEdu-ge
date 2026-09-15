@@ -21,10 +21,10 @@ export function Navbar({ activeSpace, onSpaceChange }: NavbarProps = {}) {
           href="/select-space"
           className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-indigo-600 text-white shadow-sm">
             <Sparkles className="h-4 w-4" />
           </div>
-          <span className="bg-gradient-to-r from-violet-500 to-indigo-600 bg-clip-text text-lg font-bold tracking-tight text-transparent">
+          <span className="bg-gradient-to-r from-pink-500 to-indigo-600 bg-clip-text text-lg font-bold tracking-tight text-transparent">
             SpaceEdu
           </span>
         </Link>
@@ -37,7 +37,7 @@ export function Navbar({ activeSpace, onSpaceChange }: NavbarProps = {}) {
                 onClick={() => onSpaceChange?.("school")}
                 className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ${
                   activeSpace === "school"
-                    ? "bg-purple-600/90 text-white shadow-md shadow-purple-500/10"
+                    ? "bg-pink-600/90 text-white shadow-md shadow-pink-500/10"
                     : "text-white/50 hover:bg-white/[0.05] hover:text-white/90"
                 }`}
               >
@@ -48,7 +48,7 @@ export function Navbar({ activeSpace, onSpaceChange }: NavbarProps = {}) {
                 onClick={() => onSpaceChange?.("exam")}
                 className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ${
                   activeSpace === "exam"
-                    ? "bg-purple-600/90 text-white shadow-md shadow-purple-500/10"
+                    ? "bg-pink-600/90 text-white shadow-md shadow-pink-500/10"
                     : "text-white/50 hover:bg-white/[0.05] hover:text-white/90"
                 }`}
               >
@@ -59,7 +59,7 @@ export function Navbar({ activeSpace, onSpaceChange }: NavbarProps = {}) {
                 onClick={() => onSpaceChange?.("university")}
                 className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ${
                   activeSpace === "university"
-                    ? "bg-purple-600/90 text-white shadow-md shadow-purple-500/10"
+                    ? "bg-pink-600/90 text-white shadow-md shadow-pink-500/10"
                     : "text-white/50 hover:bg-white/[0.05] hover:text-white/90"
                 }`}
               >

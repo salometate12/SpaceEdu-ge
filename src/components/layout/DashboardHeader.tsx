@@ -149,7 +149,7 @@ export function DashboardHeader({
           <button
             type="button"
             onClick={() => setAvatarOpen((prev) => !prev)}
-            className="h-9 w-9 rounded-full border border-[#7C3AED] bg-[#1a0a2e] text-sm font-semibold text-[#c4b5fd] transition-colors hover:bg-[#25103f]"
+            className="h-9 w-9 rounded-full border border-[#d81878] bg-[#2a0a1a] text-sm font-semibold text-[#f5b8d4] transition-colors hover:bg-[#3a0f26]"
           >
             {avatarInitial}
           </button>

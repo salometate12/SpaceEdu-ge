@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "ka",
     dir: "ltr",
     background_color: "#0a0a0f",
-    theme_color: "#7c3aed",
+    theme_color: "#d81878",
     icons: [
       {
         src: "/icons/icon-192x192.png",

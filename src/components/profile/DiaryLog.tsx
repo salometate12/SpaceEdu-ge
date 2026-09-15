@@ -80,7 +80,7 @@ export function DiaryLog() {
         <h3 className="headline text-lg font-black text-[var(--text-primary)] sm:text-xl">დღიური</h3>
         <Link
           href="/profile/stats"
-          className="text-xs font-bold text-violet-600 transition-colors hover:text-violet-700 dark:text-cyan-300 dark:hover:text-cyan-200"
+          className="text-xs font-bold text-pink-600 transition-colors hover:text-pink-700 dark:text-cyan-300 dark:hover:text-cyan-200"
         >
           ყველა ნახვა →
         </Link>

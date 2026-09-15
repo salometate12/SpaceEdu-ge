@@ -162,7 +162,7 @@ export function DailyGoals({
     <section className="relative">
       {showConfetti && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <PartyPopper className="h-10 w-10 text-violet-500" strokeWidth={2} />
+          <PartyPopper className="h-10 w-10 text-pink-500" strokeWidth={2} />
         </div>
       )}
 
@@ -310,7 +310,7 @@ export function DailyGoals({
             if (e.key === "Enter") addGoal();
           }}
           placeholder="ახალი მიზანი..."
-          className="h-11 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-violet-400"
+          className="h-11 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-pink-400"
         />
         <button
           type="button"

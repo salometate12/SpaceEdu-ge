@@ -49,7 +49,7 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="subject-icon-wrap flex h-9 w-9 items-center justify-center rounded-xl text-violet-600 dark:text-violet-400">
+          <span className="subject-icon-wrap flex h-9 w-9 items-center justify-center rounded-xl text-pink-600 dark:text-pink-400">
             <CalendarDays className="h-4.5 w-4.5" strokeWidth={2} />
           </span>
           <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
@@ -67,7 +67,7 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition active:scale-[0.97] ${
               savedToDashboard
                 ? "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:border-emerald-500/35 dark:bg-emerald-500/10 dark:text-emerald-300"
-                : "border-violet-300/60 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-400/30 dark:bg-violet-500/10 dark:text-violet-200 dark:hover:bg-violet-500/20"
+                : "border-pink-300/60 bg-pink-50 text-pink-700 hover:bg-pink-100 dark:border-pink-400/30 dark:bg-pink-500/10 dark:text-pink-200 dark:hover:bg-pink-500/20"
             }`}
           >
             {savedToDashboard ? (
@@ -85,20 +85,20 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
         </div>
       </div>
 
-      <div className="mb-5 flex items-center gap-3 rounded-2xl border border-violet-200/60 bg-violet-50/50 px-3 py-2.5 dark:border-violet-400/20 dark:bg-violet-500/[0.06]">
+      <div className="mb-5 flex items-center gap-3 rounded-2xl border border-pink-200/60 bg-pink-50/50 px-3 py-2.5 dark:border-pink-400/20 dark:bg-pink-500/[0.06]">
         <span className="text-lg" aria-hidden>
           {progressEmoji}
         </span>
         <div className="flex-1">
-          <div className="flex items-center justify-between text-xs font-medium text-violet-700 dark:text-violet-200">
+          <div className="flex items-center justify-between text-xs font-medium text-pink-700 dark:text-pink-200">
             <span>
               {doneCount}/{compactPlan.length} დღე შესრულებული
             </span>
             <span>{progressPct}%</span>
           </div>
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-violet-100 dark:bg-white/[0.06]">
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-pink-100 dark:bg-white/[0.06]">
             <div
-              className="h-full rounded-full bg-violet-500 transition-all duration-500 dark:bg-violet-400"
+              className="h-full rounded-full bg-pink-500 transition-all duration-500 dark:bg-pink-400"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -165,7 +165,7 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
                 className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition active:scale-90 ${
                   done
                     ? "border-emerald-400/60 bg-emerald-500 text-white dark:shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"
-                    : "border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:text-violet-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-violet-400/40 dark:hover:text-violet-300"
+                    : "border-slate-200 bg-white text-slate-400 hover:border-pink-300 hover:text-pink-600 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-zinc-500 dark:hover:border-pink-400/40 dark:hover:text-pink-300"
                 }`}
               >
                 <Check className="h-4 w-4" strokeWidth={2.5} />
@@ -184,7 +184,7 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
       <p className="mt-4 text-sm text-slate-600 dark:text-zinc-400">რჩევა: {advice}</p>
 
       <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-white/[0.08] dark:bg-[#151619]/35">
-        <summary className="cursor-pointer text-sm font-medium text-slate-700 transition hover:text-violet-700 dark:text-zinc-300 dark:hover:text-white">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700 transition hover:text-pink-700 dark:text-zinc-300 dark:hover:text-white">
           სრული დღიური ბარათები
         </summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
