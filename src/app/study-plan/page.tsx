@@ -5,7 +5,6 @@ import { CalendarRange } from "lucide-react";
 import { StudyPlanForm, type StudyPlanFormValues } from "@/components/StudyPlan/StudyPlanForm";
 import { CalendarView } from "@/components/StudyPlan/CalendarView";
 import { StudyPlanThinkingLoader } from "@/components/StudyPlan/StudyPlanThinkingLoader";
-import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
 import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
@@ -68,7 +67,6 @@ export default function StudyPlanPage() {
             />
           ) : (
             <div className="flex h-full flex-col">
-              <SyllabusEventsPanel />
               <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300">
                   <CalendarRange className="h-7 w-7 stroke-[1.75]" aria-hidden />
