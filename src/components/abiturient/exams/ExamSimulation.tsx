@@ -144,12 +144,16 @@ function ReadingPanel({
   strong,
   year,
   footer,
+  stacked,
 }: {
   passage: ExamPassage;
   highlight?: string;
   strong?: boolean;
   year: number;
   footer?: React.ReactNode;
+  /** Stacked above the answer area (not beside it): a capped, scrolling box
+   * rather than a sticky full-height column. */
+  stacked?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -173,7 +177,11 @@ function ReadingPanel({
   return (
     <section
       aria-label="საკითხავი ტექსტი"
-      className={`${PANEL} flex flex-col overflow-hidden p-5 sm:p-7 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)]`}
+      className={`${PANEL} flex flex-col overflow-hidden p-5 sm:p-7 ${
+        stacked
+          ? "max-h-[46vh]"
+          : "lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)]"
+      }`}
     >
       <header className="shrink-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -807,8 +815,11 @@ export function ExamSimulation({
         {header}
         {stageRail}
 
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-6">
-          <ReadingPanel passage={passage} year={year} />
+        {/* Stacked, like the essay-practice page: the passage on top (a
+            scrolling box so it never crowds out the writing) and the task
+            plus the answer sheet below it. */}
+        <div className="space-y-5">
+          <ReadingPanel passage={passage} year={year} stacked />
 
           <section className={`${PANEL} p-5 sm:p-7`}>
             <span

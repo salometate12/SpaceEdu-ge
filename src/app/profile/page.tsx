@@ -29,7 +29,7 @@ export default async function ProfilePage() {
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">პროფილი</h1>
         <div className="flex gap-2">
           <Link
