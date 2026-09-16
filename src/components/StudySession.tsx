@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import { ka } from "@/lib/i18n";
 import { markCardLearned } from "@/lib/progress";
 import { recordDailyActivity } from "@/lib/daily-streak";
+import { readSpaceeduSpace } from "@/lib/space-back-navigation";
+import { DASHBOARD_ABIT_HREF, dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import type { Deck, StudySessionResult } from "@/lib/types";
 import { FlashcardFlip } from "./FlashcardFlip";
 import { Navbar } from "./Navbar";
@@ -24,6 +26,14 @@ export function StudySession({ deck }: StudySessionProps) {
   const [unknown, setUnknown] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [sessionKey, setSessionKey] = useState(0);
+  // Where "back to decks" goes: the reader's own dashboard (its tools live
+  // there), not the marketing landing. Read on the client so localStorage is
+  // available; a sensible default until then.
+  const [dashboardHref, setDashboardHref] = useState(DASHBOARD_ABIT_HREF);
+
+  useEffect(() => {
+    setDashboardHref(dashboardHrefForSpace(readSpaceeduSpace()));
+  }, []);
 
   const cards = deck.cards;
   const currentCard = cards[cardIndex];
@@ -96,7 +106,7 @@ export function StudySession({ deck }: StudySessionProps) {
       <Navbar />
       <main className="mx-auto flex max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-10">
         <Link
-          href="/"
+          href={dashboardHref}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -109,6 +119,7 @@ export function StudySession({ deck }: StudySessionProps) {
               deckTitle={deck.title}
               result={result}
               onRestart={handleRestart}
+              homeHref={dashboardHref}
             />
           </div>
         ) : (

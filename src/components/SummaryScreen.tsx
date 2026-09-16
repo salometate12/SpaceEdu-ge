@@ -9,12 +9,15 @@ interface SummaryScreenProps {
   deckTitle: string;
   result: StudySessionResult;
   onRestart: () => void;
+  /** Where the "back to decks" button goes — the reader's dashboard. */
+  homeHref: string;
 }
 
 export function SummaryScreen({
   deckTitle,
   result,
   onRestart,
+  homeHref,
 }: SummaryScreenProps) {
   const masteryPercent =
     result.total > 0 ? Math.round((result.known / result.total) * 100) : 0;
@@ -58,7 +61,7 @@ export function SummaryScreen({
           {ka.summary.restart}
         </button>
         <Link
-          href="/"
+          href={homeHref}
           className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition-all hover:bg-zinc-50 active:scale-[0.98] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
           <Home className="h-4 w-4" />

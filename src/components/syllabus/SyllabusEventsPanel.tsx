@@ -10,7 +10,6 @@ import {
 import {
   ACCENT_CARD,
   ACCENT_TEXT,
-  PLAIN_CARD,
 } from "@/components/landing/notebook/accents";
 
 const TYPE_META: Record<DashboardCalendarEvent["type"], { label: string; badge: string }> = {
@@ -53,7 +52,7 @@ export function SyllabusEventsPanel() {
   if (events.length === 0) return null;
 
   return (
-    <div className="notebook-paper notebook-sheet mb-6 rounded-[26px] p-5">
+    <div className="mb-6">
       <div className="mb-3 flex items-center gap-3">
         <span
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
@@ -68,7 +67,10 @@ export function SyllabusEventsPanel() {
         {events.map((event) => {
           const meta = TYPE_META[event.type];
           return (
-            <div key={event.id} className={`rounded-2xl border-2 px-3 py-2.5 ${PLAIN_CARD}`}>
+            <div
+              key={event.id}
+              className="rounded-2xl border border-slate-200 bg-white px-3.5 py-3 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.03]"
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.badge}`}
