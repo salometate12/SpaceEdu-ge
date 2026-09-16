@@ -338,7 +338,7 @@ export function SyllabusAnalyzer() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={isLoading || !syllabusFile || !semesterStartDate}
-            className={`paper-sticker mt-auto w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
+            className={`paper-sticker mt-6 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
           >
             {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
           </button>
