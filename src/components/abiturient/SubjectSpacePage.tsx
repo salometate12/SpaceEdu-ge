@@ -11,7 +11,7 @@ interface SubjectSpacePageProps {
 }
 
 function flashcardHref(deckId?: string): string {
-  return deckId ? `/deck/${deckId}` : "/generate";
+  return deckId ? `/deck/${deckId}` : "/generate?from=abit";
 }
 
 interface ModuleCardProps {

@@ -29,7 +29,7 @@ interface AbiturientSubjectHubProps {
 function flashcardHref(subjectId: string, deckId?: string): string {
   if (deckId) return `/deck/${deckId}`;
   if (subjectId === "georgian") return "/generate?from=georgian";
-  return "/generate";
+  return "/generate?from=abit";
 }
 
 const BACK_LINK_CLASS =
