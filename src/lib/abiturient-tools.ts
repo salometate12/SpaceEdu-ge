@@ -69,7 +69,7 @@ export const ABITURIENT_TOOLS: AbiturientTool[] = [
     id: "abit-flashcards",
     title: "Flashcards",
     description: "ინტერაქტიული ფლეშბარათები გამოცდის სიმოკლის გასაამაგრებლად",
-    href: "/generate",
+    href: "/generate?from=abit",
     icon: Layers,
     accent: NEON_SUBJECT_ACCENTS.english,
   },
