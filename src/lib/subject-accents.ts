@@ -11,7 +11,7 @@ import type { NotebookAccent } from "@/components/landing/notebook/accents";
 const SUBJECT_ACCENTS: Record<string, NotebookAccent> = {
   history: "violet",
   english: "amber",
-  georgian: "violet",
+  georgian: "pink",
   math: "blue",
   geography: "green",
   civics: "violet",

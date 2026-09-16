@@ -17,6 +17,7 @@ import {
   ACCENT_PILL,
   ACCENT_TEXT,
   PLAIN_CARD,
+  type NotebookAccent,
 } from "@/components/landing/notebook/accents";
 import { ExamSimulation } from "./ExamSimulation";
 import { PastExamRunner } from "./PastExamRunner";
@@ -24,6 +25,13 @@ import { PastExamRunner } from "./PastExamRunner";
 interface PastExamsArchiveProps {
   subjectId: string;
 }
+
+/**
+ * The variant cards cycle through the notebook pens so a year's list reads
+ * as a spread of colours rather than one accent repeated — the subject's own
+ * accent still owns the header and the year selector.
+ */
+const VARIANT_ACCENTS: NotebookAccent[] = ["pink", "violet", "blue", "amber", "green"];
 
 interface ActiveRun {
   year: number;
@@ -154,7 +162,9 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
                 {selectedYear.year} — ვარიანტები
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
-                {selectedYear.variants.map((variant, variantIndex) => (
+                {selectedYear.variants.map((variant, variantIndex) => {
+                  const cardAccent = VARIANT_ACCENTS[variantIndex % VARIANT_ACCENTS.length];
+                  return (
                   <motion.button
                     key={variant.id}
                     type="button"
@@ -165,7 +175,7 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
                     className={`group rounded-2xl border-2 p-5 text-left transition-transform duration-300 hover:-translate-y-1 ${PLAIN_CARD}`}
                   >
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1 text-[11px] font-bold ${ACCENT_PILL[accent]}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-1 text-[11px] font-bold ${ACCENT_PILL[cardAccent]}`}
                     >
                       <Layers3 className="h-3 w-3 stroke-[2.5]" aria-hidden />
                       {variant.label}
@@ -177,12 +187,13 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
                       {countVariantQuestions(variant)} კითხვა ·{" "}
                       {variant.passages.length} ტექსტი
                     </p>
-                    <span className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold ${ACCENT_TEXT[accent]}`}>
+                    <span className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold ${ACCENT_TEXT[cardAccent]}`}>
                       დაიწყე ტესტი
                       <ArrowRight className="h-3.5 w-3.5 stroke-[2.5] transition-transform group-hover:translate-x-0.5" />
                     </span>
                   </motion.button>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
