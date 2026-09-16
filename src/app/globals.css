@@ -14,6 +14,18 @@
   font-family: "BPG Extra Square Mtavruli", "BPG Arial", sans-serif;
 }
 
+/* iOS Safari zooms toward any focused field whose font-size is under 16px,
+   then leaves the page zoomed in. On phones, force form controls to 16px so
+   focusing them never triggers that zoom; wider screens keep the design's own
+   smaller sizes. !important is needed to win over Tailwind's text-* classes. */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* დღის რეჟიმი (default light) */
 :root {
   --bg-primary: #f8fafc;

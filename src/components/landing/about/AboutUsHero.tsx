@@ -1,4 +1,5 @@
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { PaperBackButton } from "@/components/ui/PaperBackButton";
 import type { AboutContent } from "@/lib/about-content";
 import { AboutControls } from "./AboutControls";
 import { Bulb, Flower, RainbowArc, Sparkle } from "../notebook/Doodles";
@@ -14,10 +15,13 @@ export function AboutUsHero({ content }: { content: AboutContent }) {
       <Flower className="pointer-events-none absolute -left-2 bottom-6 hidden h-12 w-12 -rotate-12 text-pink-400/80 lg:block dark:text-pink-400/60" />
 
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
-        <span className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100">
-          <Bulb className="h-4 w-4 text-amber-500 dark:text-amber-300" />
-          {content.eyebrow}
-        </span>
+        <div className="flex items-center gap-3">
+          <PaperBackButton />
+          <span className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100">
+            <Bulb className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+            {content.eyebrow}
+          </span>
+        </div>
         <AboutControls switchLabel={content.languageSwitchLabel} />
       </div>
 
