@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Loader2, Lock, Mail, MailCheck, Rocket, User } from "lucide-react";
+import { Loader2, Lock, Mail, MailCheck, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import {
@@ -192,13 +192,17 @@ export function RegistrationForm() {
       className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40"
       style={{
         backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.12), transparent)",
+          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(216,24,120,0.12), transparent)",
       }}
     >
       <header className="space-y-3 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-pink-500/25 bg-pink-600/20 shadow-[0_0_24px_rgba(124,58,237,0.15)]">
-          <Rocket className="h-5 w-5 stroke-[1.5] text-pink-300" />
-        </div>
+        <img
+          src="/spaceedu-mark.png"
+          alt="SpaceEdu"
+          width={48}
+          height={48}
+          className="mx-auto h-12 w-auto"
+        />
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">
             SpaceEdu

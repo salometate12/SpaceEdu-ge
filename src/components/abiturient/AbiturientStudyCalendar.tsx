@@ -93,20 +93,20 @@ export function AbiturientStudyCalendar() {
         </div>
       ) : (
         <>
-          <div className="mb-5 flex items-center gap-3 rounded-xl border border-pink-200/60 bg-pink-50/50 px-3 py-2.5 dark:border-pink-500/20 dark:bg-pink-500/[0.06]">
+          <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200/70 bg-slate-50/70 px-3 py-2.5 dark:border-white/[0.08] dark:bg-white/[0.03]">
             <span className="text-lg" aria-hidden>
               {finished ? "🏆" : progressPct === 0 ? "🌱" : "🔥"}
             </span>
             <div className="flex-1">
-              <div className="flex items-center justify-between text-xs font-medium text-pink-700 dark:text-pink-200">
+              <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-zinc-200">
                 <span>
                   {doneCount}/{plan.totalDays} დღე შესრულებული
                 </span>
                 <span>{progressPct}%</span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-pink-100 dark:bg-white/[0.06]">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/[0.06]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 transition-all duration-500 dark:from-pink-500 dark:to-indigo-400"
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500 dark:from-violet-500 dark:to-indigo-400"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -145,7 +145,7 @@ export function AbiturientStudyCalendar() {
                           setExpandedDate((prev) => (prev === day.date ? null : day.date));
                         }
                       }}
-                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-pink-50/30 p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
+                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/[0.08] dark:bg-none dark:bg-[#17181b]/80 ${
                         done ? "opacity-60" : ""
                       } ${isExpanded ? "ring-2 ring-pink-500 ring-offset-2 ring-offset-white dark:ring-pink-400 dark:ring-offset-[#0c0d10]" : ""}`}
                     >
@@ -229,7 +229,7 @@ export function AbiturientStudyCalendar() {
                       const isToday = expandedDay.date === today;
                       return (
                         <div
-                          className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-pink-50/40 p-4 pl-5 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5 sm:pl-6"
+                          className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 pl-5 dark:border-white/[0.08] dark:bg-white/[0.03] sm:p-5 sm:pl-6"
                         >
                           <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
                           <div className="flex flex-wrap items-center gap-2">
