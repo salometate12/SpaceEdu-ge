@@ -79,7 +79,7 @@ export default function LandingPage() {
             <CTASection />
           </NotebookSheet>
         </div>
-        <LandingFooter />
+        <LandingFooter forceDark />
       </div>
     </div>
   );
