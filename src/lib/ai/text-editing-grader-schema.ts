@@ -35,6 +35,16 @@ export function textEditingMaxes(year: number): Record<TextEditingCriterionId, n
   return TEXT_EDITING_CRITERION_MAX[year as ExamYear] ?? TEXT_EDITING_CRITERION_MAX[2025];
 }
 
+export const TextEditingGraderRequestSchema = z.object({
+  /** The original text the student had to fix. */
+  source: z.string().min(1),
+  /** The student's corrected version. */
+  corrected: z.string().min(1),
+  year: z.number().optional(),
+});
+
+export type TextEditingGraderRequest = z.infer<typeof TextEditingGraderRequestSchema>;
+
 export const TextEditingCriterionScoreSchema = z.object({
   id: z.enum(TEXT_EDITING_CRITERION_IDS),
   score: z.number().min(0),

@@ -23,7 +23,8 @@ import {
   type ExamPassage,
   type ExamVariant,
 } from "@/data/pastExamsData";
-import { ESSAY_TOTAL_MAX } from "@/lib/ai/essay-grader-schema";
+import { WRITING_TASK_TOTAL_MAX } from "@/lib/ai/writing-task-grader-schema";
+import { TEXT_EDITING_TOTAL_MAX } from "@/lib/ai/text-editing-grader-schema";
 import { EXAM_CATEGORY_META, type ExamCategory } from "@/lib/exam-categories";
 import { recordCategoryAttempt } from "@/lib/category-accuracy";
 import { recordQuestProgress } from "@/lib/daily-quests";
@@ -41,9 +42,11 @@ import {
   QuestComplete,
   QuestionProgress,
 } from "./ExamGamification";
-import { EssayReport } from "./EssayReport";
+import { WritingTaskReport } from "./WritingTaskReport";
+import { TextEditingReport } from "./TextEditingReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
-import { useEssayGrading } from "./useEssayGrading";
+import { useWritingTaskGrading } from "./useWritingTaskGrading";
+import { useTextEditingGrading } from "./useTextEditingGrading";
 
 /** The real paper allows three hours. */
 const EXAM_SECONDS = 3 * 60 * 60;
@@ -262,7 +265,8 @@ export function ExamSimulation({
   const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
-  const essayGrading = useEssayGrading("abit-exam-essay");
+  const [editingScore, setEditingScore] = useState<number | null>(null);
+  const essayGrading = useWritingTaskGrading("abit-exam-essay");
   const essayWords = useMemo(
     () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
     [essayDraft],
@@ -468,7 +472,11 @@ export function ExamSimulation({
         <EditingStage
           task={variant.editingTask}
           accent={accent}
-          onDone={() => setStage("choose")}
+          year={year}
+          onDone={(score) => {
+            if (typeof score === "number") setEditingScore(score);
+            setStage("choose");
+          }}
         />
       </div>
     );
@@ -874,7 +882,15 @@ export function ExamSimulation({
 
               <button
                 type="button"
-                onClick={() => void essayGrading.grade(essayDraft, passage.essay?.prompt)}
+                onClick={() =>
+                  void essayGrading.grade(essayDraft, {
+                    prompt: passage.essay?.prompt,
+                    year,
+                    passageTitle: passage.title,
+                    passageText: passage.textExcerpt,
+                    hasBoundText: true,
+                  })
+                }
                 disabled={essayGrading.busy || essayWords === 0}
                 className={`paper-sticker mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
               >
@@ -893,8 +909,9 @@ export function ExamSimulation({
 
               {essayGrading.result && (
                 <div className="mt-5">
-                  <EssayReport
+                  <WritingTaskReport
                     result={essayGrading.result}
+                    year={year}
                     usedFallback={essayGrading.usedFallback}
                     compact
                   />
@@ -950,12 +967,21 @@ export function ExamSimulation({
           ]}
         />
 
+        {editingScore !== null && (
+          <p
+            className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${ACCENT_PILL.amber}`}
+          >
+            <PenLine className="h-3.5 w-3.5 stroke-[2.5]" />
+            ტექსტის რედაქტირება: {editingScore}/{TEXT_EDITING_TOTAL_MAX}
+          </p>
+        )}
+
         {essayGrading.result && passage?.essay && (
           <p
             className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${ACCENT_PILL.violet}`}
           >
             <PenLine className="h-3.5 w-3.5 stroke-[2.5]" />
-            წერითი დავალება: {essayGrading.result.totalScore}/{ESSAY_TOTAL_MAX}
+            წერითი დავალება: {essayGrading.result.totalScore}/{WRITING_TASK_TOTAL_MAX}
           </p>
         )}
 
@@ -966,8 +992,9 @@ export function ExamSimulation({
             >
               ესეს შეფასება
             </p>
-            <EssayReport
+            <WritingTaskReport
               result={essayGrading.result}
+              year={year}
               usedFallback={essayGrading.usedFallback}
               compact
             />
@@ -1032,12 +1059,15 @@ export function ExamSimulation({
 function EditingStage({
   task,
   accent,
+  year,
   onDone,
 }: {
   task: NonNullable<ExamVariant["editingTask"]>;
   accent: NotebookAccent;
-  onDone: () => void;
+  year: number;
+  onDone: (score?: number) => void;
 }) {
+  const editingGrading = useTextEditingGrading("abit-exam-editing");
   // The editor starts empty: the source is above, and the reader decides
   // whether to bring it down and correct it in place or to write out their
   // own version. Reading and writing are stacked rather than side by side —
@@ -1153,8 +1183,38 @@ function EditingStage({
 
         <button
           type="button"
-          onClick={onDone}
-          className={`paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
+          onClick={() => void editingGrading.grade(task.text, draft, year)}
+          disabled={editingGrading.busy || !transferred || untouched}
+          className="paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 border-pink-700 bg-pink-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-300/40"
+        >
+          {editingGrading.busy ? (
+            <>
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+              მიმდინარეობს შეფასება...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 stroke-[2]" />
+              {editingGrading.result ? "ხელახლა შეაფასე" : "შეაფასე რედაქტირება (AI)"}
+            </>
+          )}
+        </button>
+
+        {editingGrading.result && (
+          <div className="mt-5">
+            <TextEditingReport
+              result={editingGrading.result}
+              year={year}
+              usedFallback={editingGrading.usedFallback}
+              compact
+            />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onDone(editingGrading.result?.totalScore)}
+          className={`paper-sticker mt-4 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
         >
           II ნაწილზე გადასვლა
           <ArrowRight className="h-4 w-4 stroke-[2.5]" />

@@ -3,71 +3,67 @@
 import { motion } from "framer-motion";
 import { CircleAlert, ThumbsUp, Wrench } from "lucide-react";
 import {
-  ESSAY_CRITERION_HINTS,
-  ESSAY_CRITERION_LABELS,
-  ESSAY_CRITERION_MAX,
-  ESSAY_TOTAL_MAX,
-  type EssayCriterionId,
-  type EssayGraderResponse,
-} from "@/lib/ai/essay-grader-schema";
+  WRITING_TASK_CRITERION_LABELS,
+  WRITING_TASK_TOTAL_MAX,
+  writingTaskMaxes,
+  type WritingTaskCriterionId,
+  type WritingTaskGraderResponse,
+} from "@/lib/ai/writing-task-grader-schema";
 
-export function essayScoreTone(score: number, max: number): string {
-  const ratio = score / max;
+export function scoreTone(score: number, max: number): string {
+  const ratio = max > 0 ? score / max : 0;
   if (ratio >= 0.8) return "#10b981";
   if (ratio >= 0.55) return "#f59e0b";
   return "#f43f5e";
 }
 
 /**
- * The scored report, shared by the standalone essay page and the in-exam
- * writing stage. Theme-aware so it reads in both modes.
+ * The scored report for the 34-point Part II essay. Per-criterion maxima come
+ * from the given exam year, so the roman-numbered criteria (I–X) each show
+ * their real ceiling.
  */
-export function EssayReport({
+export function WritingTaskReport({
   result,
+  year = 2025,
   usedFallback,
   compact = false,
 }: {
-  result: EssayGraderResponse;
+  result: WritingTaskGraderResponse;
+  year?: number;
   usedFallback?: boolean;
-  /** Drops the outer card so it can sit inside an existing panel. */
   compact?: boolean;
 }) {
-  const shell = compact
-    ? "space-y-4"
-    : "space-y-4";
+  const maxes = writingTaskMaxes(year);
+  const cardTotal = compact
+    ? "rounded-2xl border border-slate-200 bg-white/70 p-5 text-center dark:border-white/10 dark:bg-white/[0.03]"
+    : "rounded-2xl border border-slate-200 bg-white/85 p-6 text-center dark:border-white/10 dark:bg-[#0D0D15]/80";
+  const cardBody = compact
+    ? "rounded-2xl border border-slate-200 bg-white/70 p-5 dark:border-white/10 dark:bg-white/[0.03]"
+    : "rounded-2xl border border-slate-200 bg-white/85 p-5 dark:border-white/10 dark:bg-[#0D0D15]/80";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={shell}
+      className="space-y-4"
     >
-      {/* ------------------------------ total ------------------------------ */}
-      <div
-        className={
-          compact
-            ? "rounded-2xl border border-slate-200 bg-white/70 p-5 text-center dark:border-white/10 dark:bg-white/[0.03]"
-            : "rounded-2xl border border-slate-200 bg-white/85 p-6 text-center dark:border-white/10 dark:bg-[#0D0D15]/80"
-        }
-      >
+      <div className={cardTotal}>
         <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
           საბოლოო ქულა
         </p>
         <p className="mt-2 text-5xl font-black text-slate-900 dark:text-white">
           {result.totalScore}
           <span className="text-2xl font-bold text-slate-400 dark:text-zinc-500">
-            /{ESSAY_TOTAL_MAX}
+            /{WRITING_TASK_TOTAL_MAX}
           </span>
         </p>
         <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/[0.06]">
           <motion.div
             className="h-full rounded-full"
-            style={{
-              backgroundColor: essayScoreTone(result.totalScore, ESSAY_TOTAL_MAX),
-            }}
+            style={{ backgroundColor: scoreTone(result.totalScore, WRITING_TASK_TOTAL_MAX) }}
             initial={{ width: 0 }}
-            animate={{ width: `${(result.totalScore / ESSAY_TOTAL_MAX) * 100}%` }}
+            animate={{ width: `${(result.totalScore / WRITING_TASK_TOTAL_MAX) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
@@ -82,42 +78,31 @@ export function EssayReport({
         )}
       </div>
 
-      {/* ---------------------------- criteria ----------------------------- */}
-      <div
-        className={
-          compact
-            ? "rounded-2xl border border-slate-200 bg-white/70 p-5 dark:border-white/10 dark:bg-white/[0.03]"
-            : "rounded-2xl border border-slate-200 bg-white/85 p-5 dark:border-white/10 dark:bg-[#0D0D15]/80"
-        }
-      >
+      <div className={cardBody}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
           კრიტერიუმები
         </p>
         <div className="space-y-4">
           {result.criteria.map((criterion) => {
-            const id = criterion.id as EssayCriterionId;
-            const tone = essayScoreTone(criterion.score, ESSAY_CRITERION_MAX);
+            const id = criterion.id as WritingTaskCriterionId;
+            const max = maxes[id];
+            const tone = scoreTone(criterion.score, max);
             return (
               <div key={id}>
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                    {ESSAY_CRITERION_LABELS[id]}
+                    {id}. {WRITING_TASK_CRITERION_LABELS[id]}
                   </span>
-                  <span className="text-sm font-bold" style={{ color: tone }}>
-                    {criterion.score}/{ESSAY_CRITERION_MAX}
+                  <span className="shrink-0 text-sm font-bold" style={{ color: tone }}>
+                    {criterion.score}/{max}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-slate-400 dark:text-zinc-600">
-                  {ESSAY_CRITERION_HINTS[id]}
-                </p>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/[0.06]">
                   <motion.div
                     className="h-full rounded-full"
                     style={{ backgroundColor: tone }}
                     initial={{ width: 0 }}
-                    animate={{
-                      width: `${(criterion.score / ESSAY_CRITERION_MAX) * 100}%`,
-                    }}
+                    animate={{ width: `${max > 0 ? (criterion.score / max) * 100 : 0}%` }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
@@ -130,7 +115,6 @@ export function EssayReport({
         </div>
       </div>
 
-      {/* ---------------------------- strengths ---------------------------- */}
       {result.strengths.length > 0 && (
         <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-5 dark:border-emerald-500/25 dark:bg-emerald-950/20">
           <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -151,7 +135,6 @@ export function EssayReport({
         </div>
       )}
 
-      {/* --------------------------- corrections --------------------------- */}
       {result.corrections.length > 0 && (
         <div className="rounded-2xl border border-cyan-300 bg-cyan-50/80 p-5 dark:border-cyan-500/30 dark:bg-cyan-950/30">
           <p className="mb-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">

@@ -8,7 +8,8 @@ export const AI_PAGE_TYPES = [
   "lecture-notes",
   "cv",
   "syllabus",
-  "essay-grader",
+  "writing-task-grader",
+  "text-editing-grader",
 ] as const;
 
 export type AiPageType = (typeof AI_PAGE_TYPES)[number];
