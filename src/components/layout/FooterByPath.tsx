@@ -3,13 +3,14 @@
 import { usePathname } from "next/navigation";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
 import { useFocusMode } from "@/contexts/FocusModeContext";
-import { SiteFooter } from "./SiteFooter";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 
 const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
+// The landing renders its own footer inside the page, so skip it here.
 const CUSTOM_FOOTER_PATHS = new Set(["/"]);
-// Routes whose page is the whole screen: a site footer below one of these
-// only shows up as dead space under a full-height surface.
-const NO_FOOTER_PATHS = new Set(["/privacy", "/terms", "/about", "/ai-teacher"]);
+// Full-screen app surfaces: a footer below one of these only shows up as
+// dead space under a full-height chat/stream, so they stay footer-less.
+const NO_FOOTER_PATHS = new Set(["/ai-teacher"]);
 
 export function FooterByPath() {
   const pathname = usePathname();
@@ -25,5 +26,7 @@ export function FooterByPath() {
   ) {
     return null;
   }
-  return <SiteFooter />;
+  // One footer across the whole site: the landing's full footer with its
+  // product and company links, so every page ends the same way.
+  return <LandingFooter />;
 }

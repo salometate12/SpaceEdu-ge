@@ -3,6 +3,7 @@
 import { FileText, Lightbulb, Loader2, X } from "lucide-react";
 import { ka } from "@/lib/i18n";
 import type { FlashcardDraft } from "@/lib/ai/parse-flashcards-json";
+import { FlashcardGenLoader } from "./FlashcardGenLoader";
 
 export type GenerationType = "flashcards" | "summary";
 
@@ -15,24 +16,6 @@ interface GenerationChoiceModalProps {
   streamingCards?: FlashcardDraft[];
   onSelect: (type: GenerationType) => void;
   onClose: () => void;
-}
-
-function FlashcardStreamSkeleton({ cards }: { cards: FlashcardDraft[] }) {
-  return (
-    <div className="assistant-history-scroll mt-4 max-h-56 space-y-2 overflow-y-auto">
-      {cards.map((card) => (
-        <div
-          key={card.question}
-          className="rounded-xl border border-pink-500/15 bg-[#121214]/40 p-3 backdrop-blur-sm"
-        >
-          <p className="text-xs font-medium text-pink-200">{card.question}</p>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">
-            {card.answer}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export function GenerationChoiceModal({
@@ -51,8 +34,6 @@ export function GenerationChoiceModal({
     generationType === "summary"
       ? ka.generator.modal.loadingSummary
       : ka.generator.modal.loadingFlashcards;
-
-  const showCardStream = generationType === "flashcards" && streamingCards.length > 0;
 
   return (
     <div
@@ -82,33 +63,30 @@ export function GenerationChoiceModal({
         )}
 
         {isLoading ? (
-          <div className="flex w-full flex-col py-4">
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-pink-600 stroke-[1.5]" />
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                {loadingMessage}
-              </p>
-            </div>
-
-            {showCardStream ? (
-              <>
-                <p className="mt-3 text-xs text-pink-400">
-                  {ka.generator.modal.cardsLoading} ({streamingCards.length})
-                </p>
-                <FlashcardStreamSkeleton cards={streamingCards} />
-              </>
-            ) : streamPreview ? (
-              <div className="assistant-history-scroll mt-4 max-h-48 overflow-y-auto rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-3 text-left dark:border-zinc-700 dark:bg-zinc-950/40">
-                <p className="whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  {streamPreview}
+          generationType === "flashcards" ? (
+            <FlashcardGenLoader count={streamingCards.length} />
+          ) : (
+            <div className="flex w-full flex-col py-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 shrink-0 animate-spin text-pink-600 stroke-[1.5]" />
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                  {loadingMessage}
                 </p>
               </div>
-            ) : (
-              <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-                {ka.generator.modal.loadingHint}
-              </p>
-            )}
-          </div>
+
+              {streamPreview ? (
+                <div className="assistant-history-scroll mt-4 max-h-48 overflow-y-auto rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-3 text-left dark:border-zinc-700 dark:bg-zinc-950/40">
+                  <p className="whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-300">
+                    {streamPreview}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                  {ka.generator.modal.loadingHint}
+                </p>
+              )}
+            </div>
+          )
         ) : (
           <>
             <h2
