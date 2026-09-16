@@ -109,7 +109,7 @@ export function EssayTopicPractice() {
             </button>
           </section>
 
-          <section className={`mt-4 rounded-2xl border-2 p-5 sm:p-6 ${PLAIN_CARD}`}>
+          <section className="mt-4 rounded-2xl border-2 border-slate-300/80 bg-white/60 p-5 shadow-sm sm:p-6 dark:border-violet-400/20 dark:bg-white/[0.05]">
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 შენი ნაშრომი
@@ -129,7 +129,7 @@ export function EssayTopicPractice() {
               value={essay}
               onChange={(event) => setEssay(event.target.value)}
               placeholder="შესავალი თეზისით, არგუმენტები მაგალითებით, დასკვნა. საგამოცდო ნაშრომისთვის სასურველია 250-400 სიტყვა."
-              className="exam-prose min-h-[360px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
+              className="exam-prose min-h-[360px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.14] dark:bg-[#0c0b12] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-pink-400/70"
             />
 
             <ul className="mt-3 space-y-1.5 text-[12.5px] leading-relaxed text-slate-600 dark:text-slate-400">

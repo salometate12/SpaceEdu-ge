@@ -869,7 +869,7 @@ export function ExamSimulation({
                 value={essayDraft}
                 onChange={(event) => setEssayDraft(event.target.value)}
                 placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
-                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
+                className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.14] dark:bg-[#0c0b12] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-pink-400/70"
               />
 
               <button
