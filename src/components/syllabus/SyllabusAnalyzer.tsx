@@ -338,7 +338,7 @@ export function SyllabusAnalyzer() {
             type="button"
             onClick={() => void handleGenerate()}
             disabled={isLoading || !syllabusFile || !semesterStartDate}
-            className={`paper-sticker mt-auto w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
+            className={`paper-sticker mt-6 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
           >
             {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
           </button>
@@ -351,7 +351,7 @@ export function SyllabusAnalyzer() {
         </div>
       </section>
 
-      <div className="notebook-paper notebook-sheet relative min-h-[420px] w-full min-w-0 overflow-hidden rounded-[26px] p-5 sm:p-6">
+      <div className="notebook-sheet relative min-h-[420px] w-full min-w-0 overflow-hidden rounded-[26px] bg-[#faf6ec] p-5 dark:bg-[#161a24] sm:p-6">
         <Sparkle
           className={`pointer-events-none absolute right-5 top-5 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT.violet}`}
         />
@@ -421,7 +421,7 @@ export function SyllabusAnalyzer() {
                 return (
                   <article
                     key={item.id}
-                    className={`stagger-in flex flex-col justify-between gap-3 rounded-2xl border-2 p-4 transition-transform duration-300 hover:-translate-y-1 ${PLAIN_CARD} ${
+                    className={`stagger-in flex flex-col justify-between gap-3 rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1 dark:border-white/[0.1] dark:bg-[#1c2130] ${
                       index === 0 ? "sm:col-span-2" : ""
                     }`}
                     style={{ animationDelay: `${index * 70}ms` }}
