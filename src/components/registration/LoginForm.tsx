@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
-import { Loader2, Lock, Mail, Rocket } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
@@ -123,9 +123,13 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
       <header className="space-y-3 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-pink-500/25 bg-pink-600/20">
-          <Rocket className="h-5 w-5 stroke-[1.5] text-pink-300" />
-        </div>
+        <img
+          src="/spaceedu-mark.png"
+          alt="SpaceEdu"
+          width={48}
+          height={48}
+          className="mx-auto h-12 w-auto"
+        />
         <h1 className="headline text-2xl font-bold text-slate-900 dark:text-white">შესვლა</h1>
         <p className="text-sm text-slate-600 dark:text-gray-400">{roleSubtext}</p>
       </header>
