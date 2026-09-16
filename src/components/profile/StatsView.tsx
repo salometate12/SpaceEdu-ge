@@ -337,7 +337,7 @@ export function StatsView({ user }: StatsViewProps) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">სტატისტიკა</h1>
         <Link
           href="/profile"
