@@ -183,7 +183,7 @@ function CorrectionSheet({
         onChange={(event) => onChange(event.target.value)}
         disabled={isSubmitting}
         placeholder="ჩაწერე შესწორებული ტექსტი აქ..."
-        className="min-h-[280px] w-full resize-y bg-transparent px-4 py-4 text-sm leading-[1.9] text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed dark:text-slate-200 dark:placeholder:text-slate-500"
+        className="min-h-[380px] w-full resize-y bg-transparent px-4 py-4 text-base leading-[1.9] text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed lg:min-h-[58vh] dark:text-slate-200 dark:placeholder:text-slate-500"
       />
 
       {/* How much of the source has been carried across. */}
@@ -320,7 +320,9 @@ export function TextEditingExercise() {
           {/* Source on the left, your version on the right — the two things
               being compared, side by side on a screen wide enough for it. */}
           <div
-            className={`grid grid-cols-1 gap-4 ${evaluation ? "" : "lg:grid-cols-2"}`}
+            className={`grid grid-cols-1 gap-4 ${
+              evaluation ? "" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]"
+            }`}
           >
             <div className="exam-paper-plain select-none overflow-hidden border-2 border-slate-300 dark:border-white/15">
               <div className="flex items-center justify-between gap-2 border-b-2 border-dashed border-slate-400/60 px-4 py-2.5 dark:border-white/20">
@@ -331,7 +333,7 @@ export function TextEditingExercise() {
                   {task.text.length}
                 </span>
               </div>
-              <div className="px-4 py-4 text-sm leading-[1.9] text-slate-800 dark:text-slate-200">
+              <div className="px-4 py-4 text-base leading-[1.9] text-slate-800 lg:max-h-[58vh] lg:overflow-y-auto dark:text-slate-200">
                 {task.text.split("\n\n").map((paragraph, index) => (
                   <p key={`p-${index}`} className="mb-4 last:mb-0">
                     {paragraph}
