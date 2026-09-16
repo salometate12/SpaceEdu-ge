@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarRange } from "lucide-react";
 import { StudyPlanForm, type StudyPlanFormValues } from "@/components/StudyPlan/StudyPlanForm";
 import { CalendarView } from "@/components/StudyPlan/CalendarView";
 import { StudyPlanThinkingLoader } from "@/components/StudyPlan/StudyPlanThinkingLoader";
@@ -68,9 +69,13 @@ export default function StudyPlanPage() {
           ) : (
             <div className="flex h-full flex-col">
               <SyllabusEventsPanel />
-              <div className="flex flex-1 items-center justify-center text-center">
-                <p className="text-sm text-slate-500 dark:text-zinc-500">
-                  შენი ინდივიდუალური გეგმა გამოჩნდება აქ პარამეტრების შევსების შემდეგ
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300">
+                  <CalendarRange className="h-7 w-7 stroke-[1.75]" aria-hidden />
+                </span>
+                <p className="max-w-xs text-sm leading-relaxed text-slate-500 dark:text-zinc-500">
+                  შენი ინდივიდუალური გეგმა გამოჩნდება აქ — შეავსე მარცხნივ საგანი, თემები და
+                  გამოცდის თარიღი და დააჭირე „გეგმის გენერაცია“-ს.
                 </p>
               </div>
             </div>
