@@ -25,19 +25,20 @@
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-@keyframes genloader-tap {
-  0% { transform: scale(1); }
-  40% { transform: scale(0.82) rotate(-8deg); }
-  100% { transform: scale(1); }
-}
-@keyframes genloader-plusone {
-  0% { transform: translateY(0) scale(0.8); opacity: 0; }
-  30% { opacity: 1; }
-  100% { transform: translateY(-38px) scale(1.1); opacity: 0; }
-}
 @keyframes genloader-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+/* The skeleton "lines" on the front card that read as text being written. */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #e4e4e7 25%, #f4f4f5 50%, #e4e4e7 75%);
+  background-size: 200% 100%;
+  animation: genloader-shimmer 1.4s linear infinite;
+}
+:root:not([data-theme="light"]) .skeleton-shimmer,
+html.dark .skeleton-shimmer {
+  background: linear-gradient(90deg, #3f3f46 25%, #52525b 50%, #3f3f46 75%);
+  background-size: 200% 100%;
 }
 
 /* iOS Safari zooms toward any focused field whose font-size is under 16px,

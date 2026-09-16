@@ -1,119 +1,114 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import {
+  Brain,
+  Check,
+  FlaskConical,
+  Rocket,
+  Sprout,
+  Target,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
- * The wait screen while the AI reads a file and writes flashcards. It has
- * nothing to do with the site's XP — it's just a small, colourful, school-y
- * distraction so the reader doesn't stare at a spinner: rotating study facts,
- * bouncing supplies, a live tally of cards as they arrive, and a star to tap.
+ * The wait screen while the AI reads a file and writes flashcards. Nothing to
+ * do with the site's XP — just a calm, colourful hold: a small stack of cards
+ * being "written", a live count as they stream in, and a rotating study tip.
  */
 
-const FACTS: { emoji: string; text: string; from: string; to: string }[] = [
-  { emoji: "🧠", text: "იცოდი? მასალის გამეორება ძილის წინ მეხსიერებას აძლიერებს.", from: "#f472b6", to: "#fb7185" },
-  { emoji: "🎯", text: "აქტიური გახსენება (active recall) სწავლის #1 მეთოდია.", from: "#38bdf8", to: "#6366f1" },
-  { emoji: "🌱", text: "პატარა ყოველდღიური ნაბიჯები დიდ ცოდნად იქცევა.", from: "#34d399", to: "#10b981" },
-  { emoji: "⚡", text: "მოკლე, ხშირი გამეორება სჯობს ერთ გრძელ „ზუთხვას“.", from: "#fbbf24", to: "#f59e0b" },
-  { emoji: "🔬", text: "AI ახლა შენს მასალას კითხულობს და საუკეთესო კითხვებს არჩევს.", from: "#a78bfa", to: "#8b5cf6" },
-  { emoji: "🚀", text: "თითქმის მზადაა — მოემზადე ვარსკვლავებამდე ფრენისთვის!", from: "#22d3ee", to: "#0ea5e9" },
+const TIPS: { icon: LucideIcon; text: string; from: string; to: string }[] = [
+  { icon: Brain, text: "მასალის გამეორება ძილის წინ მეხსიერებას აძლიერებს.", from: "#ec4899", to: "#f43f5e" },
+  { icon: Target, text: "აქტიური გახსენება სწავლის ყველაზე ეფექტური მეთოდია.", from: "#3b82f6", to: "#6366f1" },
+  { icon: Sprout, text: "პატარა ყოველდღიური ნაბიჯები დიდ ცოდნად იქცევა.", from: "#10b981", to: "#14b8a6" },
+  { icon: Zap, text: "მოკლე, ხშირი გამეორება სჯობს ერთ გრძელ სესიას.", from: "#f59e0b", to: "#f97316" },
+  { icon: FlaskConical, text: "AI ახლა შენს მასალას კითხულობს და საუკეთესო კითხვებს არჩევს.", from: "#8b5cf6", to: "#7c3aed" },
+  { icon: Rocket, text: "თითქმის მზადაა — მალე დაიწყებ სწავლას.", from: "#0ea5e9", to: "#06b6d4" },
 ];
 
-const SUPPLIES = ["📚", "✏️", "🎓", "⭐", "🎨", "🔖"];
+/** The three cards in the "being written" stack, back to front. */
+const STACK = [
+  { rotate: "-9deg", x: "-16px", y: "10px", grad: "linear-gradient(135deg,#c4b5fd,#a78bfa)" },
+  { rotate: "7deg", x: "14px", y: "6px", grad: "linear-gradient(135deg,#93c5fd,#60a5fa)" },
+];
 
-interface Pop {
-  id: number;
-  x: number;
+function CardStack() {
+  return (
+    <div className="relative mx-auto h-[104px] w-[168px]">
+      {STACK.map((card, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 rounded-2xl shadow-md"
+          style={{
+            transform: `translate(${card.x}, ${card.y}) rotate(${card.rotate})`,
+            background: card.grad,
+          }}
+        />
+      ))}
+      {/* Front card, "being written" */}
+      <div
+        className="absolute inset-0 flex flex-col justify-center gap-2 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
+        style={{ animation: "genloader-float 2.4s ease-in-out infinite", ["--rot" as string]: "0deg" } as CSSProperties}
+      >
+        <span className="h-2.5 w-1/3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
+        <span className="skeleton-shimmer h-2 w-full rounded-full" />
+        <span className="skeleton-shimmer h-2 w-11/12 rounded-full" />
+        <span className="skeleton-shimmer h-2 w-2/3 rounded-full" />
+      </div>
+    </div>
+  );
 }
 
 export function FlashcardGenLoader({ count = 0 }: { count?: number }) {
-  const [factIndex, setFactIndex] = useState(0);
-  const [taps, setTaps] = useState(0);
-  const [pops, setPops] = useState<Pop[]>([]);
+  const [tipIndex, setTipIndex] = useState(0);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setFactIndex((prev) => (prev + 1) % FACTS.length);
-    }, 2800);
+      setTipIndex((prev) => (prev + 1) % TIPS.length);
+    }, 3000);
     return () => window.clearInterval(id);
   }, []);
 
-  const fact = FACTS[factIndex];
-
-  const handleTap = () => {
-    setTaps((prev) => prev + 1);
-    const pop: Pop = { id: Date.now() + Math.random(), x: Math.random() * 40 - 20 };
-    setPops((prev) => [...prev, pop]);
-    window.setTimeout(() => {
-      setPops((prev) => prev.filter((p) => p.id !== pop.id));
-    }, 700);
-  };
-
-  const supplyItems = useMemo(
-    () =>
-      SUPPLIES.map((emoji, i) => ({
-        emoji,
-        delay: `${i * 0.12}s`,
-        rot: `${(i % 2 === 0 ? -1 : 1) * (4 + i)}deg`,
-      })),
-    [],
-  );
+  const tip = TIPS[tipIndex];
+  const TipIcon = tip.icon;
 
   return (
     <div className="flex w-full flex-col items-center py-2 text-center">
-      {/* Bouncing school supplies */}
-      <div className="flex items-end gap-3">
-        {supplyItems.map((item) => (
-          <span
-            key={item.emoji}
-            className="text-3xl"
-            style={
-              {
-                "--rot": item.rot,
-                animation: `genloader-float 1.6s ease-in-out ${item.delay} infinite`,
-                display: "inline-block",
-              } as CSSProperties
-            }
-          >
-            {item.emoji}
-          </span>
-        ))}
-      </div>
+      <CardStack />
 
-      <p className="mt-4 text-base font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-        ბარათები მზადდება…
+      <p className="mt-6 text-base font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+        ბარათები იქმნება…
       </p>
 
       {/* Live tally of cards as they stream in */}
       <div className="mt-2 flex items-center gap-2">
         <span
           key={count}
-          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 px-3 text-base font-black text-white shadow-md shadow-pink-500/30"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 px-3 text-sm font-black text-white shadow-sm shadow-pink-500/30"
           style={{ animation: "genloader-pop 0.4s ease-out" }}
         >
+          {count > 0 && <Check className="h-3.5 w-3.5 stroke-[3]" />}
           {count}
         </span>
         <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          {count > 0 ? "ბარათი უკვე მზადაა! 🎉" : "ვიწყებთ…"}
+          {count > 0 ? "ბარათი მზადაა" : "ვიწყებთ…"}
         </span>
       </div>
 
-      {/* Rotating colourful study fact */}
+      {/* Rotating study tip — clean icon, no emoji */}
       <div
-        key={factIndex}
-        className="mt-5 w-full rounded-2xl p-4 text-left shadow-lg"
+        key={tipIndex}
+        className="mt-5 flex w-full items-center gap-3 rounded-2xl p-4 text-left shadow-lg"
         style={{
-          background: `linear-gradient(135deg, ${fact.from}, ${fact.to})`,
+          background: `linear-gradient(135deg, ${tip.from}, ${tip.to})`,
           animation: "genloader-pop 0.45s ease-out",
         }}
       >
-        <div className="flex items-start gap-3">
-          <span className="text-2xl" aria-hidden>
-            {fact.emoji}
-          </span>
-          <p className="text-sm font-semibold leading-relaxed text-white">
-            {fact.text}
-          </p>
-        </div>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/25 text-white">
+          <TipIcon className="h-5 w-5 stroke-[2]" aria-hidden />
+        </span>
+        <p className="text-sm font-semibold leading-relaxed text-white">{tip.text}</p>
       </div>
 
       {/* Progress shimmer bar */}
@@ -127,47 +122,6 @@ export function FlashcardGenLoader({ count = 0 }: { count?: number }) {
             animation: "genloader-shimmer 1.6s linear infinite",
           }}
         />
-      </div>
-
-      {/* Tap-the-star mini game */}
-      <div className="mt-5 flex flex-col items-center">
-        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-          მოწყენილი ხარ? დააჭირე ვარსკვლავს! ⭐
-        </p>
-        <div className="relative mt-2">
-          {pops.map((pop) => (
-            <span
-              key={pop.id}
-              className="pointer-events-none absolute left-1/2 top-0 text-sm font-black text-amber-500"
-              style={{
-                transform: `translateX(${pop.x}px)`,
-                animation: "genloader-plusone 0.7s ease-out forwards",
-              }}
-            >
-              +1
-            </span>
-          ))}
-          <button
-            type="button"
-            onClick={handleTap}
-            aria-label="დააჭირე ვარსკვლავს"
-            className="text-4xl transition-transform active:scale-90"
-            style={{ animation: "genloader-tap 0.3s ease-out", animationPlayState: "paused" }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.animation = "none";
-              // restart the tap animation
-              void e.currentTarget.offsetWidth;
-              e.currentTarget.style.animation = "genloader-tap 0.3s ease-out";
-            }}
-          >
-            ⭐
-          </button>
-        </div>
-        {taps > 0 && (
-          <p className="mt-1 text-xs font-bold text-amber-500">
-            {taps} ქულა{taps >= 10 ? " — ვარსკვლავური! 🌟" : ""}
-          </p>
-        )}
       </div>
     </div>
   );

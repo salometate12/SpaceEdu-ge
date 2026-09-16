@@ -10,7 +10,6 @@ import { readSpaceeduSpace } from "@/lib/space-back-navigation";
 import { DASHBOARD_ABIT_HREF, dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import type { Deck, StudySessionResult } from "@/lib/types";
 import { FlashcardFlip } from "./FlashcardFlip";
-import { Navbar } from "./Navbar";
 import { StudyControls } from "./StudyControls";
 import { StudyProgress } from "./StudyProgress";
 import { SummaryScreen } from "./SummaryScreen";
@@ -103,7 +102,6 @@ export function StudySession({ deck }: StudySessionProps) {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto flex max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-10">
         <Link
           href={dashboardHref}
