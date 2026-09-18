@@ -219,6 +219,43 @@ export function buildUserPrompt(
         .join("\n\n");
     }
 
+    case "math-open-problem-grader": {
+      const problemPrompt = asString(payload.problemPrompt);
+      const modelSolution = asString(payload.modelSolution);
+      const answer = asString(payload.answer);
+      const studentSolution = asString(payload.studentSolution);
+      const steps = Array.isArray(payload.steps) ? payload.steps : [];
+      const scoringTable = Array.isArray(payload.scoringTable) ? payload.scoringTable : [];
+      const note = asString(payload.partialCreditNote);
+      const stepsText = steps
+        .map((s) => {
+          const step = s as { id?: unknown; description?: unknown };
+          return `${asString(step.id)}) ${asString(step.description)}`;
+        })
+        .join("\n");
+      const tableText = scoringTable
+        .map((row) => {
+          const r = row as { score?: unknown; requiresSteps?: unknown };
+          const req = Array.isArray(r.requiresSteps) ? r.requiresSteps.join(", ") : "";
+          return `${asNumber(r.score)} ქულა — ${req}`;
+        })
+        .join("\n");
+      return [
+        `ამოცანა: ${problemPrompt}`,
+        `ოფიციალური ამოხსნა: ${modelSolution}`,
+        answer ? `სწორი პასუხი: ${answer}` : "",
+        `ამოხსნის ეტაპები:\n${stepsText}`,
+        `შეფასების სქემა (რომელი ეტაპებია საჭირო თითოეული ქულისთვის):\n${tableText}`,
+        note ? `შენიშვნა: ${note}` : "",
+        "შეაფასე სტუდენტის ამოხსნა ეტაპობრივად და დააბრუნე მხოლოდ JSON.",
+        "--- სტუდენტის ამოხსნა ---",
+        studentSolution,
+        "--- დასასრული ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
     case "text-editing-grader": {
       const source = asString(payload.source);
       const corrected = asString(payload.corrected);

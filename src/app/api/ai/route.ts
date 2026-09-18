@@ -21,8 +21,16 @@ import {
   normalizeTextEditingReport,
   type TextEditingGraderResponse,
 } from "@/lib/ai/text-editing-grader-schema";
+import {
+  MATH_OPEN_JSON_INSTRUCTIONS,
+  MathOpenGraderRequestSchema,
+  MathOpenGraderResponseSchema,
+  normalizeMathOpenReport,
+  type MathOpenGraderResponse,
+} from "@/lib/ai/math-open-problem-grader-schema";
 import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
 import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
+import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import {
   LectureNotesKeywordsSchema,
   LectureNotesRequestSchema,
@@ -449,6 +457,28 @@ export async function POST(request: Request) {
         return Response.json(
           localGradeWritingTask(wtPayload.essay, { year, hasBoundText, prompt: wtPayload.prompt }),
         );
+      }
+    }
+
+    if (pageType === "math-open-problem-grader") {
+      const moPayload = MathOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, moPayload);
+      const gradeInput = {
+        steps: moPayload.steps,
+        scoringTable: moPayload.scoringTable,
+        maxPoints: moPayload.maxPoints,
+      };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: MathOpenGraderResponseSchema,
+          system: `${system}\n${MATH_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as MathOpenGraderResponse;
+        return Response.json(normalizeMathOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeMathOpen(moPayload.studentSolution, gradeInput));
       }
     }
 
