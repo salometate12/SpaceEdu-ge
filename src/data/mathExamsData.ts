@@ -1,0 +1,783 @@
+/**
+ * Georgian National Exam — Mathematics past papers (2025, variants I & II).
+ *
+ * Transcribed from docs/exam-sources/math/paper-variant-*.pdf and the matching
+ * scoring schemes. Unlike the literature papers, a maths paper is a set of
+ * independent questions — 37 single-answer MCQs (1 point each) and 4 open
+ * problems (38–41, 3–4 points) whose solutions are graded step by step. Some
+ * questions carry a formula (stored as KaTeX) or a figure cropped from the PDF.
+ *
+ * NOTE: Variant I is fully transcribed (all 37 MCQs + all 4 open problems),
+ * with the answer keys verified against the official scoring scheme. Variant II
+ * currently ships only its verified answer key; its prompts are still being
+ * transcribed and the UI renders exactly what is present.
+ */
+
+export type MathOptionLabel = "ა" | "ბ" | "გ" | "დ";
+
+export interface MathFigure {
+  src: string;
+  alt: string;
+}
+
+export interface MathOption {
+  label: MathOptionLabel;
+  /** Plain text, when the option is words/a number. */
+  text?: string;
+  /** KaTeX, when the option is a formula. */
+  latex?: string;
+}
+
+export interface MathMcqQuestion {
+  id: string;
+  number: number; // 1–37
+  prompt: string; // question text (Georgian)
+  latex?: string; // formula shown with the prompt, if any
+  figure?: MathFigure;
+  options: MathOption[];
+  correctLabel: MathOptionLabel;
+  points: 1;
+}
+
+export interface MathOpenStep {
+  /** Step label as in the scheme's "ამოხსნის ეტაპები" (ა, ბ, გ, ...). */
+  id: string;
+  description: string;
+}
+
+export interface MathScoringRow {
+  score: number;
+  /** Which step ids must be completed to earn this score. */
+  requiresSteps: string[];
+}
+
+export interface MathOpenProblem {
+  id: string;
+  number: number; // 38–41
+  prompt: string;
+  latex?: string;
+  figure?: MathFigure;
+  points: number; // 3 or 4
+  modelSolution: string; // "ამოხსნა" — the full worked answer
+  answer?: string; // "პასუხი"
+  steps: MathOpenStep[]; // "ამოხსნის ეტაპები"
+  scoringTable: MathScoringRow[]; // "შეფასების სქემა"
+  partialCreditNote?: string; // the scheme's "შენიშვნა"
+}
+
+export interface MathExamVariant {
+  id: string;
+  label: string; // "I ვარიანტი" / "II ვარიანტი"
+  year: number;
+  mcq: MathMcqQuestion[];
+  open: MathOpenProblem[];
+  totalPoints: number; // 51
+  durationMinutes: number; // 180
+}
+
+/** The official MCQ answer keys (1–37), verified from the scoring schemes. */
+export const MATH_MCQ_ANSWER_KEYS: Record<string, MathOptionLabel[]> = {
+  "variant-1-2025": [
+    "დ", "ბ", "ბ", "დ", "დ", "დ", "ა", "ბ", "დ", "ბ", "ა", "ბ", "გ", "გ", "გ",
+    "გ", "გ", "დ", "ა", "დ", "გ", "გ", "ბ", "ბ", "ბ", "დ", "დ", "ა", "ბ", "ა",
+    "გ", "ა", "ბ", "ა", "ა", "ა", "გ",
+  ],
+  "variant-2-2025": [
+    "გ", "გ", "ბ", "გ", "დ", "გ", "ა", "ა", "დ", "ა", "ა", "ა", "ბ", "ა", "გ",
+    "დ", "ა", "გ", "ა", "ბ", "დ", "დ", "ა", "გ", "ბ", "დ", "დ", "ბ", "გ", "ბ",
+    "ბ", "გ", "გ", "ბ", "დ", "ბ", "დ",
+  ],
+};
+
+const FIG = "/exam-figures/math/variant-1-2025";
+
+const VARIANT_1_MCQ: MathMcqQuestion[] = [
+  {
+    id: "m1-q1",
+    number: 1,
+    prompt: "გამოთვალეთ:",
+    latex: "\\left(1\\tfrac{3}{5} - 2{,}2\\right)\\cdot 3\\tfrac{1}{3}",
+    options: [
+      { label: "ა", latex: "2" },
+      { label: "ბ", latex: "\\tfrac{7}{3}" },
+      { label: "გ", latex: "-\\tfrac{4}{15}" },
+      { label: "დ", latex: "-2" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q2",
+    number: 2,
+    prompt:
+      "იპოვეთ უმცირესი სამნიშნა რიცხვი, რომელიც როგორც 4-ზე, ასევე 7-ზე გაყოფისას იძლევა 3-ის ტოლ ნაშთს.",
+    options: [
+      { label: "ა", text: "143" },
+      { label: "ბ", text: "115" },
+      { label: "გ", text: "107" },
+      { label: "დ", text: "103" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q3",
+    number: 3,
+    prompt:
+      "საათის ფასი ჯერ გაიზარდა 20%-ით, ხოლო შემდეგ შემცირდა 20%-ით და გახდა 96 ლარი. იპოვეთ საათის თავდაპირველი ფასი.",
+    options: [
+      { label: "ა", text: "96 ₾" },
+      { label: "ბ", text: "100 ₾" },
+      { label: "გ", text: "105 ₾" },
+      { label: "დ", text: "110 ₾" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q4",
+    number: 4,
+    prompt:
+      "სამკუთხედის კუთხეები ისე შეეფარდება ერთმანეთს, როგორც $1:3:5$. იპოვეთ სამკუთხედის უმცირესი კუთხის სიდიდე.",
+    options: [
+      { label: "ა", text: "40°" },
+      { label: "ბ", text: "30°" },
+      { label: "გ", text: "10°" },
+      { label: "დ", text: "20°" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q5",
+    number: 5,
+    prompt:
+      "0,5 მეტრი რადიუსის მქონე წრის ფორმის გასაშლელი მაგიდის გაშლის დროს ნახევარწრის ფორმის ნაჭრებს შორის დგამენ მართკუთხედის ფორმის ნაჭერს, რომლის დიაგონალის სიგრძე $\\sqrt{5}$ მეტრია. იპოვეთ გაშლილი მაგიდის ფართობი (იხ. სურათი).",
+    figure: { src: `${FIG}/q5.png`, alt: "გასაშლელი მაგიდის სქემა" },
+    options: [
+      { label: "ა", latex: "\\left(4+\\tfrac{\\pi}{4}\\right)\\,\\text{მ}^2" },
+      { label: "ბ", latex: "\\left(5+\\tfrac{\\pi}{4}\\right)\\,\\text{მ}^2" },
+      { label: "გ", latex: "\\left(2+\\tfrac{\\pi}{2}\\right)\\,\\text{მ}^2" },
+      { label: "დ", latex: "\\left(2+\\tfrac{\\pi}{4}\\right)\\,\\text{მ}^2" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q6",
+    number: 6,
+    prompt:
+      "იპოვეთ $a$, თუ $2^{a}=\\left(\\sqrt[3]{2\\sqrt[3]{2}}\\right)^{\\frac{3}{2}}$.",
+    options: [
+      { label: "ა", latex: "\\tfrac{2}{9}" },
+      { label: "ბ", latex: "\\tfrac{4}{9}" },
+      { label: "გ", latex: "\\tfrac{5}{6}" },
+      { label: "დ", latex: "\\tfrac{2}{3}" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q7",
+    number: 7,
+    prompt:
+      "იპოვეთ $\\sqrt[4]{b}-\\sqrt[4]{a}$ გამოსახულების მნიშვნელობა, თუ $a$ და $b$ რიცხვები აკმაყოფილებს ტოლობებს: $\\sqrt[4]{a}+\\sqrt[4]{b}=3$ და $\\sqrt{a}-\\sqrt{b}=2$.",
+    options: [
+      { label: "ა", latex: "-\\tfrac{2}{3}" },
+      { label: "ბ", latex: "\\tfrac{2}{3}" },
+      { label: "გ", latex: "\\tfrac{3}{2}" },
+      { label: "დ", latex: "\\tfrac{2}{\\sqrt{3}}" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q8",
+    number: 8,
+    prompt:
+      "იპოვეთ $y=kx+b$ წრფის $k$ კოეფიციენტი, თუ ცნობილია, რომ როდესაც წრფეზე მდგარი წერტილის აბსცისა გაიზრდება 2 ერთეულით, მაშინ მისი ორდინატა შემცირდება 3 ერთეულით.",
+    options: [
+      { label: "ა", latex: "\\tfrac{3}{2}" },
+      { label: "ბ", latex: "-\\tfrac{3}{2}" },
+      { label: "გ", latex: "-\\tfrac{2}{3}" },
+      { label: "დ", latex: "-6" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q9",
+    number: 9,
+    prompt:
+      "$y=kx+\\frac{1}{k}$ ფუნქციის გრაფიკი $Oxy$ მართკუთხა საკოორდინატო სისტემის აბსცისათა და ორდინატთა ღერძებს კვეთს შესაბამისად $A$ და $B$ წერტილებში (იხ. სურათი). იპოვეთ $A$ წერტილის კოორდინატები, თუ ცნობილია, რომ $\\angle BAO=30^{\\circ}$.",
+    figure: { src: `${FIG}/q9.png`, alt: "წრფის გრაფიკი საკოორდინატო სისტემაში" },
+    options: [
+      { label: "ა", text: "(0; 1)" },
+      { label: "ბ", text: "(−1; 0)" },
+      { label: "გ", text: "(−4; 0)" },
+      { label: "დ", text: "(−3; 0)" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q10",
+    number: 10,
+    prompt: "იპოვეთ $|x-2|=2-x$ განტოლების ამონახსნთა სიმრავლე.",
+    options: [
+      { label: "ა", latex: "(-\\infty;\\,2)" },
+      { label: "ბ", latex: "(-\\infty;\\,2]" },
+      { label: "გ", latex: "[2;\\,+\\infty)" },
+      { label: "დ", latex: "\\{2\\}" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q11",
+    number: 11,
+    prompt:
+      "იპოვეთ წესიერი ათკუთხედის პერიმეტრი, თუ მასში ჩახაზული წრეწირის რადიუსი 3 სმ-ის ტოლია.",
+    options: [
+      { label: "ა", latex: "60\\,\\operatorname{tg}\\!\\left(\\tfrac{\\pi}{10}\\right)\\,\\text{სმ}" },
+      { label: "ბ", latex: "30\\,\\operatorname{tg}\\!\\left(\\tfrac{\\pi}{10}\\right)\\,\\text{სმ}" },
+      { label: "გ", latex: "60\\,\\operatorname{tg}\\!\\left(\\tfrac{\\pi}{5}\\right)\\,\\text{სმ}" },
+      { label: "დ", latex: "60\\sin\\!\\left(\\tfrac{\\pi}{10}\\right)\\,\\text{სმ}" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q12",
+    number: 12,
+    prompt:
+      "7,2 კგ მასის შენადნობი მიღებულია სამი ლითონის ერთმანეთთან შედნობის შედეგად. ლითონების მასების განაწილების წრიულ დიაგრამაზე მეორე ლითონის შესაბამისი სექტორის ცენტრალური კუთხის სიდიდე 5°-ით აღემატება პირველი ლითონის შესაბამისი ცენტრალური კუთხის სიდიდეს და 35°-ით ნაკლებია მესამე ლითონის შესაბამისი ცენტრალური კუთხის სიდიდეზე. იპოვეთ ამ შენადნობში მეორე ლითონის მასა.",
+    options: [
+      { label: "ა", text: "2,1 კგ" },
+      { label: "ბ", text: "2,2 კგ" },
+      { label: "გ", text: "2,3 კგ" },
+      { label: "დ", text: "2,4 კგ" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q13",
+    number: 13,
+    prompt:
+      "პირამიდას და პრიზმას ტოლი რაოდენობის წვეროები აქვს. რამდენი წიბო აქვს ამ პირამიდას, თუ მას 5-ით მეტი წახნაგი აქვს, ვიდრე აღნიშნულ პრიზმას.",
+    options: [
+      { label: "ა", text: "18" },
+      { label: "ბ", text: "22" },
+      { label: "გ", text: "26" },
+      { label: "დ", text: "28" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q14",
+    number: 14,
+    prompt:
+      "$Oxy$ საკოორდინატო სიბრტყეზე მოცემულია $OABC$ პარალელოგრამი, რომლის $AOC$ კუთხის სიდიდე 60°-ია, ხოლო $B$ წერტილის კოორდინატებია $(4;\\,2)$. იპოვეთ $C$ წერტილის აბსცისა, თუ ცნობილია, რომ $C$ წერტილის ორდინატა ნულის ტოლია.",
+    options: [
+      { label: "ა", latex: "4-2\\sqrt{3}" },
+      { label: "ბ", latex: "2" },
+      { label: "გ", latex: "4-\\tfrac{2\\sqrt{3}}{3}" },
+      { label: "დ", latex: "4-2\\sqrt{2}" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q15",
+    number: 15,
+    prompt:
+      "რამდენი ისეთი ხუთნიშნა ნატურალური რიცხვი არსებობს, რომელიც მარცხნიდან და მარჯვნიდან ერთნაირად იკითხება (ასეთი რიცხვია, მაგალითად, 12321)?",
+    options: [
+      { label: "ა", text: "810" },
+      { label: "ბ", text: "890" },
+      { label: "გ", text: "900" },
+      { label: "დ", text: "990" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q16",
+    number: 16,
+    prompt:
+      "რამდენ ელემენტს შეიცავს $(A\\cup B)\\setminus(A\\cap B)$ სიმრავლე, თუ ცნობილია, რომ $A$ და $B$ სიმრავლეები შეიცავს ხუთ-ხუთ ელემენტს, რომელთაგან 2 ელემენტი საერთო აქვთ.",
+    options: [
+      { label: "ა", text: "3" },
+      { label: "ბ", text: "5" },
+      { label: "გ", text: "6" },
+      { label: "დ", text: "8" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q17",
+    number: 17,
+    prompt:
+      "არგუმენტის რომელი მნიშვნელობისთვის იღებს $\\left[-\\frac{2\\pi}{3};\\,-\\frac{\\pi}{6}\\right]$ შუალედზე განსაზღვრული $f(x)=\\cos(3x)$ ფუნქცია უმცირეს მნიშვნელობას?",
+    options: [
+      { label: "ა", latex: "-\\tfrac{\\pi}{2}" },
+      { label: "ბ", latex: "-\\tfrac{2\\pi}{3}" },
+      { label: "გ", latex: "-\\tfrac{\\pi}{3}" },
+      { label: "დ", latex: "-\\tfrac{\\pi}{6}" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q18",
+    number: 18,
+    prompt:
+      "წინასწარ განსაზღვრული 20 თემიდან გამოცდაზე აძლევენ შემთხვევით შერჩეულ 3 თემას, საიდანაც მოსწავლე სურვილის მიხედვით დასაწერად ირჩევს ერთს. მოსწავლეს საგამოცდოდ განსაზღვრული 20 თემიდან მომზადებული აქვს მხოლოდ 12 თემა. რას უდრის იმის ალბათობა, რომ მან შეძლოს მომზადებული თემის არჩევა?",
+    options: [
+      { label: "ა", latex: "\\tfrac{3}{5}" },
+      { label: "ბ", latex: "\\dfrac{C_{8}^{3}}{C_{20}^{3}}" },
+      { label: "გ", latex: "\\dfrac{C_{5}^{3}}{C_{20}^{3}}" },
+      { label: "დ", latex: "1-\\dfrac{C_{8}^{3}}{C_{20}^{3}}" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q19",
+    number: 19,
+    prompt:
+      "იპოვეთ $m$-ის ყველა იმ მნიშვნელობათა სიმრავლე, რომელთაგან თითოეულისთვის $x^{2}-4x+3-m=0$ კვადრატულ განტოლებას აქვს ერთი და იმავე ნიშნის ორი განსხვავებული ფესვი.",
+    options: [
+      { label: "ა", latex: "(-1;\\,3)" },
+      { label: "ბ", latex: "(-1;\\,+\\infty)" },
+      { label: "გ", latex: "(-\\infty;\\,3)" },
+      { label: "დ", latex: "[-1;\\,3)" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q20",
+    number: 20,
+    prompt:
+      "$ABC$ მართკუთხა სამკუთხედის $C$ მართი კუთხის წვეროდან $AB$ ჰიპოტენუზისადმი გავლებულია $CD$ სიმაღლე. იპოვეთ $ACD$ კუთხის სინუსი, თუ $\\frac{DB}{CB}=\\frac{3}{4}$.",
+    figure: { src: `${FIG}/q20.png`, alt: "მართკუთხა სამკუთხედი სიმაღლით" },
+    options: [
+      { label: "ა", latex: "\\tfrac{1}{4}" },
+      { label: "ბ", latex: "\\tfrac{3}{4}" },
+      { label: "გ", latex: "\\tfrac{\\sqrt{3}}{4}" },
+      { label: "დ", latex: "\\tfrac{\\sqrt{7}}{4}" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q21",
+    number: 21,
+    prompt:
+      "იპოვეთ $\\vec{a}=(1;\\,-1)$ და $\\vec{b}=(2;\\,1)$ ვექტორებს შორის კუთხის სიდიდე.",
+    options: [
+      { label: "ა", latex: "\\arccos\\!\\left(\\tfrac{1}{\\sqrt{5}}\\right)" },
+      { label: "ბ", latex: "\\tfrac{\\pi}{3}" },
+      { label: "გ", latex: "\\arccos\\!\\left(\\tfrac{\\sqrt{10}}{10}\\right)" },
+      { label: "დ", latex: "\\tfrac{\\pi}{4}" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q22",
+    number: 22,
+    prompt:
+      "რის ტოლია იმის ალბათობა, რომ მონეტის 10-ჯერ აგდებისას ზუსტად 8-ჯერ მოვა საფასური?",
+    options: [
+      { label: "ა", latex: "\\tfrac{4}{5}" },
+      { label: "ბ", latex: "\\tfrac{1}{5}" },
+      { label: "გ", latex: "\\tfrac{45}{1024}" },
+      { label: "დ", latex: "\\tfrac{1}{1024}" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q23",
+    number: 23,
+    prompt:
+      "იპოვეთ $f(x)=3+2\\cos(x-1)$ ფუნქციის მნიშვნელობათა სიმრავლე.",
+    options: [
+      { label: "ა", latex: "(-\\infty;\\,+\\infty)" },
+      { label: "ბ", latex: "[1;\\,5]" },
+      { label: "გ", latex: "[-2;\\,2]" },
+      { label: "დ", latex: "(1;\\,5)" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q24",
+    number: 24,
+    prompt:
+      "$Oxy$ საკოორდინატო სიბრტყეზე მოცემულია სამკუთხედი, რომლის წვეროები $y=x^{2}-7x+12$ ფუნქციის გრაფიკის საკოორდინატო ღერძებთან გადაკვეთის წერტილებია. იპოვეთ ამ სამკუთხედის უდიდესი გვერდის სიგრძე.",
+    options: [
+      { label: "ა", latex: "\\sqrt{153}" },
+      { label: "ბ", latex: "4\\sqrt{10}" },
+      { label: "გ", latex: "13" },
+      { label: "დ", latex: "16" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q25",
+    number: 25,
+    prompt:
+      "იპოვეთ $a$ პარამეტრის ყველა იმ მნიშვნელობების სიმრავლე, რომელთაგან თითოეულისათვის $\\cos x=3-2a$ განტოლებას აქვს ამონახსნი, რომელიც მოთავსებულია $\\left(\\frac{\\pi}{2};\\,\\frac{3\\pi}{2}\\right)$ ინტერვალში.",
+    options: [
+      { label: "ა", latex: "\\left[\\tfrac{3}{2};\\,+\\infty\\right)" },
+      { label: "ბ", latex: "\\left(\\tfrac{3}{2};\\,2\\right]" },
+      { label: "გ", latex: "\\left(\\tfrac{3}{2};\\,2\\right)" },
+      { label: "დ", latex: "\\left[\\tfrac{3}{2};\\,2\\right]" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q26",
+    number: 26,
+    prompt: "ქვემოთ ჩამოთვლილი გამონათქვამებიდან რომელია ყოველთვის ჭეშმარიტი?",
+    options: [
+      {
+        label: "ა",
+        text:
+          "თუ ორი განსხვავებული a და b წრფე M სიბრტყის პარალელურია, მაშინ ისინი ურთიერთპარალელურია.",
+      },
+      {
+        label: "ბ",
+        text:
+          "თუ ორი განსხვავებული M და N სიბრტყე a წრფის პარალელურია, მაშინ ისინი ურთიერთპარალელურია.",
+      },
+      {
+        label: "გ",
+        text:
+          "თუ M სიბრტყე N სიბრტყეზე მდებარე ორი განსხვავებული წრფის პარალელურია, მაშინ M სიბრტყე N სიბრტყის პარალელურია.",
+      },
+      {
+        label: "დ",
+        text:
+          "თუ ერთმანეთისაგან განსხვავებული და ურთიერთგადამკვეთი a და b წრფეები M სიბრტყის პარალელურია, მაშინ ამ წრფეების შემცველი N სიბრტყეც M სიბრტყის პარალელურია.",
+      },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q27",
+    number: 27,
+    prompt:
+      "$Oxy$ საკოორდინატო სიბრტყეზე მოცემულია სიბრტყის ორი გარდაქმნა: $R_{O}^{90^{\\circ}}$ და $H_{O}^{2}$, სადაც $R_{O}^{90^{\\circ}}$ არის მობრუნება კოორდინატთა სათავის გარშემო 90°-ით საათის ისრის მოძრაობის საწინააღმდეგო მიმართულებით, ხოლო $H_{O}^{2}$ არის ჰომოთეტია ცენტრით კოორდინატთა სათავეში და კოეფიციენტით 2. იპოვეთ $H_{O}^{2}\\!\\left(R_{O}^{90^{\\circ}}(A)\\right)$ წერტილის კოორდინატები, თუ $A$ წერტილის კოორდინატებია $(3;\\,-2)$.",
+    options: [
+      { label: "ა", text: "(−3; 4)" },
+      { label: "ბ", text: "(6; 4)" },
+      { label: "გ", text: "(−4; −6)" },
+      { label: "დ", text: "(4; 6)" },
+    ],
+    correctLabel: "დ",
+    points: 1,
+  },
+  {
+    id: "m1-q28",
+    number: 28,
+    prompt:
+      "რიცხვითი მიმდევრობის ზოგადი წევრი მოცემულია ფორმულით $a_{n}=n^{2}-3n+1$, სადაც $n$ ნატურალური რიცხვია. იპოვეთ $a_{n}+a_{n+1}$.",
+    options: [
+      { label: "ა", latex: "2n^{2}-4n" },
+      { label: "ბ", latex: "n^{2}-4n-1" },
+      { label: "გ", latex: "2n^{2}-n+1" },
+      { label: "დ", latex: "n^{2}-n-1" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q29",
+    number: 29,
+    prompt:
+      "იპოვეთ უდიდესი მთელი რიცხვი, რომელიც ნაკლებია $\\log_{2}3-\\log_{4}81$ გამოსახულების მნიშვნელობაზე.",
+    options: [
+      { label: "ა", text: "−3" },
+      { label: "ბ", text: "−2" },
+      { label: "გ", text: "−1" },
+      { label: "დ", text: "0" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q30",
+    number: 30,
+    prompt:
+      "$O$ ცენტრის მქონე წრეწირის $A$ წერტილზე გავლებულია $AB$ მხები. $OB$ მონაკვეთი წრეწირს კვეთს $C$ წერტილში ისე, რომ $OC:CB=2:1$. იპოვეთ წრეწირის რადიუსი, თუ $AB=2$.",
+    figure: { src: `${FIG}/q30.png`, alt: "წრეწირი მხებით" },
+    options: [
+      { label: "ა", latex: "\\tfrac{4}{\\sqrt{5}}" },
+      { label: "ბ", latex: "\\tfrac{2}{\\sqrt{3}}" },
+      { label: "გ", latex: "\\tfrac{4}{\\sqrt{3}}" },
+      { label: "დ", latex: "\\sqrt{5}" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q31",
+    number: 31,
+    prompt: "იპოვეთ $4^{x}+4^{x+1}+4^{x+2}=2^{x}+2^{x+1}+2^{x+2}$ განტოლების ამონახსნი.",
+    options: [
+      { label: "ა", latex: "\\log_{2}7" },
+      { label: "ბ", latex: "\\log_{2}3" },
+      { label: "გ", latex: "-\\log_{2}3" },
+      { label: "დ", latex: "\\log_{2}\\!\\left(\\tfrac{5}{21}\\right)" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+  {
+    id: "m1-q32",
+    number: 32,
+    prompt:
+      "გეომეტრიული პროგრესიის მეორე და მეხუთე წევრი შესაბამისად 12-ის და 96-ის ტოლია. იპოვეთ ამ პროგრესიის პირველი წევრი.",
+    options: [
+      { label: "ა", text: "6" },
+      { label: "ბ", text: "4" },
+      { label: "გ", text: "3" },
+      { label: "დ", text: "2" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q33",
+    number: 33,
+    prompt: "იპოვეთ $f(x)=|\\sin x|$ ფუნქციის უმცირესი დადებითი პერიოდი.",
+    options: [
+      { label: "ა", latex: "2\\pi" },
+      { label: "ბ", latex: "\\pi" },
+      { label: "გ", latex: "\\tfrac{\\pi}{2}" },
+      { label: "დ", text: "არ აქვს" },
+    ],
+    correctLabel: "ბ",
+    points: 1,
+  },
+  {
+    id: "m1-q34",
+    number: 34,
+    prompt:
+      "წესიერი ექვსკუთხა პირამიდის ფუძის გვერდის სიგრძეა $2\\sqrt{3}$ სმ, ხოლო პირამიდის სიმაღლე არის 6 სმ. იპოვეთ პირამიდის ფუძით და გვერდითი წახნაგით შედგენილი ორწახნაგა კუთხის სიდიდე.",
+    options: [
+      { label: "ა", latex: "\\operatorname{arctg}2" },
+      { label: "ბ", latex: "\\arcsin\\!\\left(\\tfrac{\\sqrt{3}}{6}\\right)" },
+      { label: "გ", text: "60°" },
+      { label: "დ", text: "45°" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q35",
+    number: 35,
+    prompt:
+      "$x=-5$ წრფე წარმოადგენს $f(x)=|x+a|+3$ ფუნქციის გრაფიკის სიმეტრიის ღერძს. იპოვეთ $f(6)$.",
+    options: [
+      { label: "ა", text: "14" },
+      { label: "ბ", text: "4" },
+      { label: "გ", text: "3" },
+      { label: "დ", text: "9" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q36",
+    number: 36,
+    prompt:
+      "$ABCD$ პარალელოგრამის $BC$ გვერდზე მონიშნულია $P$ წერტილი ისე, რომ $BP=3PC$. ამასთან $AP$ და $CD$ წრფეები იკვეთება $K$ წერტილში. რას უდრის $ABCD$ პარალელოგრამისა და $AKD$ სამკუთხედის ფართობების შეფარდება?",
+    figure: { src: `${FIG}/q36.png`, alt: "პარალელოგრამი ABCD და წერტილი K" },
+    options: [
+      { label: "ა", latex: "\\tfrac{3}{2}" },
+      { label: "ბ", latex: "\\tfrac{4}{3}" },
+      { label: "გ", latex: "\\tfrac{5}{4}" },
+      { label: "დ", latex: "\\tfrac{4}{5}" },
+    ],
+    correctLabel: "ა",
+    points: 1,
+  },
+  {
+    id: "m1-q37",
+    number: 37,
+    prompt:
+      "ცილინდრის გვერდითი ზედაპირის ფართობი სრული ზედაპირის ფართობის ნახევრის ტოლია. იპოვეთ ცილინდრის ფუძის რადიუსის შეფარდება ცილინდრის სიმაღლესთან.",
+    options: [
+      { label: "ა", latex: "\\tfrac{1}{\\pi}" },
+      { label: "ბ", latex: "\\tfrac{1}{2}" },
+      { label: "გ", latex: "1" },
+      { label: "დ", latex: "\\pi" },
+    ],
+    correctLabel: "გ",
+    points: 1,
+  },
+];
+
+const VARIANT_1_OPEN: MathOpenProblem[] = [
+  {
+    id: "m1-q38",
+    number: 38,
+    prompt:
+      "$Oxy$ საკოორდინატო სისტემაში $y=\\log_9 x$ და $y=kx+b$ ფუნქციების გრაფიკები იკვეთება ორ წერტილში, რომელთა ორდინატებია $\\frac{1}{2}$ და $\\frac{3}{2}$. რას უდრის $k+b$?",
+    points: 3,
+    modelSolution:
+      "ვთქვათ, გრაფიკები იკვეთება (x₁; 1/2) და (x₂; 3/2) წერტილებში. მაშინ 1/2 = log₉x₁ და 3/2 = log₉x₂, საიდანაც x₁ = 9^(1/2) = 3 და x₂ = 9^(3/2) = 27. რადგან ორივე წერტილი მდებარეობს y = kx+b-ის გრაფიკზე, მივიღებთ სისტემას: 3k+b = 1/2 და 27k+b = 3/2. ამ სისტემიდან 24k = 1, ე.ი. k = 1/24 და b = 3/8. მაშასადამე k+b = 5/12.",
+    answer: "k + b = 5/12",
+    steps: [
+      { id: "ა", description: "გამოთვალა x₁ = 3 ან x₂ = 27." },
+      {
+        id: "ბ",
+        description:
+          "შეადგინა სისტემა 3k+b = 1/2, 27k+b = 3/2, ან იპოვა k პარამეტრი.",
+      },
+      { id: "გ", description: "მიიღო სწორი პასუხი." },
+    ],
+    scoringTable: [
+      { score: 1, requiresSteps: ["ა"] },
+      { score: 2, requiresSteps: ["ბ"] },
+      { score: 3, requiresSteps: ["ბ", "გ"] },
+    ],
+    partialCreditNote:
+      "თუ გადაკვეთის წერტილების ორდინატები აბსცისებად ჩათვალა და ამ პირობით სრულად ამოხსნა, ნაშრომი ფასდება 1 ქულით.",
+  },
+  {
+    id: "m1-q39",
+    number: 39,
+    prompt:
+      "$O_1$ და $O_2$ ცენტრების მქონე ორი წრეწირი გარედან ეხება ერთმანეთს. ამ წრეწირების საერთო გარე მხები $O_1$ ცენტრის მქონე მცირე წრეწირს ეხება $A$ წერტილში, ხოლო $O_2$ ცენტრის მქონე დიდ წრეწირს — $B$ წერტილში. იპოვეთ $O_1ABO_2$ ოთხკუთხედის ფართობი, თუ მცირე წრეწირის რადიუსი 2 სმ-ის ტოლია, ხოლო დიდი წრეწირის რადიუსი ტოლია 5 სმ-ის.",
+    points: 3,
+    modelSolution:
+      "O₁ABO₂ ოთხკუთხედში O₁A ⊥ AB და O₂B ⊥ AB, ამიტომ O₁A ∥ O₂B, ე.ი. O₁ABO₂ არის მართკუთხა ტრაპეცია. O₁ წერტილიდან O₂B რადიუსზე დავუშვათ O₁C სიმაღლე. მივიღებთ O₁CO₂ მართკუთხა სამკუთხედს, სადაც O₁O₂ = 2+5 = 7 სმ და O₂C = 5−2 = 3 სმ. პითაგორას თეორემით O₁C = √(O₁O₂² − O₂C²) = √(49−9) = 2√10 სმ. მაშინ ტრაპეციის ფართობია S = (O₁A + O₂B)/2 · O₁C = (2+5)/2 · 2√10 = 7√10 სმ².",
+    answer: "7√10 სმ²",
+    steps: [
+      {
+        id: "ა",
+        description:
+          "იპოვა O₂C ან O₁O₂ მონაკვეთის სიგრძე; ან დაადგინა, რომ O₁ABO₂ მართკუთხა ტრაპეციაა.",
+      },
+      { id: "ბ", description: "იპოვა O₁ABO₂ ტრაპეციის სიმაღლე (O₁C = 2√10 სმ)." },
+      { id: "გ", description: "მიიღო სწორი პასუხი." },
+    ],
+    scoringTable: [
+      { score: 1, requiresSteps: ["ა"] },
+      { score: 2, requiresSteps: ["ბ"] },
+      { score: 3, requiresSteps: ["ბ", "გ"] },
+    ],
+  },
+  {
+    id: "m1-q40",
+    number: 40,
+    prompt:
+      "კურსზე ბიჭებისა და გოგონების რაოდენობების გამომსახველ წრიულ დიაგრამაზე გოგონების შესაბამისი სექტორის ცენტრალური კუთხის სიდიდე 30°-ით აღემატება ბიჭების შესაბამისი სექტორის ცენტრალური კუთხის სიდიდეს. სულ რამდენი გოგონა და რამდენი ბიჭი სწავლობს ამ კურსზე, თუ მათი ჯამური რაოდენობა 75-ზე მეტი ორნიშნა რიცხვით გამოისახება?",
+    points: 4,
+    modelSolution:
+      "ვთქვათ, კურსზე x გოგონა და y ბიჭია, მაშინ ამოცანის პირობის თანახმად 75 < x+y < 100. x−y რიცხვს წრიულ დიაგრამაზე შეესაბამება 30°-ის ტოლი კუთხე, ხოლო x+y რიცხვს — 360°-ის ტოლი კუთხე. ამიტომ ვწერთ განტოლებას (x−y)/(x+y) = 30/360 = 1/12. ეს განტოლება ტოლფასია 11x = 13y ტოლობის, ანუ x = (13/11)y. რადგან x და y მთელი რიცხვებია, ამიტომ y არის 11-ის ჯერადი რიცხვი. 75 < x+y < 100 პირობას აკმაყოფილებს რიცხვების მხოლოდ ერთი წყვილი: y = 44, x = 52.",
+    answer: "52 გოგონა, 44 ბიჭი.",
+    steps: [
+      { id: "ა", description: "შემოიტანა საჭირო უცნობები და დაწერა უტოლობა 75 < x+y < 100." },
+      {
+        id: "ბ",
+        description:
+          "დაწერა, რამდენ გრადუსიანი სექტორი შეესაბამება ერთ მოსწავლეს ან მთლიანად გოგონებს ან მთლიანად ბიჭებს (მაგ. 360/(x+y), 360x/(x+y), 360y/(x+y)).",
+      },
+      { id: "გ", description: "დაწერა ტოლობა (x−y)/(x+y) = 1/12 (ან მისი ტოლფასი ტოლობა)." },
+      { id: "დ", description: "გამოსახა ერთი ცვლადი მეორეს საშუალებით, მაგ. x = (13/11)y." },
+      { id: "ე", description: "მიიღო სწორი პასუხი." },
+    ],
+    scoringTable: [
+      { score: 1, requiresSteps: ["ა"] },
+      { score: 1, requiresSteps: ["ბ"] },
+      { score: 2, requiresSteps: ["გ"] },
+      { score: 3, requiresSteps: ["ა", "დ"] },
+      { score: 4, requiresSteps: ["ა", "დ", "ე"] },
+    ],
+    partialCreditNote:
+      "იმ შემთხვევაში, თუ აბიტურიენტმა გამოიცნო პასუხი და შეამოწმა, რომ ის აკმაყოფილებს ამოცანის პირობებს, იწერება 2 ქულა.",
+  },
+  {
+    id: "m1-q41",
+    number: 41,
+    prompt:
+      "იპოვეთ მთელ რიცხვთა ყველა შესაძლო $(x;\\,y)$ წყვილი, რომელთათვისაც სრულდება ტოლობა:",
+    latex: "\\log_{7}(x^{2}-y^{2}+4)=1-\\log_{7}(x+3y)",
+    points: 4,
+    modelSolution:
+      "რადგან x და y მთელი რიცხვებია, ამიტომ x²−y²+4 და x+3y დადებითი მთელი რიცხვებია. საწყისი ტოლობა გადავწეროთ log₇[(x²−y²+4)(x+3y)] = 1 სახით. ლოგარითმის განმარტების თანახმად, ვწერთ (x²−y²+4)(x+3y) = 7. რადგან 7 მარტივი რიცხვია, ამიტომ გვაქვს განტოლებათა ორი შესაძლო სისტემა: {x+3y = 1; x²−y²+4 = 7} ან {x+3y = 7; x²−y²+4 = 1}. პირველი სისტემიდან x = 1−3y; მეორე განტოლებაში ჩასმით მივიღებთ 4y²−3y−1 = 0, რომლის ამონახსნებია y₁ = 1 და y₂ = −1/4. y₂ არ არის მთელი, ამიტომ პირველი სისტემა იძლევა ერთ ამონახსნს (−2; 1). მეორე სისტემიდან x = 7−3y; ჩასმით მივიღებთ 4y²−21y+26 = 0, რომლის ამონახსნებია y₁ = 2 და y₂ = 13/4. y₂ არ არის მთელი, ამიტომ მეორე სისტემა იძლევა ერთ ამონახსნს (1; 2).",
+    answer: "(−2; 1); (1; 2)",
+    steps: [
+      { id: "ა", description: "მიიღო განტოლება (x²−y²+4)(x+3y) = 7 (ან მისი ტოლფასი განტოლება)." },
+      {
+        id: "ბ",
+        description:
+          "დაწერა სისტემა {x+3y = 1; x²−y²+4 = 7} ან სისტემა {x+3y = 7; x²−y²+4 = 1}.",
+      },
+      { id: "გ", description: "სწორად ამოხსნა ბ) პუნქტის ერთ-ერთი სისტემა." },
+      {
+        id: "დ",
+        description:
+          "სწორად ამოხსნა ბ) პუნქტის ორივე სისტემა და დააფიქსირა საწყისი განტოლების სწორი პასუხები.",
+      },
+    ],
+    scoringTable: [
+      { score: 1, requiresSteps: ["ა"] },
+      { score: 2, requiresSteps: ["ა", "ბ"] },
+      { score: 3, requiresSteps: ["ა", "ბ", "გ"] },
+      { score: 4, requiresSteps: ["ა", "ბ", "დ"] },
+    ],
+    partialCreditNote:
+      "თუ გამოიცნო საწყისი განტოლების ერთი ამონახსნი მაინც და შეამოწმა, რომ ის აკმაყოფილებს ამოცანის პირობაში მოცემულ განტოლებას, იწერება 1 ქულა.",
+  },
+];
+
+export const MATH_EXAM_VARIANTS: MathExamVariant[] = [
+  {
+    id: "variant-1-2025",
+    label: "I ვარიანტი",
+    year: 2025,
+    mcq: VARIANT_1_MCQ,
+    open: VARIANT_1_OPEN,
+    totalPoints: 51,
+    durationMinutes: 180,
+  },
+  {
+    id: "variant-2-2025",
+    label: "II ვარიანტი",
+    year: 2025,
+    mcq: [],
+    open: [],
+    totalPoints: 51,
+    durationMinutes: 180,
+  },
+];
+
+export function getMathVariant(id: string): MathExamVariant | undefined {
+  return MATH_EXAM_VARIANTS.find((v) => v.id === id);
+}
+
+export function getMathExamYears(): { year: number; variants: MathExamVariant[] }[] {
+  const byYear = new Map<number, MathExamVariant[]>();
+  for (const v of MATH_EXAM_VARIANTS) {
+    const list = byYear.get(v.year) ?? [];
+    list.push(v);
+    byYear.set(v.year, list);
+  }
+  return [...byYear.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, variants]) => ({ year, variants }));
+}

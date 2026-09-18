@@ -12,10 +12,11 @@ import {
 import {
   INITIAL_ATTEMPTS,
   buildAttemptPreview,
-  evaluateTextEditing,
   type TextEditingAttempt,
-  type TextEditingEvaluation,
 } from "@/lib/georgian-text-editing";
+import { useTextEditingGrading } from "@/components/abiturient/exams/useTextEditingGrading";
+import { TextEditingReport } from "@/components/abiturient/exams/TextEditingReport";
+import { TEXT_EDITING_TOTAL_MAX } from "@/lib/ai/text-editing-grader-schema";
 import {
   paperLabel,
   pastEditingTasks,
@@ -204,9 +205,10 @@ export function TextEditingExercise() {
   /** The Part I task currently being worked, drawn from the past papers. */
   const [task, setTask] = useState<PastEditingTask | null>(null);
   const [correctedText, setCorrectedText] = useState("");
-  const [evaluation, setEvaluation] = useState<TextEditingEvaluation | null>(null);
+  const grading = useTextEditingGrading("abit-text-editing-standalone");
+  const evaluation = grading.result;
   const [elapsedSec, setElapsedSec] = useState(0);
-  const [isRollingUp, setIsRollingUp] = useState(false);
+  const isRollingUp = grading.busy;
 
   const startTest = () => {
     // A different paper each time — the point is not to learn one text.
@@ -214,17 +216,15 @@ export function TextEditingExercise() {
     if (!next) return;
     setTask(next);
     setCorrectedText("");
-    setEvaluation(null);
+    grading.reset();
     setElapsedSec(0);
-    setIsRollingUp(false);
     setIsTesting(true);
   };
 
   const stopTest = () => {
     setIsTesting(false);
-    setEvaluation(null);
+    grading.reset();
     setCorrectedText("");
-    setIsRollingUp(false);
   };
 
   const copySourceToEditor = async () => {
@@ -238,13 +238,9 @@ export function TextEditingExercise() {
   };
 
   const submitForEvaluation = () => {
-    if (isRollingUp || !task) return;
-    const result = evaluateTextEditing(task.text, correctedText, task.points);
-    setIsRollingUp(true);
-    window.setTimeout(() => {
-      setEvaluation(result);
-      setIsRollingUp(false);
-    }, SUBMIT_HANDOFF_MS);
+    if (grading.busy || !task) return;
+    // Real AI grading against that year's 16-point, 3-criterion rubric.
+    void grading.grade(task.text, correctedText, task.year);
   };
 
   const finishExercise = () => {
@@ -262,15 +258,15 @@ export function TextEditingExercise() {
         id: `att-${Date.now()}`,
         dateLabel,
         preview: buildAttemptPreview(correctedText || task?.text || ""),
-        score: evaluation.score,
-        maxScore: evaluation.maxScore,
+        score: evaluation.totalScore,
+        maxScore: TEXT_EDITING_TOTAL_MAX,
       };
 
       setAttempts((prev) => [newAttempt, ...prev]);
     }
 
     setIsTesting(false);
-    setEvaluation(null);
+    grading.reset();
     setCorrectedText("");
   };
 
@@ -369,37 +365,13 @@ export function TextEditingExercise() {
           )}
 
           {evaluation && (
-            <div className={`mt-6 rounded-2xl border-2 p-5 ${ACCENT_CARD.violet}`}>
-              <p className={`text-2xl font-bold tracking-tight ${ACCENT_TEXT.violet}`}>
-                მიღებული ქულა: {evaluation.score} / {evaluation.maxScore}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {paperLabel(task)} — შემფასებლის კრიტერიუმები
-              </p>
-              {/* What the paper's own marker was looking for, verbatim. */}
-              <ul className="mt-3 space-y-2">
-                {task.focusPoints.map((point) => (
-                  <li
-                    key={point}
-                    className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
-                  >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              <ul className="mt-4 space-y-2">
-                {evaluation.points.map((point) => (
-                  <li
-                    key={point}
-                    className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
-                  >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-pink-500" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6 flex justify-end">
+            <div className="mt-6">
+              <TextEditingReport
+                result={evaluation}
+                year={task.year}
+                usedFallback={grading.usedFallback}
+              />
+              <div className="mt-4 flex justify-end">
                 <button
                   type="button"
                   onClick={finishExercise}

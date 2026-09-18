@@ -21,6 +21,7 @@ import {
 } from "@/components/landing/notebook/accents";
 import { ExamSimulation } from "./ExamSimulation";
 import { PastExamRunner } from "./PastExamRunner";
+import { MathPastExamsArchive } from "./MathPastExamsArchive";
 
 interface PastExamsArchiveProps {
   subjectId: string;
@@ -39,6 +40,15 @@ interface ActiveRun {
 }
 
 export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
+  // Maths papers are a different shape (independent MCQs + graded open
+  // problems, formulas and figures), so they get their own runner.
+  if (subjectId === "math") {
+    return <MathPastExamsArchive />;
+  }
+  return <LiteraturePastExamsArchive subjectId={subjectId} />;
+}
+
+function LiteraturePastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   const subject = getSubjectHub(subjectId);
   const accent = subjectAccent(subjectId);
   const years = useMemo(() => getExamYears(subjectId), [subjectId]);

@@ -8,12 +8,29 @@ import {
   type Eli5Response,
 } from "@/lib/ai/eli5-schema";
 import {
-  ESSAY_GRADER_JSON_INSTRUCTIONS,
-  EssayGraderRequestSchema,
-  EssayGraderResponseSchema,
-  normalizeEssayReport,
-  type EssayGraderResponse,
-} from "@/lib/ai/essay-grader-schema";
+  WRITING_TASK_JSON_INSTRUCTIONS,
+  WritingTaskGraderRequestSchema,
+  WritingTaskGraderResponseSchema,
+  normalizeWritingTaskReport,
+  type WritingTaskGraderResponse,
+} from "@/lib/ai/writing-task-grader-schema";
+import {
+  TEXT_EDITING_JSON_INSTRUCTIONS,
+  TextEditingGraderRequestSchema,
+  TextEditingGraderResponseSchema,
+  normalizeTextEditingReport,
+  type TextEditingGraderResponse,
+} from "@/lib/ai/text-editing-grader-schema";
+import {
+  MATH_OPEN_JSON_INSTRUCTIONS,
+  MathOpenGraderRequestSchema,
+  MathOpenGraderResponseSchema,
+  normalizeMathOpenReport,
+  type MathOpenGraderResponse,
+} from "@/lib/ai/math-open-problem-grader-schema";
+import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
+import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
+import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import {
   LectureNotesKeywordsSchema,
   LectureNotesRequestSchema,
@@ -418,20 +435,69 @@ export async function POST(request: Request) {
       return Response.json(object);
     }
 
-    if (pageType === "essay-grader") {
-      const essayPayload = EssayGraderRequestSchema.parse(body.payload);
-      const prompt = buildUserPrompt(pageType, essayPayload);
+    if (pageType === "writing-task-grader") {
+      const wtPayload = WritingTaskGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, wtPayload);
+      const year = wtPayload.year ?? 2025;
+      const hasBoundText =
+        typeof wtPayload.hasBoundText === "boolean"
+          ? wtPayload.hasBoundText
+          : Boolean(wtPayload.passageText);
 
-      const object = (await generateGeminiObject({
-        schema: EssayGraderResponseSchema,
-        system: `${system}\n${ESSAY_GRADER_JSON_INSTRUCTIONS}`,
-        prompt,
-        temperature: 0.25,
-      })) as EssayGraderResponse;
+      try {
+        const object = (await generateGeminiObject({
+          schema: WritingTaskGraderResponseSchema,
+          system: `${system}\n${WRITING_TASK_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.25,
+        })) as WritingTaskGraderResponse;
+        return Response.json(normalizeWritingTaskReport(object, { year, hasBoundText }));
+      } catch {
+        // The 34-point rubric still answers offline.
+        return Response.json(
+          localGradeWritingTask(wtPayload.essay, { year, hasBoundText, prompt: wtPayload.prompt }),
+        );
+      }
+    }
 
-      // The report the UI renders always has all four criteria and a
-      // total that matches them, whatever the model returned.
-      return Response.json(normalizeEssayReport(object));
+    if (pageType === "math-open-problem-grader") {
+      const moPayload = MathOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, moPayload);
+      const gradeInput = {
+        steps: moPayload.steps,
+        scoringTable: moPayload.scoringTable,
+        maxPoints: moPayload.maxPoints,
+      };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: MathOpenGraderResponseSchema,
+          system: `${system}\n${MATH_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as MathOpenGraderResponse;
+        return Response.json(normalizeMathOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeMathOpen(moPayload.studentSolution, gradeInput));
+      }
+    }
+
+    if (pageType === "text-editing-grader") {
+      const tePayload = TextEditingGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, tePayload);
+      const year = tePayload.year ?? 2025;
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: TextEditingGraderResponseSchema,
+          system: `${system}\n${TEXT_EDITING_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as TextEditingGraderResponse;
+        return Response.json(normalizeTextEditingReport(object, year));
+      } catch {
+        return Response.json(localGradeTextEditing(tePayload.source, tePayload.corrected, year));
+      }
     }
 
     if (pageType === "lecture-notes") {

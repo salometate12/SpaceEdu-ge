@@ -10,8 +10,8 @@ import {
   PenLine,
   Sparkles,
 } from "lucide-react";
-import { EssayReport } from "@/components/abiturient/exams/EssayReport";
-import { useEssayGrading } from "@/components/abiturient/exams/useEssayGrading";
+import { WritingTaskReport } from "@/components/abiturient/exams/WritingTaskReport";
+import { useWritingTaskGrading } from "@/components/abiturient/exams/useWritingTaskGrading";
 import { Flower, Pencil, Ruler, Sparkle } from "@/components/landing/notebook/Doodles";
 import {
   ACCENT_CARD,
@@ -39,7 +39,7 @@ export function EssayTopicPractice() {
     pickRandomTopic(topics),
   );
   const [essay, setEssay] = useState("");
-  const essayGrading = useEssayGrading("abit-essay-practice");
+  const essayGrading = useWritingTaskGrading("abit-essay-practice");
 
   const words = useMemo(
     () => essay.trim().split(/\s+/).filter(Boolean).length,
@@ -146,7 +146,14 @@ export function EssayTopicPractice() {
 
             <button
               type="button"
-              onClick={() => void essayGrading.grade(essay, topic.prompt)}
+              onClick={() =>
+                void essayGrading.grade(essay, {
+                  prompt: topic.prompt,
+                  year: topic.year,
+                  passageTitle: `${topic.passageTitle} — ${topic.passageAuthor}`,
+                  hasBoundText: true,
+                })
+              }
               disabled={essayGrading.busy || words === 0}
               className={`paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID[ACCENT]}`}
             >
@@ -166,8 +173,9 @@ export function EssayTopicPractice() {
 
           {essayGrading.result && (
             <section className="mt-4">
-              <EssayReport
+              <WritingTaskReport
                 result={essayGrading.result}
+                year={topic.year}
                 usedFallback={essayGrading.usedFallback}
               />
             </section>

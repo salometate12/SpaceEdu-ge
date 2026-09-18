@@ -1,5 +1,7 @@
 import type { AiPageType } from "./page-types";
 import { studyPlanDaysToGenerate } from "./study-plan-days";
+import { writingTaskRubricText } from "./writing-task-grader-schema";
+import { textEditingRubricText } from "./text-editing-grader-schema";
 
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
@@ -188,19 +190,84 @@ export function buildUserPrompt(
         .join("\n\n");
     }
 
-    case "essay-grader": {
+    case "writing-task-grader": {
       const essay = asString(payload.essay);
       const topic = asString(payload.prompt);
+      const passageTitle = asString(payload.passageTitle);
+      const passageText = asString(payload.passageText);
+      const year = Number(payload.year) || 2025;
+      const hasBoundText =
+        typeof payload.hasBoundText === "boolean"
+          ? payload.hasBoundText
+          : Boolean(passageText);
       const wordCount = essay.split(/\s+/).filter(Boolean).length;
       return [
         topic
-          ? `ესეს დავალება/თემა: ${topic}`
-          : "ესეს დავალება მითითებული არაა — შეაფასე თემის შინაგანი თანმიმდევრულობა.",
+          ? `წერითი დავალების პირობა/თემა: ${topic}`
+          : "დავალების პირობა მითითებული არაა — შეაფასე ნაშრომის შინაგანი თანმიმდევრულობა.",
+        hasBoundText && passageText
+          ? `მიბმული მხატვრული ტექსტი${passageTitle ? ` (${passageTitle})` : ""}:\n${passageText}`
+          : "მიბმული მხატვრული ტექსტი არ არის (თავისუფალი თემა).",
         `მოცულობა: ${wordCount} სიტყვა.`,
-        "შეაფასე ქვემოთ მოცემული ესე ეროვნული გამოცდების რუბრიკით და დააბრუნე მხოლოდ JSON.",
+        writingTaskRubricText(year, hasBoundText),
+        "შეაფასე ქვემოთ მოცემული ნაშრომი ამ რუბრიკით და დააბრუნე მხოლოდ JSON.",
         "--- BEGIN ESSAY ---",
         essay,
         "--- END ESSAY ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
+    case "math-open-problem-grader": {
+      const problemPrompt = asString(payload.problemPrompt);
+      const modelSolution = asString(payload.modelSolution);
+      const answer = asString(payload.answer);
+      const studentSolution = asString(payload.studentSolution);
+      const steps = Array.isArray(payload.steps) ? payload.steps : [];
+      const scoringTable = Array.isArray(payload.scoringTable) ? payload.scoringTable : [];
+      const note = asString(payload.partialCreditNote);
+      const stepsText = steps
+        .map((s) => {
+          const step = s as { id?: unknown; description?: unknown };
+          return `${asString(step.id)}) ${asString(step.description)}`;
+        })
+        .join("\n");
+      const tableText = scoringTable
+        .map((row) => {
+          const r = row as { score?: unknown; requiresSteps?: unknown };
+          const req = Array.isArray(r.requiresSteps) ? r.requiresSteps.join(", ") : "";
+          return `${asNumber(r.score)} ქულა — ${req}`;
+        })
+        .join("\n");
+      return [
+        `ამოცანა: ${problemPrompt}`,
+        `ოფიციალური ამოხსნა: ${modelSolution}`,
+        answer ? `სწორი პასუხი: ${answer}` : "",
+        `ამოხსნის ეტაპები:\n${stepsText}`,
+        `შეფასების სქემა (რომელი ეტაპებია საჭირო თითოეული ქულისთვის):\n${tableText}`,
+        note ? `შენიშვნა: ${note}` : "",
+        "შეაფასე სტუდენტის ამოხსნა ეტაპობრივად და დააბრუნე მხოლოდ JSON.",
+        "--- სტუდენტის ამოხსნა ---",
+        studentSolution,
+        "--- დასასრული ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
+    case "text-editing-grader": {
+      const source = asString(payload.source);
+      const corrected = asString(payload.corrected);
+      const year = Number(payload.year) || 2025;
+      return [
+        textEditingRubricText(year),
+        "შეადარე სტუდენტის გასწორებული ვერსია ორიგინალ ტექსტს, დათვალე დარჩენილი შეცდომები კრიტერიუმების მიხედვით და დააბრუნე მხოლოდ JSON.",
+        "--- ორიგინალი ტექსტი ---",
+        source,
+        "--- სტუდენტის გასწორებული ვერსია ---",
+        corrected,
+        "--- დასასრული ---",
       ]
         .filter(Boolean)
         .join("\n\n");

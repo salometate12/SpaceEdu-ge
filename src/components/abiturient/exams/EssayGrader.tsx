@@ -9,10 +9,10 @@ import {
   ScrollText,
   Sparkles,
 } from "lucide-react";
-import { ESSAY_TOTAL_MAX } from "@/lib/ai/essay-grader-schema";
+import { WRITING_TASK_TOTAL_MAX } from "@/lib/ai/writing-task-grader-schema";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
-import { EssayReport } from "./EssayReport";
-import { useEssayGrading } from "./useEssayGrading";
+import { WritingTaskReport } from "./WritingTaskReport";
+import { useWritingTaskGrading } from "./useWritingTaskGrading";
 
 const SAMPLE_PROMPTS = [
   "რა როლს თამაშობს ტრადიცია თანამედროვე საზოგადოებაში?",
@@ -25,7 +25,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
   const subject = getSubjectHub(subjectId);
   const [prompt, setPrompt] = useState("");
   const [essay, setEssay] = useState("");
-  const { result, busy, usedFallback, grade } = useEssayGrading();
+  const { result, busy, usedFallback, grade } = useWritingTaskGrading();
 
   const wordCount = useMemo(
     () => essay.trim().split(/\s+/).filter(Boolean).length,
@@ -60,8 +60,10 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
         </span>
         <h1 className="mt-3 text-2xl font-bold text-white sm:text-3xl">ესეს შემფასებელი</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-          დაწერე ან ჩასვი ესე — შეფასდება ეროვნული გამოცდების რუბრიკით: შინაარსი,
-          არგუმენტაცია, სტრუქტურა და გრამატიკა, თითო 5 ქულა, სულ {ESSAY_TOTAL_MAX}.
+          დაწერე ან ჩასვი ესე — შეფასდება ეროვნული გამოცდების წერითი დავალების
+          რეალური რუბრიკით (10 კრიტერიუმი, სულ {WRITING_TASK_TOTAL_MAX} ქულა).
+          თავისუფალ თემას მიბმული ტექსტი არ აქვს, ამიტომ „მხატვრული ტექსტის
+          ანალიზი“ სრულ ქულაზეა.
         </p>
       </header>
 
@@ -110,7 +112,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
 
           <button
             type="button"
-            onClick={() => void grade(essay, prompt)}
+            onClick={() => void grade(essay, { prompt, hasBoundText: false })}
             disabled={busy || wordCount === 0}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-pink-400 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
           >
@@ -131,7 +133,7 @@ export function EssayGrader({ subjectId }: { subjectId: string }) {
         {/* ---------------------------- report ---------------------------- */}
         <section className="lg:sticky lg:top-24">
           {result ? (
-            <EssayReport result={result} usedFallback={usedFallback} />
+            <WritingTaskReport result={result} usedFallback={usedFallback} />
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 text-center backdrop-blur-xl dark:border-white/10 dark:bg-[#0D0D15]/60">
               <PenLine
