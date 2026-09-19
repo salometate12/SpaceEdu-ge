@@ -8,6 +8,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  ChevronDown,
   Clock,
   Lightbulb,
   LoaderCircle,
@@ -47,7 +48,7 @@ import { WritingTaskReport } from "./WritingTaskReport";
 import { TextEditingReport } from "./TextEditingReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
 import { useWritingTaskGrading } from "./useWritingTaskGrading";
-import { useTextEditingGrading, type TextEditingGradingState } from "./useTextEditingGrading";
+import { useTextEditingGrading } from "./useTextEditingGrading";
 
 /** The real paper allows three hours. */
 const EXAM_SECONDS = 3 * 60 * 60;
@@ -266,11 +267,19 @@ export function ExamSimulation({
   const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
+  // The editing draft lives on the parent too, so nothing is graded mid-exam:
+  // both written parts are held until the student finishes and then graded
+  // together, in one pass, on the results screen.
+  const [editingDraft, setEditingDraft] = useState("");
   const essayGrading = useWritingTaskGrading("abit-exam-essay");
   // The editing grader lives on the parent (like the essay grader) so its
   // score and its list of missed corrections survive the walk to the results
   // screen, where the three parts are summed into one exam total.
   const editingGrading = useTextEditingGrading("abit-exam-editing");
+  // The results screen reveals each written report behind its own toggle, so
+  // the student presses to see what went wrong and can fold it away again.
+  const [showEssayReport, setShowEssayReport] = useState(false);
+  const [showEditingReport, setShowEditingReport] = useState(false);
   const essayWords = useMemo(
     () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
     [essayDraft],
@@ -349,9 +358,44 @@ export function ExamSimulation({
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
     }
+    // Grade the written parts here, at the end — not mid-exam. Both graders
+    // run once; an empty draft is left ungraded (counts as 0 on the sheet).
+    if (
+      variant.editingTask &&
+      editingDraft.trim() &&
+      !editingGrading.result &&
+      !editingGrading.busy
+    ) {
+      void editingGrading.grade(variant.editingTask.text, editingDraft, year);
+    }
+    if (
+      passage?.essay &&
+      essayDraft.trim() &&
+      !essayGrading.result &&
+      !essayGrading.busy
+    ) {
+      void essayGrading.grade(essayDraft, {
+        prompt: passage.essay.prompt,
+        year,
+        passageTitle: passage.title,
+        passageText: passage.textExcerpt,
+        hasBoundText: true,
+      });
+    }
     setRunning(false);
     setStage("done");
-  }, [correctCount, total, subjectTitle]);
+  }, [
+    correctCount,
+    total,
+    subjectTitle,
+    variant.editingTask,
+    editingDraft,
+    editingGrading,
+    passage,
+    essayDraft,
+    essayGrading,
+    year,
+  ]);
 
   const restart = useCallback(() => {
     setStage(variant.editingTask ? "editing" : "choose");
@@ -367,6 +411,9 @@ export function ExamSimulation({
     setBestStreak(0);
     scoredRef.current = false;
     setEssayDraft("");
+    setEditingDraft("");
+    setShowEssayReport(false);
+    setShowEditingReport(false);
     essayGrading.reset();
     editingGrading.reset();
   }, [variant.editingTask, essayGrading, editingGrading]);
@@ -476,9 +523,9 @@ export function ExamSimulation({
         {stageRail}
         <EditingStage
           task={variant.editingTask}
-          grading={editingGrading}
+          draft={editingDraft}
+          onDraftChange={setEditingDraft}
           accent={accent}
-          year={year}
           onDone={() => setStage("choose")}
         />
       </div>
@@ -882,52 +929,17 @@ export function ExamSimulation({
                 placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
                 className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.14] dark:bg-[#0c0b12] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-pink-400/70"
               />
-
-              <button
-                type="button"
-                onClick={() =>
-                  void essayGrading.grade(essayDraft, {
-                    prompt: passage.essay?.prompt,
-                    year,
-                    passageTitle: passage.title,
-                    passageText: passage.textExcerpt,
-                    hasBoundText: true,
-                  })
-                }
-                disabled={essayGrading.busy || essayWords === 0}
-                className={`paper-sticker mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
-              >
-                {essayGrading.busy ? (
-                  <>
-                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                    მიმდინარეობს შეფასება...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 stroke-[2]" />
-                    {essayGrading.result ? "ხელახლა შეაფასე" : "შეაფასე ნაშრომი"}
-                  </>
-                )}
-              </button>
-
-              {essayGrading.result && (
-                <div className="mt-5">
-                  <WritingTaskReport
-                    result={essayGrading.result}
-                    year={year}
-                    usedFallback={essayGrading.usedFallback}
-                    compact
-                  />
-                </div>
-              )}
             </div>
 
+            {/* Nothing is graded here — pressing finish grades the essay, the
+                editing and the questions together, on the results screen. */}
             <button
               type="button"
               onClick={finish}
-              className={`mt-4 w-full rounded-full border-2 px-5 py-3 text-sm font-bold transition ${MUTED} ${PLAIN_CARD}`}
+              className={`paper-sticker mt-6 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID.violet}`}
             >
-              გამოცდის დასრულება და შედეგები
+              <Sparkles className="h-4 w-4 stroke-[2]" />
+              გამოცდის დასრულება და შეფასება
             </button>
           </section>
         </div>
@@ -962,6 +974,7 @@ export function ExamSimulation({
         key: "editing",
         label: "რედაქტირება",
         graded: editingResult !== null,
+        busy: editingGrading.busy,
         score: editingResult?.totalScore ?? 0,
         max: variant.editingTask.points ?? TEXT_EDITING_TOTAL_MAX,
       },
@@ -969,6 +982,7 @@ export function ExamSimulation({
         key: "mcq",
         label: "ტესტური კითხვები",
         graded: true,
+        busy: false,
         score: correctCount,
         max: total,
       },
@@ -976,6 +990,7 @@ export function ExamSimulation({
         key: "essay",
         label: "წერითი დავალება",
         graded: essayResult !== null,
+        busy: essayGrading.busy,
         score: essayResult?.totalScore ?? 0,
         max: passage.essay.points ?? WRITING_TASK_TOTAL_MAX,
       },
@@ -983,13 +998,17 @@ export function ExamSimulation({
       key: string;
       label: string;
       graded: boolean;
+      busy: boolean;
       score: number;
       max: number;
     }[]
   );
   const earnedTotal = scoreParts.reduce((sum, part) => sum + part.score, 0);
   const maxTotal = scoreParts.reduce((sum, part) => sum + part.max, 0);
-  const ungraded = scoreParts.filter((part) => !part.graded);
+  // Grading fires on finish; a part is "pending" while its grader runs and
+  // "empty" only when the student wrote nothing (so it never gets graded).
+  const anyGrading = scoreParts.some((part) => part.busy);
+  const emptyParts = scoreParts.filter((part) => !part.graded && !part.busy);
   // Only worth calling a "score sheet" when there is more than one part to add.
   const showScoreSheet = scoreParts.length > 1;
 
@@ -1026,13 +1045,20 @@ export function ExamSimulation({
                   className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2.5 ${PLAIN_CARD}`}
                 >
                   <span className={`text-sm ${MUTED}`}>{part.label}</span>
-                  <span
-                    className={`text-sm font-bold tabular-nums ${
-                      part.graded ? TITLE : FAINT
-                    }`}
-                  >
-                    {part.graded ? `${part.score} / ${part.max}` : `— / ${part.max}`}
-                  </span>
+                  {part.busy ? (
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-bold ${FAINT}`}>
+                      <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                      ფასდება…
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-sm font-bold tabular-nums ${
+                        part.graded ? TITLE : FAINT
+                      }`}
+                    >
+                      {part.graded ? `${part.score} / ${part.max}` : `— / ${part.max}`}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1044,12 +1070,17 @@ export function ExamSimulation({
                 {earnedTotal} / {maxTotal}
               </span>
             </div>
-            {ungraded.length > 0 && (
+            {anyGrading && (
+              <p className={`mt-3 flex items-center gap-2 text-[12px] leading-relaxed ${FAINT}`}>
+                <LoaderCircle className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                მიმდინარეობს წერითი ნაწილების შეფასება — ჯამი განახლდება, როგორც კი დასრულდება.
+              </p>
+            )}
+            {!anyGrading && emptyParts.length > 0 && (
               <p className={`mt-3 flex items-start gap-2 text-[12px] leading-relaxed ${FAINT}`}>
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[2]" />
-                {ungraded.map((part) => `„${part.label}“`).join(" და ")} ჯერ არ
-                შეგიფასებია — ეს ნაწილი 0 ქულით ითვლება. „თავიდან“ დაწყებისას შესაბამის
-                საფეხურზე დააჭირე „შეაფასე“, რომ სრული ჯამი დაითვალოს.
+                {emptyParts.map((part) => `„${part.label}“`).join(" და ")} ცარიელი დარჩა —
+                ეს ნაწილი 0 ქულით ითვლება.
               </p>
             )}
           </div>
@@ -1057,33 +1088,61 @@ export function ExamSimulation({
 
         {essayResult && (
           <div className="mt-8">
-            <p
-              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
-            >
-              წერითი დავალების შეფასება
-            </p>
-            <WritingTaskReport
-              result={essayResult}
-              year={year}
-              usedFallback={essayGrading.usedFallback}
-              compact
+            <ReportToggle
+              label="წერითი დავალების შედეგები"
+              open={showEssayReport}
+              onToggle={() => setShowEssayReport((v) => !v)}
             />
+            <AnimatePresence initial={false}>
+              {showEssayReport && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-3">
+                    <WritingTaskReport
+                      result={essayResult}
+                      year={year}
+                      usedFallback={essayGrading.usedFallback}
+                      compact
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
         {editingResult && (
-          <div className="mt-8">
-            <p
-              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
-            >
-              რედაქტირების შეფასება
-            </p>
-            <TextEditingReport
-              result={editingResult}
-              year={year}
-              usedFallback={editingGrading.usedFallback}
-              compact
+          <div className="mt-4">
+            <ReportToggle
+              label="რედაქტირების შედეგები"
+              open={showEditingReport}
+              onToggle={() => setShowEditingReport((v) => !v)}
             />
+            <AnimatePresence initial={false}>
+              {showEditingReport && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-3">
+                    <TextEditingReport
+                      result={editingResult}
+                      year={year}
+                      usedFallback={editingGrading.usedFallback}
+                      compact
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
@@ -1139,28 +1198,61 @@ export function ExamSimulation({
 }
 
 /* -------------------------------------------------------------------------- */
+/*                          COLLAPSIBLE REPORT TOGGLE                          */
+/* -------------------------------------------------------------------------- */
+
+/** A press-to-reveal header for a written part's report on the results screen:
+ *  the student opens it to see what went wrong, and folds it away again. */
+function ReportToggle({
+  label,
+  open,
+  onToggle,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className={`flex w-full items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-left text-sm font-bold transition ${TITLE} ${PLAIN_CARD}`}
+    >
+      {label}
+      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${FAINT}`}>
+        {open ? "დამალვა" : "ნახვა"}
+        <ChevronDown
+          className={`h-4 w-4 stroke-[2.5] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*                      STAGE I — ტექსტის რედაქტირება                         */
 /* -------------------------------------------------------------------------- */
 
 function EditingStage({
   task,
-  grading: editingGrading,
+  draft,
+  onDraftChange,
   accent,
-  year,
   onDone,
 }: {
   task: NonNullable<ExamVariant["editingTask"]>;
-  /** Lifted to the parent so the score + corrections reach the results screen. */
-  grading: TextEditingGradingState;
+  /** Lifted to the parent so it survives to the results screen and is graded
+   *  there, together with the essay, rather than mid-exam. */
+  draft: string;
+  onDraftChange: (value: string) => void;
   accent: NotebookAccent;
-  year: number;
   onDone: () => void;
 }) {
   // The editor starts empty: the source is above, and the reader decides
   // whether to bring it down and correct it in place or to write out their
   // own version. Reading and writing are stacked rather than side by side —
   // the text is long, and two half-width columns made both of them worse.
-  const [draft, setDraft] = useState("");
   const [showKey, setShowKey] = useState(false);
   const words = draft.trim().split(/\s+/).filter(Boolean).length;
   const transferred = draft !== "";
@@ -1192,7 +1284,7 @@ function EditingStage({
             exam forward. */}
         <button
           type="button"
-          onClick={() => setDraft(task.text)}
+          onClick={() => onDraftChange(task.text)}
           className="paper-sticker inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-slate-900 px-5 py-2.5 text-sm font-bold text-white dark:border-white dark:bg-white dark:text-slate-900"
         >
           <ArrowDown className="h-4 w-4 stroke-[2.5]" />
@@ -1210,7 +1302,7 @@ function EditingStage({
 
         <textarea
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => onDraftChange(event.target.value)}
           spellCheck={false}
           placeholder="დაიწყე წერა, ან ჩამოიტანე ორიგინალი ზემოთა ღილაკით და გაასწორე ადგილზე."
           className="exam-prose min-h-[420px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
@@ -1222,7 +1314,7 @@ function EditingStage({
           {transferred && (
             <button
               type="button"
-              onClick={() => setDraft(task.text)}
+              onClick={() => onDraftChange(task.text)}
               disabled={untouched}
               className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold transition ${MUTED} ${PLAIN_CARD} disabled:opacity-40`}
             >
@@ -1269,40 +1361,12 @@ function EditingStage({
           )}
         </AnimatePresence>
 
-        <button
-          type="button"
-          onClick={() => void editingGrading.grade(task.text, draft, year)}
-          disabled={editingGrading.busy || !transferred || untouched}
-          className="paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 border-pink-700 bg-pink-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-300/40"
-        >
-          {editingGrading.busy ? (
-            <>
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-              მიმდინარეობს შეფასება...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 stroke-[2]" />
-              {editingGrading.result ? "ხელახლა შეაფასე" : "შეაფასე რედაქტირება (AI)"}
-            </>
-          )}
-        </button>
-
-        {editingGrading.result && (
-          <div className="mt-5">
-            <TextEditingReport
-              result={editingGrading.result}
-              year={year}
-              usedFallback={editingGrading.usedFallback}
-              compact
-            />
-          </div>
-        )}
-
+        {/* No grading here — the corrected text is only graded at the end,
+            with everything else. This button just moves the exam forward. */}
         <button
           type="button"
           onClick={() => onDone()}
-          className={`paper-sticker mt-4 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
+          className={`paper-sticker mt-6 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
         >
           II ნაწილზე გადასვლა
           <ArrowRight className="h-4 w-4 stroke-[2.5]" />
