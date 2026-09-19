@@ -31,6 +31,7 @@ import { recordQuestProgress } from "@/lib/daily-quests";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import {
+  ACCENT_CARD,
   ACCENT_PILL,
   ACCENT_SOLID,
   PLAIN_CARD,
@@ -46,7 +47,7 @@ import { WritingTaskReport } from "./WritingTaskReport";
 import { TextEditingReport } from "./TextEditingReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
 import { useWritingTaskGrading } from "./useWritingTaskGrading";
-import { useTextEditingGrading } from "./useTextEditingGrading";
+import { useTextEditingGrading, type TextEditingGradingState } from "./useTextEditingGrading";
 
 /** The real paper allows three hours. */
 const EXAM_SECONDS = 3 * 60 * 60;
@@ -265,8 +266,11 @@ export function ExamSimulation({
   const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
-  const [editingScore, setEditingScore] = useState<number | null>(null);
   const essayGrading = useWritingTaskGrading("abit-exam-essay");
+  // The editing grader lives on the parent (like the essay grader) so its
+  // score and its list of missed corrections survive the walk to the results
+  // screen, where the three parts are summed into one exam total.
+  const editingGrading = useTextEditingGrading("abit-exam-editing");
   const essayWords = useMemo(
     () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
     [essayDraft],
@@ -364,7 +368,8 @@ export function ExamSimulation({
     scoredRef.current = false;
     setEssayDraft("");
     essayGrading.reset();
-  }, [variant.editingTask, essayGrading]);
+    editingGrading.reset();
+  }, [variant.editingTask, essayGrading, editingGrading]);
 
   const stageIndex = STAGE_ORDER.indexOf(stage === "done" ? "essay" : stage);
 
@@ -471,12 +476,10 @@ export function ExamSimulation({
         {stageRail}
         <EditingStage
           task={variant.editingTask}
+          grading={editingGrading}
           accent={accent}
           year={year}
-          onDone={(score) => {
-            if (typeof score === "number") setEditingScore(score);
-            setStage("choose");
-          }}
+          onDone={() => setStage("choose")}
         />
       </div>
     );
@@ -933,7 +936,6 @@ export function ExamSimulation({
   }
 
   /* ============================== STAGE: done ============================= */
-  const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
   const byCategory = answerList.reduce<Record<string, { correct: number; total: number }>>(
     (acc, a) => {
       const bucket = acc[a.category] ?? { correct: 0, total: 0 };
@@ -945,6 +947,51 @@ export function ExamSimulation({
     },
     {},
   );
+
+  /* ----------------------------- score sheet ----------------------------- */
+  /* The three parts summed into one exam total, exactly by the official
+     scheme: რედაქტირება (16) + ტესტური კითხვები (10, one point each) + წერითი
+     დავალება (34) = 60 on a real paper. The older seed variants that carry
+     neither a written part just tally their questions. A written part the
+     student never graded counts as 0 until they do — the note below says so. */
+  const editingResult = editingGrading.result;
+  const essayResult = passage?.essay ? essayGrading.result : null;
+  const scoreParts = (
+    [
+      variant.editingTask && {
+        key: "editing",
+        label: "რედაქტირება",
+        graded: editingResult !== null,
+        score: editingResult?.totalScore ?? 0,
+        max: variant.editingTask.points ?? TEXT_EDITING_TOTAL_MAX,
+      },
+      total > 0 && {
+        key: "mcq",
+        label: "ტესტური კითხვები",
+        graded: true,
+        score: correctCount,
+        max: total,
+      },
+      passage?.essay && {
+        key: "essay",
+        label: "წერითი დავალება",
+        graded: essayResult !== null,
+        score: essayResult?.totalScore ?? 0,
+        max: passage.essay.points ?? WRITING_TASK_TOTAL_MAX,
+      },
+    ].filter(Boolean) as {
+      key: string;
+      label: string;
+      graded: boolean;
+      score: number;
+      max: number;
+    }[]
+  );
+  const earnedTotal = scoreParts.reduce((sum, part) => sum + part.score, 0);
+  const maxTotal = scoreParts.reduce((sum, part) => sum + part.max, 0);
+  const ungraded = scoreParts.filter((part) => !part.graded);
+  // Only worth calling a "score sheet" when there is more than one part to add.
+  const showScoreSheet = scoreParts.length > 1;
 
   return (
     <div>
@@ -958,44 +1005,83 @@ export function ExamSimulation({
           accent={accent}
           title="გამოცდა დასრულებულია"
           subtitle={`${subjectTitle} · ${year} · ${variant.label}`}
-          score={correctCount}
-          total={total}
+          score={earnedTotal}
+          total={maxTotal}
           stats={[
+            { label: "ტესტური კითხვები", value: `${correctCount}/${total}` },
             { label: "დარჩენილი დრო", value: formatClock(remaining) },
             { label: "საუკეთესო სერია", value: `${bestStreak} ზედიზედ` },
-            { label: "სისწორე", value: `${percent}%` },
           ]}
         />
 
-        {editingScore !== null && (
-          <p
-            className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${ACCENT_PILL.amber}`}
-          >
-            <PenLine className="h-3.5 w-3.5 stroke-[2.5]" />
-            ტექსტის რედაქტირება: {editingScore}/{TEXT_EDITING_TOTAL_MAX}
-          </p>
+        {showScoreSheet && (
+          <div className={`mt-8 rounded-2xl border-2 p-5 ${PLAIN_CARD}`}>
+            <p className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}>
+              შენი ქულა შეფასების სქემით
+            </p>
+            <div className="space-y-2">
+              {scoreParts.map((part) => (
+                <div
+                  key={part.key}
+                  className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2.5 ${PLAIN_CARD}`}
+                >
+                  <span className={`text-sm ${MUTED}`}>{part.label}</span>
+                  <span
+                    className={`text-sm font-bold tabular-nums ${
+                      part.graded ? TITLE : FAINT
+                    }`}
+                  >
+                    {part.graded ? `${part.score} / ${part.max}` : `— / ${part.max}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              className={`mt-3 flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 ${ACCENT_CARD[accent]}`}
+            >
+              <span className={`text-sm font-bold ${TITLE}`}>ჯამური ქულა</span>
+              <span className={`text-lg font-black tabular-nums ${TITLE}`}>
+                {earnedTotal} / {maxTotal}
+              </span>
+            </div>
+            {ungraded.length > 0 && (
+              <p className={`mt-3 flex items-start gap-2 text-[12px] leading-relaxed ${FAINT}`}>
+                <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[2]" />
+                {ungraded.map((part) => `„${part.label}“`).join(" და ")} ჯერ არ
+                შეგიფასებია — ეს ნაწილი 0 ქულით ითვლება. „თავიდან“ დაწყებისას შესაბამის
+                საფეხურზე დააჭირე „შეაფასე“, რომ სრული ჯამი დაითვალოს.
+              </p>
+            )}
+          </div>
         )}
 
-        {essayGrading.result && passage?.essay && (
-          <p
-            className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold ${ACCENT_PILL.violet}`}
-          >
-            <PenLine className="h-3.5 w-3.5 stroke-[2.5]" />
-            წერითი დავალება: {essayGrading.result.totalScore}/{WRITING_TASK_TOTAL_MAX}
-          </p>
-        )}
-
-        {essayGrading.result && (
+        {essayResult && (
           <div className="mt-8">
             <p
               className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
             >
-              ესეს შეფასება
+              წერითი დავალების შეფასება
             </p>
             <WritingTaskReport
-              result={essayGrading.result}
+              result={essayResult}
               year={year}
               usedFallback={essayGrading.usedFallback}
+              compact
+            />
+          </div>
+        )}
+
+        {editingResult && (
+          <div className="mt-8">
+            <p
+              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
+            >
+              რედაქტირების შეფასება
+            </p>
+            <TextEditingReport
+              result={editingResult}
+              year={year}
+              usedFallback={editingGrading.usedFallback}
               compact
             />
           </div>
@@ -1058,16 +1144,18 @@ export function ExamSimulation({
 
 function EditingStage({
   task,
+  grading: editingGrading,
   accent,
   year,
   onDone,
 }: {
   task: NonNullable<ExamVariant["editingTask"]>;
+  /** Lifted to the parent so the score + corrections reach the results screen. */
+  grading: TextEditingGradingState;
   accent: NotebookAccent;
   year: number;
-  onDone: (score?: number) => void;
+  onDone: () => void;
 }) {
-  const editingGrading = useTextEditingGrading("abit-exam-editing");
   // The editor starts empty: the source is above, and the reader decides
   // whether to bring it down and correct it in place or to write out their
   // own version. Reading and writing are stacked rather than side by side —
@@ -1213,7 +1301,7 @@ function EditingStage({
 
         <button
           type="button"
-          onClick={() => onDone(editingGrading.result?.totalScore)}
+          onClick={() => onDone()}
           className={`paper-sticker mt-4 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
         >
           II ნაწილზე გადასვლა
