@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -347,12 +348,10 @@ function MathResults({
   onRestart: () => void;
   onExit: () => void;
 }) {
+  const [showMcqReview, setShowMcqReview] = useState(false);
   const mcqMax = variant.mcq.length;
   const grandScore = mcqScore + openScore;
-  const wrongMcq = variant.mcq.filter(
-    (q) => picks[q.number] && picks[q.number] !== q.correctLabel,
-  );
-  const unansweredMcq = variant.mcq.filter((q) => !picks[q.number]);
+  const answeredMcq = variant.mcq.filter((q) => picks[q.number]).length;
   // Once grading has finished, the still-ungraded problems are the ones the
   // student left blank (they count as 0).
   const emptyOpen = variant.open.filter(
@@ -447,36 +446,34 @@ function MathResults({
         </div>
       )}
 
-      {/* ------------------------ test mistakes ---------------------------- */}
+      {/* ---------------- test questions: correct answers ------------------ */}
       {variant.mcq.length > 0 && (
-        <div className="mx-auto mt-8 max-w-lg rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#121214]">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-            ტესტური კითხვები
-          </p>
-          {wrongMcq.length === 0 && unansweredMcq.length === 0 ? (
-            <p className="text-emerald-700 dark:text-emerald-300">ყველა კითხვა სწორია. 🎉</p>
-          ) : (
-            <div className="space-y-1.5 text-slate-600 dark:text-zinc-300">
-              {wrongMcq.length > 0 && (
-                <p>
-                  <span className="font-bold text-rose-600 dark:text-rose-300">
-                    არასწორი ({wrongMcq.length}):
-                  </span>{" "}
-                  {wrongMcq
-                    .map((q) => `#${q.number} (შენ: ${picks[q.number]}, სწორი: ${q.correctLabel})`)
-                    .join(", ")}
-                </p>
-              )}
-              {unansweredMcq.length > 0 && (
-                <p>
-                  <span className="font-bold text-slate-500 dark:text-zinc-400">
-                    უპასუხოდ ({unansweredMcq.length}):
-                  </span>{" "}
-                  {unansweredMcq.map((q) => `#${q.number}`).join(", ")}
-                </p>
-              )}
-            </div>
-          )}
+        <div className="mx-auto mt-8 max-w-lg">
+          <MathReportToggle
+            label="ტესტური კითხვები — შენი პასუხები და სწორი"
+            hint={`${mcqScore}/${mcqMax}`}
+            open={showMcqReview}
+            onToggle={() => setShowMcqReview((v) => !v)}
+          />
+          <AnimatePresence initial={false}>
+            {showMcqReview && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className="pt-3">
+                  <p className="mb-3 text-[12px] leading-relaxed text-slate-500 dark:text-zinc-400">
+                    {answeredMcq}/{mcqMax} ნაპასუხები · სწორად {mcqScore}. ქვემოთ ყველა
+                    კითხვის სწორი პასუხია მონიშნული.
+                  </p>
+                  <McqReview questions={variant.mcq} picks={picks} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -496,6 +493,118 @@ function MathResults({
           არქივზე დაბრუნება
         </button>
       </div>
+    </div>
+  );
+}
+
+/* --------------------------- report toggle ------------------------------- */
+/** A press-to-reveal dropdown header on the results screen, with an optional
+ *  score hint on the right. Mirrors the Georgian exam's ReportToggle. */
+function MathReportToggle({
+  label,
+  hint,
+  open,
+  onToggle,
+}: {
+  label: string;
+  hint?: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold text-slate-900 transition hover:border-pink-300 dark:border-white/10 dark:bg-[#121214] dark:text-white dark:hover:border-pink-400/40"
+    >
+      <span className="min-w-0">{label}</span>
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-slate-400">
+        {hint && <span className="tabular-nums">{hint}</span>}
+        {open ? "დამალვა" : "ნახვა"}
+        <ChevronDown
+          className={`h-4 w-4 stroke-[2.5] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+/* ---------------------- test-question review (results) ------------------- */
+/** Every test question with the student's pick and the correct answer marked —
+ *  the answers the imitated exam withheld while it was running. */
+function McqReview({
+  questions,
+  picks,
+}: {
+  questions: MathMcqQuestion[];
+  picks: Record<number, MathOptionLabel>;
+}) {
+  return (
+    <div className="space-y-3">
+      {questions.map((q) => {
+        const pick = picks[q.number];
+        const answered = pick != null;
+        const correct = pick === q.correctLabel;
+        const status = !answered ? "უპასუხოდ" : correct ? "სწორი" : "არასწორი";
+        const statusClass = !answered
+          ? "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400"
+          : correct
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+            : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300";
+
+        return (
+          <div
+            key={q.id}
+            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#121214]"
+          >
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                კითხვა {q.number}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusClass}`}>
+                {status}
+              </span>
+            </div>
+            <MathText
+              text={q.prompt}
+              className="text-sm font-medium leading-relaxed text-slate-900 dark:text-slate-100"
+            />
+            {q.latex && <MathBlock latex={q.latex} className="my-2 overflow-x-auto" />}
+            {q.figure && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={q.figure.src} alt={q.figure.alt} className="my-2 max-h-48 w-auto" />
+            )}
+
+            <div className="mt-2 space-y-1.5">
+              {q.options.map((opt) => {
+                const isAnswer = opt.label === q.correctLabel;
+                const isWrongPick = answered && opt.label === pick && !correct;
+                const optClass = isAnswer
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200"
+                  : isWrongPick
+                    ? "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-500/50 dark:bg-rose-500/10 dark:text-rose-200"
+                    : "border-slate-200 text-slate-600 dark:border-white/10 dark:text-slate-300";
+                return (
+                  <div
+                    key={opt.label}
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm ${optClass}`}
+                  >
+                    <span className="shrink-0 font-bold">{opt.label})</span>
+                    {opt.latex ? (
+                      <MathText text={`$${opt.latex}$`} />
+                    ) : (
+                      <span className="min-w-0 flex-1">{opt.text}</span>
+                    )}
+                    {isAnswer && <Check className="ml-auto h-4 w-4 shrink-0 text-emerald-600" />}
+                    {isWrongPick && <X className="ml-auto h-4 w-4 shrink-0 text-rose-500" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
