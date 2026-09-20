@@ -93,7 +93,7 @@ export function QuestionProgress({
 }: {
   total: number;
   index: number;
-  stateFor: (i: number) => "correct" | "wrong" | "current" | "todo";
+  stateFor: (i: number) => "correct" | "wrong" | "answered" | "current" | "todo";
   onJump: (i: number) => void;
   accent: NotebookAccent;
 }) {
@@ -101,24 +101,24 @@ export function QuestionProgress({
     <div className="mb-6 flex items-end gap-1.5">
       {Array.from({ length: total }).map((_, i) => {
         const state = stateFor(i);
-        const reachable = state !== "todo" || i <= index;
         const bar =
           state === "correct"
             ? "bg-emerald-500 dark:bg-emerald-400"
             : state === "wrong"
               ? "bg-pink-500 dark:bg-pink-400"
-              : state === "current"
-                ? "bg-slate-400 dark:bg-white/40"
-                : "bg-slate-200 dark:bg-white/[0.08]";
+              : state === "answered"
+                ? "bg-slate-600 dark:bg-white/60"
+                : state === "current"
+                  ? "bg-slate-400 dark:bg-white/40"
+                  : "bg-slate-200 dark:bg-white/[0.08]";
         return (
           <button
             key={i}
             type="button"
-            disabled={!reachable}
             onClick={() => onJump(i)}
             aria-label={`კითხვა ${i + 1}`}
             aria-current={i === index ? "step" : undefined}
-            className="relative flex flex-1 flex-col items-center gap-1 disabled:cursor-not-allowed"
+            className="relative flex flex-1 flex-col items-center gap-1"
           >
             {state === "correct" && (
               <Sparkle

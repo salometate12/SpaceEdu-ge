@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import {
   type ExamPassage,
+  type ExamQuestion,
   type ExamVariant,
 } from "@/data/pastExamsData";
 import { WRITING_TASK_TOTAL_MAX } from "@/lib/ai/writing-task-grader-schema";
@@ -38,12 +39,7 @@ import {
   PLAIN_CARD,
   type NotebookAccent,
 } from "@/components/landing/notebook/accents";
-import {
-  ComboBadge,
-  CorrectPop,
-  QuestComplete,
-  QuestionProgress,
-} from "./ExamGamification";
+import { QuestComplete, QuestionProgress } from "./ExamGamification";
 import { WritingTaskReport } from "./WritingTaskReport";
 import { TextEditingReport } from "./TextEditingReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
@@ -65,12 +61,6 @@ const STAGE_LABEL: Record<Stage, string> = {
   essay: "წერითი დავალება",
   done: "დასრულებული",
 };
-
-interface AnswerRecord {
-  questionId: string;
-  category: ExamCategory;
-  correct: boolean;
-}
 
 interface ExamSimulationProps {
   subjectTitle: string;
@@ -253,18 +243,15 @@ export function ExamSimulation({
   const [chosenId, setChosenId] = useState<string | null>(null);
 
   const [index, setIndex] = useState(0);
-  /* Per-question state, so stepping back restores exactly what was there. */
+  // The student's choice per question — the only thing kept while the exam
+  // runs. It is an imitated exam: no answer is checked and nothing is revealed
+  // until the very end, so there is no per-question "revealed"/"correct" state.
   const [picked, setPicked] = useState<Record<string, number>>({});
-  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
-  const [answers, setAnswers] = useState<Record<string, AnswerRecord>>({});
   const [previewHighlight, setPreviewHighlight] = useState<string | null>(null);
 
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [running, setRunning] = useState(true);
   const scoredRef = useRef(false);
-  /** How many right answers in a row — the only score shown mid-exam. */
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
   // The editing draft lives on the parent too, so nothing is graded mid-exam:
@@ -276,10 +263,11 @@ export function ExamSimulation({
   // score and its list of missed corrections survive the walk to the results
   // screen, where the three parts are summed into one exam total.
   const editingGrading = useTextEditingGrading("abit-exam-editing");
-  // The results screen reveals each written report behind its own toggle, so
+  // The results screen reveals each part's report behind its own toggle, so
   // the student presses to see what went wrong and can fold it away again.
   const [showEssayReport, setShowEssayReport] = useState(false);
   const [showEditingReport, setShowEditingReport] = useState(false);
+  const [showQuestionsReview, setShowQuestionsReview] = useState(false);
   const essayWords = useMemo(
     () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
     [essayDraft],
@@ -289,14 +277,21 @@ export function ExamSimulation({
     () => variant.passages.find((p) => p.id === chosenId) ?? null,
     [variant.passages, chosenId],
   );
-  const questions = passage?.questions ?? [];
+  const questions = useMemo(() => passage?.questions ?? [], [passage]);
   const question = questions[index];
   const total = questions.length;
-  const answerList = useMemo(() => Object.values(answers), [answers]);
-  const correctCount = answerList.filter((a) => a.correct).length;
+  // Scored from the picks, not from any mid-exam reveal — the answers are only
+  // compared to the key once the exam is over.
+  const correctCount = questions.reduce(
+    (n, q) => n + (picked[q.id] === q.correctIndex ? 1 : 0),
+    0,
+  );
+  const answeredCount = questions.reduce(
+    (n, q) => n + (picked[q.id] != null ? 1 : 0),
+    0,
+  );
 
   const selected = question ? (picked[question.id] ?? null) : null;
-  const revealed = question ? Boolean(revealedIds[question.id]) : false;
 
   /* --------------------------------- timer -------------------------------- */
   useEffect(() => {
@@ -314,46 +309,33 @@ export function ExamSimulation({
   }, [remaining]);
 
   /* -------------------------------- actions ------------------------------- */
-  const check = useCallback(() => {
-    if (selected === null || revealed || !question) return;
-    const correct = selected === question.correctIndex;
-    setRevealedIds((prev) => ({ ...prev, [question.id]: true }));
-    setAnswers((prev) => ({
-      ...prev,
-      [question.id]: {
-        questionId: question.id,
-        category: question.category,
-        correct,
-      },
-    }));
-    setStreak((value) => {
-      const next = correct ? value + 1 : 0;
-      setBestStreak((best) => Math.max(best, next));
-      return next;
-    });
-    // Only the first reveal of a question counts toward the radar.
-    recordCategoryAttempt(question.category, correct);
-  }, [selected, revealed, question]);
-
   const goPrev = useCallback(() => {
     if (index <= 0) return;
     setIndex((v) => v - 1);
     setPreviewHighlight(null);
   }, [index]);
 
+  // Just move on — a pick is optional (you can leave a question blank, like on
+  // the real paper) and nothing is checked here.
   const advance = useCallback(() => {
-    if (!revealed) return;
     if (index >= total - 1) {
       setStage(passage?.essay ? "essay" : "done");
       return;
     }
     setIndex((v) => v + 1);
     setPreviewHighlight(null);
-  }, [revealed, index, total, passage?.essay]);
+  }, [index, total, passage?.essay]);
 
   const finish = useCallback(() => {
     if (!scoredRef.current) {
       scoredRef.current = true;
+      // The exam showed no answers while running, so the questions are scored
+      // here — each answered one counts toward the category radar.
+      questions.forEach((q) => {
+        if (picked[q.id] != null) {
+          recordCategoryAttempt(q.category, picked[q.id] === q.correctIndex);
+        }
+      });
       recordQuizResult(correctCount, total || 1, subjectTitle);
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
@@ -385,6 +367,8 @@ export function ExamSimulation({
     setRunning(false);
     setStage("done");
   }, [
+    questions,
+    picked,
     correctCount,
     total,
     subjectTitle,
@@ -402,18 +386,15 @@ export function ExamSimulation({
     setChosenId(null);
     setIndex(0);
     setPicked({});
-    setRevealedIds({});
-    setAnswers({});
     setPreviewHighlight(null);
     setRemaining(EXAM_SECONDS);
     setRunning(true);
-    setStreak(0);
-    setBestStreak(0);
     scoredRef.current = false;
     setEssayDraft("");
     setEditingDraft("");
     setShowEssayReport(false);
     setShowEditingReport(false);
+    setShowQuestionsReview(false);
     essayGrading.reset();
     editingGrading.reset();
   }, [variant.editingTask, essayGrading, editingGrading]);
@@ -617,8 +598,6 @@ export function ExamSimulation({
                       setChosenId(p.id);
                       setIndex(0);
                       setPicked({});
-                      setRevealedIds({});
-                      setAnswers({});
                     }
                     setPreviewHighlight(null);
                     setStage("questions");
@@ -640,7 +619,6 @@ export function ExamSimulation({
   if (stage === "questions" && passage && question) {
     const activeHighlight = previewHighlight ?? question.highlightPhrase;
     const meta = EXAM_CATEGORY_META[question.category];
-    const isCorrect = revealed && selected === question.correctIndex;
 
     return (
       <div>
@@ -659,10 +637,6 @@ export function ExamSimulation({
             aria-label="კითხვები"
             className={`${PANEL} relative p-5 sm:p-7`}
           >
-            {/* Small, fast, and out of the way: a tick in the corner when the
-                answer was right. Nothing about it moves the question. */}
-            <CorrectPop show={isCorrect} accent={accent} triggerKey={question.id} />
-
             <div className="relative mb-7 inline-flex flex-col items-start">
               <span
                 className={`-rotate-2 rounded-full border-2 border-slate-200 bg-white/80 px-5 py-2 text-[11px] font-bold uppercase tracking-wider ${MUTED} dark:border-white/20 dark:bg-white/[0.03] dark:text-white/80`}
@@ -676,26 +650,19 @@ export function ExamSimulation({
               </span>
             </div>
 
-            <div className="mb-4 flex min-h-[26px] items-center">
-              <ComboBadge streak={streak} />
-            </div>
-
-            {/* One segment per question — solid colours, no gradient, with a
-                small star over the ones already answered correctly. */}
+            {/* One segment per question — filled once answered. No colour tells
+                right from wrong: it is an imitated exam, so the key stays hidden
+                until the results screen. Every question is freely reachable. */}
             <QuestionProgress
               total={total}
               index={index}
               accent={accent}
               stateFor={(i) => {
                 const q = questions[i];
-                const record = q ? answers[q.id] : undefined;
-                if (record) return record.correct ? "correct" : "wrong";
+                if (q && picked[q.id] != null) return "answered";
                 return i === index ? "current" : "todo";
               }}
               onJump={(i) => {
-                const q = questions[i];
-                if (!q) return;
-                if (!answers[q.id] && i > index) return;
                 setIndex(i);
                 setPreviewHighlight(null);
               }}
@@ -728,55 +695,30 @@ export function ExamSimulation({
                 <div className="space-y-3">
                   {question.options.map((option, i) => {
                     const isSelected = selected === i;
-                    const isAnswer = i === question.correctIndex;
-
-                    let pill = `${PLAIN_CARD} text-slate-800 dark:text-slate-200`;
-                    let circle =
-                      "border-slate-400 text-slate-500 dark:border-white/25 dark:text-white/50";
-                    if (revealed && isAnswer) {
-                      pill = "border-emerald-600 bg-emerald-600 text-white";
-                      circle = "border-white/60 text-white";
-                    } else if (revealed && isSelected) {
-                      pill = "border-pink-600 bg-pink-600 text-white";
-                      circle = "border-white/60 text-white";
-                    } else if (revealed) {
-                      pill =
-                        "border-slate-300/70 bg-transparent text-slate-400 dark:border-white/10 dark:text-white/30";
-                    } else if (isSelected) {
-                      pill =
-                        "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900";
-                      circle =
-                        "border-white/60 text-white dark:border-slate-900/40 dark:text-slate-900";
-                    }
+                    const pill = isSelected
+                      ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900"
+                      : `${PLAIN_CARD} text-slate-800 dark:text-slate-200`;
+                    const circle = isSelected
+                      ? "border-white/60 text-white dark:border-slate-900/40 dark:text-slate-900"
+                      : "border-slate-400 text-slate-500 dark:border-white/25 dark:text-white/50";
 
                     return (
                       <motion.button
                         key={`${question.id}-${i}`}
                         type="button"
-                        disabled={revealed}
                         onClick={() =>
                           setPicked((prev) => ({ ...prev, [question.id]: i }))
                         }
-                        whileTap={revealed ? undefined : { scale: 0.985 }}
+                        whileTap={{ scale: 0.985 }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.35,
-                          ease: "easeOut",
-                          delay: revealed ? 0 : i * 0.05,
-                        }}
-                        className={`flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-[14.5px] leading-relaxed transition-all disabled:cursor-default ${pill}`}
+                        transition={{ duration: 0.35, ease: "easeOut", delay: i * 0.05 }}
+                        className={`flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-[14.5px] leading-relaxed transition-all ${pill}`}
                       >
                         <span
                           className={`mt-px flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 text-[11px] font-bold ${circle}`}
                         >
-                          {revealed && isAnswer ? (
-                            <Check className="h-3.5 w-3.5 stroke-[3]" />
-                          ) : revealed && isSelected ? (
-                            <X className="h-3.5 w-3.5 stroke-[3]" />
-                          ) : (
-                            OPTION_LETTERS[i]
-                          )}
+                          {OPTION_LETTERS[i]}
                         </span>
                         <span className="min-w-0 flex-1">{option}</span>
                       </motion.button>
@@ -784,49 +726,6 @@ export function ExamSimulation({
                   })}
                 </div>
             </motion.div>
-
-            <AnimatePresence>
-              {revealed && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-5">
-                    <p
-                      className={`mb-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
-                        isCorrect
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-                          : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
-                      }`}
-                    >
-                      {isCorrect ? (
-                        <>
-                          <Check className="h-3 w-3 stroke-[2.5]" /> სწორია
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-3 w-3 stroke-[2.5]" /> არასწორია
-                        </>
-                      )}
-                    </p>
-                    <div className={`rounded-2xl border-2 p-4 ${PLAIN_CARD}`}>
-                      <p
-                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${FAINT}`}
-                      >
-                        <Lightbulb className="h-3 w-3 stroke-[2.5]" />
-                        ახსნა
-                      </p>
-                      <p className="text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
-                        {question.explanation}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             <div className="mt-6 flex items-center gap-2.5">
               <button
@@ -840,25 +739,14 @@ export function ExamSimulation({
                 <span className="hidden sm:inline">წინა</span>
               </button>
 
-              {!revealed ? (
-                <button
-                  type="button"
-                  onClick={check}
-                  disabled={selected === null}
-                  className={`paper-sticker flex-1 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID[accent]}`}
-                >
-                  პასუხის შემოწმება
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={advance}
-                  className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
-                >
-                  {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
-                  <ArrowRight className="h-4 w-4 stroke-[2.5]" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={advance}
+                className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
+              >
+                {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
+                <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+              </button>
             </div>
           </section>
         </div>
@@ -948,11 +836,14 @@ export function ExamSimulation({
   }
 
   /* ============================== STAGE: done ============================= */
-  const byCategory = answerList.reduce<Record<string, { correct: number; total: number }>>(
-    (acc, a) => {
-      const bucket = acc[a.category] ?? { correct: 0, total: 0 };
-      acc[a.category] = {
-        correct: bucket.correct + (a.correct ? 1 : 0),
+  // Scored here from the picks — the exam kept the key hidden until now. Only
+  // answered questions feed the category breakdown (skipped ones aren't "wrong").
+  const byCategory = questions.reduce<Record<string, { correct: number; total: number }>>(
+    (acc, q) => {
+      if (picked[q.id] == null) return acc;
+      const bucket = acc[q.category] ?? { correct: 0, total: 0 };
+      acc[q.category] = {
+        correct: bucket.correct + (picked[q.id] === q.correctIndex ? 1 : 0),
         total: bucket.total + 1,
       };
       return acc;
@@ -1028,8 +919,8 @@ export function ExamSimulation({
           total={maxTotal}
           stats={[
             { label: "ტესტური კითხვები", value: `${correctCount}/${total}` },
+            { label: "ნაპასუხები", value: `${answeredCount}/${total}` },
             { label: "დარჩენილი დრო", value: formatClock(remaining) },
-            { label: "საუკეთესო სერია", value: `${bestStreak} ზედიზედ` },
           ]}
         />
 
@@ -1086,65 +977,97 @@ export function ExamSimulation({
           </div>
         )}
 
-        {essayResult && (
-          <div className="mt-8">
-            <ReportToggle
-              label="წერითი დავალების შედეგები"
-              open={showEssayReport}
-              onToggle={() => setShowEssayReport((v) => !v)}
-            />
-            <AnimatePresence initial={false}>
-              {showEssayReport && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-3">
-                    <WritingTaskReport
-                      result={essayResult}
-                      year={year}
-                      usedFallback={essayGrading.usedFallback}
-                      compact
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+        {/* The three parts, each behind its own dropdown, in the exam's own
+            order: editing, reading comprehension, then the essay. */}
+        <p className={`mb-3 mt-8 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}>
+          დეტალური განხილვა
+        </p>
+        <div className="space-y-3">
+          {editingResult && (
+            <div>
+              <ReportToggle
+                label="რედაქტირება — რა შეასწორე და რა გამოგრჩა"
+                open={showEditingReport}
+                onToggle={() => setShowEditingReport((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showEditingReport && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <TextEditingReport
+                        result={editingResult}
+                        year={year}
+                        usedFallback={editingGrading.usedFallback}
+                        compact
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
-        {editingResult && (
-          <div className="mt-4">
-            <ReportToggle
-              label="რედაქტირების შედეგები"
-              open={showEditingReport}
-              onToggle={() => setShowEditingReport((v) => !v)}
-            />
-            <AnimatePresence initial={false}>
-              {showEditingReport && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-3">
-                    <TextEditingReport
-                      result={editingResult}
-                      year={year}
-                      usedFallback={editingGrading.usedFallback}
-                      compact
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+          {total > 0 && (
+            <div>
+              <ReportToggle
+                label="წაკითხულის გააზრება — სწორი პასუხები და ახსნა"
+                open={showQuestionsReview}
+                onToggle={() => setShowQuestionsReview((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showQuestionsReview && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <QuestionsReview questions={questions} picked={picked} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {essayResult && (
+            <div>
+              <ReportToggle
+                label="წერითი დავალება — შეფასების კრიტერიუმებით"
+                open={showEssayReport}
+                onToggle={() => setShowEssayReport((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showEssayReport && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <WritingTaskReport
+                        result={essayResult}
+                        year={year}
+                        usedFallback={essayGrading.usedFallback}
+                        compact
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
 
         {Object.keys(byCategory).length > 0 && (
           <div className="mt-8">
@@ -1227,6 +1150,86 @@ function ReportToggle({
         />
       </span>
     </button>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                    READING-COMPREHENSION REVIEW (results)                   */
+/* -------------------------------------------------------------------------- */
+
+/** The results-screen review of the questions part: every question with the
+ *  student's pick, the correct answer marked, and the explanation of why it is
+ *  right — the answers the imitated exam withheld while it was running. */
+function QuestionsReview({
+  questions,
+  picked,
+}: {
+  questions: ExamQuestion[];
+  picked: Record<string, number>;
+}) {
+  return (
+    <div className="space-y-3">
+      {questions.map((q, i) => {
+        const pick = picked[q.id];
+        const answered = pick != null;
+        const correct = pick === q.correctIndex;
+        const status = !answered ? "უპასუხოდ" : correct ? "სწორი" : "არასწორი";
+        const statusClass = !answered
+          ? "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400"
+          : correct
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+            : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300";
+
+        return (
+          <div key={q.id} className={`rounded-2xl border-2 p-4 ${PLAIN_CARD}`}>
+            <div className="flex items-center justify-between gap-3">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${FAINT}`}>
+                კითხვა {i + 1}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusClass}`}>
+                {status}
+              </span>
+            </div>
+            <p className={`mt-1.5 text-sm font-semibold leading-relaxed ${TITLE}`}>
+              {q.questionText}
+            </p>
+
+            <div className="mt-3 space-y-1.5">
+              {q.options.map((option, oi) => {
+                const isAnswer = oi === q.correctIndex;
+                const isWrongPick = answered && oi === pick && !correct;
+                const rowClass = isAnswer
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200"
+                  : isWrongPick
+                    ? "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-500/50 dark:bg-rose-500/10 dark:text-rose-200"
+                    : "border-slate-200 text-slate-600 dark:border-white/10 dark:text-slate-300";
+                return (
+                  <div
+                    key={oi}
+                    className={`flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-[13.5px] leading-relaxed ${rowClass}`}
+                  >
+                    <span className="font-bold">{OPTION_LETTERS[oi]}</span>
+                    <span className="min-w-0 flex-1">{option}</span>
+                    {isAnswer && <Check className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.5]" />}
+                    {isWrongPick && <X className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.5]" />}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={`mt-3 rounded-xl border-2 p-3 ${PLAIN_CARD}`}>
+              <p className={`mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${FAINT}`}>
+                <Lightbulb className="h-3 w-3 stroke-[2.5]" />
+                რატომ არის ეს სწორი
+              </p>
+              <p className="text-[13px] leading-relaxed text-slate-700 dark:text-slate-200">
+                {q.explanation}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
