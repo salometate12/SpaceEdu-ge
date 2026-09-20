@@ -256,6 +256,35 @@ export function buildUserPrompt(
         .join("\n\n");
     }
 
+    case "history-open-answer-grader": {
+      const subItemPrompt = asString(payload.subItemPrompt);
+      const sourceText = asString(payload.sourceDocumentText);
+      const studentAnswer = asString(payload.studentAnswer);
+      const maxPoints = asNumber(payload.maxPoints);
+      const criteria = Array.isArray(payload.criteria) ? payload.criteria : [];
+      const notes = Array.isArray(payload.noCreditNotes) ? payload.noCreditNotes : [];
+      const criteriaText = criteria
+        .map((c) => {
+          const cr = c as { id?: unknown; description?: unknown; points?: unknown };
+          return `${asString(cr.id)} (${asNumber(cr.points)} ქულა): ${asString(cr.description)}`;
+        })
+        .join("\n");
+      const notesText = notes.map((n) => `- ${asString(n)}`).join("\n");
+      return [
+        `დავალების კითხვა: ${subItemPrompt}`,
+        `დავალების მაქსიმალური ქულა: ${maxPoints}`,
+        sourceText ? `წყარო-დოკუმენტის ტექსტი:\n${sourceText}` : "",
+        `შეფასების კრიტერიუმები (რომელი ქულა რას მოითხოვს):\n${criteriaText}`,
+        notesText ? `არ ფასდება, თუ:\n${notesText}` : "",
+        "შეაფასე სტუდენტის პასუხი კრიტერიუმების მიხედვით, თითოეულ კრიტერიუმზე გადაწყვიტე met true/false და დააბრუნე მხოლოდ JSON.",
+        "--- სტუდენტის პასუხი ---",
+        studentAnswer,
+        "--- დასასრული ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
     case "text-editing-grader": {
       const source = asString(payload.source);
       const corrected = asString(payload.corrected);
