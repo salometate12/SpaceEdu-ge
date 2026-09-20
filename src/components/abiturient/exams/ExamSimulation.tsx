@@ -8,6 +8,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  ChevronDown,
   Clock,
   Lightbulb,
   LoaderCircle,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import {
   type ExamPassage,
+  type ExamQuestion,
   type ExamVariant,
 } from "@/data/pastExamsData";
 import { WRITING_TASK_TOTAL_MAX } from "@/lib/ai/writing-task-grader-schema";
@@ -37,17 +39,12 @@ import {
   PLAIN_CARD,
   type NotebookAccent,
 } from "@/components/landing/notebook/accents";
-import {
-  ComboBadge,
-  CorrectPop,
-  QuestComplete,
-  QuestionProgress,
-} from "./ExamGamification";
+import { QuestComplete, QuestionProgress } from "./ExamGamification";
 import { WritingTaskReport } from "./WritingTaskReport";
 import { TextEditingReport } from "./TextEditingReport";
 import { TropeHighlightedPassage } from "./TropeHighlightedPassage";
 import { useWritingTaskGrading } from "./useWritingTaskGrading";
-import { useTextEditingGrading, type TextEditingGradingState } from "./useTextEditingGrading";
+import { useTextEditingGrading } from "./useTextEditingGrading";
 
 /** The real paper allows three hours. */
 const EXAM_SECONDS = 3 * 60 * 60;
@@ -64,12 +61,6 @@ const STAGE_LABEL: Record<Stage, string> = {
   essay: "წერითი დავალება",
   done: "დასრულებული",
 };
-
-interface AnswerRecord {
-  questionId: string;
-  category: ExamCategory;
-  correct: boolean;
-}
 
 interface ExamSimulationProps {
   subjectTitle: string;
@@ -252,25 +243,31 @@ export function ExamSimulation({
   const [chosenId, setChosenId] = useState<string | null>(null);
 
   const [index, setIndex] = useState(0);
-  /* Per-question state, so stepping back restores exactly what was there. */
+  // The student's choice per question — the only thing kept while the exam
+  // runs. It is an imitated exam: no answer is checked and nothing is revealed
+  // until the very end, so there is no per-question "revealed"/"correct" state.
   const [picked, setPicked] = useState<Record<string, number>>({});
-  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
-  const [answers, setAnswers] = useState<Record<string, AnswerRecord>>({});
   const [previewHighlight, setPreviewHighlight] = useState<string | null>(null);
 
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [running, setRunning] = useState(true);
   const scoredRef = useRef(false);
-  /** How many right answers in a row — the only score shown mid-exam. */
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
 
   const [essayDraft, setEssayDraft] = useState("");
+  // The editing draft lives on the parent too, so nothing is graded mid-exam:
+  // both written parts are held until the student finishes and then graded
+  // together, in one pass, on the results screen.
+  const [editingDraft, setEditingDraft] = useState("");
   const essayGrading = useWritingTaskGrading("abit-exam-essay");
   // The editing grader lives on the parent (like the essay grader) so its
   // score and its list of missed corrections survive the walk to the results
   // screen, where the three parts are summed into one exam total.
   const editingGrading = useTextEditingGrading("abit-exam-editing");
+  // The results screen reveals each part's report behind its own toggle, so
+  // the student presses to see what went wrong and can fold it away again.
+  const [showEssayReport, setShowEssayReport] = useState(false);
+  const [showEditingReport, setShowEditingReport] = useState(false);
+  const [showQuestionsReview, setShowQuestionsReview] = useState(false);
   const essayWords = useMemo(
     () => essayDraft.trim().split(/\s+/).filter(Boolean).length,
     [essayDraft],
@@ -280,14 +277,21 @@ export function ExamSimulation({
     () => variant.passages.find((p) => p.id === chosenId) ?? null,
     [variant.passages, chosenId],
   );
-  const questions = passage?.questions ?? [];
+  const questions = useMemo(() => passage?.questions ?? [], [passage]);
   const question = questions[index];
   const total = questions.length;
-  const answerList = useMemo(() => Object.values(answers), [answers]);
-  const correctCount = answerList.filter((a) => a.correct).length;
+  // Scored from the picks, not from any mid-exam reveal — the answers are only
+  // compared to the key once the exam is over.
+  const correctCount = questions.reduce(
+    (n, q) => n + (picked[q.id] === q.correctIndex ? 1 : 0),
+    0,
+  );
+  const answeredCount = questions.reduce(
+    (n, q) => n + (picked[q.id] != null ? 1 : 0),
+    0,
+  );
 
   const selected = question ? (picked[question.id] ?? null) : null;
-  const revealed = question ? Boolean(revealedIds[question.id]) : false;
 
   /* --------------------------------- timer -------------------------------- */
   useEffect(() => {
@@ -305,68 +309,92 @@ export function ExamSimulation({
   }, [remaining]);
 
   /* -------------------------------- actions ------------------------------- */
-  const check = useCallback(() => {
-    if (selected === null || revealed || !question) return;
-    const correct = selected === question.correctIndex;
-    setRevealedIds((prev) => ({ ...prev, [question.id]: true }));
-    setAnswers((prev) => ({
-      ...prev,
-      [question.id]: {
-        questionId: question.id,
-        category: question.category,
-        correct,
-      },
-    }));
-    setStreak((value) => {
-      const next = correct ? value + 1 : 0;
-      setBestStreak((best) => Math.max(best, next));
-      return next;
-    });
-    // Only the first reveal of a question counts toward the radar.
-    recordCategoryAttempt(question.category, correct);
-  }, [selected, revealed, question]);
-
   const goPrev = useCallback(() => {
     if (index <= 0) return;
     setIndex((v) => v - 1);
     setPreviewHighlight(null);
   }, [index]);
 
+  // Just move on — a pick is optional (you can leave a question blank, like on
+  // the real paper) and nothing is checked here.
   const advance = useCallback(() => {
-    if (!revealed) return;
     if (index >= total - 1) {
       setStage(passage?.essay ? "essay" : "done");
       return;
     }
     setIndex((v) => v + 1);
     setPreviewHighlight(null);
-  }, [revealed, index, total, passage?.essay]);
+  }, [index, total, passage?.essay]);
 
   const finish = useCallback(() => {
     if (!scoredRef.current) {
       scoredRef.current = true;
+      // The exam showed no answers while running, so the questions are scored
+      // here — each answered one counts toward the category radar.
+      questions.forEach((q) => {
+        if (picked[q.id] != null) {
+          recordCategoryAttempt(q.category, picked[q.id] === q.correctIndex);
+        }
+      });
       recordQuizResult(correctCount, total || 1, subjectTitle);
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
     }
+    // Grade the written parts here, at the end — not mid-exam. Both graders
+    // run once; an empty draft is left ungraded (counts as 0 on the sheet).
+    if (
+      variant.editingTask &&
+      editingDraft.trim() &&
+      !editingGrading.result &&
+      !editingGrading.busy
+    ) {
+      void editingGrading.grade(variant.editingTask.text, editingDraft, year);
+    }
+    if (
+      passage?.essay &&
+      essayDraft.trim() &&
+      !essayGrading.result &&
+      !essayGrading.busy
+    ) {
+      void essayGrading.grade(essayDraft, {
+        prompt: passage.essay.prompt,
+        year,
+        passageTitle: passage.title,
+        passageText: passage.textExcerpt,
+        hasBoundText: true,
+      });
+    }
     setRunning(false);
     setStage("done");
-  }, [correctCount, total, subjectTitle]);
+  }, [
+    questions,
+    picked,
+    correctCount,
+    total,
+    subjectTitle,
+    variant.editingTask,
+    editingDraft,
+    editingGrading,
+    passage,
+    essayDraft,
+    essayGrading,
+    year,
+  ]);
 
   const restart = useCallback(() => {
     setStage(variant.editingTask ? "editing" : "choose");
     setChosenId(null);
     setIndex(0);
     setPicked({});
-    setRevealedIds({});
-    setAnswers({});
     setPreviewHighlight(null);
     setRemaining(EXAM_SECONDS);
     setRunning(true);
-    setStreak(0);
-    setBestStreak(0);
     scoredRef.current = false;
     setEssayDraft("");
+    setEditingDraft("");
+    setShowEssayReport(false);
+    setShowEditingReport(false);
+    setShowQuestionsReview(false);
     essayGrading.reset();
     editingGrading.reset();
   }, [variant.editingTask, essayGrading, editingGrading]);
@@ -476,9 +504,9 @@ export function ExamSimulation({
         {stageRail}
         <EditingStage
           task={variant.editingTask}
-          grading={editingGrading}
+          draft={editingDraft}
+          onDraftChange={setEditingDraft}
           accent={accent}
-          year={year}
           onDone={() => setStage("choose")}
         />
       </div>
@@ -570,8 +598,6 @@ export function ExamSimulation({
                       setChosenId(p.id);
                       setIndex(0);
                       setPicked({});
-                      setRevealedIds({});
-                      setAnswers({});
                     }
                     setPreviewHighlight(null);
                     setStage("questions");
@@ -593,7 +619,6 @@ export function ExamSimulation({
   if (stage === "questions" && passage && question) {
     const activeHighlight = previewHighlight ?? question.highlightPhrase;
     const meta = EXAM_CATEGORY_META[question.category];
-    const isCorrect = revealed && selected === question.correctIndex;
 
     return (
       <div>
@@ -612,10 +637,6 @@ export function ExamSimulation({
             aria-label="კითხვები"
             className={`${PANEL} relative p-5 sm:p-7`}
           >
-            {/* Small, fast, and out of the way: a tick in the corner when the
-                answer was right. Nothing about it moves the question. */}
-            <CorrectPop show={isCorrect} accent={accent} triggerKey={question.id} />
-
             <div className="relative mb-7 inline-flex flex-col items-start">
               <span
                 className={`-rotate-2 rounded-full border-2 border-slate-200 bg-white/80 px-5 py-2 text-[11px] font-bold uppercase tracking-wider ${MUTED} dark:border-white/20 dark:bg-white/[0.03] dark:text-white/80`}
@@ -629,26 +650,19 @@ export function ExamSimulation({
               </span>
             </div>
 
-            <div className="mb-4 flex min-h-[26px] items-center">
-              <ComboBadge streak={streak} />
-            </div>
-
-            {/* One segment per question — solid colours, no gradient, with a
-                small star over the ones already answered correctly. */}
+            {/* One segment per question — filled once answered. No colour tells
+                right from wrong: it is an imitated exam, so the key stays hidden
+                until the results screen. Every question is freely reachable. */}
             <QuestionProgress
               total={total}
               index={index}
               accent={accent}
               stateFor={(i) => {
                 const q = questions[i];
-                const record = q ? answers[q.id] : undefined;
-                if (record) return record.correct ? "correct" : "wrong";
+                if (q && picked[q.id] != null) return "answered";
                 return i === index ? "current" : "todo";
               }}
               onJump={(i) => {
-                const q = questions[i];
-                if (!q) return;
-                if (!answers[q.id] && i > index) return;
                 setIndex(i);
                 setPreviewHighlight(null);
               }}
@@ -681,55 +695,30 @@ export function ExamSimulation({
                 <div className="space-y-3">
                   {question.options.map((option, i) => {
                     const isSelected = selected === i;
-                    const isAnswer = i === question.correctIndex;
-
-                    let pill = `${PLAIN_CARD} text-slate-800 dark:text-slate-200`;
-                    let circle =
-                      "border-slate-400 text-slate-500 dark:border-white/25 dark:text-white/50";
-                    if (revealed && isAnswer) {
-                      pill = "border-emerald-600 bg-emerald-600 text-white";
-                      circle = "border-white/60 text-white";
-                    } else if (revealed && isSelected) {
-                      pill = "border-pink-600 bg-pink-600 text-white";
-                      circle = "border-white/60 text-white";
-                    } else if (revealed) {
-                      pill =
-                        "border-slate-300/70 bg-transparent text-slate-400 dark:border-white/10 dark:text-white/30";
-                    } else if (isSelected) {
-                      pill =
-                        "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900";
-                      circle =
-                        "border-white/60 text-white dark:border-slate-900/40 dark:text-slate-900";
-                    }
+                    const pill = isSelected
+                      ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900"
+                      : `${PLAIN_CARD} text-slate-800 dark:text-slate-200`;
+                    const circle = isSelected
+                      ? "border-white/60 text-white dark:border-slate-900/40 dark:text-slate-900"
+                      : "border-slate-400 text-slate-500 dark:border-white/25 dark:text-white/50";
 
                     return (
                       <motion.button
                         key={`${question.id}-${i}`}
                         type="button"
-                        disabled={revealed}
                         onClick={() =>
                           setPicked((prev) => ({ ...prev, [question.id]: i }))
                         }
-                        whileTap={revealed ? undefined : { scale: 0.985 }}
+                        whileTap={{ scale: 0.985 }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.35,
-                          ease: "easeOut",
-                          delay: revealed ? 0 : i * 0.05,
-                        }}
-                        className={`flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-[14.5px] leading-relaxed transition-all disabled:cursor-default ${pill}`}
+                        transition={{ duration: 0.35, ease: "easeOut", delay: i * 0.05 }}
+                        className={`flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-3.5 text-left text-[14.5px] leading-relaxed transition-all ${pill}`}
                       >
                         <span
                           className={`mt-px flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 text-[11px] font-bold ${circle}`}
                         >
-                          {revealed && isAnswer ? (
-                            <Check className="h-3.5 w-3.5 stroke-[3]" />
-                          ) : revealed && isSelected ? (
-                            <X className="h-3.5 w-3.5 stroke-[3]" />
-                          ) : (
-                            OPTION_LETTERS[i]
-                          )}
+                          {OPTION_LETTERS[i]}
                         </span>
                         <span className="min-w-0 flex-1">{option}</span>
                       </motion.button>
@@ -737,49 +726,6 @@ export function ExamSimulation({
                   })}
                 </div>
             </motion.div>
-
-            <AnimatePresence>
-              {revealed && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-5">
-                    <p
-                      className={`mb-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
-                        isCorrect
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-                          : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
-                      }`}
-                    >
-                      {isCorrect ? (
-                        <>
-                          <Check className="h-3 w-3 stroke-[2.5]" /> სწორია
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-3 w-3 stroke-[2.5]" /> არასწორია
-                        </>
-                      )}
-                    </p>
-                    <div className={`rounded-2xl border-2 p-4 ${PLAIN_CARD}`}>
-                      <p
-                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${FAINT}`}
-                      >
-                        <Lightbulb className="h-3 w-3 stroke-[2.5]" />
-                        ახსნა
-                      </p>
-                      <p className="text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
-                        {question.explanation}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             <div className="mt-6 flex items-center gap-2.5">
               <button
@@ -793,25 +739,14 @@ export function ExamSimulation({
                 <span className="hidden sm:inline">წინა</span>
               </button>
 
-              {!revealed ? (
-                <button
-                  type="button"
-                  onClick={check}
-                  disabled={selected === null}
-                  className={`paper-sticker flex-1 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID[accent]}`}
-                >
-                  პასუხის შემოწმება
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={advance}
-                  className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
-                >
-                  {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
-                  <ArrowRight className="h-4 w-4 stroke-[2.5]" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={advance}
+                className={`paper-sticker flex flex-1 items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
+              >
+                {index >= total - 1 ? "წერით დავალებაზე გადასვლა" : "შემდეგი კითხვა"}
+                <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+              </button>
             </div>
           </section>
         </div>
@@ -882,52 +817,17 @@ export function ExamSimulation({
                 placeholder="დაიწყე წერა აქ... საგამოცდო ესესთვის სასურველია 250-400 სიტყვა: შესავალი თეზისით, არგუმენტები, დასკვნა."
                 className="exam-prose min-h-[340px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pink-500/70 dark:border-white/[0.14] dark:bg-[#0c0b12] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-pink-400/70"
               />
-
-              <button
-                type="button"
-                onClick={() =>
-                  void essayGrading.grade(essayDraft, {
-                    prompt: passage.essay?.prompt,
-                    year,
-                    passageTitle: passage.title,
-                    passageText: passage.textExcerpt,
-                    hasBoundText: true,
-                  })
-                }
-                disabled={essayGrading.busy || essayWords === 0}
-                className={`paper-sticker mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
-              >
-                {essayGrading.busy ? (
-                  <>
-                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                    მიმდინარეობს შეფასება...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 stroke-[2]" />
-                    {essayGrading.result ? "ხელახლა შეაფასე" : "შეაფასე ნაშრომი"}
-                  </>
-                )}
-              </button>
-
-              {essayGrading.result && (
-                <div className="mt-5">
-                  <WritingTaskReport
-                    result={essayGrading.result}
-                    year={year}
-                    usedFallback={essayGrading.usedFallback}
-                    compact
-                  />
-                </div>
-              )}
             </div>
 
+            {/* Nothing is graded here — pressing finish grades the essay, the
+                editing and the questions together, on the results screen. */}
             <button
               type="button"
               onClick={finish}
-              className={`mt-4 w-full rounded-full border-2 px-5 py-3 text-sm font-bold transition ${MUTED} ${PLAIN_CARD}`}
+              className={`paper-sticker mt-6 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID.violet}`}
             >
-              გამოცდის დასრულება და შედეგები
+              <Sparkles className="h-4 w-4 stroke-[2]" />
+              გამოცდის დასრულება და შეფასება
             </button>
           </section>
         </div>
@@ -936,11 +836,14 @@ export function ExamSimulation({
   }
 
   /* ============================== STAGE: done ============================= */
-  const byCategory = answerList.reduce<Record<string, { correct: number; total: number }>>(
-    (acc, a) => {
-      const bucket = acc[a.category] ?? { correct: 0, total: 0 };
-      acc[a.category] = {
-        correct: bucket.correct + (a.correct ? 1 : 0),
+  // Scored here from the picks — the exam kept the key hidden until now. Only
+  // answered questions feed the category breakdown (skipped ones aren't "wrong").
+  const byCategory = questions.reduce<Record<string, { correct: number; total: number }>>(
+    (acc, q) => {
+      if (picked[q.id] == null) return acc;
+      const bucket = acc[q.category] ?? { correct: 0, total: 0 };
+      acc[q.category] = {
+        correct: bucket.correct + (picked[q.id] === q.correctIndex ? 1 : 0),
         total: bucket.total + 1,
       };
       return acc;
@@ -962,6 +865,7 @@ export function ExamSimulation({
         key: "editing",
         label: "რედაქტირება",
         graded: editingResult !== null,
+        busy: editingGrading.busy,
         score: editingResult?.totalScore ?? 0,
         max: variant.editingTask.points ?? TEXT_EDITING_TOTAL_MAX,
       },
@@ -969,6 +873,7 @@ export function ExamSimulation({
         key: "mcq",
         label: "ტესტური კითხვები",
         graded: true,
+        busy: false,
         score: correctCount,
         max: total,
       },
@@ -976,6 +881,7 @@ export function ExamSimulation({
         key: "essay",
         label: "წერითი დავალება",
         graded: essayResult !== null,
+        busy: essayGrading.busy,
         score: essayResult?.totalScore ?? 0,
         max: passage.essay.points ?? WRITING_TASK_TOTAL_MAX,
       },
@@ -983,13 +889,17 @@ export function ExamSimulation({
       key: string;
       label: string;
       graded: boolean;
+      busy: boolean;
       score: number;
       max: number;
     }[]
   );
   const earnedTotal = scoreParts.reduce((sum, part) => sum + part.score, 0);
   const maxTotal = scoreParts.reduce((sum, part) => sum + part.max, 0);
-  const ungraded = scoreParts.filter((part) => !part.graded);
+  // Grading fires on finish; a part is "pending" while its grader runs and
+  // "empty" only when the student wrote nothing (so it never gets graded).
+  const anyGrading = scoreParts.some((part) => part.busy);
+  const emptyParts = scoreParts.filter((part) => !part.graded && !part.busy);
   // Only worth calling a "score sheet" when there is more than one part to add.
   const showScoreSheet = scoreParts.length > 1;
 
@@ -1009,8 +919,8 @@ export function ExamSimulation({
           total={maxTotal}
           stats={[
             { label: "ტესტური კითხვები", value: `${correctCount}/${total}` },
+            { label: "ნაპასუხები", value: `${answeredCount}/${total}` },
             { label: "დარჩენილი დრო", value: formatClock(remaining) },
-            { label: "საუკეთესო სერია", value: `${bestStreak} ზედიზედ` },
           ]}
         />
 
@@ -1026,13 +936,20 @@ export function ExamSimulation({
                   className={`flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2.5 ${PLAIN_CARD}`}
                 >
                   <span className={`text-sm ${MUTED}`}>{part.label}</span>
-                  <span
-                    className={`text-sm font-bold tabular-nums ${
-                      part.graded ? TITLE : FAINT
-                    }`}
-                  >
-                    {part.graded ? `${part.score} / ${part.max}` : `— / ${part.max}`}
-                  </span>
+                  {part.busy ? (
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-bold ${FAINT}`}>
+                      <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                      ფასდება…
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-sm font-bold tabular-nums ${
+                        part.graded ? TITLE : FAINT
+                      }`}
+                    >
+                      {part.graded ? `${part.score} / ${part.max}` : `— / ${part.max}`}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1044,48 +961,113 @@ export function ExamSimulation({
                 {earnedTotal} / {maxTotal}
               </span>
             </div>
-            {ungraded.length > 0 && (
+            {anyGrading && (
+              <p className={`mt-3 flex items-center gap-2 text-[12px] leading-relaxed ${FAINT}`}>
+                <LoaderCircle className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                მიმდინარეობს წერითი ნაწილების შეფასება — ჯამი განახლდება, როგორც კი დასრულდება.
+              </p>
+            )}
+            {!anyGrading && emptyParts.length > 0 && (
               <p className={`mt-3 flex items-start gap-2 text-[12px] leading-relaxed ${FAINT}`}>
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-[2]" />
-                {ungraded.map((part) => `„${part.label}“`).join(" და ")} ჯერ არ
-                შეგიფასებია — ეს ნაწილი 0 ქულით ითვლება. „თავიდან“ დაწყებისას შესაბამის
-                საფეხურზე დააჭირე „შეაფასე“, რომ სრული ჯამი დაითვალოს.
+                {emptyParts.map((part) => `„${part.label}“`).join(" და ")} ცარიელი დარჩა —
+                ეს ნაწილი 0 ქულით ითვლება.
               </p>
             )}
           </div>
         )}
 
-        {essayResult && (
-          <div className="mt-8">
-            <p
-              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
-            >
-              წერითი დავალების შეფასება
-            </p>
-            <WritingTaskReport
-              result={essayResult}
-              year={year}
-              usedFallback={essayGrading.usedFallback}
-              compact
-            />
-          </div>
-        )}
+        {/* The three parts, each behind its own dropdown, in the exam's own
+            order: editing, reading comprehension, then the essay. */}
+        <p className={`mb-3 mt-8 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}>
+          დეტალური განხილვა
+        </p>
+        <div className="space-y-3">
+          {editingResult && (
+            <div>
+              <ReportToggle
+                label="რედაქტირება — რა შეასწორე და რა გამოგრჩა"
+                open={showEditingReport}
+                onToggle={() => setShowEditingReport((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showEditingReport && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <TextEditingReport
+                        result={editingResult}
+                        year={year}
+                        usedFallback={editingGrading.usedFallback}
+                        compact
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
-        {editingResult && (
-          <div className="mt-8">
-            <p
-              className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${FAINT}`}
-            >
-              რედაქტირების შეფასება
-            </p>
-            <TextEditingReport
-              result={editingResult}
-              year={year}
-              usedFallback={editingGrading.usedFallback}
-              compact
-            />
-          </div>
-        )}
+          {total > 0 && (
+            <div>
+              <ReportToggle
+                label="წაკითხულის გააზრება — სწორი პასუხები და ახსნა"
+                open={showQuestionsReview}
+                onToggle={() => setShowQuestionsReview((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showQuestionsReview && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <QuestionsReview questions={questions} picked={picked} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {essayResult && (
+            <div>
+              <ReportToggle
+                label="წერითი დავალება — შეფასების კრიტერიუმებით"
+                open={showEssayReport}
+                onToggle={() => setShowEssayReport((v) => !v)}
+              />
+              <AnimatePresence initial={false}>
+                {showEssayReport && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3">
+                      <WritingTaskReport
+                        result={essayResult}
+                        year={year}
+                        usedFallback={essayGrading.usedFallback}
+                        compact
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
 
         {Object.keys(byCategory).length > 0 && (
           <div className="mt-8">
@@ -1139,28 +1121,141 @@ export function ExamSimulation({
 }
 
 /* -------------------------------------------------------------------------- */
+/*                          COLLAPSIBLE REPORT TOGGLE                          */
+/* -------------------------------------------------------------------------- */
+
+/** A press-to-reveal header for a written part's report on the results screen:
+ *  the student opens it to see what went wrong, and folds it away again. */
+function ReportToggle({
+  label,
+  open,
+  onToggle,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className={`flex w-full items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-left text-sm font-bold transition ${TITLE} ${PLAIN_CARD}`}
+    >
+      {label}
+      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${FAINT}`}>
+        {open ? "დამალვა" : "ნახვა"}
+        <ChevronDown
+          className={`h-4 w-4 stroke-[2.5] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                    READING-COMPREHENSION REVIEW (results)                   */
+/* -------------------------------------------------------------------------- */
+
+/** The results-screen review of the questions part: every question with the
+ *  student's pick, the correct answer marked, and the explanation of why it is
+ *  right — the answers the imitated exam withheld while it was running. */
+function QuestionsReview({
+  questions,
+  picked,
+}: {
+  questions: ExamQuestion[];
+  picked: Record<string, number>;
+}) {
+  return (
+    <div className="space-y-3">
+      {questions.map((q, i) => {
+        const pick = picked[q.id];
+        const answered = pick != null;
+        const correct = pick === q.correctIndex;
+        const status = !answered ? "უპასუხოდ" : correct ? "სწორი" : "არასწორი";
+        const statusClass = !answered
+          ? "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400"
+          : correct
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+            : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300";
+
+        return (
+          <div key={q.id} className={`rounded-2xl border-2 p-4 ${PLAIN_CARD}`}>
+            <div className="flex items-center justify-between gap-3">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${FAINT}`}>
+                კითხვა {i + 1}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusClass}`}>
+                {status}
+              </span>
+            </div>
+            <p className={`mt-1.5 text-sm font-semibold leading-relaxed ${TITLE}`}>
+              {q.questionText}
+            </p>
+
+            <div className="mt-3 space-y-1.5">
+              {q.options.map((option, oi) => {
+                const isAnswer = oi === q.correctIndex;
+                const isWrongPick = answered && oi === pick && !correct;
+                const rowClass = isAnswer
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200"
+                  : isWrongPick
+                    ? "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-500/50 dark:bg-rose-500/10 dark:text-rose-200"
+                    : "border-slate-200 text-slate-600 dark:border-white/10 dark:text-slate-300";
+                return (
+                  <div
+                    key={oi}
+                    className={`flex items-start gap-2 rounded-xl border-2 px-3 py-2 text-[13.5px] leading-relaxed ${rowClass}`}
+                  >
+                    <span className="font-bold">{OPTION_LETTERS[oi]}</span>
+                    <span className="min-w-0 flex-1">{option}</span>
+                    {isAnswer && <Check className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.5]" />}
+                    {isWrongPick && <X className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.5]" />}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={`mt-3 rounded-xl border-2 p-3 ${PLAIN_CARD}`}>
+              <p className={`mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${FAINT}`}>
+                <Lightbulb className="h-3 w-3 stroke-[2.5]" />
+                რატომ არის ეს სწორი
+              </p>
+              <p className="text-[13px] leading-relaxed text-slate-700 dark:text-slate-200">
+                {q.explanation}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*                      STAGE I — ტექსტის რედაქტირება                         */
 /* -------------------------------------------------------------------------- */
 
 function EditingStage({
   task,
-  grading: editingGrading,
+  draft,
+  onDraftChange,
   accent,
-  year,
   onDone,
 }: {
   task: NonNullable<ExamVariant["editingTask"]>;
-  /** Lifted to the parent so the score + corrections reach the results screen. */
-  grading: TextEditingGradingState;
+  /** Lifted to the parent so it survives to the results screen and is graded
+   *  there, together with the essay, rather than mid-exam. */
+  draft: string;
+  onDraftChange: (value: string) => void;
   accent: NotebookAccent;
-  year: number;
   onDone: () => void;
 }) {
   // The editor starts empty: the source is above, and the reader decides
   // whether to bring it down and correct it in place or to write out their
   // own version. Reading and writing are stacked rather than side by side —
   // the text is long, and two half-width columns made both of them worse.
-  const [draft, setDraft] = useState("");
   const [showKey, setShowKey] = useState(false);
   const words = draft.trim().split(/\s+/).filter(Boolean).length;
   const transferred = draft !== "";
@@ -1192,7 +1287,7 @@ function EditingStage({
             exam forward. */}
         <button
           type="button"
-          onClick={() => setDraft(task.text)}
+          onClick={() => onDraftChange(task.text)}
           className="paper-sticker inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-slate-900 px-5 py-2.5 text-sm font-bold text-white dark:border-white dark:bg-white dark:text-slate-900"
         >
           <ArrowDown className="h-4 w-4 stroke-[2.5]" />
@@ -1210,7 +1305,7 @@ function EditingStage({
 
         <textarea
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => onDraftChange(event.target.value)}
           spellCheck={false}
           placeholder="დაიწყე წერა, ან ჩამოიტანე ორიგინალი ზემოთა ღილაკით და გაასწორე ადგილზე."
           className="exam-prose min-h-[420px] w-full resize-y rounded-2xl border-2 border-slate-300/80 bg-white/60 p-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500/70 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500"
@@ -1222,7 +1317,7 @@ function EditingStage({
           {transferred && (
             <button
               type="button"
-              onClick={() => setDraft(task.text)}
+              onClick={() => onDraftChange(task.text)}
               disabled={untouched}
               className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold transition ${MUTED} ${PLAIN_CARD} disabled:opacity-40`}
             >
@@ -1269,40 +1364,12 @@ function EditingStage({
           )}
         </AnimatePresence>
 
-        <button
-          type="button"
-          onClick={() => void editingGrading.grade(task.text, draft, year)}
-          disabled={editingGrading.busy || !transferred || untouched}
-          className="paper-sticker mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 border-pink-700 bg-pink-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-300/40"
-        >
-          {editingGrading.busy ? (
-            <>
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-              მიმდინარეობს შეფასება...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 stroke-[2]" />
-              {editingGrading.result ? "ხელახლა შეაფასე" : "შეაფასე რედაქტირება (AI)"}
-            </>
-          )}
-        </button>
-
-        {editingGrading.result && (
-          <div className="mt-5">
-            <TextEditingReport
-              result={editingGrading.result}
-              year={year}
-              usedFallback={editingGrading.usedFallback}
-              compact
-            />
-          </div>
-        )}
-
+        {/* No grading here — the corrected text is only graded at the end,
+            with everything else. This button just moves the exam forward. */}
         <button
           type="button"
           onClick={() => onDone()}
-          className={`paper-sticker mt-4 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
+          className={`paper-sticker mt-6 flex w-full items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-bold ${ACCENT_SOLID[accent]}`}
         >
           II ნაწილზე გადასვლა
           <ArrowRight className="h-4 w-4 stroke-[2.5]" />
