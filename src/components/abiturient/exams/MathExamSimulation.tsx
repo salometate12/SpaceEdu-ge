@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
+  ChevronDown,
   Clock,
   LoaderCircle,
   Sparkles,
@@ -18,8 +20,9 @@ import type {
   MathOptionLabel,
 } from "@/data/mathExamsData";
 import type { MathOpenGraderResponse } from "@/lib/ai/math-open-problem-grader-schema";
+import { recordToolUsage } from "@/lib/activity";
 import { MathText, MathBlock } from "./MathText";
-import { useMathOpenGrading } from "./useMathOpenGrading";
+import { gradeMathOpenProblem } from "./useMathOpenGrading";
 
 /** A graded open problem, lifted to the exam so its score AND the mistakes it
  *  found survive to the results screen. */
@@ -100,21 +103,18 @@ function McqCard({
 }
 
 /* --------------------------- one open problem ---------------------------- */
+/** Just the prompt and a place to write. Nothing is graded here — the whole
+ *  set is graded together when the student finishes, so the draft is held by
+ *  the exam rather than this card. */
 function OpenProblemCard({
   p,
-  onGraded,
+  draft,
+  onDraftChange,
 }: {
   p: MathOpenProblem;
-  onGraded: (result: MathOpenGraderResponse, usedFallback: boolean) => void;
+  draft: string;
+  onDraftChange: (value: string) => void;
 }) {
-  const [draft, setDraft] = useState("");
-  const grading = useMathOpenGrading();
-
-  useEffect(() => {
-    if (grading.result) onGraded(grading.result, grading.usedFallback);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grading.result]);
-
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#121214]">
       <div className="flex items-start gap-2">
@@ -134,68 +134,10 @@ function OpenProblemCard({
 
       <textarea
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => onDraftChange(e.target.value)}
         placeholder="ჩაწერე სრული ამოხსნის გზა — ეტაპობრივად..."
         className="mt-3 min-h-[160px] w-full resize-y rounded-xl border-2 border-slate-300/80 bg-white p-3 text-sm text-slate-900 outline-none focus:border-pink-500/70 dark:border-white/[0.14] dark:bg-[#0c0b12] dark:text-slate-100"
       />
-
-      <button
-        type="button"
-        onClick={() => void grading.grade(p, draft)}
-        disabled={grading.busy || draft.trim().length === 0}
-        className="mt-3 inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-sm font-bold text-white hover:bg-pink-700 disabled:opacity-50"
-      >
-        {grading.busy ? (
-          <>
-            <LoaderCircle className="h-4 w-4 animate-spin" /> მიმდინარეობს შეფასება...
-          </>
-        ) : (
-          <>
-            <Sparkles className="h-4 w-4" /> {grading.result ? "ხელახლა შეაფასე" : "შეაფასე (AI)"}
-          </>
-        )}
-      </button>
-
-      {grading.result && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-          <p className="text-lg font-black text-slate-900 dark:text-white">
-            {grading.result.score}/{p.points} ქულა
-          </p>
-          {grading.usedFallback && (
-            <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
-              AI მიუწვდომელია — სავარაუდო ლოკალური შეფასება.
-            </p>
-          )}
-          <p className="mt-2 text-[13px] leading-relaxed text-slate-600 dark:text-zinc-300">
-            {grading.result.summary}
-          </p>
-          <ul className="mt-3 space-y-1.5">
-            {grading.result.steps.map((s) => (
-              <li key={s.id} className="flex items-start gap-2 text-[13px]">
-                {s.done ? (
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                ) : (
-                  <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" />
-                )}
-                <span className="text-slate-700 dark:text-zinc-300">
-                  {p.steps.find((st) => st.id === s.id)?.description ?? s.id}
-                  {s.comment ? ` — ${s.comment}` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {grading.result.mistake && (
-            <p className="mt-3 text-[13px] text-rose-700 dark:text-rose-300">
-              შეცდომა: {grading.result.mistake}
-            </p>
-          )}
-          {grading.result.correctMove && (
-            <p className="mt-1 text-[13px] text-emerald-700 dark:text-emerald-300">
-              სწორი ნაბიჯი: {grading.result.correctMove}
-            </p>
-          )}
-        </div>
-      )}
     </article>
   );
 }
@@ -210,10 +152,14 @@ export function MathExamSimulation({
 }) {
   const [stage, setStage] = useState<Stage>("mcq");
   const [picks, setPicks] = useState<Record<number, MathOptionLabel>>({});
+  // The open-problem drafts are held here, not in each card, so nothing is
+  // graded mid-exam — the whole set is scored together at the end.
+  const [openDrafts, setOpenDrafts] = useState<Record<number, string>>({});
   // The whole graded report per open problem (keyed by number), not just its
   // score — so the results screen can add up the points AND show what went
   // wrong, exactly like the Georgian exam's score sheet.
   const [openResults, setOpenResults] = useState<Record<number, OpenResult>>({});
+  const [gradingOpen, setGradingOpen] = useState(false);
   const [remaining, setRemaining] = useState(variant.durationMinutes * 60);
 
   useEffect(() => {
@@ -221,6 +167,35 @@ export function MathExamSimulation({
     const id = window.setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => window.clearInterval(id);
   }, [stage]);
+
+  // Finishing grades every open problem that has a written solution, all at
+  // once, then the results screen fills in as each report lands.
+  const finishExam = useCallback(async () => {
+    setStage("done");
+    const toGrade = variant.open.filter(
+      (p) => openDrafts[p.number]?.trim() && !openResults[p.number],
+    );
+    if (toGrade.length === 0) return;
+    setGradingOpen(true);
+    recordToolUsage("abit-math-open", "მათემატიკის ამოცანის შემფასებელი");
+    try {
+      const outcomes = await Promise.all(
+        toGrade.map(async (p) => ({
+          number: p.number,
+          ...(await gradeMathOpenProblem(p, openDrafts[p.number])),
+        })),
+      );
+      setOpenResults((prev) => {
+        const next = { ...prev };
+        for (const o of outcomes) {
+          next[o.number] = { result: o.result, usedFallback: o.usedFallback };
+        }
+        return next;
+      });
+    } finally {
+      setGradingOpen(false);
+    }
+  }, [variant.open, openDrafts, openResults]);
 
   const mcqScore = useMemo(
     () => variant.mcq.reduce((s, q) => s + (picks[q.number] === q.correctLabel ? 1 : 0), 0),
@@ -299,18 +274,22 @@ export function MathExamSimulation({
               <OpenProblemCard
                 key={p.id}
                 p={p}
-                onGraded={(result, usedFallback) =>
-                  setOpenResults((s) => ({ ...s, [p.number]: { result, usedFallback } }))
+                draft={openDrafts[p.number] ?? ""}
+                onDraftChange={(value) =>
+                  setOpenDrafts((s) => ({ ...s, [p.number]: value }))
                 }
               />
             ))}
           </div>
+          {/* Nothing is graded until here — this grades every written solution
+              at once and shows the results. */}
           <button
             type="button"
-            onClick={() => setStage("done")}
+            onClick={() => void finishExam()}
             className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-600 px-5 py-3 text-sm font-bold text-white hover:bg-pink-700 sm:w-auto"
           >
-            გამოცდის დასრულება
+            <Sparkles className="h-4 w-4" />
+            გამოცდის დასრულება და შეფასება
             <ArrowRight className="h-4 w-4" />
           </button>
         </>
@@ -320,13 +299,17 @@ export function MathExamSimulation({
         <MathResults
           variant={variant}
           picks={picks}
+          openDrafts={openDrafts}
           openResults={openResults}
+          gradingOpen={gradingOpen}
           mcqScore={mcqScore}
           openScore={openScore}
           openMax={openMax}
           onRestart={() => {
             setPicks({});
+            setOpenDrafts({});
             setOpenResults({});
+            setGradingOpen(false);
             setRemaining(variant.durationMinutes * 60);
             setStage("mcq");
           }}
@@ -345,7 +328,9 @@ export function MathExamSimulation({
 function MathResults({
   variant,
   picks,
+  openDrafts,
   openResults,
+  gradingOpen,
   mcqScore,
   openScore,
   openMax,
@@ -354,20 +339,24 @@ function MathResults({
 }: {
   variant: MathExamVariant;
   picks: Record<number, MathOptionLabel>;
+  openDrafts: Record<number, string>;
   openResults: Record<number, OpenResult>;
+  gradingOpen: boolean;
   mcqScore: number;
   openScore: number;
   openMax: number;
   onRestart: () => void;
   onExit: () => void;
 }) {
+  const [showMcqReview, setShowMcqReview] = useState(false);
   const mcqMax = variant.mcq.length;
   const grandScore = mcqScore + openScore;
-  const wrongMcq = variant.mcq.filter(
-    (q) => picks[q.number] && picks[q.number] !== q.correctLabel,
+  const answeredMcq = variant.mcq.filter((q) => picks[q.number]).length;
+  // Once grading has finished, the still-ungraded problems are the ones the
+  // student left blank (they count as 0).
+  const emptyOpen = variant.open.filter(
+    (p) => !openResults[p.number] && !openDrafts[p.number]?.trim(),
   );
-  const unansweredMcq = variant.mcq.filter((q) => !picks[q.number]);
-  const ungradedOpen = variant.open.filter((p) => !openResults[p.number]);
 
   const rowClass =
     "flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm dark:border-white/10 dark:bg-[#121214]";
@@ -405,9 +394,16 @@ function MathResults({
           </div>
           <div className={rowClass}>
             <span className="text-slate-600 dark:text-zinc-300">ღია ამოცანები</span>
-            <span className="font-bold tabular-nums text-slate-900 dark:text-white">
-              {openScore} / {openMax}
-            </span>
+            {gradingOpen ? (
+              <span className="inline-flex items-center gap-1.5 font-bold text-slate-400">
+                <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                ფასდება…
+              </span>
+            ) : (
+              <span className="font-bold tabular-nums text-slate-900 dark:text-white">
+                {openScore} / {openMax}
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-pink-300/70 bg-pink-50 px-4 py-3 dark:border-pink-500/30 dark:bg-pink-500/10">
             <span className="text-sm font-bold text-slate-900 dark:text-white">ჯამური ქულა</span>
@@ -416,11 +412,16 @@ function MathResults({
             </span>
           </div>
         </div>
-        {ungradedOpen.length > 0 && (
+        {gradingOpen && (
+          <p className="mt-3 inline-flex items-center gap-2 text-[12px] leading-relaxed text-slate-500 dark:text-zinc-400">
+            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+            მიმდინარეობს ღია ამოცანების შეფასება — ჯამი განახლდება, როგორც კი დასრულდება.
+          </p>
+        )}
+        {!gradingOpen && emptyOpen.length > 0 && (
           <p className="mt-3 text-[12px] leading-relaxed text-slate-500 dark:text-zinc-400">
-            {ungradedOpen.map((p) => `#${p.number}`).join(", ")} ღია ამოცანა ჯერ არ
-            შეგიფასებია — ითვლება 0 ქულით. „თავიდან“ დაწყებისას თითოეულ ამოცანაზე დააჭირე
-            „შეაფასე“, რომ სრული ჯამი დაითვალოს.
+            {emptyOpen.map((p) => `#${p.number}`).join(", ")} ღია ამოცანა ცარიელი დარჩა —
+            ითვლება 0 ქულით.
           </p>
         )}
       </div>
@@ -432,93 +433,47 @@ function MathResults({
             ღია ამოცანების ჭრილში
           </p>
           <div className="space-y-3">
-            {variant.open.map((p) => {
-              const graded = openResults[p.number]?.result;
-              return (
-                <div
-                  key={p.id}
-                  className="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#121214]"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-bold text-slate-900 dark:text-white">
-                      ამოცანა {p.number}
-                    </span>
-                    <span
-                      className={`text-sm font-bold tabular-nums ${
-                        graded ? "text-slate-900 dark:text-white" : "text-slate-400"
-                      }`}
-                    >
-                      {graded ? `${graded.score} / ${p.points}` : `— / ${p.points}`}
-                    </span>
-                  </div>
-                  {graded ? (
-                    <>
-                      <ul className="mt-2.5 space-y-1.5">
-                        {graded.steps.map((s) => (
-                          <li key={s.id} className="flex items-start gap-2 text-[13px]">
-                            {s.done ? (
-                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                            ) : (
-                              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" />
-                            )}
-                            <span className="text-slate-700 dark:text-zinc-300">
-                              {p.steps.find((st) => st.id === s.id)?.description ?? s.id}
-                              {s.comment ? ` — ${s.comment}` : ""}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                      {graded.mistake && (
-                        <p className="mt-2.5 text-[13px] text-rose-700 dark:text-rose-300">
-                          შეცდომა: {graded.mistake}
-                        </p>
-                      )}
-                      {graded.correctMove && (
-                        <p className="mt-1 text-[13px] text-emerald-700 dark:text-emerald-300">
-                          სწორი ნაბიჯი: {graded.correctMove}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="mt-2 text-[13px] text-slate-400">შეუფასებელი.</p>
-                  )}
-                </div>
-              );
-            })}
+            {variant.open.map((p) => (
+              <OpenResultRow
+                key={p.id}
+                p={p}
+                graded={openResults[p.number]?.result ?? null}
+                attempted={Boolean(openDrafts[p.number]?.trim())}
+                gradingOpen={gradingOpen}
+              />
+            ))}
           </div>
         </div>
       )}
 
-      {/* ------------------------ test mistakes ---------------------------- */}
+      {/* ---------------- test questions: correct answers ------------------ */}
       {variant.mcq.length > 0 && (
-        <div className="mx-auto mt-8 max-w-lg rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-white/10 dark:bg-[#121214]">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-            ტესტური კითხვები
-          </p>
-          {wrongMcq.length === 0 && unansweredMcq.length === 0 ? (
-            <p className="text-emerald-700 dark:text-emerald-300">ყველა კითხვა სწორია. 🎉</p>
-          ) : (
-            <div className="space-y-1.5 text-slate-600 dark:text-zinc-300">
-              {wrongMcq.length > 0 && (
-                <p>
-                  <span className="font-bold text-rose-600 dark:text-rose-300">
-                    არასწორი ({wrongMcq.length}):
-                  </span>{" "}
-                  {wrongMcq
-                    .map((q) => `#${q.number} (შენ: ${picks[q.number]}, სწორი: ${q.correctLabel})`)
-                    .join(", ")}
-                </p>
-              )}
-              {unansweredMcq.length > 0 && (
-                <p>
-                  <span className="font-bold text-slate-500 dark:text-zinc-400">
-                    უპასუხოდ ({unansweredMcq.length}):
-                  </span>{" "}
-                  {unansweredMcq.map((q) => `#${q.number}`).join(", ")}
-                </p>
-              )}
-            </div>
-          )}
+        <div className="mx-auto mt-8 max-w-lg">
+          <MathReportToggle
+            label="ტესტური კითხვები — შენი პასუხები და სწორი"
+            hint={`${mcqScore}/${mcqMax}`}
+            open={showMcqReview}
+            onToggle={() => setShowMcqReview((v) => !v)}
+          />
+          <AnimatePresence initial={false}>
+            {showMcqReview && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className="pt-3">
+                  <p className="mb-3 text-[12px] leading-relaxed text-slate-500 dark:text-zinc-400">
+                    {answeredMcq}/{mcqMax} ნაპასუხები · სწორად {mcqScore}. ქვემოთ ყველა
+                    კითხვის სწორი პასუხია მონიშნული.
+                  </p>
+                  <McqReview questions={variant.mcq} picks={picks} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -538,6 +493,211 @@ function MathResults({
           არქივზე დაბრუნება
         </button>
       </div>
+    </div>
+  );
+}
+
+/* --------------------------- report toggle ------------------------------- */
+/** A press-to-reveal dropdown header on the results screen, with an optional
+ *  score hint on the right. Mirrors the Georgian exam's ReportToggle. */
+function MathReportToggle({
+  label,
+  hint,
+  open,
+  onToggle,
+}: {
+  label: string;
+  hint?: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-left text-sm font-bold text-slate-900 transition hover:border-pink-300 dark:border-white/10 dark:bg-[#121214] dark:text-white dark:hover:border-pink-400/40"
+    >
+      <span className="min-w-0">{label}</span>
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-slate-400">
+        {hint && <span className="tabular-nums">{hint}</span>}
+        {open ? "დამალვა" : "ნახვა"}
+        <ChevronDown
+          className={`h-4 w-4 stroke-[2.5] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+/* ---------------------- test-question review (results) ------------------- */
+/** Every test question with the student's pick and the correct answer marked —
+ *  the answers the imitated exam withheld while it was running. */
+function McqReview({
+  questions,
+  picks,
+}: {
+  questions: MathMcqQuestion[];
+  picks: Record<number, MathOptionLabel>;
+}) {
+  return (
+    <div className="space-y-3">
+      {questions.map((q) => {
+        const pick = picks[q.number];
+        const answered = pick != null;
+        const correct = pick === q.correctLabel;
+        const status = !answered ? "უპასუხოდ" : correct ? "სწორი" : "არასწორი";
+        const statusClass = !answered
+          ? "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400"
+          : correct
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+            : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300";
+
+        return (
+          <div
+            key={q.id}
+            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#121214]"
+          >
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                კითხვა {q.number}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${statusClass}`}>
+                {status}
+              </span>
+            </div>
+            <MathText
+              text={q.prompt}
+              className="text-sm font-medium leading-relaxed text-slate-900 dark:text-slate-100"
+            />
+            {q.latex && <MathBlock latex={q.latex} className="my-2 overflow-x-auto" />}
+            {q.figure && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={q.figure.src} alt={q.figure.alt} className="my-2 max-h-48 w-auto" />
+            )}
+
+            <div className="mt-2 space-y-1.5">
+              {q.options.map((opt) => {
+                const isAnswer = opt.label === q.correctLabel;
+                const isWrongPick = answered && opt.label === pick && !correct;
+                const optClass = isAnswer
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200"
+                  : isWrongPick
+                    ? "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-500/50 dark:bg-rose-500/10 dark:text-rose-200"
+                    : "border-slate-200 text-slate-600 dark:border-white/10 dark:text-slate-300";
+                return (
+                  <div
+                    key={opt.label}
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm ${optClass}`}
+                  >
+                    <span className="shrink-0 font-bold">{opt.label})</span>
+                    {opt.latex ? (
+                      <MathText text={`$${opt.latex}$`} />
+                    ) : (
+                      <span className="min-w-0 flex-1">{opt.text}</span>
+                    )}
+                    {isAnswer && <Check className="ml-auto h-4 w-4 shrink-0 text-emerald-600" />}
+                    {isWrongPick && <X className="ml-auto h-4 w-4 shrink-0 text-rose-500" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* --------------------- one open problem's result row --------------------- */
+/** The problem's score at a glance; the steps, mistake and correct move sit
+ *  behind a press-to-reveal toggle the student can fold away again. Mirrors
+ *  the Georgian results screen. */
+function OpenResultRow({
+  p,
+  graded,
+  attempted,
+  gradingOpen,
+}: {
+  p: MathOpenProblem;
+  graded: MathOpenGraderResponse | null;
+  attempted: boolean;
+  gradingOpen: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const pending = !graded && attempted && gradingOpen;
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#121214]">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-bold text-slate-900 dark:text-white">
+          ამოცანა {p.number}
+        </span>
+        {pending ? (
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-400">
+            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+            ფასდება…
+          </span>
+        ) : graded ? (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="inline-flex items-center gap-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white"
+          >
+            {graded.score} / {p.points}
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+              {open ? "დამალვა" : "ნახვა"}
+              <ChevronDown
+                className={`h-4 w-4 stroke-[2.5] transition-transform ${open ? "rotate-180" : ""}`}
+              />
+            </span>
+          </button>
+        ) : (
+          <span className="text-sm font-bold tabular-nums text-slate-400">
+            — / {p.points}
+          </span>
+        )}
+      </div>
+
+      {!pending && !graded && (
+        <p className="mt-2 text-[13px] text-slate-400">ცარიელი — შეუფასებელი.</p>
+      )}
+
+      {graded && open && (
+        <div className="mt-3">
+          {graded.summary && (
+            <p className="text-[13px] leading-relaxed text-slate-600 dark:text-zinc-300">
+              {graded.summary}
+            </p>
+          )}
+          <ul className="mt-2.5 space-y-1.5">
+            {graded.steps.map((s) => (
+              <li key={s.id} className="flex items-start gap-2 text-[13px]">
+                {s.done ? (
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                ) : (
+                  <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" />
+                )}
+                <span className="text-slate-700 dark:text-zinc-300">
+                  {p.steps.find((st) => st.id === s.id)?.description ?? s.id}
+                  {s.comment ? ` — ${s.comment}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {graded.mistake && (
+            <p className="mt-2.5 text-[13px] text-rose-700 dark:text-rose-300">
+              შეცდომა: {graded.mistake}
+            </p>
+          )}
+          {graded.correctMove && (
+            <p className="mt-1 text-[13px] text-emerald-700 dark:text-emerald-300">
+              სწორი ნაბიჯი: {graded.correctMove}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
