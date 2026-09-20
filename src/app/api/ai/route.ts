@@ -28,9 +28,17 @@ import {
   normalizeMathOpenReport,
   type MathOpenGraderResponse,
 } from "@/lib/ai/math-open-problem-grader-schema";
+import {
+  HISTORY_OPEN_JSON_INSTRUCTIONS,
+  HistoryOpenGraderRequestSchema,
+  HistoryOpenGraderResponseSchema,
+  normalizeHistoryOpenReport,
+  type HistoryOpenGraderResponse,
+} from "@/lib/ai/history-open-answer-grader-schema";
 import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
 import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
 import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
+import { localGradeHistoryOpen } from "@/lib/history-open-answer-grader-local";
 import {
   LectureNotesKeywordsSchema,
   LectureNotesRequestSchema,
@@ -479,6 +487,24 @@ export async function POST(request: Request) {
         return Response.json(normalizeMathOpenReport(object, gradeInput));
       } catch {
         return Response.json(localGradeMathOpen(moPayload.studentSolution, gradeInput));
+      }
+    }
+
+    if (pageType === "history-open-answer-grader") {
+      const hoPayload = HistoryOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, hoPayload);
+      const gradeInput = { criteria: hoPayload.criteria, maxPoints: hoPayload.maxPoints };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: HistoryOpenGraderResponseSchema,
+          system: `${system}\n${HISTORY_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as HistoryOpenGraderResponse;
+        return Response.json(normalizeHistoryOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeHistoryOpen(hoPayload.studentAnswer, gradeInput));
       }
     }
 

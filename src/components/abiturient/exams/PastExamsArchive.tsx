@@ -22,6 +22,7 @@ import {
 import { ExamSimulation } from "./ExamSimulation";
 import { PastExamRunner } from "./PastExamRunner";
 import { MathPastExamsArchive } from "./MathPastExamsArchive";
+import { HistoryPastExamsArchive } from "./HistoryPastExamsArchive";
 
 interface PastExamsArchiveProps {
   subjectId: string;
@@ -44,6 +45,11 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   // problems, formulas and figures), so they get their own runner.
   if (subjectId === "math") {
     return <MathPastExamsArchive />;
+  }
+  // History is shaped like maths — independent MCQs + source-based open tasks,
+  // graded only at the end — so it gets the same kind of imitated-exam runner.
+  if (subjectId === "history") {
+    return <HistoryPastExamsArchive />;
   }
   return <LiteraturePastExamsArchive subjectId={subjectId} />;
 }
