@@ -5,11 +5,14 @@ interface SubjectSpaceRouteProps {
   params: Promise<{ id: string }>;
 }
 
-// Georgian has its own bespoke /subject/georgian/space page (a static route,
-// which Next.js always prefers over this dynamic one for that exact path),
-// so it's excluded here to avoid generating a duplicate placeholder for it.
+// Georgian, maths and history each have their own bespoke /subject/<id>/space
+// page (static routes, which Next.js always prefers over this dynamic one for
+// that exact path), so they're excluded here to avoid generating a duplicate
+// placeholder for them.
+const BESPOKE_SPACE_HUBS = new Set(["georgian", "math", "history"]);
+
 export async function generateStaticParams() {
-  return SUBJECT_HUB_IDS.filter((id) => id !== "georgian").map((id) => ({ id }));
+  return SUBJECT_HUB_IDS.filter((id) => !BESPOKE_SPACE_HUBS.has(id)).map((id) => ({ id }));
 }
 
 export default async function SubjectSpaceRoute({ params }: SubjectSpaceRouteProps) {
