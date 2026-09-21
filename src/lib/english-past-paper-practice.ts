@@ -8,7 +8,7 @@
  * together — so a student practises what was actually set.
  */
 
-import { getEnglishExamYears } from "@/data/englishExamsData";
+import { getEnglishEssayPrompts, getEnglishExamYears } from "@/data/englishExamsData";
 import type { EnglishTask, EnglishEssayTask } from "@/data/englishExamsData";
 
 export interface EnglishTaskDraw {
@@ -36,15 +36,15 @@ export function englishTaskPool(): EnglishTaskDraw[] {
   return pool;
 }
 
-/** Every Task 7 essay prompt the archive holds. */
+/** Every real Task 7 essay prompt (all four 2025 variants), for the writing
+ *  practice's random draw. Not limited to the fully-transcribed exam variants,
+ *  since every variant's essay prompt is verbatim from its booklet. */
 export function englishEssayPool(): EnglishEssayDraw[] {
-  const pool: EnglishEssayDraw[] = [];
-  for (const year of getEnglishExamYears()) {
-    for (const variant of year.variants) {
-      pool.push({ essay: variant.essay, year: year.year, variantLabel: variant.label });
-    }
-  }
-  return pool;
+  return getEnglishEssayPrompts().map((p) => ({
+    essay: p.essay,
+    year: p.year,
+    variantLabel: p.variantLabel,
+  }));
 }
 
 /** One task at random, never the one already on screen. */

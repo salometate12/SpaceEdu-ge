@@ -18,7 +18,8 @@
  * rubric, since the exam publishes no official essay criteria.
  */
 
-import { ENGLISH_2025 } from "./englishExams2025";
+import { ENGLISH_2025, ENGLISH_ESSAY_PROMPTS_2025 } from "./englishExams2025";
+export type { EnglishEssayPrompt } from "./englishExams2025";
 
 export interface EnglishOption {
   /** "A".."N" — the bank grows to 14 in the vocabulary task. */
@@ -102,6 +103,11 @@ export const ENGLISH_EXAM_YEARS: EnglishExamYear[] = [ENGLISH_2025];
 
 export function getEnglishExamYears(): EnglishExamYear[] {
   return ENGLISH_EXAM_YEARS;
+}
+
+/** Every real Task 7 essay prompt, for the writing practice's random draw. */
+export function getEnglishEssayPrompts() {
+  return ENGLISH_ESSAY_PROMPTS_2025;
 }
 
 export function getEnglishVariant(variantId: string): EnglishExamVariant | null {

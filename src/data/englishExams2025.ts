@@ -8,6 +8,7 @@
  */
 
 import type {
+  EnglishEssayTask,
   EnglishExamVariant,
   EnglishExamYear,
   EnglishItem,
@@ -350,6 +351,63 @@ const VARIANT_1: EnglishExamVariant = {
     points: 16,
   },
 };
+
+/* ========================= ESSAY PROMPT BANK ============================= */
+
+/**
+ * All four 2025 Task 7 essay prompts, transcribed verbatim from the variant
+ * booklets in `docs/exam-sources/english/`. Only Variant I is transcribed as a
+ * full exam so far, but every variant's essay prompt is real, so the writing
+ * practice draws its "random topic" from all four.
+ */
+export interface EnglishEssayPrompt {
+  essay: EnglishEssayTask;
+  year: number;
+  variantLabel: string;
+}
+
+export const ENGLISH_ESSAY_PROMPTS_2025: EnglishEssayPrompt[] = [
+  { year: 2025, variantLabel: "I ვარიანტი", essay: VARIANT_1.essay },
+  {
+    year: 2025,
+    variantLabel: "II ვარიანტი",
+    essay: {
+      id: "eng-2025-v2-t7",
+      number: 7,
+      prompt:
+        "Money is the most important thing in life. What do YOU think about this? Give your own opinion and support it with arguments.",
+      minWords: 120,
+      maxWords: 170,
+      points: 16,
+    },
+  },
+  {
+    year: 2025,
+    variantLabel: "III ვარიანტი",
+    essay: {
+      id: "eng-2025-v3-t7",
+      number: 7,
+      prompt:
+        "After the age of 18, young people should be able to make important decisions independently. What do YOU think about this? Give your own opinion and support it with arguments.",
+      minWords: 120,
+      maxWords: 170,
+      points: 16,
+    },
+  },
+  {
+    year: 2025,
+    variantLabel: "IV ვარიანტი",
+    essay: {
+      id: "eng-2025-v4-t7",
+      number: 7,
+      prompt:
+        "Many young people nowadays make friends through internet sites and different applications. What do YOU think about this? Give your own opinion and support it with arguments.",
+      minWords: 120,
+      maxWords: 170,
+      points: 16,
+    },
+  },
+];
 
 /* ============================ REGISTRY ================================== */
 
