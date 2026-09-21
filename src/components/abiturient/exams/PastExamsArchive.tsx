@@ -23,6 +23,7 @@ import { ExamSimulation } from "./ExamSimulation";
 import { PastExamRunner } from "./PastExamRunner";
 import { MathPastExamsArchive } from "./MathPastExamsArchive";
 import { HistoryPastExamsArchive } from "./HistoryPastExamsArchive";
+import { EnglishPastExamsArchive } from "./EnglishPastExamsArchive";
 
 interface PastExamsArchiveProps {
   subjectId: string;
@@ -50,6 +51,11 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   // graded only at the end — so it gets the same kind of imitated-exam runner.
   if (subjectId === "history") {
     return <HistoryPastExamsArchive />;
+  }
+  // English is another exam-format subject (listening + reading + use of
+  // English + an AI-graded essay), so it gets its own imitated-exam runner.
+  if (subjectId === "english") {
+    return <EnglishPastExamsArchive />;
   }
   return <LiteraturePastExamsArchive subjectId={subjectId} />;
 }
