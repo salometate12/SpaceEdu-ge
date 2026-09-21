@@ -177,7 +177,10 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
         </section>
       )}
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-2" aria-label="საგამოცდო რესურსები">
+      <section
+        className={`mt-6 grid gap-4 ${subject.id === "georgian" ? "sm:grid-cols-2" : ""}`}
+        aria-label="საგამოცდო რესურსები"
+      >
         <HubCard
           href={`/subject/${subject.id}/past-exams`}
           accent={accent}
@@ -186,14 +189,17 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
           body="ტესტები წლებისა და ვარიანტების მიხედვით."
           cta="გახსნა"
         />
-        <HubCard
-          href={`/subject/${subject.id}/essay-grader`}
-          accent="violet"
-          icon={PenLine}
-          title="ესეს შემფასებელი"
-          body="შეფასება ეროვნული გამოცდის რუბრიკით და კონკრეტული შესწორებები."
-          cta="გახსნა"
-        />
+        {/* The standalone essay grader is Georgian-only. */}
+        {subject.id === "georgian" && (
+          <HubCard
+            href={`/subject/${subject.id}/essay-grader`}
+            accent="violet"
+            icon={PenLine}
+            title="ესეს შემფასებელი"
+            body="შეფასება ეროვნული გამოცდის რუბრიკით და კონკრეტული შესწორებები."
+            cta="გახსნა"
+          />
+        )}
       </section>
 
       <section className="mt-6">

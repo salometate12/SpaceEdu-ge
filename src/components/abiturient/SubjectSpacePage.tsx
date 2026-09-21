@@ -2,16 +2,12 @@
 
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { ArrowRight, ChevronLeft, Layers, PlayCircle, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarRange, ChevronLeft, Layers } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
-import { getSecondaryTheme, subjectHubHref, type SubjectTheme } from "@/lib/abiturient-subjects";
+import { subjectHubHref, type SubjectTheme } from "@/lib/abiturient-subjects";
 
 interface SubjectSpacePageProps {
   subjectId: string;
-}
-
-function flashcardHref(deckId?: string): string {
-  return deckId ? `/deck/${deckId}` : "/generate?from=abit";
 }
 
 interface ModuleCardProps {
@@ -54,15 +50,11 @@ function ModuleCard({ title, description, icon, href, btnText, theme, glowVar }:
 }
 
 /**
- * Generic per-subject "Space" landing page. Georgian has its own bespoke
- * version (GeorgianSubjectHub) with exam-format-specific exercises; every
- * other subject gets this themed placeholder — real modules for reading
- * comprehension / text editing / essays etc. will replace the "coming soon"
- * block once those exercise types exist for each subject.
- *
- * Each subject gets two colors here — its own brand theme plus a playful
- * complementary "secondary" accent — so the two module cards read as
- * distinct, coordinated colors instead of one flat block repeated everywhere.
+ * Generic per-subject "Space" landing page. Georgian keeps its own bespoke hub
+ * (GeorgianSubjectHub) with the exam-format practice exercises and the essay
+ * grader; every other subject's Space is a single entry point into that
+ * subject's past-exams archive (the timed, imitated exam). Free-form practice
+ * and the standalone essay grader are Georgian-only by design.
  */
 export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
   const subject = getSubjectHub(subjectId);
@@ -77,8 +69,6 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
 
   const Icon = subject.icon;
   const theme = subject.theme;
-  const secondaryTheme = getSecondaryTheme(subject.id);
-  const cardsHref = flashcardHref(subject.deckId);
 
   return (
     <div
@@ -86,7 +76,6 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
       style={
         {
           "--subject-glow-color": theme.glow,
-          "--secondary-glow-color": secondaryTheme.glow,
         } as CSSProperties
       }
     >
@@ -110,57 +99,21 @@ export function SubjectSpacePage({ subjectId }: SubjectSpacePageProps) {
             </p>
             <h1 className="text-3xl font-bold text-white">{subject.title}</h1>
             <p className="mt-1 text-sm text-gray-400">
-              დამატებითი სავარჯიშოები და AI დახმარება ერთ სივრცეში.
+              გაიარე წინა წლების საგამოცდო ვარიანტები იმიტირებული გამოცდის რეჟიმში.
             </p>
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-2" aria-label="საგამოცდო მოდულები">
+        <section aria-label="საგამოცდო არქივი">
           <ModuleCard
-            title="ტესტების ბანკი"
-            description="გაიარე სრული სატესტო ბანკი და თვალი ადევნე პროგრესს რეალურ დროში."
-            icon={<PlayCircle className={`h-6 w-6 stroke-[1.5] ${secondaryTheme.iconText}`} />}
-            href="/quiz"
-            btnText="დაწყება"
-            theme={secondaryTheme}
-            glowVar="--secondary-glow-color"
-          />
-          <ModuleCard
-            title="ფლეშ ბარათები"
-            description="ინტერაქტიული ბარათები საკვანძო ცნებების სწრაფად დასამახსოვრებლად."
-            icon={<Layers className={`h-6 w-6 stroke-[1.5] ${theme.iconText}`} />}
-            href={cardsHref}
-            btnText="დაწყება"
+            title="წინა წლების საარქივო ტესტები"
+            description="გაიარე რეალური, წინა წლების საგამოცდო ვარიანტები დროზე გათვლილი იმიტირებული გამოცდის რეჟიმში."
+            icon={<CalendarRange className={`h-6 w-6 stroke-[1.5] ${theme.iconText}`} />}
+            href={`/subject/${subject.id}/past-exams`}
+            btnText="არქივის გახსნა"
             theme={theme}
             glowVar="--subject-glow-color"
           />
-        </section>
-
-        <section className="mt-6" aria-label="მალე დაემატება">
-          <article className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]/60 p-6 backdrop-blur-xl">
-            <div
-              className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.08] blur-2xl"
-              style={{ background: "radial-gradient(circle, var(--subject-glow-color) 0%, transparent 70%)" }}
-              aria-hidden
-            />
-            <div className="relative z-[1] flex items-start gap-4">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${theme.iconRing}`}>
-                <Sparkles className={`h-6 w-6 stroke-[1.5] ${theme.iconText}`} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-bold text-white">საგნის სპეციფიკური სავარჯიშოები</h2>
-                  <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-zinc-400">
-                    მალე
-                  </span>
-                </div>
-                <p className="text-xs leading-relaxed text-gray-400">
-                  ამ საგნისთვის მორგებული საგამოცდო ფორმატის სავარჯიშოები — მსგავსად ქართული ენის
-                  Space-ისა — მალე დაემატება.
-                </p>
-              </div>
-            </div>
-          </article>
         </section>
       </main>
     </div>
