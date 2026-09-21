@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { recordDailyActivity } from "@/lib/daily-streak";
+import { HistoryQuestionFigure } from "@/components/abiturient/history/HistoryQuestionFigure";
 import {
   historyPaperLabel,
   pickRandomHistoryMcq,
@@ -97,6 +98,8 @@ export function HistoryReadingPractice() {
             <p className="text-[15px] font-medium leading-relaxed text-slate-900 dark:text-slate-100">
               {q.prompt}
             </p>
+
+            {q.figure && <HistoryQuestionFigure figure={q.figure} />}
 
             <div className="mt-3 space-y-2">
               {q.options.map((opt) => {

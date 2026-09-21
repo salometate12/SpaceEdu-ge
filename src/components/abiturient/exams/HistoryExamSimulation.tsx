@@ -23,6 +23,7 @@ import type {
 } from "@/data/historyExamsData";
 import type { HistoryOpenGraderReport } from "@/lib/ai/history-open-answer-grader-schema";
 import { recordToolUsage } from "@/lib/activity";
+import { HistoryQuestionFigure } from "@/components/abiturient/history/HistoryQuestionFigure";
 import { gradeHistoryOpenAnswer } from "./useHistoryOpenGrading";
 
 /** A graded sub-item, lifted to the exam so its score AND what the AI checked
@@ -63,6 +64,7 @@ function McqCard({
           {q.prompt}
         </p>
       </div>
+      {q.figure && <HistoryQuestionFigure figure={q.figure} />}
       <div className="mt-3 space-y-2">
         {q.options.map((opt) => {
           const isPicked = picked === opt.label;
@@ -582,6 +584,7 @@ function McqReview({
             <p className="text-sm font-medium leading-relaxed text-slate-900 dark:text-slate-100">
               {q.prompt}
             </p>
+            {q.figure && <HistoryQuestionFigure figure={q.figure} />}
             <div className="mt-2 space-y-1.5">
               {q.options.map((opt) => {
                 const isAnswer = opt.label === q.correctLabel;
