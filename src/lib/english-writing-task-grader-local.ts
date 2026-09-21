@@ -9,6 +9,9 @@
 import {
   ENGLISH_WRITING_CRITERION_IDS,
   ENGLISH_WRITING_CRITERION_MAX,
+  ENGLISH_WRITING_MIN_GRADED_WORDS,
+  englishEssayWordCount,
+  zeroEnglishWritingReport,
   type EnglishWritingGraderResponse,
 } from "@/lib/ai/english-writing-task-grader-schema";
 
@@ -16,8 +19,15 @@ export function localGradeEnglishWriting(
   essay: string,
   input: { minWords?: number } = {},
 ): EnglishWritingGraderResponse {
-  const words = essay.trim() ? essay.trim().split(/\s+/).filter(Boolean).length : 0;
+  const words = englishEssayWordCount(essay);
   const min = input.minWords ?? 120;
+
+  // Under 100 words the essay is not graded at all (official rule).
+  if (words < ENGLISH_WRITING_MIN_GRADED_WORDS) {
+    return zeroEnglishWritingReport(
+      `The essay has ${words} words, under the ${ENGLISH_WRITING_MIN_GRADED_WORDS}-word minimum, so it is not graded (0 points).`,
+    );
+  }
 
   // Length tier → what fraction of each criterion's max to award.
   let frac = 0.3;

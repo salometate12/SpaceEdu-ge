@@ -39,7 +39,10 @@ import {
   ENGLISH_WRITING_JSON_INSTRUCTIONS,
   EnglishWritingGraderRequestSchema,
   EnglishWritingGraderResponseSchema,
+  ENGLISH_WRITING_MIN_GRADED_WORDS,
+  englishEssayWordCount,
   normalizeEnglishWritingReport,
+  zeroEnglishWritingReport,
   type EnglishWritingGraderResponse,
 } from "@/lib/ai/english-writing-task-grader-schema";
 import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
@@ -518,6 +521,20 @@ export async function POST(request: Request) {
 
     if (pageType === "english-writing-task-grader") {
       const ewPayload = EnglishWritingGraderRequestSchema.parse(body.payload);
+
+      // Official rule: an essay under 100 words is not graded at all (0). Gate
+      // this deterministically rather than trusting the model to award zero.
+      const ewWords = englishEssayWordCount(ewPayload.essay);
+      if (ewWords < ENGLISH_WRITING_MIN_GRADED_WORDS) {
+        return Response.json(
+          normalizeEnglishWritingReport(
+            zeroEnglishWritingReport(
+              `The essay has ${ewWords} words, under the ${ENGLISH_WRITING_MIN_GRADED_WORDS}-word minimum, so it is not graded (0 points).`,
+            ),
+          ),
+        );
+      }
+
       const prompt = buildUserPrompt(pageType, ewPayload);
 
       try {
