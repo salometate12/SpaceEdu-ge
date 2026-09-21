@@ -2,6 +2,7 @@ import type { AiPageType } from "./page-types";
 import { studyPlanDaysToGenerate } from "./study-plan-days";
 import { writingTaskRubricText } from "./writing-task-grader-schema";
 import { textEditingRubricText } from "./text-editing-grader-schema";
+import { englishWritingRubricText } from "./english-writing-task-grader-schema";
 
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
@@ -185,6 +186,27 @@ export function buildUserPrompt(
           ? `ანალიზის ფოკუსი: ${enabled.join("; ")}`
           : "ანალიზის ფოკუსი: სრული სემესტრული კალენდარი",
         "ამოიღე მხოლოდ იმ თარიღები და მოვლენები, რომლებიც ტექსტში ნამდვილად ჩანს.",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
+    case "english-writing-task-grader": {
+      const essay = asString(payload.essay);
+      const topic = asString(payload.prompt);
+      const minWords = Number(payload.minWords) || 120;
+      const maxWords = Number(payload.maxWords) || 170;
+      const wordCount = essay.split(/\s+/).filter(Boolean).length;
+      return [
+        topic
+          ? `Essay task / topic: ${topic}`
+          : "The task prompt was not provided — assess the essay on its own internal coherence.",
+        `Expected length: ${minWords}–${maxWords} words. The student's essay is ${wordCount} words.`,
+        englishWritingRubricText(),
+        "Grade the essay below against this rubric and return ONLY JSON.",
+        "--- BEGIN ESSAY ---",
+        essay,
+        "--- END ESSAY ---",
       ]
         .filter(Boolean)
         .join("\n\n");

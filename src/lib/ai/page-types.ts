@@ -12,6 +12,7 @@ export const AI_PAGE_TYPES = [
   "text-editing-grader",
   "math-open-problem-grader",
   "history-open-answer-grader",
+  "english-writing-task-grader",
 ] as const;
 
 export type AiPageType = (typeof AI_PAGE_TYPES)[number];

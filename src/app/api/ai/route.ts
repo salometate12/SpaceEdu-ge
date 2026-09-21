@@ -35,10 +35,18 @@ import {
   normalizeHistoryOpenReport,
   type HistoryOpenGraderResponse,
 } from "@/lib/ai/history-open-answer-grader-schema";
+import {
+  ENGLISH_WRITING_JSON_INSTRUCTIONS,
+  EnglishWritingGraderRequestSchema,
+  EnglishWritingGraderResponseSchema,
+  normalizeEnglishWritingReport,
+  type EnglishWritingGraderResponse,
+} from "@/lib/ai/english-writing-task-grader-schema";
 import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
 import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
 import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import { localGradeHistoryOpen } from "@/lib/history-open-answer-grader-local";
+import { localGradeEnglishWriting } from "@/lib/english-writing-task-grader-local";
 import {
   LectureNotesKeywordsSchema,
   LectureNotesRequestSchema,
@@ -505,6 +513,25 @@ export async function POST(request: Request) {
         return Response.json(normalizeHistoryOpenReport(object, gradeInput));
       } catch {
         return Response.json(localGradeHistoryOpen(hoPayload.studentAnswer, gradeInput));
+      }
+    }
+
+    if (pageType === "english-writing-task-grader") {
+      const ewPayload = EnglishWritingGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, ewPayload);
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: EnglishWritingGraderResponseSchema,
+          system: `${system}\n${ENGLISH_WRITING_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as EnglishWritingGraderResponse;
+        return Response.json(normalizeEnglishWritingReport(object));
+      } catch {
+        return Response.json(
+          localGradeEnglishWriting(ewPayload.essay, { minWords: ewPayload.minWords }),
+        );
       }
     }
 
