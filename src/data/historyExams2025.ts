@@ -13,6 +13,22 @@ import type {
   HistoryOptionLabel,
 } from "./historyExamsData";
 
+/* The historical map that all of a variant's 36.1–36.6 questions read from,
+ * extracted from page 39 of each official paper. Every one of the six
+ * sub-questions gets the same figure. */
+const V1_Q36_FIGURE = {
+  src: "/exam-figures/history/variant-1-2025/q36-map.png",
+  alt: "საქართველოს დემოკრატიული რესპუბლიკის ისტორიული რუკა (1918–1921 წწ.) — სამხედრო მოქმედებები და პირობითი აღნიშვნების ლეგენდა.",
+};
+const V2_Q36_FIGURE = {
+  src: "/exam-figures/history/variant-2-2025/q36-map.png",
+  alt: "ნაპოლეონის ეპოქის ევროპის ისტორიული რუკა (1806–1809 წწ.) — საფრანგეთის სამხედრო კამპანიები და პირობითი აღნიშვნების ლეგენდა.",
+};
+const V3_Q36_FIGURE = {
+  src: "/exam-figures/history/variant-3-2025/q36-map.png",
+  alt: "ბიზანტიის იმპერიის ისტორიული რუკა იუსტინიანეს დროს (533–559 წწ.) — ტერიტორიული გაფართოება და პირობითი აღნიშვნების ლეგენდა.",
+};
+
 /* ============================== VARIANT I =============================== */
 
 const V1_DAVID_DOCUMENT = {
@@ -554,6 +570,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "გ",
       explanation: "1918-1921 წლების დამოუკიდებელი საქართველოს ოფიციალური სახელი იყო საქართველოს დემოკრატიული რესპუბლიკა.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
     {
@@ -568,6 +585,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "გ",
       explanation: "რუკის მიხედვით, ბოლშევიკები საქართველოს დემოკრატიული რესპუბლიკის (მწვანედ აღნიშნული) ხელისუფლების წინააღმდეგ მოქმედებდნენ.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
     {
@@ -582,6 +600,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "ბ",
       explanation: "რუკაზე ასახული საომარი მოქმედებები (ბოლნისი, ახტალა, ახალქალაქი) 1918 წლის სომხეთ-საქართველოს კონფლიქტს შეესაბამება.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
     {
@@ -596,6 +615,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "ბ",
       explanation: "რუკის მიხედვით, ლურჯად აღნიშნული (სომხეთის) ჯარმა ახტალა დაიკავა, მაგრამ შემდგომი შეტევა წარუმატებელი აღმოჩნდა.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
     {
@@ -610,6 +630,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "ა",
       explanation: "საქართველოსა და აზერბაიჯანს (მწვანე და ყვითელი) შორის სადავო ტერიტორია ზაქათალის ოკრუგი იყო.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
     {
@@ -624,6 +645,7 @@ const VARIANT_1: HistoryExamVariant = {
       ],
       correctLabel: "დ",
       explanation: "იმ ხანად საქართველოს დემოკრატიული რესპუბლიკის კონტროლს ექვემდებარებოდა არტაანი, რომელიც დღეს საქართველოს შემადგენლობაში არ შედის.",
+      figure: V1_Q36_FIGURE,
       points: 1,
     },
   ],
@@ -940,6 +962,7 @@ const VARIANT_2: HistoryExamVariant = {
       })),
       correctLabel: V2_MCQ_36_KEY[i],
       explanation: q.explanation,
+      figure: V2_Q36_FIGURE,
       points: 1 as const,
     })),
   ],
@@ -1255,6 +1278,7 @@ const VARIANT_3: HistoryExamVariant = {
       })),
       correctLabel: V3_MCQ_36_KEY[i],
       explanation: q.explanation,
+      figure: V3_Q36_FIGURE,
       points: 1 as const,
     })),
   ],

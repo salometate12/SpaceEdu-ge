@@ -36,6 +36,9 @@ export interface HistoryMcqQuestion {
   correctLabel: HistoryOptionLabel;
   /** SpaceEdu's own worked note (why this option is correct). */
   explanation: string;
+  /** The image the question reads from — e.g. the historical map that all of
+   *  36.1–36.6 depend on. Transcribed from the official paper. */
+  figure?: { src: string; alt: string };
   points: 1;
 }
 
