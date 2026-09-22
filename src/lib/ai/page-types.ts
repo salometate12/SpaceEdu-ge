@@ -13,6 +13,7 @@ export const AI_PAGE_TYPES = [
   "math-open-problem-grader",
   "history-open-answer-grader",
   "geography-open-task-grader",
+  "chemistry-open-task-grader",
   "english-writing-task-grader",
 ] as const;
 
