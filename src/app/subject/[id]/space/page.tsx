@@ -5,10 +5,11 @@ interface SubjectSpaceRouteProps {
   params: Promise<{ id: string }>;
 }
 
-// Only Georgian has a bespoke /subject/georgian/space hub (its practice
-// exercises and essay grader). Every other subject uses this generic Space,
-// which is a single entry point into the subject's past-exams archive.
-const BESPOKE_SPACE_HUBS = new Set(["georgian"]);
+// Georgian, maths, history and English each have their own bespoke
+// /subject/<id>/space page (static routes, which Next.js always prefers over
+// this dynamic one for that exact path), so they're excluded here to avoid
+// generating a duplicate placeholder for them.
+const BESPOKE_SPACE_HUBS = new Set(["georgian", "math", "history", "english"]);
 
 export async function generateStaticParams() {
   return SUBJECT_HUB_IDS.filter((id) => !BESPOKE_SPACE_HUBS.has(id)).map((id) => ({ id }));

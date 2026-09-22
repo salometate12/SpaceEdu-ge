@@ -368,18 +368,15 @@ export function PastExamRunner({
             <p className="mt-2.5 text-[13.5px] leading-relaxed text-slate-700 dark:text-slate-200">
               {chosenPassage.essay.prompt}
             </p>
-            {/* The standalone essay grader is Georgian-only. */}
-            {subjectId === "georgian" && (
-              <Link
-                href={`/subject/${subjectId}/essay-grader?prompt=${encodeURIComponent(
-                  chosenPassage.essay.prompt,
-                )}`}
-                className={`paper-sticker mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID.violet}`}
-              >
-                <Sparkles className="h-4 w-4 stroke-[2]" />
-                დაწერე და შეაფასებინე
-              </Link>
-            )}
+            <Link
+              href={`/subject/${subjectId}/essay-grader?prompt=${encodeURIComponent(
+                chosenPassage.essay.prompt,
+              )}`}
+              className={`paper-sticker mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold ${ACCENT_SOLID.violet}`}
+            >
+              <Sparkles className="h-4 w-4 stroke-[2]" />
+              დაწერე და შეაფასებინე
+            </Link>
           </div>
         )}
 
