@@ -339,6 +339,36 @@ export function buildUserPrompt(
         .join("\n\n");
     }
 
+    case "chemistry-open-task-grader": {
+      const subItemPrompt = asString(payload.subItemPrompt);
+      const taskContext = asString(payload.taskContext);
+      const modelAnswer = asString(payload.modelAnswer);
+      const studentAnswer = asString(payload.studentAnswer);
+      const maxPoints = asNumber(payload.maxPoints);
+      const requiresCalc = Boolean(payload.requiresCalculation);
+      const criteria = Array.isArray(payload.criteria) ? payload.criteria : [];
+      const criteriaText = criteria
+        .map((c) => {
+          const cr = c as { id?: unknown; description?: unknown; points?: unknown };
+          return `${asString(cr.id)} (${asNumber(cr.points)} ქულა): ${asString(cr.description)}`;
+        })
+        .join("\n");
+      return [
+        taskContext ? `დავალების კონტექსტი: ${taskContext}` : "",
+        `ქვედავალების კითხვა: ${subItemPrompt}`,
+        `ქვედავალების მაქსიმალური ქულა: ${maxPoints}`,
+        requiresCalc ? "ეს ქვედავალება მოითხოვს გამოთვლას — ქულა მიაწერე მხოლოდ სწორი რიცხვითი შედეგისთვის." : "",
+        `შეფასების კრიტერიუმები (რომელი ქულა რას მოითხოვს):\n${criteriaText}`,
+        modelAnswer ? `სქემის სწორი პასუხის ნიმუში:\n${modelAnswer}` : "",
+        "შეაფასე სტუდენტის პასუხი კრიტერიუმების მიხედვით (ქიმიური ეკვივალენტობის გათვალისწინებით), თითოეულ კრიტერიუმზე გადაწყვიტე met true/false და დააბრუნე მხოლოდ JSON.",
+        "--- სტუდენტის პასუხი ---",
+        studentAnswer,
+        "--- დასასრული ---",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
     case "text-editing-grader": {
       const source = asString(payload.source);
       const corrected = asString(payload.corrected);

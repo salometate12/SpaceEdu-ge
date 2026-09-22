@@ -25,6 +25,7 @@ import { MathPastExamsArchive } from "./MathPastExamsArchive";
 import { HistoryPastExamsArchive } from "./HistoryPastExamsArchive";
 import { EnglishPastExamsArchive } from "./EnglishPastExamsArchive";
 import { GeographyPastExamsArchive } from "./GeographyPastExamsArchive";
+import { ChemistryPastExamsArchive } from "./ChemistryPastExamsArchive";
 
 interface PastExamsArchiveProps {
   subjectId: string;
@@ -62,6 +63,11 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   // sub-items (some MCQ, some AI-graded), scored only at the end.
   if (subjectId === "geography") {
     return <GeographyPastExamsArchive />;
+  }
+  // Chemistry is shaped like geography — figure-heavy MCQs + open sub-items
+  // (formulas, equations, calculations), all AI-graded and scored at the end.
+  if (subjectId === "chemistry") {
+    return <ChemistryPastExamsArchive />;
   }
   return <LiteraturePastExamsArchive subjectId={subjectId} />;
 }

@@ -57,6 +57,14 @@ import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
 import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import { localGradeHistoryOpen } from "@/lib/history-open-answer-grader-local";
 import { localGradeGeographyOpen } from "@/lib/geography-open-task-grader-local";
+import {
+  CHEMISTRY_OPEN_JSON_INSTRUCTIONS,
+  ChemistryOpenGraderRequestSchema,
+  ChemistryOpenGraderResponseSchema,
+  normalizeChemistryOpenReport,
+  type ChemistryOpenGraderResponse,
+} from "@/lib/ai/chemistry-open-task-grader-schema";
+import { localGradeChemistryOpen } from "@/lib/chemistry-open-task-grader-local";
 import { localGradeEnglishWriting } from "@/lib/english-writing-task-grader-local";
 import {
   LectureNotesKeywordsSchema,
@@ -542,6 +550,24 @@ export async function POST(request: Request) {
         return Response.json(normalizeGeographyOpenReport(object, gradeInput));
       } catch {
         return Response.json(localGradeGeographyOpen(goPayload.studentAnswer, gradeInput));
+      }
+    }
+
+    if (pageType === "chemistry-open-task-grader") {
+      const coPayload = ChemistryOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, coPayload);
+      const gradeInput = { criteria: coPayload.criteria, maxPoints: coPayload.maxPoints };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: ChemistryOpenGraderResponseSchema,
+          system: `${system}\n${CHEMISTRY_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as ChemistryOpenGraderResponse;
+        return Response.json(normalizeChemistryOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeChemistryOpen(coPayload.studentAnswer, gradeInput));
       }
     }
 
