@@ -24,6 +24,7 @@ import { PastExamRunner } from "./PastExamRunner";
 import { MathPastExamsArchive } from "./MathPastExamsArchive";
 import { HistoryPastExamsArchive } from "./HistoryPastExamsArchive";
 import { EnglishPastExamsArchive } from "./EnglishPastExamsArchive";
+import { GeographyPastExamsArchive } from "./GeographyPastExamsArchive";
 
 interface PastExamsArchiveProps {
   subjectId: string;
@@ -56,6 +57,11 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   // English + an AI-graded essay), so it gets its own imitated-exam runner.
   if (subjectId === "english") {
     return <EnglishPastExamsArchive />;
+  }
+  // Geography is shaped like history — figure-heavy MCQs + source-based open
+  // sub-items (some MCQ, some AI-graded), scored only at the end.
+  if (subjectId === "geography") {
+    return <GeographyPastExamsArchive />;
   }
   return <LiteraturePastExamsArchive subjectId={subjectId} />;
 }

@@ -36,6 +36,13 @@ import {
   type HistoryOpenGraderResponse,
 } from "@/lib/ai/history-open-answer-grader-schema";
 import {
+  GEOGRAPHY_OPEN_JSON_INSTRUCTIONS,
+  GeographyOpenGraderRequestSchema,
+  GeographyOpenGraderResponseSchema,
+  normalizeGeographyOpenReport,
+  type GeographyOpenGraderResponse,
+} from "@/lib/ai/geography-open-task-grader-schema";
+import {
   ENGLISH_WRITING_JSON_INSTRUCTIONS,
   EnglishWritingGraderRequestSchema,
   EnglishWritingGraderResponseSchema,
@@ -49,6 +56,7 @@ import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
 import { localGradeTextEditing } from "@/lib/text-editing-grader-local";
 import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import { localGradeHistoryOpen } from "@/lib/history-open-answer-grader-local";
+import { localGradeGeographyOpen } from "@/lib/geography-open-task-grader-local";
 import { localGradeEnglishWriting } from "@/lib/english-writing-task-grader-local";
 import {
   LectureNotesKeywordsSchema,
@@ -516,6 +524,24 @@ export async function POST(request: Request) {
         return Response.json(normalizeHistoryOpenReport(object, gradeInput));
       } catch {
         return Response.json(localGradeHistoryOpen(hoPayload.studentAnswer, gradeInput));
+      }
+    }
+
+    if (pageType === "geography-open-task-grader") {
+      const goPayload = GeographyOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, goPayload);
+      const gradeInput = { criteria: goPayload.criteria, maxPoints: goPayload.maxPoints };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: GeographyOpenGraderResponseSchema,
+          system: `${system}\n${GEOGRAPHY_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as GeographyOpenGraderResponse;
+        return Response.json(normalizeGeographyOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeGeographyOpen(goPayload.studentAnswer, gradeInput));
       }
     }
 
