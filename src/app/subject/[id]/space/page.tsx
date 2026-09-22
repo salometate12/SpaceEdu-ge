@@ -5,11 +5,10 @@ interface SubjectSpaceRouteProps {
   params: Promise<{ id: string }>;
 }
 
-// Georgian, maths, history and English each have their own bespoke
-// /subject/<id>/space page (static routes, which Next.js always prefers over
-// this dynamic one for that exact path), so they're excluded here to avoid
-// generating a duplicate placeholder for them.
-const BESPOKE_SPACE_HUBS = new Set(["georgian", "math", "history", "english"]);
+// Georgian, maths, history, English and geography each have their own bespoke
+// /subject/<id>/space hub (static routes Next.js prefers over this dynamic one),
+// so they're excluded here to avoid generating a duplicate placeholder.
+const BESPOKE_SPACE_HUBS = new Set(["georgian", "math", "history", "english", "geography"]);
 
 export async function generateStaticParams() {
   return SUBJECT_HUB_IDS.filter((id) => !BESPOKE_SPACE_HUBS.has(id)).map((id) => ({ id }));
