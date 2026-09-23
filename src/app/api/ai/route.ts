@@ -58,6 +58,14 @@ import { localGradeMathOpen } from "@/lib/math-open-problem-grader-local";
 import { localGradeHistoryOpen } from "@/lib/history-open-answer-grader-local";
 import { localGradeGeographyOpen } from "@/lib/geography-open-task-grader-local";
 import {
+  CIVICS_OPEN_JSON_INSTRUCTIONS,
+  CivicsOpenGraderRequestSchema,
+  CivicsOpenGraderResponseSchema,
+  normalizeCivicsOpenReport,
+  type CivicsOpenGraderResponse,
+} from "@/lib/ai/civics-open-task-grader-schema";
+import { localGradeCivicsOpen } from "@/lib/civics-open-task-grader-local";
+import {
   CHEMISTRY_OPEN_JSON_INSTRUCTIONS,
   ChemistryOpenGraderRequestSchema,
   ChemistryOpenGraderResponseSchema,
@@ -550,6 +558,24 @@ export async function POST(request: Request) {
         return Response.json(normalizeGeographyOpenReport(object, gradeInput));
       } catch {
         return Response.json(localGradeGeographyOpen(goPayload.studentAnswer, gradeInput));
+      }
+    }
+
+    if (pageType === "civics-open-task-grader") {
+      const cvPayload = CivicsOpenGraderRequestSchema.parse(body.payload);
+      const prompt = buildUserPrompt(pageType, cvPayload);
+      const gradeInput = { criteria: cvPayload.criteria, maxPoints: cvPayload.maxPoints };
+
+      try {
+        const object = (await generateGeminiObject({
+          schema: CivicsOpenGraderResponseSchema,
+          system: `${system}\n${CIVICS_OPEN_JSON_INSTRUCTIONS}`,
+          prompt,
+          temperature: 0.2,
+        })) as CivicsOpenGraderResponse;
+        return Response.json(normalizeCivicsOpenReport(object, gradeInput));
+      } catch {
+        return Response.json(localGradeCivicsOpen(cvPayload.studentAnswer, gradeInput));
       }
     }
 
