@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from "
 import { Loader2, Lock, Mail, MailCheck, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import {
   devSkipRegistrationAllowed,
   isDevPortalBypass,
@@ -72,6 +73,8 @@ export function RegistrationForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  // Bumped on every submit so the password field hides itself again.
+  const [submitCount, setSubmitCount] = useState(0);
 
   const roleSubtext = useMemo(
     () => (role ? registrationRoleSubtext(role) : null),
@@ -103,6 +106,7 @@ export function RegistrationForm() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitError(null);
+    setSubmitCount((n) => n + 1);
 
     const nextErrors = validateRegistrationForm({
       name,
@@ -270,9 +274,9 @@ export function RegistrationForm() {
         </FormField>
 
         <FormField id="reg-password" label="პაროლი" icon={Lock} error={errors.password}>
-          <input
+          <PasswordInput
+            key={submitCount}
             id="reg-password"
-            type="password"
             autoComplete="new-password"
             value={password}
             onChange={(e) => {
@@ -280,7 +284,7 @@ export function RegistrationForm() {
               clearFieldError("password");
             }}
             placeholder="მინიმუმ 6 სიმბოლო"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
           />
         </FormField>
 
@@ -306,7 +310,10 @@ export function RegistrationForm() {
         </div>
 
         {submitError && (
-          <p className="rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200/90">
+          <p
+            role="alert"
+            className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
+          >
             {submitError}
           </p>
         )}

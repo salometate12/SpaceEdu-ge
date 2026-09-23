@@ -3,11 +3,15 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { persistSpaceForRole, resolveAuthRedirectHref } from "@/lib/dev-portal-bypass";
+import {
+  persistSpaceForRole,
+  readPersistedSpace,
+  resolveAuthRedirectHref,
+} from "@/lib/dev-portal-bypass";
 import { parseRegistrationRole } from "@/lib/registration-role";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { dashboardHrefForUserSpace } from "@/lib/access-control";
+import { isAdminEmail, resolvePostLoginHref } from "@/lib/access-control";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 function accountSpaceFromMetadata(metadata: unknown): SpaceeduSpace | null {
@@ -33,25 +37,33 @@ export function AuthCompleteView() {
         const supabase = createSupabaseBrowserClient();
         const { data } = await supabase.auth.getUser();
         if (!active) return;
-        // A returning account's own space wins — it is never asked to choose again.
-        const accountSpace = accountSpaceFromMetadata(data.user?.user_metadata);
-        if (accountSpace) {
-          if (accountSpace === "abiturient" || accountSpace === "student") persistSpaceForRole(accountSpace);
-          router.replace(dashboardHrefForUserSpace(accountSpace));
-          return;
+
+        // Same rule as the login form: account space wins, then the URL role,
+        // then this device's stored preference. A first-time Google sign-in has
+        // no account space yet, so its chosen role gets written back (unless the
+        // account is an admin, which stays space-agnostic).
+        const resolution = resolvePostLoginHref({
+          metadataSpace: accountSpaceFromMetadata(data.user?.user_metadata),
+          roleSpace: role,
+          storedSpace: readPersistedSpace(),
+          isAdmin: isAdminEmail(data.user?.email),
+        });
+
+        if (resolution.persistSpace) persistSpaceForRole(resolution.persistSpace);
+        if (resolution.writeSpaceToAccount) {
+          try {
+            await supabase.auth.updateUser({
+              data: { space: resolution.writeSpaceToAccount },
+            });
+          } catch {
+            // fall through — still route them to their destination
+          }
         }
-        // First Google sign-in: record the chosen role as the account's space.
-        try {
-          await supabase.auth.updateUser({ data: { space: role } });
-        } catch {
-          // fall through — still route them to their dashboard
-        }
-        persistSpaceForRole(role);
-        router.replace(dashboardHrefForUserSpace(role));
+        router.replace(resolution.href);
       } catch {
         if (!active) return;
         persistSpaceForRole(role);
-        router.replace(dashboardHrefForUserSpace(role));
+        router.replace(resolveAuthRedirectHref(role, null));
       }
     })();
     return () => {

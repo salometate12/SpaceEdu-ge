@@ -1,4 +1,5 @@
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
+import type { RegistrationRoleParam } from "@/lib/registration-role";
 import { DASHBOARD_ABIT_HREF, DASHBOARD_SCHOOL_HREF, DASHBOARD_STUDENT_HREF } from "@/lib/dashboard-routes";
 
 /**
@@ -140,6 +141,72 @@ export function dashboardHrefForUserSpace(userSpace: SpaceeduSpace): string {
     default:
       return DASHBOARD_STUDENT_HREF;
   }
+}
+
+/** Where the space chooser lives — the only page that assigns a space. */
+export const SELECT_SPACE_HREF = "/select-space";
+
+export interface PostLoginResolution {
+  /** Where to send the user after they sign in. */
+  href: string;
+  /**
+   * Space to persist to localStorage (via persistSpaceForRole), or null if
+   * there's nothing worth persisting. Only the two role-spaces are persisted.
+   */
+  persistSpace: RegistrationRoleParam | null;
+  /**
+   * Space to write back onto the account (supabase.auth.updateUser), or null.
+   * Set only when a *non-admin* user's space came from somewhere other than
+   * their account metadata (the URL role or a stored preference), so the next
+   * login reads it straight from the account and never asks again. Admins are
+   * never locked to a space, so this stays null for them.
+   */
+  writeSpaceToAccount: SpaceeduSpace | null;
+}
+
+/**
+ * The single rule for where a signed-in user goes after login, shared by the
+ * login form, the OAuth completion view and the space-chooser page so all
+ * three behave identically. Pure — callers perform the side effects
+ * (persist/updateUser) the result describes, which keeps it usable on the edge.
+ *
+ * Space priority: account metadata → URL ?role → stored preference. If any of
+ * those is known the user lands on that dashboard. Otherwise:
+ *   - an admin (who often has no space) goes to the abiturient dashboard and is
+ *     never sent to the chooser;
+ *   - a normal user with no space anywhere is sent to the chooser once.
+ */
+export function resolvePostLoginHref(input: {
+  metadataSpace: SpaceeduSpace | null;
+  roleSpace: SpaceeduSpace | null;
+  storedSpace: SpaceeduSpace | null;
+  isAdmin: boolean;
+}): PostLoginResolution {
+  const resolved = input.metadataSpace ?? input.roleSpace ?? input.storedSpace;
+
+  if (resolved) {
+    const persistSpace =
+      resolved === "abiturient" || resolved === "student" ? resolved : null;
+    // Only write to the account when this space didn't already come from it,
+    // and never for an admin (keeps their account space-agnostic).
+    const writeSpaceToAccount =
+      !input.isAdmin && !input.metadataSpace ? resolved : null;
+    return {
+      href: dashboardHrefForUserSpace(resolved),
+      persistSpace,
+      writeSpaceToAccount,
+    };
+  }
+
+  if (input.isAdmin) {
+    return {
+      href: DASHBOARD_ABIT_HREF,
+      persistSpace: null,
+      writeSpaceToAccount: null,
+    };
+  }
+
+  return { href: SELECT_SPACE_HREF, persistSpace: null, writeSpaceToAccount: null };
 }
 
 /**

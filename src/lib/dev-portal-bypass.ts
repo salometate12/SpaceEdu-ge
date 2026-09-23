@@ -52,6 +52,20 @@ export function persistSpaceForRole(role: RegistrationRoleParam): void {
   window.localStorage.setItem("spaceedu-active-space", DEV_SMART_SPACE[role]);
 }
 
+/**
+ * The space last chosen on this device, read back from localStorage. Lets a
+ * returning user whose account never recorded a space (e.g. an old or
+ * Google-created account) skip the chooser and land where they last were.
+ */
+export function readPersistedSpace(): SpaceeduSpace | null {
+  if (typeof window === "undefined") return null;
+  const value = window.localStorage.getItem("spaceedu_space");
+  if (value === "school" || value === "abiturient" || value === "student") {
+    return value;
+  }
+  return null;
+}
+
 export function devSkipRegistrationAllowed(role: RegistrationRoleParam | null): boolean {
   return isDevPortalBypass() && role !== null;
 }

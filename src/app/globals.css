@@ -2286,3 +2286,10 @@ html.dark .exam-paper-plain {
   border-color: rgba(255, 255, 255, 0.1);
   background-color: #161a24;
 }
+
+/* Hide Edge/IE's built-in password reveal/clear controls — the app renders its
+   own show/hide toggle, and the native one would sit on top of it. */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Lock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 interface AdminPasswordGateProps {
   onAuthenticated: (password: string) => void;
@@ -12,10 +13,13 @@ export function AdminPasswordGate({ onAuthenticated }: AdminPasswordGateProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Bumped on every submit so the password field hides itself again.
+  const [submitCount, setSubmitCount] = useState(0);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+    setSubmitCount((n) => n + 1);
     setLoading(true);
 
     try {
@@ -67,8 +71,8 @@ export function AdminPasswordGate({ onAuthenticated }: AdminPasswordGateProps) {
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400/70"
                 strokeWidth={1.75}
               />
-              <input
-                type="password"
+              <PasswordInput
+                key={submitCount}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="admin-input w-full pl-10"
