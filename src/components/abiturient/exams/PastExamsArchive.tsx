@@ -25,6 +25,7 @@ import { MathPastExamsArchive } from "./MathPastExamsArchive";
 import { HistoryPastExamsArchive } from "./HistoryPastExamsArchive";
 import { EnglishPastExamsArchive } from "./EnglishPastExamsArchive";
 import { GeographyPastExamsArchive } from "./GeographyPastExamsArchive";
+import { CivicsPastExamsArchive } from "./CivicsPastExamsArchive";
 import { ChemistryPastExamsArchive } from "./ChemistryPastExamsArchive";
 
 interface PastExamsArchiveProps {
@@ -63,6 +64,11 @@ export function PastExamsArchive({ subjectId }: PastExamsArchiveProps) {
   // sub-items (some MCQ, some AI-graded), scored only at the end.
   if (subjectId === "geography") {
     return <GeographyPastExamsArchive />;
+  }
+  // Civics is a mixed-format subject — MCQs, a matching task, error correction
+  // and open source/illustration analysis, all scored at the end.
+  if (subjectId === "civics") {
+    return <CivicsPastExamsArchive />;
   }
   // Chemistry is shaped like geography — figure-heavy MCQs + open sub-items
   // (formulas, equations, calculations), all AI-graded and scored at the end.
