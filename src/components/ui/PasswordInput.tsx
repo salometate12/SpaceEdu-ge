@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useId, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
 type NativeInputProps = Omit<ComponentPropsWithoutRef<"input">, "type">;
 
@@ -51,12 +51,17 @@ export function PasswordInput({
   const [visible, setVisible] = useState(false);
 
   const isInvalid = invalid ?? inputProps["aria-invalid"] === true;
+  // Fall back to a generated id so aria-controls always points at this input,
+  // and so two copies kept in the DOM by React Activity never share an id.
+  const reactId = useId();
+  const inputId = inputProps.id ?? reactId;
 
   return (
     <div className={`relative${wrapperClassName ? ` ${wrapperClassName}` : ""}`}>
       {icon}
       <input
         {...inputProps}
+        id={inputId}
         type={passwordInputType(visible)}
         className={`${className ?? ""} pr-11`.trim()}
       />
@@ -66,7 +71,7 @@ export function PasswordInput({
         onMouseDown={(e) => e.preventDefault()}
         aria-label={passwordToggleLabel(visible)}
         aria-pressed={visible}
-        aria-controls={inputProps.id}
+        aria-controls={inputId}
         className={`absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md transition-colors ${
           isInvalid
             ? "text-rose-500 hover:text-rose-600"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useId, useLayoutEffect, useMemo, useState, type FormEvent } from "react";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
@@ -51,6 +51,28 @@ export function LoginForm() {
 
   const emailInvalid = fieldError?.field === "email";
   const passwordInvalid = fieldError?.field === "password";
+
+  // Unique per component instance. The App Router keeps the previous route
+  // mounted (hidden, via React Activity) when navigating between auth pages, so
+  // two copies of this form can share the DOM. useId gives each copy its own
+  // field/error ids so labels, aria-describedby and password managers target
+  // the visible inputs, not the hidden ones.
+  const fieldId = useId();
+  const emailId = `${fieldId}-email`;
+  const passwordId = `${fieldId}-password`;
+  const emailErrorId = `${emailId}-error`;
+  const passwordErrorId = `${passwordId}-error`;
+
+  // Wipe the password and any error state when Activity hides this form, so a
+  // typed password never lingers in an off-screen copy. Email may stay.
+  useLayoutEffect(() => {
+    return () => {
+      setPassword("");
+      setFieldError(null);
+      setError(null);
+      setUnconfirmed(false);
+    };
+  }, []);
 
   const roleSubtext = useMemo(() => {
     if (role) return registrationRoleSubtext(role);
@@ -224,7 +246,7 @@ export function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor="login-email" className="text-xs font-medium text-slate-600 dark:text-gray-400">
+          <label htmlFor={emailId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
             ელ-ფოსტა
           </label>
           <div className="relative">
@@ -234,7 +256,7 @@ export function LoginForm() {
               }`}
             />
             <input
-              id="login-email"
+              id={emailId}
               type="email"
               value={email}
               onChange={(e) => {
@@ -242,7 +264,7 @@ export function LoginForm() {
                 if (emailInvalid) setFieldError(null);
               }}
               aria-invalid={emailInvalid || undefined}
-              aria-describedby={emailInvalid ? "login-email-error" : undefined}
+              aria-describedby={emailInvalid ? emailErrorId : undefined}
               className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
                 emailInvalid
                   ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
@@ -252,19 +274,19 @@ export function LoginForm() {
             />
           </div>
           {emailInvalid && (
-            <p id="login-email-error" className="text-xs font-medium text-rose-500">
+            <p id={emailErrorId} className="text-xs font-medium text-rose-500">
               {fieldError?.message}
             </p>
           )}
         </div>
 
         <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor="login-password" className="text-xs font-medium text-slate-600 dark:text-gray-400">
+          <label htmlFor={passwordId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
             პაროლი
           </label>
           <PasswordInput
             key={submitCount}
-            id="login-password"
+            id={passwordId}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -273,7 +295,7 @@ export function LoginForm() {
             autoComplete="current-password"
             invalid={passwordInvalid}
             aria-invalid={passwordInvalid || undefined}
-            aria-describedby={passwordInvalid ? "login-password-error" : undefined}
+            aria-describedby={passwordInvalid ? passwordErrorId : undefined}
             icon={
               <Lock
                 className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
@@ -289,7 +311,7 @@ export function LoginForm() {
             placeholder="პაროლი"
           />
           {passwordInvalid && (
-            <p id="login-password-error" className="text-xs font-medium text-rose-500">
+            <p id={passwordErrorId} className="text-xs font-medium text-rose-500">
               {fieldError?.message}
             </p>
           )}
