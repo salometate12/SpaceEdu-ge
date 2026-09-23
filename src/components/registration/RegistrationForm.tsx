@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Loader2, Lock, Mail, MailCheck, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
@@ -75,6 +83,27 @@ export function RegistrationForm() {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   // Bumped on every submit so the password field hides itself again.
   const [submitCount, setSubmitCount] = useState(0);
+
+  // Unique per component instance. The App Router keeps the previous route
+  // mounted (hidden, via React Activity) when only the ?role search param
+  // changes, so two copies of this form can coexist in the DOM. useId gives
+  // each copy its own field ids, keeping <label htmlFor>, aria-describedby and
+  // browser password managers pointed at the right (visible) inputs.
+  const fieldId = useId();
+  const nameId = `${fieldId}-name`;
+  const emailId = `${fieldId}-email`;
+  const passwordId = `${fieldId}-password`;
+
+  // When Activity hides this form (navigating away), wipe the password and any
+  // errors from the hidden copy so a typed password never lingers off-screen.
+  // The name and email are harmless to keep, so a returning user finds them.
+  useLayoutEffect(() => {
+    return () => {
+      setPassword("");
+      setErrors({});
+      setSubmitError(null);
+    };
+  }, []);
 
   const roleSubtext = useMemo(
     () => (role ? registrationRoleSubtext(role) : null),
@@ -243,9 +272,9 @@ export function RegistrationForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <FormField id="reg-name" label="სახელი და გვარი" icon={User} error={errors.name}>
+        <FormField id={nameId} label="სახელი და გვარი" icon={User} error={errors.name}>
           <input
-            id="reg-name"
+            id={nameId}
             type="text"
             autoComplete="name"
             value={name}
@@ -258,9 +287,9 @@ export function RegistrationForm() {
           />
         </FormField>
 
-        <FormField id="reg-email" label="ელ-ფოსტა" icon={Mail} error={errors.email}>
+        <FormField id={emailId} label="ელ-ფოსტა" icon={Mail} error={errors.email}>
           <input
-            id="reg-email"
+            id={emailId}
             type="email"
             autoComplete="email"
             value={email}
@@ -273,10 +302,10 @@ export function RegistrationForm() {
           />
         </FormField>
 
-        <FormField id="reg-password" label="პაროლი" icon={Lock} error={errors.password}>
+        <FormField id={passwordId} label="პაროლი" icon={Lock} error={errors.password}>
           <PasswordInput
             key={submitCount}
-            id="reg-password"
+            id={passwordId}
             autoComplete="new-password"
             value={password}
             onChange={(e) => {
