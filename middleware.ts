@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/utils/supabase/env";
-import { getSpaceRedirectHref, isAdminEmail } from "@/lib/access-control";
+import { authEntryRedirectHref, getSpaceRedirectHref, isAdminEmail } from "@/lib/access-control";
 import {
   hasActivePlan,
   isPaywallEnabled,
@@ -153,6 +153,18 @@ export async function middleware(request: NextRequest) {
   }
 
   const accountSpace = readAccountSpace(metadata);
+
+  // A signed-in user who already has a space never needs the space chooser or
+  // the auth forms — send them straight to their dashboard. (Admins returned
+  // above, so they can still open these pages.)
+  const authEntryHref = authEntryRedirectHref(pathname, accountSpace);
+  if (authEntryHref) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = authEntryHref;
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
   if (accountSpace) {
     const redirectHref = getSpaceRedirectHref(pathname, accountSpace);
     if (redirectHref) {

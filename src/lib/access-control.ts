@@ -112,7 +112,25 @@ export function spaceFromPathname(pathname: string): SpaceeduSpace | null {
   return null;
 }
 
-function dashboardHrefForUserSpace(userSpace: SpaceeduSpace): string {
+/** Auth-entry pages a signed-in user with a space should be bounced off of. */
+export const AUTH_ENTRY_PATHS = new Set(["/select-space", "/login", "/registration"]);
+
+/**
+ * A signed-in user who already has a space never needs the space chooser or the
+ * auth forms. Returns their dashboard href when they land on one of those pages,
+ * or null otherwise. (Admins are handled before this in the middleware.)
+ */
+export function authEntryRedirectHref(
+  pathname: string,
+  accountSpace: SpaceeduSpace | null,
+): string | null {
+  if (accountSpace && AUTH_ENTRY_PATHS.has(pathname)) {
+    return dashboardHrefForUserSpace(accountSpace);
+  }
+  return null;
+}
+
+export function dashboardHrefForUserSpace(userSpace: SpaceeduSpace): string {
   switch (userSpace) {
     case "abiturient":
       return DASHBOARD_ABIT_HREF;
