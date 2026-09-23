@@ -21,6 +21,10 @@ import { SpaceCard, type SpaceOption } from "./SpaceCard";
 
 interface SpaceSelectorModalProps {
   onSelect: (id: SpaceOption["id"]) => void;
+  /** Where "back" should go. When omitted, returns to the previous page (or the
+   *  landing page). Callers pass an explicit target for a signed-in user so
+   *  "back" never bounces into a redirect loop. */
+  backHref?: string;
 }
 
 const SPACES: SpaceOption[] = [
@@ -65,10 +69,14 @@ const SPACES: SpaceOption[] = [
  * between the landing and the app, so it wears the same paper as /about
  * and the landing's sheets rather than the old neon panel.
  */
-export function SpaceSelectorModal({ onSelect }: SpaceSelectorModalProps) {
+export function SpaceSelectorModal({ onSelect, backHref }: SpaceSelectorModalProps) {
   const router = useRouter();
 
   const handleBack = () => {
+    if (backHref) {
+      router.push(backHref);
+      return;
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
       return;

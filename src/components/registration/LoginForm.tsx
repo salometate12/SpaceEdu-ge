@@ -19,6 +19,16 @@ import {
   registrationRoleSubtext,
   type RegistrationRoleParam,
 } from "@/lib/registration-role";
+import { dashboardHrefForUserSpace } from "@/lib/access-control";
+import { classifyLoginError, validateLoginFields, type LoginFieldError } from "@/lib/login-error";
+import type { SpaceeduSpace } from "@/lib/space-back-navigation";
+
+/** The account's registered space, read from Supabase user metadata. */
+function accountSpaceFromMetadata(metadata: unknown): SpaceeduSpace | null {
+  const value = (metadata as Record<string, unknown> | null | undefined)?.space;
+  if (value === "school" || value === "abiturient" || value === "student") return value;
+  return null;
+}
 
 export function LoginForm() {
   const router = useRouter();
@@ -30,9 +40,13 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldError, setFieldError] = useState<LoginFieldError | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false);
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const emailInvalid = fieldError?.field === "email";
+  const passwordInvalid = fieldError?.field === "password";
 
   const roleSubtext = useMemo(() => {
     if (role) return registrationRoleSubtext(role);
@@ -66,22 +80,32 @@ export function LoginForm() {
     }
   };
 
+  /** Send a signed-in user to their space's dashboard. The account's own space
+   *  (from metadata) always wins over the URL's ?role; falls back to the URL
+   *  role, and only sends to the space chooser if neither is known. */
+  const redirectAfterLogin = (accountSpace: SpaceeduSpace | null) => {
+    const space: SpaceeduSpace | null = accountSpace ?? role;
+    if (space === "abiturient" || space === "student") {
+      persistSpaceForRole(space);
+    }
+    router.push(space ? dashboardHrefForUserSpace(space) : "/select-space");
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    setFieldError(null);
     setUnconfirmed(false);
     setResendState("idle");
 
-    const activeRole = role ?? (isDevPortalBypass() ? "student" : null);
-    if (!activeRole) {
-      setError("აირჩიე სივრცე შესვლისთვის (/select-space).");
-      return;
-    }
-
     const trimmedEmail = email.trim();
-    if (!trimmedEmail || password.length < 6) {
-      if (!isDevPortalBypass()) {
-        setError("შეიყვანე ელ-ფოსტა და პაროლი (მინ. 6 სიმბოლო).");
+
+    // Client-side validation turns the specific field red. Skipped in the dev
+    // bypass, which lets you in without real credentials.
+    if (!isDevPortalBypass()) {
+      const invalid = validateLoginFields(trimmedEmail, password);
+      if (invalid) {
+        setFieldError(invalid);
         return;
       }
     }
@@ -90,28 +114,35 @@ export function LoginForm() {
     try {
       if (isSupabaseBrowserConfigured() && trimmedEmail && password.length >= 6) {
         const supabase = createSupabaseBrowserClient();
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email: trimmedEmail,
           password,
         });
         if (signInError) throw signInError;
-      } else if (!isDevPortalBypass()) {
-        throw new Error("auth-unavailable");
-      }
-
-      finishAuthRedirect(activeRole);
-    } catch (err) {
-      if (isDevPortalBypass()) {
-        finishAuthRedirect(activeRole);
+        redirectAfterLogin(accountSpaceFromMetadata(data.user?.user_metadata));
         return;
       }
-      const code = (err as { code?: string } | null)?.code;
-      const message = err instanceof Error ? err.message.toLowerCase() : "";
-      if (code === "email_not_confirmed" || message.includes("not confirmed")) {
+
+      // No real auth available: dev keeps its password-free bypass; otherwise error.
+      if (isDevPortalBypass()) {
+        finishAuthRedirect(role ?? "student");
+        return;
+      }
+      throw new Error("auth-unavailable");
+    } catch (err) {
+      if (isDevPortalBypass()) {
+        finishAuthRedirect(role ?? "student");
+        return;
+      }
+      const outcome = classifyLoginError(err);
+      if (outcome.kind === "unconfirmed") {
+        // Unchanged: the fields don't go red for an unconfirmed address.
         setError(
           "ელ-ფოსტა ჯერ არ არის დადასტურებული. შეამოწმე ინბოქსი და დააჭირე დადასტურების ბმულს.",
         );
         setUnconfirmed(true);
+      } else if (outcome.kind === "field") {
+        setFieldError(outcome.error);
       } else {
         setError("შესვლა ვერ მოხერხდა. შეამოწმე მონაცემები და სცადე თავიდან.");
       }
@@ -147,18 +178,16 @@ export function LoginForm() {
         </div>
       )}
 
-      {role && (
-        <>
-          <GoogleAuthButton role={role} label="შესვლა Google-ით" />
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">
-              ან
-            </span>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-          </div>
-        </>
-      )}
+      {/* Google works without a pre-chosen space — the account's space is read
+          at /auth/complete, so a returning user isn't asked to choose again. */}
+      <GoogleAuthButton role={role ?? "abiturient"} label="შესვლა Google-ით" />
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">
+          ან
+        </span>
+        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="relative flex flex-col space-y-1.5">
@@ -166,16 +195,34 @@ export function LoginForm() {
             ელ-ფოსტა
           </label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+            <Mail
+              className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                emailInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
+              }`}
+            />
             <input
               id="login-email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailInvalid) setFieldError(null);
+              }}
+              aria-invalid={emailInvalid || undefined}
+              aria-describedby={emailInvalid ? "login-email-error" : undefined}
+              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
+                emailInvalid
+                  ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
+                  : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
+              }`}
               placeholder="name@example.com"
             />
           </div>
+          {emailInvalid && (
+            <p id="login-email-error" className="text-xs font-medium text-rose-500">
+              {fieldError?.message}
+            </p>
+          )}
         </div>
 
         <div className="relative flex flex-col space-y-1.5">
@@ -183,16 +230,34 @@ export function LoginForm() {
             პაროლი
           </label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
+            <Lock
+              className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                passwordInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
+              }`}
+            />
             <input
               id="login-password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordInvalid) setFieldError(null);
+              }}
+              aria-invalid={passwordInvalid || undefined}
+              aria-describedby={passwordInvalid ? "login-password-error" : undefined}
+              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
+                passwordInvalid
+                  ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
+                  : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
+              }`}
               placeholder="პაროლი"
             />
           </div>
+          {passwordInvalid && (
+            <p id="login-password-error" className="text-xs font-medium text-rose-500">
+              {fieldError?.message}
+            </p>
+          )}
         </div>
 
         {error && (
