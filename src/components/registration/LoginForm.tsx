@@ -12,6 +12,7 @@ import {
   isDevPortalBypass,
   parseDevPortalTarget,
   persistSpaceForRole,
+  readPersistedSpace,
   resolveAuthRedirectHref,
 } from "@/lib/dev-portal-bypass";
 import {
@@ -19,7 +20,8 @@ import {
   registrationRoleSubtext,
   type RegistrationRoleParam,
 } from "@/lib/registration-role";
-import { dashboardHrefForUserSpace } from "@/lib/access-control";
+import { isAdminEmail, resolvePostLoginHref } from "@/lib/access-control";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { classifyLoginError, validateLoginFields, type LoginFieldError } from "@/lib/login-error";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
@@ -44,6 +46,8 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false);
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  // Bumped on every submit so the password field hides itself again.
+  const [submitCount, setSubmitCount] = useState(0);
 
   const emailInvalid = fieldError?.field === "email";
   const passwordInvalid = fieldError?.field === "password";
@@ -80,15 +84,40 @@ export function LoginForm() {
     }
   };
 
-  /** Send a signed-in user to their space's dashboard. The account's own space
-   *  (from metadata) always wins over the URL's ?role; falls back to the URL
-   *  role, and only sends to the space chooser if neither is known. */
-  const redirectAfterLogin = (accountSpace: SpaceeduSpace | null) => {
-    const space: SpaceeduSpace | null = accountSpace ?? role;
-    if (space === "abiturient" || space === "student") {
-      persistSpaceForRole(space);
+  /**
+   * Send a signed-in user to their space's dashboard. Space priority is
+   * account metadata → URL ?role → this device's stored preference. An admin
+   * is never sent to the chooser; a normal user with no space anywhere is.
+   * When a normal user's space came from the URL/storage rather than the
+   * account, it's written back so the next login reads it straight off the
+   * account. See resolvePostLoginHref for the full rule.
+   */
+  const redirectAfterLogin = async (user: {
+    email?: string | null;
+    user_metadata?: unknown;
+  }) => {
+    const resolution = resolvePostLoginHref({
+      metadataSpace: accountSpaceFromMetadata(user.user_metadata),
+      roleSpace: role,
+      storedSpace: readPersistedSpace(),
+      isAdmin: isAdminEmail(user.email),
+    });
+
+    if (resolution.persistSpace) {
+      persistSpaceForRole(resolution.persistSpace);
     }
-    router.push(space ? dashboardHrefForUserSpace(space) : "/select-space");
+
+    if (resolution.writeSpaceToAccount) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        await supabase.auth.updateUser({ data: { space: resolution.writeSpaceToAccount } });
+      } catch {
+        // Non-fatal: the space is already persisted locally and the URL role
+        // still routes them correctly this session. Don't block the redirect.
+      }
+    }
+
+    router.push(resolution.href);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -97,6 +126,7 @@ export function LoginForm() {
     setFieldError(null);
     setUnconfirmed(false);
     setResendState("idle");
+    setSubmitCount((n) => n + 1);
 
     const trimmedEmail = email.trim();
 
@@ -119,7 +149,10 @@ export function LoginForm() {
           password,
         });
         if (signInError) throw signInError;
-        redirectAfterLogin(accountSpaceFromMetadata(data.user?.user_metadata));
+        await redirectAfterLogin({
+          email: data.user?.email,
+          user_metadata: data.user?.user_metadata,
+        });
         return;
       }
 
@@ -229,30 +262,32 @@ export function LoginForm() {
           <label htmlFor="login-password" className="text-xs font-medium text-slate-600 dark:text-gray-400">
             პაროლი
           </label>
-          <div className="relative">
-            <Lock
-              className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
-                passwordInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
-              }`}
-            />
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (passwordInvalid) setFieldError(null);
-              }}
-              aria-invalid={passwordInvalid || undefined}
-              aria-describedby={passwordInvalid ? "login-password-error" : undefined}
-              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
-                passwordInvalid
-                  ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
-                  : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
-              }`}
-              placeholder="პაროლი"
-            />
-          </div>
+          <PasswordInput
+            key={submitCount}
+            id="login-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordInvalid) setFieldError(null);
+            }}
+            autoComplete="current-password"
+            invalid={passwordInvalid}
+            aria-invalid={passwordInvalid || undefined}
+            aria-describedby={passwordInvalid ? "login-password-error" : undefined}
+            icon={
+              <Lock
+                className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                  passwordInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
+                }`}
+              />
+            }
+            className={`w-full rounded-xl border bg-white py-3 pl-10 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
+              passwordInvalid
+                ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
+                : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
+            }`}
+            placeholder="პაროლი"
+          />
           {passwordInvalid && (
             <p id="login-password-error" className="text-xs font-medium text-rose-500">
               {fieldError?.message}
@@ -261,12 +296,15 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200/90">
+          <div
+            role="alert"
+            className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
+          >
             <p>{error}</p>
             {unconfirmed && (
               <div className="mt-2">
                 {resendState === "sent" ? (
-                  <span className="text-emerald-300/90">
+                  <span className="text-emerald-700 dark:text-emerald-300/90">
                     ახალი დადასტურების ბმული გამოგზავნილია — შეამოწმე ინბოქსი.
                   </span>
                 ) : (
@@ -274,7 +312,7 @@ export function LoginForm() {
                     type="button"
                     onClick={() => void handleResend()}
                     disabled={resendState === "sending"}
-                    className="font-medium text-pink-300 underline underline-offset-2 hover:text-pink-200 disabled:opacity-50"
+                    className="font-medium text-pink-700 underline underline-offset-2 hover:text-pink-600 disabled:opacity-50 dark:text-pink-300 dark:hover:text-pink-200"
                   >
                     {resendState === "sending"
                       ? "იგზავნება..."

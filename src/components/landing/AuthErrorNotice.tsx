@@ -53,13 +53,16 @@ export function AuthErrorNotice() {
 
   return (
     <div className="relative z-20 mx-auto w-full max-w-3xl px-4 pt-4">
-      <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-100/90 backdrop-blur-xl">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 stroke-[1.5] text-amber-400" aria-hidden />
+      <div
+        role="alert"
+        className="flex items-start gap-3 rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-800 backdrop-blur-xl dark:border-amber-500/25 dark:bg-amber-500/[0.08] dark:text-amber-100/90"
+      >
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 stroke-[1.5] text-amber-500 dark:text-amber-400" aria-hidden />
         <div className="flex-1">
           <p className="leading-relaxed">{message}</p>
           <Link
             href="/select-space"
-            className="mt-1 inline-block text-xs font-medium text-amber-300 underline underline-offset-2 hover:text-amber-200"
+            className="mt-1 inline-block text-xs font-medium text-amber-700 underline underline-offset-2 hover:text-amber-600 dark:text-amber-300 dark:hover:text-amber-200"
           >
             რეგისტრაციაზე გადასვლა
           </Link>
@@ -67,7 +70,7 @@ export function AuthErrorNotice() {
         <button
           type="button"
           onClick={() => setMessage(null)}
-          className="shrink-0 rounded-md p-1 text-amber-300/70 transition-colors hover:bg-white/5 hover:text-amber-200"
+          className="shrink-0 rounded-md p-1 text-amber-600/70 transition-colors hover:bg-black/5 hover:text-amber-700 dark:text-amber-300/70 dark:hover:bg-white/5 dark:hover:text-amber-200"
           aria-label="დახურვა"
         >
           <X className="h-4 w-4 stroke-[1.5]" />

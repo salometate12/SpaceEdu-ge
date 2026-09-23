@@ -7,7 +7,7 @@ import { SpaceSelectorModal } from "@/components/SpaceSelectorModal";
 import { registrationHref } from "@/lib/registration-role";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { dashboardHrefForUserSpace } from "@/lib/access-control";
+import { dashboardHrefForUserSpace, isAdminEmail } from "@/lib/access-control";
 import { persistSpaceForRole } from "@/lib/dev-portal-bypass";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
@@ -20,10 +20,13 @@ function accountSpaceFromMetadata(metadata: unknown): SpaceeduSpace | null {
 export default function SelectSpacePage() {
   const router = useRouter();
   // "checking" until we know the session; "guest" = signed out (or no auth
-  // configured); "needs-space" = signed in but no space chosen yet. A signed-in
-  // user who already has a space is replaced to their dashboard and never sees
-  // the form (this backs up the middleware rule for dev / edge cases).
-  const [status, setStatus] = useState<"checking" | "guest" | "needs-space">("checking");
+  // configured); "needs-space" = signed in but no space chosen yet; "admin" =
+  // signed in as an admin, who uses this page to switch spaces freely. A normal
+  // signed-in user who already has a space is replaced to their dashboard and
+  // never sees the form (this backs up the middleware rule for dev / edge cases).
+  const [status, setStatus] = useState<"checking" | "guest" | "needs-space" | "admin">(
+    "checking",
+  );
 
   useEffect(() => {
     let active = true;
@@ -39,6 +42,12 @@ export default function SelectSpacePage() {
         const user = data.user;
         if (!user) {
           setStatus("guest");
+          return;
+        }
+        // Admins are never auto-redirected: this page is how they switch spaces,
+        // so they always see the chooser even when their account has a space.
+        if (isAdminEmail(user.email)) {
+          setStatus("admin");
           return;
         }
         const space = accountSpaceFromMetadata(user.user_metadata);
@@ -57,6 +66,15 @@ export default function SelectSpacePage() {
   }, [router]);
 
   const handleSelect = async (spaceId: "school" | "abiturient" | "student") => {
+    // Admin: just switch to the chosen space's dashboard. Never write the space
+    // onto the account — that would lock the admin into one space and undo the
+    // free switching this page exists to give them.
+    if (status === "admin") {
+      if (spaceId === "abiturient" || spaceId === "student") persistSpaceForRole(spaceId);
+      router.replace(dashboardHrefForUserSpace(spaceId));
+      return;
+    }
+
     // Signed in but without a space yet: write the choice onto the account and
     // go to the dashboard — no re-registration.
     if (status === "needs-space") {
