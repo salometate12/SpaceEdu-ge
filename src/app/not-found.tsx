@@ -3,7 +3,7 @@ import { ka } from "@/lib/i18n";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 text-center">
       <h1 className="text-2xl font-bold text-zinc-900 md:text-4xl dark:text-zinc-50">
         {ka.notFound.title}
       </h1>
