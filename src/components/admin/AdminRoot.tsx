@@ -28,7 +28,7 @@ export function AdminRoot() {
 
   if (!ready) {
     return (
-      <div className="admin-shell flex min-h-screen items-center justify-center text-sm text-zinc-400">
+      <div className="admin-shell flex min-h-dvh items-center justify-center text-sm text-zinc-400">
         Loading admin console...
       </div>
     );

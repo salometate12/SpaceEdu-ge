@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="admin-theme dark min-h-screen bg-[#05070f] text-zinc-100">
+    <div className="admin-theme dark min-h-dvh bg-[#05070f] text-zinc-100">
       <Suspense
         fallback={
-          <div className="admin-shell flex min-h-screen items-center justify-center text-sm text-zinc-400">
+          <div className="admin-shell flex min-h-dvh items-center justify-center text-sm text-zinc-400">
             Loading admin console...
           </div>
         }

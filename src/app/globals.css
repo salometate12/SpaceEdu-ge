@@ -1365,6 +1365,37 @@ html.dark .paper-sticker:active {
   padding-top: var(--site-header-gap);
 }
 
+/* One shared top safe-area inset for every page.
+ *
+ * `viewport-fit=cover` lets every page run under the status bar / notch /
+ * Dynamic Island, so on phones the app's content wrapper (SiteShell) pads
+ * itself down by the safe-area inset. This is the single place the inset is
+ * applied for all the routes that have no visible header on mobile —
+ * dashboards, subject pages, /login, /registration, /select-space, etc.
+ *
+ * Landing-header routes (the landing, /pricing, /about, /contact) already
+ * clear the status bar through the sticky header strip's `--site-header-gap`,
+ * so they opt out here to avoid doubling the inset. Desktop (≥768px) keeps
+ * `--safe-top: 0` — the header bar owns the spacing there. */
+:root {
+  --safe-top: 0px;
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+
+  .site-shell {
+    padding-top: var(--safe-top);
+  }
+
+  html[data-landing-header] .site-shell,
+  html[data-ground="landing"] .site-shell {
+    padding-top: 0;
+  }
+}
+
 .under-site-header {
   margin-top: calc(-1 * var(--site-header-h));
   padding-top: var(--site-header-h);

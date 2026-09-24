@@ -174,7 +174,7 @@ export function AdminDashboard({ password }: AdminDashboardProps) {
   const pageRows = filteredRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
-    <div className="admin-shell flex min-h-screen">
+    <div className="admin-shell flex min-h-dvh">
       <aside className="admin-sidebar hidden w-64 shrink-0 flex-col border-r border-cyan-500/15 bg-[#070a12]/95 p-5 lg:flex">
         <div className="mb-8">
           <p className="admin-kicker">SpaceEdu</p>

@@ -122,7 +122,7 @@ export function LiteraryParallelsTablePage({
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--bg-primary)] p-8 md:p-12">
+    <div className="min-h-dvh overflow-x-hidden bg-[var(--bg-primary)] p-8 md:p-12">
       <div className="mx-auto w-full max-w-5xl">
         <Link
           href={backHref}
