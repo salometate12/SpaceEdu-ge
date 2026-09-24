@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Archive, ArrowLeft, ChevronRight, Layers, PenLine, PlayCircle } from "lucide-react";
+import { Archive, ArrowLeft, ChevronRight, PenLine } from "lucide-react";
 import { getSubjectHub } from "@/lib/abiturient-subject-hub";
 import {
   subjectAccent,
@@ -18,18 +18,11 @@ import {
   type NotebookAccent,
 } from "@/components/landing/notebook/accents";
 import { DASHBOARD_ABIT_HREF } from "@/lib/dashboard-routes";
-import { quizHrefForGeorgianSubject } from "@/lib/space-back-navigation";
 import { SubjectSpacePremiumCard } from "./SubjectSpacePremiumCard";
 
 interface AbiturientSubjectHubProps {
   subjectId: string;
   premiumSlot?: ReactNode;
-}
-
-function flashcardHref(subjectId: string, deckId?: string): string {
-  if (deckId) return `/deck/${deckId}`;
-  if (subjectId === "georgian") return "/generate?from=georgian";
-  return "/generate?from=abit";
 }
 
 const BACK_LINK_CLASS =
@@ -118,8 +111,6 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
     );
   }
 
-  const cardsHref = flashcardHref(subject.id, subject.deckId);
-
   return (
     <main className="relative mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <Sparkle
@@ -155,27 +146,6 @@ export function AbiturientSubjectHub({ subjectId, premiumSlot }: AbiturientSubje
           </div>
         </div>
       </section>
-
-      {subject.id !== "georgian" && (
-        <section className="mt-6 grid gap-4 sm:grid-cols-2">
-          <HubCard
-            href={subjectId === "georgian" ? quizHrefForGeorgianSubject() : "/quiz"}
-            accent={secondary}
-            icon={PlayCircle}
-            title="კითხვების პანელი"
-            body="გაიმეორე ბანკის კითხვები და შეამოწმე პასუხები."
-            cta="გაგრძელება"
-          />
-          <HubCard
-            href={cardsHref}
-            accent={accent}
-            icon={Layers}
-            title="Flashcards"
-            body="ინტერაქტიული ფლეშბარათები გამოცდის სიმოკლის გასაამაგრებლად."
-            cta="გაგრძელება"
-          />
-        </section>
-      )}
 
       <section className="mt-6 grid gap-4 sm:grid-cols-2" aria-label="საგამოცდო რესურსები">
         <HubCard
