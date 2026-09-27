@@ -53,7 +53,7 @@ function FigureView({ figure }: { figure: CivicsFigure }) {
           <button
             type="button"
             onClick={() => setZoomed(false)}
-            className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 text-white transition hover:bg-white/20"
+            className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 text-white transition hover:bg-white/20"
             aria-label="დახურვა"
           >
             <X className="h-5 w-5 stroke-[2.5]" />

@@ -9,7 +9,7 @@ function LoginFallback() {
 
 export default function LoginPage() {
   return (
-    <main className="auth-ground flex min-h-screen items-center justify-center px-4 py-12">
+    <main className="auth-ground flex min-h-dvh items-center justify-center px-4 py-12">
       <Suspense fallback={<LoginFallback />}>
         <LoginForm />
       </Suspense>

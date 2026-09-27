@@ -45,7 +45,7 @@ export function AdminPasswordGate({ onAuthenticated }: AdminPasswordGateProps) {
   }
 
   return (
-    <div className="admin-shell flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="admin-shell flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="admin-panel w-full max-w-md p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="admin-icon-wrap">
