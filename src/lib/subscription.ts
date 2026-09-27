@@ -63,6 +63,36 @@ export function isTrialExpired(
   return trialMsRemaining(createdAt, now) === 0;
 }
 
+export interface PlanStatus {
+  /** "active" = paid plan running; "trial" = free trial days left; "free" = neither. */
+  kind: "active" | "trial" | "free";
+  /** Short Georgian label for the sidebar / plan page. */
+  label: string;
+  /** Trial days left, only meaningful when kind === "trial". */
+  trialDaysLeft: number;
+}
+
+/**
+ * The account's plan as a Georgian label: an active paid plan, the free trial
+ * with N days left, or the free plan. Pure — the caller passes the metadata
+ * and creation time it already read.
+ */
+export function getPlanStatus(
+  metadata: Record<string, unknown> | null | undefined,
+  createdAt: string | null | undefined,
+  now: number = Date.now(),
+): PlanStatus {
+  const entitlement = readEntitlement(metadata);
+  if (hasActivePlan(entitlement, now)) {
+    return { kind: "active", label: "აქტიური პლანი", trialDaysLeft: 0 };
+  }
+  if (!isTrialExpired(createdAt, now)) {
+    const days = trialDaysRemaining(createdAt, now);
+    return { kind: "trial", label: `საცდელი — ${days} დღე`, trialDaysLeft: days };
+  }
+  return { kind: "free", label: "უფასო პლანი", trialDaysLeft: 0 };
+}
+
 /**
  * The product itself — everything the trial and the paywall cover.
  *

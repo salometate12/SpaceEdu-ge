@@ -2324,3 +2324,16 @@ input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
 }
+
+/* Appearance → "ანიმაციები" off. Set by the settings toggle on <html>; nearly
+   removes transitions/animations app-wide (kept non-zero so JS transitionend
+   handlers still fire). */
+html.no-animations *,
+html.no-animations *::before,
+html.no-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}

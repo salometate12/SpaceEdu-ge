@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   authEntryRedirectHref,
   dashboardHrefForUserSpace,
+  getSpaceRedirectHref,
   resolvePostLoginHref,
   SELECT_SPACE_HREF,
 } from "./access-control";
@@ -123,5 +124,34 @@ describe("resolvePostLoginHref", () => {
       persistSpace: null,
       writeSpaceToAccount: null,
     });
+  });
+});
+
+describe("settings routes are shared, never space-guarded", () => {
+  const settingsPaths = [
+    "/settings",
+    "/settings/profile",
+    "/settings/space",
+    "/settings/security",
+    "/settings/sessions",
+    "/settings/notifications",
+    "/settings/appearance",
+    "/settings/language",
+    "/settings/plan",
+    "/settings/billing",
+    "/settings/danger",
+  ];
+
+  it("never redirects a settings page regardless of the account's space", () => {
+    for (const path of settingsPaths) {
+      expect(getSpaceRedirectHref(path, "student")).toBeNull();
+      expect(getSpaceRedirectHref(path, "abiturient")).toBeNull();
+      expect(getSpaceRedirectHref(path, "school")).toBeNull();
+    }
+  });
+
+  it("does not guard /profile/edit (it redirects to shared /settings/profile)", () => {
+    expect(getSpaceRedirectHref("/profile/edit", "student")).toBeNull();
+    expect(getSpaceRedirectHref("/profile/edit", "abiturient")).toBeNull();
   });
 });

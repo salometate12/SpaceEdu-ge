@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { SETTINGS_PROFILE_HREF } from "@/lib/settings-nav";
 
-// The old fake edit form is gone — editing lives at /settings/profile now.
-export default function ProfileEditRedirectPage() {
+export default function SettingsIndexPage() {
   redirect(SETTINGS_PROFILE_HREF);
 }
