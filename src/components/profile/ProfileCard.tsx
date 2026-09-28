@@ -69,7 +69,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
       </div>
 
       <Link
-        href="/profile/edit"
+        href="/settings/profile"
         className="mt-5 flex w-full items-center justify-center rounded-full border-2 border-[#1c1917] bg-transparent py-3 text-sm font-bold text-[var(--text-primary)] transition-all hover:bg-[#1c1917] hover:text-white"
       >
         პროფილის რედაქტირება
