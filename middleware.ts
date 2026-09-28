@@ -13,6 +13,11 @@ import {
 } from "@/lib/subscription";
 import { CHECKOUT_HREF } from "@/lib/checkout-routes";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
+import {
+  ACTIVE_SPACE_COOKIE,
+  ACTIVE_SPACE_COOKIE_MAX_AGE,
+  activeSpaceToRemember,
+} from "@/lib/active-space";
 
 /**
  * The one middleware.
@@ -29,6 +34,11 @@ import type { SpaceeduSpace } from "@/lib/space-back-navigation";
  *   2. signed out, on a private path → /select-space;
  *   3. signed in: trial expired on a paid path → checkout;
  *   4. signed in: wrong space for this route → their own dashboard.
+ *
+ * Every response that lets the request through also remembers the working
+ * space (`spaceedu_active_space`) when the page is a space's own dashboard
+ * or profile — see `rememberActiveSpace`. Redirects never write it, so the
+ * guard above decides access exactly as before.
  */
 
 /** Pages anyone can view without being logged in. Everything else requires a session. */
@@ -85,12 +95,36 @@ function readAccountSpace(metadata: Record<string, unknown> | undefined): Spacee
   return null;
 }
 
+/**
+ * Remembers which space the user is working in, on a response that lets the
+ * request through. Only a space's home routes set it (see
+ * `activeSpaceToRemember`), and for a non-admin those are reached only when
+ * the space guard allowed them — so the cookie can never point a normal
+ * user at a space they don't have; it just picks which links /settings and
+ * the header show. Not httpOnly: the header reads it on the client.
+ */
+function rememberActiveSpace(request: NextRequest, response: NextResponse): NextResponse {
+  const space = activeSpaceToRemember(
+    request.nextUrl.pathname,
+    request.cookies.get(ACTIVE_SPACE_COOKIE)?.value,
+  );
+  if (space) {
+    response.cookies.set(ACTIVE_SPACE_COOKIE, space, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: ACTIVE_SPACE_COOKIE_MAX_AGE,
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   // Local dev keeps the existing password-free bypass used by the
   // login/registration forms. Unchanged from before the merge: turning the
   // gate on locally would lock development out of every tool.
   if (process.env.NODE_ENV === "development") {
-    return NextResponse.next();
+    return rememberActiveSpace(request, NextResponse.next());
   }
 
   const { pathname } = request.nextUrl;
@@ -98,7 +132,7 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = getSupabaseUrl();
   const supabaseKey = getSupabaseAnonKey();
   if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.next({ request });
+    return rememberActiveSpace(request, NextResponse.next({ request }));
   }
 
   let response = NextResponse.next({ request });
@@ -130,7 +164,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdminEmail(user.email)) {
-    return response;
+    return rememberActiveSpace(request, response);
   }
 
   const metadata = user.user_metadata as Record<string, unknown> | undefined;
@@ -175,7 +209,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return response;
+  return rememberActiveSpace(request, response);
 }
 
 export const config = {

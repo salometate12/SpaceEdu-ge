@@ -34,7 +34,7 @@ export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
 export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
 
 /** Inside the app: AI · Calendar · Menu · Profile. */
-function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
+function appDock(space: SpaceeduSpace | null, isAdmin: boolean): MobileDockItem[] {
   const calendarHref =
     space === "abiturient"
       ? "/dashboard-abit#dashboard-calendar-panel"
@@ -64,7 +64,7 @@ function appDock(space: SpaceeduSpace | null): MobileDockItem[] {
     },
     {
       slot: "accent",
-      href: profileHrefForSpace(space),
+      href: profileHrefForSpace(space, { isAdmin }),
       label: "პროფილი",
       icon: UserRound,
       match: (p) => p.startsWith("/profile"),
@@ -117,12 +117,13 @@ export function mobileDockHidden(pathname: string | null): boolean {
 export function mobileDockItems(
   pathname: string | null,
   space: SpaceeduSpace | null = null,
+  options: { isAdmin?: boolean } = {},
 ): MobileDockItem[] {
   if (!pathname || mobileDockHidden(pathname)) return [];
   if (pathname === "/" || pathname === "/pricing" || pathname === "/about") {
     return LANDING_DOCK;
   }
-  return appDock(space);
+  return appDock(space, options.isAdmin ?? false);
 }
 
 export function isDockItemActive(pathname: string, item: MobileDockItem): boolean {

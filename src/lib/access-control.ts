@@ -22,9 +22,28 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 export const PROFILE_STUDENT_HREF = "/profile";
 export const PROFILE_ABITURIENT_HREF = "/profile-abiturient";
 
-export function profileHrefForSpace(space: SpaceeduSpace | null | undefined): string {
+/** Where the overview / stats links go when no space is known at all. */
+export const NO_SPACE_ADMIN_HREF = "/settings/profile";
+
+interface NoSpaceOptions {
+  /** Admins have no space to choose; send them to their settings instead
+   * of the chooser. */
+  isAdmin?: boolean;
+}
+
+/**
+ * The profile overview for a space. An unknown space (null) no longer falls
+ * through to the abiturient profile — that silently moved admins and
+ * space-less (e.g. Google) accounts into the abiturient space. It goes to
+ * the chooser, or for an admin to their settings.
+ */
+export function profileHrefForSpace(
+  space: SpaceeduSpace | null | undefined,
+  options: NoSpaceOptions = {},
+): string {
   if (space === "student") return PROFILE_STUDENT_HREF;
-  return PROFILE_ABITURIENT_HREF;
+  if (space === "abiturient" || space === "school") return PROFILE_ABITURIENT_HREF;
+  return options.isAdmin ? NO_SPACE_ADMIN_HREF : SELECT_SPACE_HREF;
 }
 
 export function studyPlanHrefForSpace(space: SpaceeduSpace | null | undefined): string {
@@ -32,9 +51,13 @@ export function studyPlanHrefForSpace(space: SpaceeduSpace | null | undefined): 
   return "/study-plan/abit";
 }
 
-export function statsHrefForSpace(space: SpaceeduSpace | null | undefined): string {
+export function statsHrefForSpace(
+  space: SpaceeduSpace | null | undefined,
+  options: NoSpaceOptions = {},
+): string {
   if (space === "student") return "/profile/stats";
-  return "/profile-abiturient/stats";
+  if (space === "abiturient" || space === "school") return "/profile-abiturient/stats";
+  return options.isAdmin ? NO_SPACE_ADMIN_HREF : SELECT_SPACE_HREF;
 }
 
 /**
@@ -66,6 +89,31 @@ export const SPACE_GUARDED_ROUTES: {
 function matchesRoute(pathname: string, route: { path: string; match: "exact" | "prefix" }): boolean {
   if (route.match === "exact") return pathname === route.path;
   return pathname === route.path || pathname.startsWith(`${route.path}/`);
+}
+
+/**
+ * A space's own home routes — its dashboard, profile overview and stats.
+ * Opening one of these is what makes it the working space (see
+ * `active-space.ts`). Narrower than SPACE_GUARDED_ROUTES on purpose:
+ * /ai-teacher is guarded as student-only but linked from the abiturient
+ * header too, and must not switch an admin's space by being opened.
+ */
+const SPACE_HOME_ROUTES: { path: string; space: SpaceeduSpace; match: "exact" | "prefix" }[] = [
+  { path: DASHBOARD_ABIT_HREF, space: "abiturient", match: "prefix" },
+  { path: DASHBOARD_STUDENT_HREF, space: "student", match: "prefix" },
+  { path: DASHBOARD_SCHOOL_HREF, space: "school", match: "prefix" },
+  { path: PROFILE_ABITURIENT_HREF, space: "abiturient", match: "exact" },
+  { path: PROFILE_STUDENT_HREF, space: "student", match: "exact" },
+  { path: "/profile/stats", space: "student", match: "exact" },
+  { path: "/profile-abiturient/stats", space: "abiturient", match: "exact" },
+];
+
+/** The space whose home route this is, or null for any other page. */
+export function spaceOwningPath(pathname: string): SpaceeduSpace | null {
+  for (const route of SPACE_HOME_ROUTES) {
+    if (matchesRoute(pathname, route)) return route.space;
+  }
+  return null;
 }
 
 /**

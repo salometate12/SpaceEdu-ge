@@ -1,4 +1,6 @@
+import { Award } from "lucide-react";
 import { getBadgeColor, type Badge } from "@/lib/badges";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
 
 interface BadgeGridProps {
   badges: Badge[];
@@ -8,50 +10,43 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
   const unlockedCount = badges.filter((badge) => badge.unlocked).length;
 
   return (
-    <section className="dashboard-glass-card relative overflow-hidden rounded-[32px] p-6">
-      <div className="mb-5 flex items-center justify-between">
-        <h3 className="headline text-xl font-black text-[var(--text-primary)]">ბეჯები</h3>
-        <span className="mono rounded-full bg-[var(--bg-secondary)] px-3 py-1.5 text-xs font-bold text-[var(--text-secondary)]">
-          {unlockedCount} / {badges.length} მოპოვებული
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <DashboardCard icon={Award} tone="violet" title="ბეჯები" meta={`${unlockedCount}/${badges.length}`}>
+      <ul className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
         {badges.map((badge) => {
           const color = getBadgeColor(badge.color);
           return (
-            <div
+            <li
               key={badge.id}
-              className={`rounded-[22px] p-4 text-center transition-transform ${
-                badge.unlocked
-                  ? "hover:-translate-y-1"
-                  : "border border-[var(--border)] bg-[var(--bg-secondary)] opacity-60"
+              className={`rounded-xl border border-[var(--border)] p-3 text-center ${
+                badge.unlocked ? "" : "bg-[var(--bg-secondary)] opacity-60"
               }`}
-              style={
-                badge.unlocked
-                  ? { background: `color-mix(in oklab, ${color}, white 82%)` }
-                  : undefined
-              }
               title={badge.unlocked ? badge.name : badge.requirement}
             >
               <span
-                className="mx-auto flex h-11 w-11 items-center justify-center rounded-full"
-                style={badge.unlocked ? { background: `color-mix(in oklab, ${color}, white 55%)` } : undefined}
+                className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)]"
+                style={
+                  badge.unlocked
+                    ? { background: `color-mix(in oklab, ${color}, transparent 85%)` }
+                    : undefined
+                }
+                aria-hidden
               >
                 <badge.icon
-                  className="h-5 w-5 stroke-[2.25]"
+                  className="h-5 w-5"
+                  strokeWidth={2}
                   style={{ color: badge.unlocked ? color : "var(--text-muted)" }}
                 />
               </span>
-              <p className="mt-2 text-xs font-black text-[var(--text-primary)]">{badge.name}</p>
+              <p className="mt-2 text-xs font-semibold text-[var(--text-primary)]">{badge.name}</p>
               {!badge.unlocked && badge.requirement && (
-                <p className="mt-0.5 text-[10px] font-medium leading-tight text-[var(--text-muted)]">
+                <p className="mt-0.5 text-[11px] leading-snug text-[var(--text-muted)]">
                   {badge.requirement}
                 </p>
               )}
-            </div>
+            </li>
           );
         })}
-      </div>
-    </section>
+      </ul>
+    </DashboardCard>
   );
 }

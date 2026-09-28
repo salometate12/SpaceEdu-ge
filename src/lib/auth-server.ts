@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
 import { createClient as createServerSupabaseClient } from "@/utils/supabase/server";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
+import { isAdminEmail } from "@/lib/access-control";
+import { ACTIVE_SPACE_COOKIE, parseSpace, resolveWorkingSpace } from "@/lib/active-space";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 export interface ServerUserName {
@@ -57,6 +60,43 @@ export async function getServerAccountSpace(): Promise<SpaceeduSpace | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * The working space for a page whose URL belongs to no space (e.g.
+ * /settings/*): the remembered space from the `spaceedu_active_space`
+ * cookie, else the account's own space, else null — plus whether the
+ * viewer is an admin, for where "no space" links should go. Only chooses
+ * which links to show; access is still checked by the middleware.
+ */
+export async function getServerWorkingSpace(): Promise<{
+  space: SpaceeduSpace | null;
+  isAdmin: boolean;
+}> {
+  const cookieStore = await cookies();
+  const cookieSpace = parseSpace(cookieStore.get(ACTIVE_SPACE_COOKIE)?.value);
+
+  let accountSpace: SpaceeduSpace | null = null;
+  let isAdmin = false;
+  if (isSupabaseBrowserConfigured()) {
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { data } = await supabase.auth.getUser();
+      accountSpace = parseSpace(
+        (data.user?.user_metadata as Record<string, unknown> | undefined)?.space as
+          | string
+          | undefined,
+      );
+      isAdmin = isAdminEmail(data.user?.email);
+    } catch {
+      /* no session — fall back to the cookie alone */
+    }
+  }
+
+  return {
+    space: resolveWorkingSpace({ pathname: null, cookieSpace, accountSpace }),
+    isAdmin,
+  };
 }
 
 /** The account's subscription-related fields and creation time, server-side. */

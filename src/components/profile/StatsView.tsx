@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useStreak } from "@/hooks/useStreak";
+import { readQuizAttempts } from "@/lib/dashboard-metrics";
 import {
   Award,
   Flame,
   Layers,
   Sparkles,
   Target,
+  CalendarCheck,
+  ListChecks,
 } from "lucide-react";
 import { DEFAULT_BADGES } from "@/lib/badges";
 import { DEFAULT_SUBJECTS, type UserProfile } from "@/lib/profile";
@@ -301,11 +305,15 @@ export function StatsView({ user }: StatsViewProps) {
   const [events, setEvents] = useState<ToolUsageEvent[]>([]);
   const [semesterSubjects, setSemesterSubjects] = useState<SemesterSubject[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [quizCount, setQuizCount] = useState(0);
+  // The one streak source (see useStreak) — not the profile mock.
+  const streak = useStreak();
 
   useEffect(() => {
     const hydrate = () => {
       setEvents(getToolUsageEvents());
       setSemesterSubjects(readSemesterSubjects().subjects);
+      setQuizCount(readQuizAttempts().length);
       setHydrated(true);
     };
     hydrate();
@@ -318,7 +326,7 @@ export function StatsView({ user }: StatsViewProps) {
   const unlockedBadges = badges.filter((badge) => badge.unlocked).length;
 
   const weekSum = last7.reduce((sum, day) => sum + day.count, 0);
-  const streakScore = Math.min(user.currentStreak / 14, 1) * 50;
+  const streakScore = Math.min(streak.current / 14, 1) * 50;
   const usageScore = Math.min(weekSum / 14, 1) * 50;
   const activityScore = Math.round(streakScore + usageScore);
   const scoreLabel =
@@ -339,7 +347,7 @@ export function StatsView({ user }: StatsViewProps) {
       {/* The back link is gone — the profile menu is always visible in the shell. */}
       <h1 className="headline text-2xl font-bold text-[var(--text-primary)]">სტატისტიკა</h1>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatTile
           icon={Target}
           value={`${user.avgQuizScore}%`}
@@ -349,7 +357,7 @@ export function StatsView({ user }: StatsViewProps) {
         />
         <StatTile
           icon={Flame}
-          value={String(user.currentStreak)}
+          value={streak.ready ? String(streak.current) : "…"}
           label="მიმდინარე სტრიკი"
           iconBg="#ffedd5"
           iconColor="#c2410c"
@@ -367,6 +375,21 @@ export function StatsView({ user }: StatsViewProps) {
           label="ხელსაწყოს გახსნა სულ"
           iconBg="#efe9fe"
           iconColor="#5b21b6"
+        />
+        {/* Moved here from the overview's old streak card ("შენი სტატისტიკა"). */}
+        <StatTile
+          icon={CalendarCheck}
+          value={streak.ready ? String(streak.totalDays) : "…"}
+          label="აქტიური დღე სულ"
+          iconBg="#d1fae5"
+          iconColor="#065f46"
+        />
+        <StatTile
+          icon={ListChecks}
+          value={hydrated ? String(quizCount) : "…"}
+          label="გავლილი ქვიზი"
+          iconBg="#fce7f3"
+          iconColor="#9d174d"
         />
       </div>
 
@@ -425,7 +448,7 @@ export function StatsView({ user }: StatsViewProps) {
                 <ProgressRing value={avgSubjectProgress} color="#d81878" label="საგნების პროგრესი" />
                 <ProgressRing value={user.avgQuizScore} color="#0891b2" label="Quiz სიზუსტე" />
                 <ProgressRing
-                  value={Math.round((user.currentStreak / Math.max(user.personalBestStreak, 1)) * 100)}
+                  value={Math.round((streak.current / Math.max(streak.best, 1)) * 100)}
                   color="#059669"
                   label="სტრიკი რეკორდთან"
                 />

@@ -20,6 +20,19 @@ describe("buildProfileNav", () => {
     ]);
   });
 
+  it("never sends an unknown space to the abiturient profile", () => {
+    const hrefs = buildProfileNav(null)[0].items.map((i) => i.href);
+    expect(hrefs).toEqual(["/select-space", "/select-space"]);
+    expect(hrefs.some((href) => href.startsWith("/profile-abiturient"))).toBe(false);
+  });
+
+  it("sends an admin with no space to their settings, not the chooser", () => {
+    expect(buildProfileNav(null, { isAdmin: true })[0].items.map((i) => i.href)).toEqual([
+      SETTINGS_PROFILE_HREF,
+      SETTINGS_PROFILE_HREF,
+    ]);
+  });
+
   it("always includes the shared /settings/profile entry", () => {
     const hrefs = buildProfileNav("student").flatMap((g) => g.items.map((i) => i.href));
     expect(hrefs).toContain(SETTINGS_PROFILE_HREF);

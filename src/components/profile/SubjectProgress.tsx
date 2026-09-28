@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BookMarked } from "lucide-react";
 import {
@@ -7,19 +8,16 @@ import {
   lastActivityLabel,
   type SubjectProgressStat,
 } from "@/lib/subject-progress";
-import { SUBJECT_TAG_COLORS } from "@/lib/semester-subjects";
 import { DASHBOARD_METRICS_UPDATED_EVENT } from "@/lib/dashboard-metrics";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
 
-const BAR_COLORS = [
-  "var(--accent-purple)",
-  "var(--accent-cyan)",
-  "var(--accent-amber)",
-  "var(--accent-green)",
-  "var(--accent-pink)",
-  "var(--accent-primary)",
-];
+interface SubjectProgressProps {
+  /** Where the student adds subjects. Omitted where that isn't theirs to
+   * open (the abiturient profile), and the empty line shows no link. */
+  addHref?: string;
+}
 
-export function SubjectProgress() {
+export function SubjectProgress({ addHref }: SubjectProgressProps = {}) {
   const [subjects, setSubjects] = useState<SubjectProgressStat[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
@@ -39,69 +37,54 @@ export function SubjectProgress() {
     };
   }, []);
 
-  return (
-    <section className="dashboard-glass-card relative overflow-hidden rounded-[32px] p-5 sm:p-6">
-      <div className="mb-5 flex items-center justify-between gap-2">
-        <h3 className="headline text-lg font-black text-[var(--text-primary)] sm:text-xl">
-          საგნობრივი პროგრესი
-        </h3>
-        {subjects.length > 0 && (
-          <span className="rounded-full bg-[var(--bg-secondary)] px-2.5 py-1 text-xs font-bold text-[var(--text-muted)]">
-            {subjects.length} საგანი
-          </span>
-        )}
-      </div>
+  const empty = hydrated && subjects.length === 0;
 
-      {hydrated && subjects.length === 0 ? (
-        <div className="rounded-[24px] border border-dashed border-[var(--border)] p-6 text-center">
-          <BookMarked className="mx-auto h-6 w-6 text-[var(--text-muted)]" strokeWidth={1.75} />
-          <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
-            ჯერ საგნები არ დაგიმატებია
-          </p>
-          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[var(--text-muted)]">
-            დაამატე სემესტრის საგნები დეშბორდზე — შემდეგ აქ იხილავ პროგრესს ქვიზებისა და AI ხელსაწყოების მიხედვით.
-          </p>
-        </div>
+  return (
+    <DashboardCard
+      icon={BookMarked}
+      tone="sky"
+      title="საგნობრივი პროგრესი"
+      meta={subjects.length > 0 ? `${subjects.length} საგანი` : undefined}
+    >
+      {empty ? (
+        <p className="mt-3 text-sm text-[var(--text-secondary)]">
+          ჯერ საგნები არ დაგიმატებია
+          {addHref && (
+            <>
+              {" · "}
+              <Link href={addHref} className="font-medium text-[var(--accent-primary)] hover:underline">
+                დაამატე დეშბორდზე →
+              </Link>
+            </>
+          )}
+        </p>
       ) : (
-        <div className="space-y-5">
-          {subjects.map((subject, index) => {
-            const color = BAR_COLORS[index % BAR_COLORS.length];
-            const tag = SUBJECT_TAG_COLORS[index % SUBJECT_TAG_COLORS.length];
-            return (
-              <div key={subject.name}>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="flex min-w-0 items-center gap-2 text-sm font-bold text-[var(--text-primary)] sm:text-base">
-                    <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
-                      style={{ background: tag.bg, color: tag.text }}
-                      aria-hidden
-                    >
-                      {subject.name.charAt(0)}
-                    </span>
-                    <span className="truncate">{subject.name}</span>
-                  </p>
-                  <span className="mono shrink-0 text-sm font-black" style={{ color }}>
-                    {subject.progress}%
-                  </span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-[var(--border)]">
-                  <div
-                    className="animated-progress h-full rounded-full transition-all"
-                    style={{ width: `${subject.progress}%`, backgroundColor: color }}
-                  />
-                </div>
-                <p className="mt-1.5 text-xs font-medium text-[var(--text-muted)]">
-                  {subject.quizzes > 0
-                    ? `${subject.quizzes} ქვიზი${subject.accuracy !== null ? ` · ${subject.accuracy}% სიზუსტე` : ""}`
-                    : `${subject.activityCount} აქტივობა`}
-                  {" · "}
-                  {lastActivityLabel(subject.lastActivityAt)}
-                </p>
+        <ul className="mt-4 space-y-4">
+          {subjects.map((subject) => (
+            <li key={subject.name}>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate font-medium text-[var(--text-primary)]">{subject.name}</span>
+                <span className="shrink-0 tabular-nums text-[var(--text-secondary)]">
+                  {subject.progress}%
+                </span>
               </div>
-            );
-          })}
-        </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+                <div
+                  className="h-full rounded-full bg-[var(--accent-primary)] transition-[width] duration-500"
+                  style={{ width: `${subject.progress}%` }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                {subject.quizzes > 0
+                  ? `${subject.quizzes} ქვიზი${subject.accuracy !== null ? ` · ${subject.accuracy}% სიზუსტე` : ""}`
+                  : `${subject.activityCount} აქტივობა`}
+                {" · "}
+                {lastActivityLabel(subject.lastActivityAt)}
+              </p>
+            </li>
+          ))}
+        </ul>
       )}
-    </section>
+    </DashboardCard>
   );
 }

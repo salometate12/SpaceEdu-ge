@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { Flame } from "lucide-react";
+import { useStreak } from "@/hooks/useStreak";
 import { buildProfileNav, isProfileNavItemActive } from "@/lib/settings-nav";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
@@ -11,8 +12,10 @@ interface ProfileShellProps {
   userName: string;
   initials: string;
   planLabel: string;
-  streakDays: number;
+  /** The working space: the menu's overview / stats links follow it. */
   space: SpaceeduSpace | null;
+  /** Where those links go when there is no space at all. */
+  isAdmin?: boolean;
   children: React.ReactNode;
 }
 
@@ -25,12 +28,14 @@ export function ProfileShell({
   userName,
   initials,
   planLabel,
-  streakDays,
   space,
+  isAdmin = false,
   children,
 }: ProfileShellProps) {
   const pathname = usePathname() ?? "";
-  const groups = buildProfileNav(space);
+  const groups = buildProfileNav(space, { isAdmin });
+  // Same source as the header and the overview's streak card.
+  const { current: streakDays } = useStreak();
   const flatItems = groups.flatMap((g) => g.items);
   const activeChipRef = useRef<HTMLAnchorElement>(null);
 
@@ -87,7 +92,7 @@ export function ProfileShell({
               <div className="mt-0.5 flex items-center gap-2">
                 <span className="text-[10px] text-[var(--text-secondary)]">{planLabel}</span>
                 {streakDays > 0 && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                  <span className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-[10px] font-medium text-amber-600 dark:text-amber-400">
                     <Flame className="h-3 w-3 stroke-[2]" aria-hidden />
                     {streakDays} დღე
                   </span>

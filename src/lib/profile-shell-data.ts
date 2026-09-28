@@ -4,18 +4,17 @@ import {
   getServerAccountMeta,
 } from "@/lib/auth-server";
 import { getPlanStatus } from "@/lib/subscription";
-import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 export interface ProfileShellData {
   userName: string;
   initials: string;
   planLabel: string;
-  streakDays: number;
 }
 
 /**
  * The values the profile/settings sidebar shows: the real registered name and
- * initials, the current plan label, and the streak length. Everything falls
+ * initials and the current plan label. (The streak is read on the client by
+ * `useStreak`, the same as everywhere else.) Everything falls
  * back gracefully when there's no session (dev / signed-out preview).
  */
 export async function loadProfileShellData(): Promise<ProfileShellData> {
@@ -41,10 +40,5 @@ export async function loadProfileShellData(): Promise<ProfileShellData> {
     accountMeta?.createdAt ?? null,
   ).label;
 
-  return { userName, initials, planLabel, streakDays: user.currentStreak };
-}
-
-/** Read the account space, defaulting to abiturient when unknown. */
-export function resolveShellSpace(space: SpaceeduSpace | null): SpaceeduSpace {
-  return space ?? "abiturient";
+  return { userName, initials, planLabel };
 }
