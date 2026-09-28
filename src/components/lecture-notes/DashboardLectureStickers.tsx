@@ -41,6 +41,7 @@ export function DashboardLectureStickers() {
   return (
     <DashboardCard
       icon={StickyNote}
+      tone="amber"
       title="ლექციის ნოტები"
       // Once there are notes, the notes speak for the card; the pitch is
       // only for someone who has not written one yet.

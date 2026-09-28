@@ -30,6 +30,9 @@ import { readSemesterSubjects } from "@/lib/semester-subjects";
 interface DailyGoalsProps {
   title?: string;
   showDashboardToggle?: boolean;
+  /** Lead card of the page — see `DashboardCard`'s `highlight`. Only the
+   * dashboard sets it; the profile pages keep the plain card. */
+  highlight?: boolean;
 }
 
 const TYPE_ICON: Record<DailyGoal["type"], LucideIcon> = {
@@ -68,6 +71,7 @@ const SUGGESTIONS: { text: string; type: DailyGoal["type"] }[] = [
 export function DailyGoals({
   title = "დღის მიზნები",
   showDashboardToggle = false,
+  highlight = false,
 }: DailyGoalsProps) {
   const [goals, setGoals] = useState<DailyGoal[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -182,6 +186,8 @@ export function DailyGoals({
   return (
     <DashboardCard
       icon={ListTodo}
+      tone="pink"
+      highlight={highlight}
       title={title}
       meta={goals.length > 0 ? `${doneCount}/${goals.length}` : undefined}
       action={

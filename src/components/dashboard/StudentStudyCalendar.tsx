@@ -113,6 +113,7 @@ export function StudentStudyCalendar() {
   return (
     <DashboardCard
       icon={CalendarDays}
+      tone="emerald"
       title="შენი სასწავლო კალენდარი"
       subtitle={plan ? plan.subject : "შექმენი გეგმა — აქ თარიღების მიხედვით გამოჩნდება"}
       action={newPlanLink}

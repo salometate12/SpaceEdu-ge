@@ -233,6 +233,17 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
     readGoalsPref();
   }, []);
 
+  // A warm off-white ground so the white cards stand off the page. Scoped
+  // to this view through an attribute on <html>, because the page colour
+  // is painted by <body>; globals.css maps it to --dashboard-surface.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.surface = "student-dashboard";
+    return () => {
+      delete root.dataset.surface;
+    };
+  }, []);
+
   return (
     <div className="relative flex min-h-full flex-col overflow-x-hidden">
       <DashboardDecorIcons />
@@ -316,7 +327,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           <StudentStudyCalendar />
 
-          {goalsOnDashboard && <DailyGoals title="ჩემი მიზნები" />}
+          {/* The page's one highlighted card (DashboardCard allows one). */}
+          {goalsOnDashboard && <DailyGoals title="ჩემი მიზნები" highlight />}
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <article className="relative overflow-hidden rounded-[32px] border border-pink-200 bg-pink-100 p-6 transition-all duration-300 hover:-translate-y-1 dark:border-transparent dark:bg-pink-500 sm:p-8">
