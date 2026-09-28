@@ -85,6 +85,7 @@ export function ImportantDocuments() {
   return (
     <DashboardCard
       icon={FileText}
+      tone="sky"
       title="მნიშვნელოვანი დოკუმენტები"
       subtitle={`სილაბუსი, კონსპექტი ან პრეზენტაცია · მაქს. ${MAX_DOCUMENTS}`}
       meta={`${docs.length}/${MAX_DOCUMENTS}`}

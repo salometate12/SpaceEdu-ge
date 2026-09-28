@@ -63,6 +63,7 @@ export function SemesterSubjects() {
   return (
     <DashboardCard
       icon={Layers}
+      tone="violet"
       title="სემესტრის საგნები"
       subtitle={
         <input
