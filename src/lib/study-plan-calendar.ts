@@ -84,6 +84,26 @@ export function clearSavedStudyPlan(space: StudyPlanSpace): void {
   notifyStudyPlanCalendarUpdated();
 }
 
+/**
+ * Where a saved plan stands on `today` (an ISO date):
+ * - "complete": every day of the plan is marked done;
+ * - "expired": no plan day is left today or later, but some were not done;
+ * - "active": there are still days to come.
+ *
+ * "No days left" is not the same as "done" — a plan whose dates have all
+ * passed with 1 of 15 days ticked has run out, not finished.
+ */
+export type StudyPlanStatus = "active" | "complete" | "expired";
+
+export function studyPlanStatus(plan: SavedStudyPlan, today: string): StudyPlanStatus {
+  const planDates = new Set(plan.days.map((day) => day.date));
+  const doneInPlan = plan.doneDates.filter((date) => planDates.has(date)).length;
+  const total = plan.totalDays > 0 ? plan.totalDays : planDates.size;
+  if (total > 0 && doneInPlan >= total) return "complete";
+  if (plan.days.some((day) => day.date >= today)) return "active";
+  return "expired";
+}
+
 /* -------------------------------------------------------------------------- */
 /*                     PUTTING A PLAN ON THE DASHBOARD CALENDAR               */
 /* -------------------------------------------------------------------------- */

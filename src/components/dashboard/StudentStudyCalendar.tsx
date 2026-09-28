@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDays,
   CalendarPlus,
+  CalendarX,
   Check,
   ChevronDown,
   Clock,
@@ -18,6 +19,7 @@ import {
   studyDayCalendarId,
   toggleStudyPlanDayDone,
   STUDY_PLAN_CALENDAR_UPDATED_EVENT,
+  studyPlanStatus,
   type SavedStudyPlan,
 } from "@/lib/study-plan-calendar";
 import {
@@ -27,6 +29,7 @@ import {
   getDashboardCalendarEvents,
 } from "@/lib/syllabus-calendar";
 import { FOCUS_LEVEL_CONFIG } from "@/components/StudyPlan/focus-level-config";
+import { DashboardCard, dashboardCardActionClass } from "./DashboardCard";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -79,7 +82,7 @@ export function StudentStudyCalendar() {
       ? Math.min(100, Math.round((doneCount / plan.totalDays) * 100))
       : 0;
 
-  const finished = Boolean(plan) && upcoming.length === 0 && doneCount > 0;
+  const status = plan ? studyPlanStatus(plan, today) : null;
 
   const isOnCalendar = (date: string) =>
     onCalendar.has(studyDayCalendarId("student", date));
@@ -100,90 +103,78 @@ export function StudentStudyCalendar() {
     );
   };
 
-  return (
-    <section className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--emerald rounded-[32px] p-6 sm:p-8">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="headline flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-500/10 text-pink-700 dark:bg-white/20 dark:text-white">
-              <CalendarDays className="h-4 w-4 stroke-[2]" />
-            </span>
-            შენი სასწავლო კალენდარი
-          </h2>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            {plan
-              ? `${plan.subject} — დააკლიკე დღეს დეტალების სანახავად`
-              : "შექმენი სასწავლო გეგმა და გადაიტანე აქ კალენდრული ხედვისთვის."}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {plan && upcoming.length > 0 && (
-            pendingDays.length === 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                კალენდარშია
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={addEveryDay}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-primary)] px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
-              >
-                <CalendarPlus className="h-3.5 w-3.5" strokeWidth={2} />
-                ყველას დამატება ({pendingDays.length})
-              </button>
-            )
-          )}
-          <Link
-            href="/study-plan"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/10 px-3 py-2 text-xs font-medium text-[var(--accent-primary)] transition hover:bg-[var(--accent-primary)]/15"
-          >
-            <Rocket className="h-3.5 w-3.5" strokeWidth={2} />
-            {plan ? "ახალი გეგმა" : "გეგმის შექმნა"}
-          </Link>
-        </div>
-      </div>
+  const newPlanLink = (
+    <Link href="/study-plan" className={dashboardCardActionClass}>
+      <Rocket className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+      {plan ? "ახალი გეგმა" : "გეგმის შექმნა"}
+    </Link>
+  );
 
-      {!plan ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] px-4 py-10 text-center">
-          <CalendarDays className="h-6 w-6 text-[var(--text-muted)]" strokeWidth={1.5} />
-          <p className="max-w-sm text-sm text-[var(--text-muted)]">
-            სასწავლო გეგმის გენერატორში შექმნილი გეგმა, „გადატანა კალენდარში“ ღილაკით, აქ
-            გამოჩნდება თარიღების მიხედვით.
-          </p>
-        </div>
-      ) : (
+  return (
+    <DashboardCard
+      icon={CalendarDays}
+      title="შენი სასწავლო კალენდარი"
+      subtitle={plan ? plan.subject : "შექმენი გეგმა — აქ თარიღების მიხედვით გამოჩნდება"}
+      action={newPlanLink}
+    >
+      {plan && (
         <>
-          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2.5">
-            <span className="text-lg" aria-hidden>
-              {finished ? "🏆" : progressPct === 0 ? "🌱" : "🔥"}
-            </span>
-            <div className="flex-1">
-              <div className="flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
-                <span>
-                  {doneCount}/{plan.totalDays} დღე შესრულებული
-                </span>
-                <span>{progressPct}%</span>
-              </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--border)]">
-                <div
-                  className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-500"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+              <span className="font-medium tabular-nums text-[var(--text-secondary)]">
+                {doneCount}/{plan.totalDays} დღე · {progressPct}%
+              </span>
+              {status === "active" &&
+                (pendingDays.length === 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[var(--text-muted)]">
+                    <Check className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+                    კალენდარშია
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={addEveryDay}
+                    className="inline-flex items-center gap-1 rounded-md font-medium text-[var(--accent-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                    კალენდარში დამატება ({pendingDays.length})
+                  </button>
+                ))}
+            </div>
+            <div
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--bg-secondary)]"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPct}
+              aria-label="გეგმის პროგრესი"
+            >
+              <div
+                className="h-full rounded-full bg-[var(--accent-primary)] transition-all duration-500"
+                style={{ width: `${progressPct}%` }}
+              />
             </div>
           </div>
 
-          {finished ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-300/50 bg-emerald-50/60 px-4 py-8 text-center dark:border-emerald-500/25 dark:bg-emerald-500/[0.06]">
-              <PartyPopper className="h-6 w-6 text-emerald-500 dark:text-emerald-300" strokeWidth={1.75} />
-              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-200">
-                გეგმა დასრულებულია — შექმენი ახალი მომდევნო ეტაპისთვის!
-              </p>
-            </div>
+          {status === "complete" ? (
+            <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--text-secondary)]">
+              <PartyPopper className="h-4 w-4 text-[var(--accent-primary)]" strokeWidth={1.75} aria-hidden />
+              გეგმა დასრულებულია.
+              <Link href="/study-plan" className="font-medium text-[var(--accent-primary)] hover:underline">
+                შექმენი ახალი გეგმა
+              </Link>
+            </p>
+          ) : status === "expired" ? (
+            <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--text-secondary)]">
+              <CalendarX className="h-4 w-4 text-[var(--text-muted)]" strokeWidth={1.75} aria-hidden />
+              გეგმის ვადა ამოიწურა — {doneCount}/{plan.totalDays} დღე შესრულდა.
+              <Link href="/study-plan" className="font-medium text-[var(--accent-primary)] hover:underline">
+                შექმენი ახალი გეგმა
+              </Link>
+            </p>
           ) : (
             <>
-              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--border)] [&::-webkit-scrollbar-track]:bg-transparent">
+              <div className="-mx-1 mt-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--border)] [&::-webkit-scrollbar-track]:bg-transparent">
                 {upcoming.map((day) => {
                   const level = FOCUS_LEVEL_CONFIG[day.focus_level];
                   const LevelIcon = level.icon;
@@ -206,17 +197,21 @@ export function StudentStudyCalendar() {
                           setExpandedDate((prev) => (prev === day.date ? null : day.date));
                         }
                       }}
-                      className={`relative flex w-[190px] shrink-0 snap-start cursor-pointer flex-col gap-2 overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--bg-card)] p-3 pt-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
-                        done ? "opacity-60" : ""
-                      } ${isExpanded ? "ring-2 ring-[var(--accent-primary)] ring-offset-2 ring-offset-[var(--bg-card)]" : ""}`}
+                      className={`flex w-[172px] shrink-0 snap-start cursor-pointer flex-col gap-1.5 rounded-xl border p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50 ${
+                        isExpanded
+                          ? "border-[var(--accent-primary)] bg-[var(--bg-card)]"
+                          : isToday
+                            ? "border-[var(--accent-primary)]/40 bg-[var(--bg-card)] hover:bg-[var(--bg-secondary)]"
+                            : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]"
+                      } ${done ? "opacity-60" : ""}`}
                     >
-                      <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px] ${level.bar}`} />
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${level.iconWrap}`}
-                          aria-hidden
+                          className={`text-xs font-semibold ${
+                            isToday ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"
+                          }`}
                         >
-                          <LevelIcon className="h-4 w-4" strokeWidth={2} />
+                          {isToday ? "დღეს" : day.day_name}
                         </span>
                         <button
                           type="button"
@@ -226,61 +221,53 @@ export function StudentStudyCalendar() {
                           }}
                           aria-label={done ? "მონიშნე დაუსრულებლად" : "მონიშნე დასრულებულად"}
                           aria-pressed={done}
-                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all active:scale-90 ${
+                          className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors active:scale-90 ${
                             done
-                              ? "border-emerald-400/60 bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"
-                              : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
+                              ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-white"
+                              : "border-[var(--border-hover)] text-[var(--text-muted)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
                           }`}
                         >
-                          <Check className="h-4 w-4" strokeWidth={2.5} />
+                          <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                         </button>
                       </div>
-
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {isToday ? (
-                          <span className="rounded-full bg-[var(--accent-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
-                            დღეს
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-secondary)]">
-                            {day.day_name}
-                          </span>
-                        )}
-                      </div>
-                      <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                      <span className="flex items-center gap-1.5 text-xs tabular-nums text-[var(--text-muted)]">
                         {day.date}
                         {isOnCalendar(day.date) && (
                           <CalendarPlus
-                            className="h-3 w-3 text-emerald-500"
-                            strokeWidth={2.5}
+                            className="h-3 w-3"
+                            strokeWidth={2.25}
                             aria-label="კალენდარშია"
                           />
                         )}
                       </span>
 
                       <p
-                        className={`line-clamp-2 text-sm font-medium text-[var(--text-primary)] ${
+                        className={`line-clamp-2 text-sm font-medium leading-snug text-[var(--text-primary)] ${
                           done ? "line-through decoration-[var(--text-muted)]" : ""
                         }`}
                       >
                         {day.topics.join(", ")}
                       </p>
-                      <div className="mt-auto flex items-center justify-between text-xs text-[var(--text-secondary)]">
+                      <div className="mt-auto flex items-center justify-between pt-1 text-xs text-[var(--text-secondary)]">
                         <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" strokeWidth={2} />
-                          {day.hours} საათი
+                          <LevelIcon className="h-3 w-3 text-[var(--text-muted)]" strokeWidth={2} aria-hidden />
+                          {level.label} · {day.hours} სთ
                         </span>
                         <ChevronDown
                           className={`h-3.5 w-3.5 text-[var(--text-muted)] transition-transform duration-200 ${
                             isExpanded ? "rotate-180" : ""
                           }`}
                           strokeWidth={2}
+                          aria-hidden
                         />
                       </div>
                     </div>
                   );
                 })}
               </div>
+              {!expandedDay && (
+                <p className="mt-1 text-xs text-[var(--text-muted)]">დააკლიკე დღეს დეტალებისთვის</p>
+              )}
 
               <AnimatePresence initial={false}>
                 {expandedDay && (
@@ -298,37 +285,29 @@ export function StudentStudyCalendar() {
                       const done = Boolean(plan?.doneDates.includes(expandedDay.date));
                       const isToday = expandedDay.date === today;
                       return (
-                        <div
-                          className="relative mt-3 overflow-hidden rounded-[22px] border border-[var(--border)] bg-[var(--bg-secondary)] p-4 pl-5 sm:p-5 sm:pl-6"
-                        >
-                          <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
+                        <div className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4 sm:p-5">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`flex h-9 w-9 items-center justify-center rounded-full ${level.iconWrap}`}
-                              aria-hidden
-                            >
-                              <LevelIcon className="h-4 w-4" strokeWidth={2} />
-                            </span>
                             <span className="text-sm font-semibold text-[var(--text-primary)]">
                               {isToday ? "დღეს" : expandedDay.day_name}
                             </span>
-                            <span className="text-xs text-[var(--text-muted)]">{expandedDay.date}</span>
-                            <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                            <span className="text-xs tabular-nums text-[var(--text-muted)]">{expandedDay.date}</span>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-0.5 text-xs text-[var(--text-secondary)]">
+                              <LevelIcon className="h-3 w-3" strokeWidth={2} aria-hidden />
                               {level.label}
                             </span>
-                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
-                              <Clock className="h-3 w-3" strokeWidth={2} />
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-0.5 text-xs text-[var(--text-secondary)]">
+                              <Clock className="h-3 w-3" strokeWidth={2} aria-hidden />
                               {expandedDay.hours} საათი
                             </span>
                           </div>
 
-                          <ul className="mt-4 space-y-2">
+                          <ul className="mt-3 space-y-1.5">
                             {expandedDay.topics.map((topic) => (
                               <li
                                 key={topic}
-                                className="flex items-start gap-2 text-sm text-[var(--text-primary)]"
+                                className="flex items-start gap-2 text-sm leading-normal text-[var(--text-primary)]"
                               >
-                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-primary)]" />
+                                <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--text-muted)]" />
                                 {topic}
                               </li>
                             ))}
@@ -338,9 +317,9 @@ export function StudentStudyCalendar() {
                             <button
                               type="button"
                               onClick={() => toggleStudyPlanDayDone("student", expandedDay.date)}
-                              className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
+                              className={`inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition active:scale-[0.98] ${
                                 done
-                                  ? "bg-emerald-500 text-white"
+                                  ? "border border-[var(--accent-primary)]/40 text-[var(--accent-primary)]"
                                   : "bg-[var(--accent-primary)] text-white hover:opacity-90"
                               }`}
                             >
@@ -351,7 +330,7 @@ export function StudentStudyCalendar() {
                             {/* One day on its own — the whole plan is not
                                 always what someone wants in their calendar. */}
                             {isOnCalendar(expandedDay.date) ? (
-                              <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                              <span className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-secondary)]">
                                 <Check className="h-4 w-4" strokeWidth={2.5} />
                                 კალენდარშია
                               </span>
@@ -359,7 +338,7 @@ export function StudentStudyCalendar() {
                               <button
                                 type="button"
                                 onClick={() => addOneDay(expandedDay.date)}
-                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] active:scale-[0.98]"
+                                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] active:scale-[0.98]"
                               >
                                 <CalendarPlus className="h-4 w-4" strokeWidth={2} />
                                 ამ დღის დამატება
@@ -376,6 +355,6 @@ export function StudentStudyCalendar() {
           )}
         </>
       )}
-    </section>
+    </DashboardCard>
   );
 }

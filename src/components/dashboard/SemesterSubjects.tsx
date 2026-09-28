@@ -5,11 +5,11 @@ import { Check, Layers, Plus, X } from "lucide-react";
 import {
   DEFAULT_SEMESTER_SUBJECTS,
   SEMESTER_SUBJECTS_STORAGE_KEY,
-  SUBJECT_TAG_COLORS as TAG_COLORS,
   readSemesterSubjects,
   type SemesterSubject,
 } from "@/lib/semester-subjects";
 import { getActiveSubject, setActiveSubject } from "@/lib/activity";
+import { DashboardCard, dashboardCardActionClass } from "./DashboardCard";
 
 export function SemesterSubjects() {
   const [subjects, setSubjects] = useState<SemesterSubject[]>(DEFAULT_SEMESTER_SUBJECTS);
@@ -17,6 +17,7 @@ export function SemesterSubjects() {
   const [newSubject, setNewSubject] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [activeSubject, setActiveSubjectState] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     const saved = readSemesterSubjects();
@@ -55,100 +56,139 @@ export function SemesterSubjects() {
     setActiveSubjectState(next);
   };
 
+  const openAdder = () => setAdding(true);
+
+  const hasSubjects = subjects.length > 0;
+
   return (
-    <div className="dashboard-tool-card dashboard-tool-card--tinted dashboard-tool-card--violet rounded-[32px] p-6 sm:p-8">
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-500/10 text-pink-700 dark:bg-white/20 dark:text-white">
-            <Layers className="h-4 w-4 stroke-[2]" />
-          </span>
-          <h3 className="headline text-lg font-bold text-[var(--text-primary)]">
-            სემესტრის საგნები
-          </h3>
-        </div>
-        <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
-          {subjects.length} საგანი
-        </span>
-      </div>
-
-      <input
-        value={semesterLabel}
-        onChange={(e) => setSemesterLabel(e.target.value)}
-        placeholder="სემესტრის დასახელება..."
-        className="mt-2 w-full max-w-xs border-b border-dashed border-[var(--border)] bg-transparent pb-1 text-sm font-semibold text-[var(--text-secondary)] outline-none focus:border-[var(--accent-primary)]"
-      />
-
-      <p className="mt-3 mb-3 text-xs text-[var(--text-muted)]">
-        დააჭირე საგანს, რომელსაც ახლა სწავლობ — ასე დავითვლით შენს აქტივობას საგნების
-        მიხედვით და სტატისტიკაში ნახავ, რომელ საგანზე მუშაობ ყველაზე ხშირად.
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        {subjects.map((subject, idx) => {
-          const color = TAG_COLORS[idx % TAG_COLORS.length];
-          const isActive = activeSubject === subject.name;
-          return (
-            <span
-              key={subject.id}
-              className="inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-1.5 text-sm font-semibold"
-              style={{ background: color.bg, color: color.text }}
-            >
-              <button
-                type="button"
-                onClick={() => toggleActive(subject.name)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all ${
-                  isActive ? "bg-white/70 shadow-sm dark:bg-black/25" : ""
-                }`}
-              >
-                {isActive && <Check className="h-3 w-3" strokeWidth={3} />}
-                {subject.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => removeSubject(subject.id, subject.name)}
-                aria-label={`${subject.name} წაშლა`}
-                className="flex h-4 w-4 items-center justify-center rounded-full opacity-60 transition-opacity hover:opacity-100"
-              >
-                <X className="h-3 w-3" strokeWidth={2.5} />
-              </button>
-            </span>
-          );
-        })}
-        {subjects.length === 0 && (
-          <p className="text-sm text-[var(--text-muted)]">ჯერ არცერთი საგანი არ დამატებულა.</p>
-        )}
-      </div>
-
-      <p className="mt-3 text-xs font-semibold text-[var(--text-secondary)]">
-        {activeSubject ? (
-          <>
-            ამჟამად სწავლობ:{" "}
-            <span className="text-[var(--accent-primary)]">{activeSubject}</span>
-          </>
-        ) : (
-          "საგანი არჩეული არ არის — დააჭირე რომელიმეს ზემოთ."
-        )}
-      </p>
-
-      <div className="mt-4 flex gap-2">
+    <DashboardCard
+      icon={Layers}
+      title="სემესტრის საგნები"
+      subtitle={
         <input
-          value={newSubject}
-          onChange={(e) => setNewSubject(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") addSubject();
-          }}
-          placeholder="ახალი საგანი, მაგ. ფიზიკა..."
-          className="h-11 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)]"
+          value={semesterLabel}
+          onChange={(e) => setSemesterLabel(e.target.value)}
+          placeholder="სემესტრის დასახელება..."
+          aria-label="სემესტრის დასახელება"
+          className="-mx-1 w-full max-w-xs rounded-md bg-transparent px-1 text-sm text-[var(--text-secondary)] outline-none transition-colors placeholder:text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] focus:bg-[var(--bg-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/40"
         />
-        <button
-          type="button"
-          onClick={addSubject}
-          className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-primary)] px-4 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
+      }
+      meta={hasSubjects ? `${subjects.length} საგანი` : undefined}
+      action={
+        hasSubjects && !adding ? (
+          <button
+            type="button"
+            onClick={openAdder}
+            aria-label="საგნის დამატება"
+            className={dashboardCardActionClass}
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            დამატება
+          </button>
+        ) : undefined
+      }
+    >
+      {hasSubjects ? (
+        <>
+          <p className="mt-4 text-xs text-[var(--text-muted)]">
+            {activeSubject ? (
+              <>
+                ახლა სწავლობ:{" "}
+                <span className="font-medium text-[var(--accent-primary)]">{activeSubject}</span>
+              </>
+            ) : (
+              "აირჩიე, რას სწავლობ ახლა"
+            )}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {subjects.map((subject) => {
+              const isActive = activeSubject === subject.name;
+              return (
+                <li
+                  key={subject.id}
+                  className={`group inline-flex h-8 items-center rounded-full border text-sm transition-colors ${
+                    isActive
+                      ? "border-[var(--accent-primary)]/40 bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]"
+                      : "border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(subject.name)}
+                    aria-pressed={isActive}
+                    className="inline-flex h-full items-center gap-1.5 rounded-full pl-3 pr-1 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
+                  >
+                    {isActive && <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />}
+                    {subject.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeSubject(subject.id, subject.name)}
+                    aria-label={`${subject.name} წაშლა`}
+                    className="mr-1 flex h-6 w-6 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
+                  >
+                    <X className="h-3 w-3" strokeWidth={2.25} aria-hidden />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        !adding && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-[var(--text-muted)]">ჯერ არცერთი საგანი არ დამატებულა</p>
+            <button type="button" onClick={openAdder} className={dashboardCardActionClass}>
+              <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              საგნის დამატება
+            </button>
+          </div>
+        )
+      )}
+
+      {adding && (
+        <form
+          className="mt-4 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            addSubject();
+          }}
         >
-          <Plus className="h-4 w-4 stroke-[1.75]" />
-          დამატება
-        </button>
-      </div>
-    </div>
+          <input
+            // Only mounts when the student asked to add a subject.
+            autoFocus
+            value={newSubject}
+            onChange={(e) => setNewSubject(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setNewSubject("");
+                setAdding(false);
+              }
+            }}
+            placeholder="ახალი საგანი, მაგ. ფიზიკა..."
+            aria-label="ახალი საგანი"
+            className="h-10 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)]/20"
+          />
+          <button
+            type="submit"
+            disabled={!newSubject.trim()}
+            className="h-10 shrink-0 rounded-xl bg-[var(--accent-primary)] px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            დამატება
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setNewSubject("");
+              setAdding(false);
+            }}
+            aria-label="გაუქმება"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+          >
+            <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+          </button>
+        </form>
+      )}
+    </DashboardCard>
   );
 }
