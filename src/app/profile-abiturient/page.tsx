@@ -1,15 +1,13 @@
 import { DEFAULT_BADGES } from "@/lib/badges";
 import { getProfileData } from "@/lib/profile";
-import { buildWeekStreak } from "@/lib/streak";
 import { getCurrentServerUserName } from "@/lib/auth-server";
 import { AbiturientProfileHero } from "@/components/profile/AbiturientProfileHero";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
 import { DiaryLog } from "@/components/profile/DiaryLog";
-import { MetricCards } from "@/components/profile/MetricCards";
-import { OverviewHeader } from "@/components/profile/OverviewHeader";
-import { StreakTracker } from "@/components/profile/StreakTracker";
+import { ProfileStatCards } from "@/components/profile/ProfileStatCards";
 import { SubjectProgress } from "@/components/profile/SubjectProgress";
+import { WeekStreakStrip } from "@/components/profile/WeekStreakStrip";
 
 export default async function AbiturientProfilePage() {
   const { user } = await getProfileData();
@@ -24,26 +22,24 @@ export default async function AbiturientProfilePage() {
       .toUpperCase();
     if (initials) user.initials = initials;
   }
-  const week = buildWeekStreak(user.currentStreak);
-
+  // The overview, top to bottom: greeting → this week → the three numbers
+  // that matter → goals → the rest. No exam countdown: the only exam date
+  // is the profile mock's, not this user's, so there is nothing true to show.
   return (
-    <>
-      <OverviewHeader name={user.name} initials={user.initials} space="abiturient" />
+    <div className="flex flex-col gap-5">
+      <AbiturientProfileHero user={user} />
 
-      <AbiturientProfileHero user={user} week={week} />
+      <WeekStreakStrip space="abiturient" />
+
+      <ProfileStatCards statsHref="/profile-abiturient/stats" />
 
       <DailyGoals />
 
-      <MetricCards examDate={user.examDate} />
+      <SubjectProgress />
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
-        <StreakTracker />
-        <SubjectProgress />
-      </section>
-
-      <DiaryLog />
+      <DiaryLog statsHref="/profile-abiturient/stats" />
 
       <BadgeGrid badges={DEFAULT_BADGES} />
-    </>
+    </div>
   );
 }

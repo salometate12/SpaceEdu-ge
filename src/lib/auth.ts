@@ -2,6 +2,7 @@
 
 import { createClient as createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
+import { clearActiveSpaceCookie } from "@/lib/active-space";
 
 export type RegisterSpace = "school" | "abiturient" | "student";
 
@@ -47,6 +48,8 @@ export async function signUpWithEmail(args: SignUpArgs) {
 }
 
 export async function signOutUser() {
+  // The remembered working space belongs to this session, not the device.
+  clearActiveSpaceCookie();
   const supabase = getSupabaseClient();
   if (!supabase) return;
   await supabase.auth.signOut();

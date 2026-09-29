@@ -6,7 +6,7 @@ import { Bell, Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
-import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
+import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
 import {
   ensureDailyStudyPlanNotification,
@@ -18,7 +18,7 @@ import { FocusModeToggle } from "./FocusModeToggle";
 import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { profileHrefForSpace, spaceFromPathname, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -30,9 +30,6 @@ export function DashboardHeader({
   scrolled,
 }: DashboardHeaderProps) {
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [spaceLabel, setSpaceLabel] = useState<"school" | "abiturient" | "student">(
-    "student",
-  );
   const [streak, setStreak] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const firstName = useCurrentUserFirstName();
@@ -42,22 +39,13 @@ export function DashboardHeader({
   // the pill leaves the avatar to it. The nav itself stays: see
   // `navItems` — the student's row is their own tools, not the shared ones.
   const hasSideRail = pathname === "/dashboard-student";
-  const { space: accountSpace, isAdmin } = useCurrentUserAccess();
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("spaceedu_space");
-    if (saved === "school" || saved === "abiturient" || saved === "student") {
-      setSpaceLabel(saved);
-    }
-  }, []);
-
-  // The current URL wins when it's a space-specific route (e.g.
-  // /dashboard-student), so an admin browsing another space's page sees
-  // a chip/nav that matches what's actually on screen. Otherwise fall
-  // back to the account's real space (Supabase), then localStorage for
-  // anonymous/dev use.
-  const pathSpace = spaceFromPathname(pathname);
-  const effectiveSpace = pathSpace ?? accountSpace ?? spaceLabel;
+  // The working space: the URL when it belongs to a space (so an admin on
+  // another space's page sees matching links), else the space they were
+  // last working in (cookie — keeps /settings on the right side), else the
+  // account's own, else this device's last space; "student" only as the
+  // signed-out default.
+  const { space: workingSpace, isAdmin } = useWorkingSpace();
+  const effectiveSpace = workingSpace ?? "student";
 
   useEffect(() => {
     const sync = () => setStreak(getCurrentStreak());

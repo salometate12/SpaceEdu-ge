@@ -46,14 +46,22 @@ export interface ProfileNavGroup {
   items: ProfileNavItem[];
 }
 
-/** The whole menu, with the two space-specific entries resolved for `space`. */
-export function buildProfileNav(space: SpaceeduSpace | null | undefined): ProfileNavGroup[] {
+/**
+ * The whole menu, with the two space-specific entries resolved for `space`
+ * — the *working* space (see `active-space.ts`), not the account's. With no
+ * space at all they go to the chooser, or to settings for an admin, never
+ * silently to the abiturient profile.
+ */
+export function buildProfileNav(
+  space: SpaceeduSpace | null | undefined,
+  options: { isAdmin?: boolean } = {},
+): ProfileNavGroup[] {
   return [
     {
       title: "ჩემი პროგრესი",
       items: [
-        { href: profileHrefForSpace(space), label: "მიმოხილვა", icon: User },
-        { href: statsHrefForSpace(space), label: "სტატისტიკა", icon: BarChart3 },
+        { href: profileHrefForSpace(space, options), label: "მიმოხილვა", icon: User },
+        { href: statsHrefForSpace(space, options), label: "სტატისტიკა", icon: BarChart3 },
       ],
     },
     {

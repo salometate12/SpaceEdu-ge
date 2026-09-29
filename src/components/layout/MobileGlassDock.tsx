@@ -8,9 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
-import { useCurrentUserAccess } from "@/hooks/useCurrentUserAccess";
-import type { SpaceeduSpace } from "@/lib/space-back-navigation";
-import { spaceFromPathname } from "@/lib/access-control";
+import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import {
   DASHBOARD_MOBILE_MENU_HREF,
   isDockItemActive,
@@ -57,24 +55,10 @@ export function MobileGlassDock() {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const { open: openMobileMenu } = useMobileSideMenu();
-  const { space: accountSpace } = useCurrentUserAccess();
-  const [localSpace, setLocalSpace] = useState<SpaceeduSpace | null>(null);
-
-  useEffect(() => {
-    const readSpace = () => {
-      const saved = window.localStorage.getItem("spaceedu_space");
-      if (saved === "school" || saved === "abiturient" || saved === "student") {
-        setLocalSpace(saved);
-      }
-    };
-    readSpace();
-  }, []);
-
-  // The current URL wins when it's space-specific, so an admin browsing
-  // another space's page still gets nav links for the page they're on
-  // rather than jumping back to their own registered space.
-  const effectiveSpace = spaceFromPathname(pathname) ?? accountSpace ?? localSpace;
-  const items = mobileDockItems(pathname, effectiveSpace);
+  // URL → remembered working space → account → this device's last space,
+  // the same order as the header (see useWorkingSpace).
+  const { space: effectiveSpace, isAdmin } = useWorkingSpace();
+  const items = mobileDockItems(pathname, effectiveSpace, { isAdmin });
   const hidden = mobileDockHidden(pathname) || items.length === 0;
 
   const handleScroll = useCallback(() => {
