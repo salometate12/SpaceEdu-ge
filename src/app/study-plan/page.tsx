@@ -6,6 +6,7 @@ import { StudyPlanForm, type StudyPlanFormValues } from "@/components/StudyPlan/
 import { CalendarView } from "@/components/StudyPlan/CalendarView";
 import { StudyPlanThinkingLoader } from "@/components/StudyPlan/StudyPlanThinkingLoader";
 import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
+import { studyPlanCardClass } from "@/components/StudyPlan/study-plan-styles";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
 
@@ -42,9 +43,10 @@ export default function StudyPlanPage() {
       <ToolPageHeader
         title="სასწავლო გეგმის გენერატორი"
         subtitle="შეიყვანე საგნის საკითხები და ხელოვნური ინტელექტი დღეებზე გაგიწერს მომზადების გრაფიკს"
+        tone="neutral"
       />
 
-      <section className="mt-6 flex w-full flex-col items-stretch gap-6 lg:flex-row">
+      <section className="flex w-full flex-col items-stretch gap-5 lg:flex-row lg:gap-6">
         <div className="w-full flex-shrink-0 lg:w-[380px]">
           <StudyPlanForm loading={loading} onSubmit={generatePlan} />
           {error && (
@@ -54,7 +56,15 @@ export default function StudyPlanPage() {
           )}
         </div>
 
-        <div className="dashboard-tool-card min-h-[500px] flex-1 rounded-[28px] p-6">
+        {/* Empty, the result area is a dashed outline that ends level with
+            the form on desktop; with a plan it becomes a plain card. */}
+        <div
+          className={`min-w-0 flex-1 ${
+            loading || result
+              ? studyPlanCardClass
+              : "flex rounded-2xl border border-dashed border-[var(--border-hover)] bg-[var(--bg-card)] p-5 dark:border-white/15 sm:p-6"
+          }`}
+        >
           {loading ? (
             <StudyPlanThinkingLoader />
           ) : result ? (
@@ -66,16 +76,14 @@ export default function StudyPlanPage() {
               space="student"
             />
           ) : (
-            <div className="flex h-full flex-col">
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300">
-                  <CalendarRange className="h-7 w-7 stroke-[1.75]" aria-hidden />
-                </span>
-                <p className="max-w-xs text-sm leading-relaxed text-slate-500 dark:text-zinc-500">
-                  შენი ინდივიდუალური გეგმა გამოჩნდება აქ — შეავსე მარცხნივ საგანი, თემები და
-                  გამოცდის თარიღი და დააჭირე „გეგმის გენერაცია“-ს.
-                </p>
-              </div>
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-50 text-[var(--accent-primary)] dark:bg-pink-400/10 dark:text-pink-300">
+                <CalendarRange className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              </span>
+              <p className="max-w-[360px] text-sm leading-relaxed text-[var(--text-secondary)]">
+                შენი ინდივიდუალური გეგმა გამოჩნდება აქ — შეავსე მარცხნივ საგანი, თემები და
+                გამოცდის თარიღი და დააჭირე „გეგმის გენერაცია“-ს.
+              </p>
             </div>
           )}
         </div>
