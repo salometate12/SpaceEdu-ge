@@ -45,11 +45,11 @@ export function StudyPlanThinkingLoader() {
     >
       <div className="relative flex h-24 w-24 items-center justify-center">
         <span
-          className="animate-star-twinkle absolute -left-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400"
+          className="animate-star-twinkle absolute -left-1 top-1 h-1.5 w-1.5 rounded-full bg-pink-300"
           style={{ "--star-delay": "0.2s", "--star-duration": "2.4s" } as CSSProperties}
         />
         <span
-          className="animate-star-drift absolute -right-1 top-3 h-1.5 w-1.5 rounded-full bg-cyan-400"
+          className="animate-star-drift absolute -right-1 top-3 h-1.5 w-1.5 rounded-full bg-pink-200"
           style={{ "--star-delay": "0.8s", "--star-duration": "3.2s" } as CSSProperties}
         />
         <span
@@ -59,7 +59,7 @@ export function StudyPlanThinkingLoader() {
 
         <span className="absolute inset-0 animate-ping rounded-full bg-pink-400/15 dark:bg-pink-500/15" />
         <span className="absolute inset-0 rounded-full border border-pink-200 dark:border-pink-500/20" />
-        <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-pink-600 dark:bg-pink-500 dark:shadow-[0_0_24px_rgba(139,92,246,0.35)]">
+        <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-pink-600 dark:bg-pink-500">
           <StageIcon
             key={stageIndex}
             className="research-thinking-icon h-7 w-7 text-white"
@@ -69,7 +69,7 @@ export function StudyPlanThinkingLoader() {
 
         <span
           key={`xp-${stageIndex}`}
-          className="study-plan-xp-pop pointer-events-none absolute -top-2 right-0 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-amber-950 shadow-sm"
+          className="study-plan-xp-pop pointer-events-none absolute -top-2 right-0 rounded-full bg-[var(--accent-primary)] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
         >
           +{stage.xp} XP
         </span>
@@ -109,14 +109,14 @@ export function StudyPlanThinkingLoader() {
                 active
                   ? "bg-pink-50 font-semibold text-pink-700 dark:bg-pink-500/10 dark:text-pink-200"
                   : done
-                    ? "text-emerald-600 dark:text-emerald-300"
+                    ? "text-[var(--text-secondary)]"
                     : "text-slate-400 dark:text-zinc-600"
               }`}
             >
               <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
                   done
-                    ? "study-plan-quest-check-pop bg-emerald-500 text-white"
+                    ? "study-plan-quest-check-pop bg-[var(--accent-primary)] text-white"
                     : active
                       ? "bg-pink-600 text-white"
                       : "bg-slate-100 dark:bg-white/[0.06]"
@@ -128,7 +128,7 @@ export function StudyPlanThinkingLoader() {
                   <ItemIcon className="h-3 w-3" strokeWidth={2.25} />
                 )}
               </span>
-              <span className={done ? "line-through decoration-emerald-400/60" : ""}>{item.text}</span>
+              <span className={done ? "line-through decoration-[var(--text-muted)]" : ""}>{item.text}</span>
             </li>
           );
         })}

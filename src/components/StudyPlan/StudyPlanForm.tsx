@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Loader2 } from "lucide-react";
+import { studyPlanCardClass, studyPlanFieldClass, studyPlanLabelClass } from "./study-plan-styles";
 
 export interface StudyPlanFormValues {
   subject: string;
@@ -14,6 +16,8 @@ interface StudyPlanFormProps {
   onSubmit: (values: StudyPlanFormValues) => Promise<void>;
 }
 
+const HOURS = [1, 2, 3, 4];
+
 export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
   const [subject, setSubject] = useState("");
   const [topics, setTopics] = useState("");
@@ -26,67 +30,63 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="dashboard-tool-card flex flex-col gap-4 rounded-[28px] p-5"
-    >
-      <label className="block space-y-1.5 text-sm">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-          საგანი
-        </span>
+    <form onSubmit={handleSubmit} className={`${studyPlanCardClass} flex flex-col gap-5`}>
+      <label className="flex flex-col gap-1.5">
+        <span className={studyPlanLabelClass}>საგანი</span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           required
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
+          className={`${studyPlanFieldClass} h-11`}
         />
       </label>
-      <label className="block space-y-1.5 text-sm">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-          თემები
-        </span>
+
+      <label className="flex flex-col gap-1.5">
+        <span className={studyPlanLabelClass}>თემები</span>
         <textarea
           value={topics}
           onChange={(e) => setTopics(e.target.value)}
           required
-          className="min-h-28 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
+          className={`${studyPlanFieldClass} min-h-28 py-2.5 leading-relaxed`}
         />
       </label>
-      <div className="space-y-1.5 text-sm">
-        <label className="block space-y-1.5 text-sm">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-            გამოცდის თარიღი
-          </span>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="flex flex-col gap-1.5">
+          <span className={studyPlanLabelClass}>გამოცდის თარიღი</span>
           <input
             type="date"
             value={examDate}
             min={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setExamDate(e.target.value)}
             required
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
+            className={`${studyPlanFieldClass} h-11`}
           />
         </label>
-        <p className="text-xs text-slate-500 dark:text-zinc-500">
+        <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
           AI დააგენერირებს მაქს. 30 დღის გეგმას (უახლოესი პერიოდი გამოცდამდე).
         </p>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-          დღეში სასწავლო დრო
-        </p>
-        <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((hour) => {
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className={`${studyPlanLabelClass} mb-1.5`}>დღეში სასწავლო დრო</legend>
+        {/* One chip is selected at a time. Hover stays neutral: it used to
+            look exactly like "selected", so a hovered chip read as a second
+            selection. */}
+        <div role="radiogroup" className="grid grid-cols-4 gap-2">
+          {HOURS.map((hour) => {
             const isActive = hoursPerDay === hour;
             return (
               <button
                 key={hour}
                 type="button"
+                role="radio"
+                aria-checked={isActive}
                 onClick={() => setHoursPerDay(hour)}
-                className={`rounded-xl border px-2 py-2 text-sm font-medium transition ${
+                className={`h-10 rounded-xl border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/25 ${
                   isActive
-                    ? "border-pink-400 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/10 dark:text-pink-300"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
+                    ? "border-[var(--accent-primary)] bg-pink-50 font-medium text-[var(--accent-primary)] dark:bg-pink-400/15 dark:text-pink-300"
+                    : "border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-stone-50 dark:border-white/10 dark:bg-transparent dark:hover:border-white/20 dark:hover:bg-white/[0.04]"
                 }`}
               >
                 {hour} სთ
@@ -94,13 +94,14 @@ export function StudyPlanForm({ loading, onSubmit }: StudyPlanFormProps) {
             );
           })}
         </div>
-      </div>
+      </fieldset>
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-pink-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
+        className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--accent-primary)] text-sm font-semibold text-white transition-[background-color,opacity] hover:bg-[color-mix(in_srgb,var(--accent-primary)_88%,black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-card)] disabled:cursor-not-allowed disabled:opacity-60"
       >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         {loading ? "გეგმა იქმნება..." : "გეგმის გენერაცია"}
       </button>
     </form>

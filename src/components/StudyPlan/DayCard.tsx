@@ -19,22 +19,19 @@ export function DayCard({ day }: DayCardProps) {
   const LevelIcon = level.icon;
 
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 pl-4 dark:border-white/10 dark:bg-white/[0.03]">
-      <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${level.bar}`} />
+    <article className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-3 dark:border-white/10">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{day.day_name}</h3>
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${level.iconWrap}`}
-        >
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{day.day_name}</h3>
+        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-xs font-medium text-[var(--text-secondary)] dark:bg-white/[0.06]">
           <LevelIcon className="h-3 w-3" strokeWidth={2} />
           {level.label}
         </span>
       </div>
-      <p className="mono mt-1 text-xs text-slate-500 dark:text-zinc-500">{day.date}</p>
-      <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400">
+      <p className="mono mt-1 text-xs text-[var(--text-secondary)]">{day.date}</p>
+      <p className="mt-2 text-xs text-[var(--text-secondary)]">
         თემები: {day.topics.join(", ")}
       </p>
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-400">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]">
         <Clock className="h-3 w-3" strokeWidth={2} />
         {day.hours} საათი
       </p>
