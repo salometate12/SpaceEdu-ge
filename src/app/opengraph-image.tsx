@@ -13,10 +13,13 @@ export const contentType = "image/png";
  * renders in an isolated environment with a Latin-only default, so the
  * subtitle came out as a row of tofu boxes without this.
  */
+/** The card is dark, so it takes the -dark logo (light top book, white
+ * "Space"); the light files' deep-green book would vanish on it. Used as
+ * the SVG itself: `next/og` rasterises SVG images through Resvg. */
 async function logoDataUri(): Promise<string | null> {
   try {
-    const file = await readFile(path.join(process.cwd(), "public/spaceedu-logo.png"));
-    return `data:image/png;base64,${file.toString("base64")}`;
+    const file = await readFile(path.join(process.cwd(), "public/spaceedu-logo-dark.svg"));
+    return `data:image/svg+xml;base64,${file.toString("base64")}`;
   } catch {
     return null;
   }
@@ -46,18 +49,18 @@ export default async function OpenGraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "center",
           background: "#0a0a0f",
           padding: "80px 96px",
-          gap: 48,
+          gap: 36,
           fontFamily: font ? "Georgian" : undefined,
         }}
       >
-        {/* The logo already carries the SPACEEDU wordmark. */}
-        {logo ? (
-          <img src={logo} alt="" width={360} height={360} />
-        ) : null}
-        <div style={{ color: "#94a3b8", fontSize: 34 }}>
+        {/* The logo carries the "SpaceEdu" wordmark (325 x 100). */}
+        {logo ? <img src={logo} alt="" width={650} height={200} /> : null}
+        <div style={{ color: "#94a3b8", fontSize: 40 }}>
           AI სასწავლო პლატფორმა
         </div>
       </div>

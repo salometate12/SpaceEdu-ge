@@ -209,12 +209,21 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
       <header className="space-y-3 text-center">
+        {/* The books on either ground: the light file's dark-green top book
+            is lost on the dark card, so dark mode gets the -dark artwork. */}
         <img
-          src="/spaceedu-mark.png"
+          src="/spaceedu-mark.svg"
           alt="SpaceEdu"
           width={48}
           height={48}
-          className="mx-auto h-12 w-auto"
+          className="mx-auto h-12 w-12 dark:hidden"
+        />
+        <img
+          src="/spaceedu-mark-dark.svg"
+          alt="SpaceEdu"
+          width={48}
+          height={48}
+          className="mx-auto h-12 w-12 hidden dark:block"
         />
         <h1 className="headline text-2xl font-bold text-slate-900 dark:text-white">შესვლა</h1>
         <p className="text-sm text-slate-600 dark:text-gray-400">{roleSubtext}</p>

@@ -106,11 +106,18 @@ export function SpaceSelectorModal({ onSelect, backHref }: SpaceSelectorModalPro
         <div className="stagger-in mb-9 text-center" style={{ animationDelay: "120ms" }}>
           <div className="mb-4 flex items-center justify-center gap-2.5">
             <img
-              src="/spaceedu-mark.png"
+              src="/spaceedu-mark.svg"
               alt=""
               width={44}
               height={44}
-              className="h-11 w-auto"
+              className="h-11 w-11 dark:hidden"
+            />
+            <img
+              src="/spaceedu-mark-dark.svg"
+              alt=""
+              width={44}
+              height={44}
+              className="hidden h-11 w-11 dark:block"
             />
             <span className="headline text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
               SpaceEdu

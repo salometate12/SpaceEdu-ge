@@ -13,7 +13,7 @@
  * dashboard out of it.
  */
 
-const CACHE_NAME = "spaceedu-pwa-v3";
+const CACHE_NAME = "spaceedu-pwa-v4";
 
 /** Caches from older versions of this worker, cleared on activate. */
 const KEEP = new Set([CACHE_NAME]);
