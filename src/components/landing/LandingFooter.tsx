@@ -65,30 +65,35 @@ export function LandingFooter({ forceDark = false }: { forceDark?: boolean }) {
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
+            {/* The full logo carries its own "SpaceEdu" wordmark. On a dark
+                ground it must be the -dark file (light top book, white
+                "Space"); the landing's footer is always dark, the others
+                follow the theme. */}
             {forceDark ? (
-              // Dark ground: the full logo carries its own wordmark.
               <img
-                src="/spaceedu-logo.png"
+                src="/spaceedu-logo-dark.svg"
                 alt="SpaceEdu"
-                width={72}
-                height={72}
-                className="h-16 w-auto"
+                width={143}
+                height={44}
+                className="h-11 w-auto"
               />
             ) : (
-              // Theme-aware: illustration mark reads on either ground, with the
-              // wordmark drawn as theme-aware text beside it.
-              <div className="flex items-center gap-2.5">
+              <>
                 <img
-                  src="/spaceedu-mark.png"
+                  src="/spaceedu-logo.svg"
                   alt="SpaceEdu"
-                  width={44}
+                  width={143}
                   height={44}
-                  className="h-11 w-auto"
+                  className="h-11 w-auto dark:hidden"
                 />
-                <span className={`headline text-xl font-bold tracking-tight ${headingCls}`}>
-                  SpaceEdu
-                </span>
-              </div>
+                <img
+                  src="/spaceedu-logo-dark.svg"
+                  alt="SpaceEdu"
+                  width={143}
+                  height={44}
+                  className="hidden h-11 w-auto dark:block"
+                />
+              </>
             )}
             <p className={`mt-3 max-w-xs text-sm leading-relaxed ${taglineCls}`}>
               შენი პერსონალური სასწავლო სივრცე — სკოლიდან უნივერსიტეტამდე.

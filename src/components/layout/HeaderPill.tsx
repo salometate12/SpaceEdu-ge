@@ -46,15 +46,23 @@ export function HeaderBrand({ href }: { href: string }) {
       href={href}
       className="group flex shrink-0 items-center gap-2 rounded-full transition-opacity hover:opacity-90 sm:gap-2.5 sm:pr-2"
     >
-      {/* The brand logo already carries the "SpaceEdu" wordmark, so no
-          separate text. The header pill is dark in both themes, which is
-          the ground this logo is drawn for. */}
+      {/* The pill is dark in both themes, so always the -dark artwork: the
+          light files' deep-green top book disappears on black. From `sm`
+          the full logo (books + "SpaceEdu"); on a phone — only the landing
+          shows the pill there — just the books, so the menu button fits. */}
       <img
-        src="/spaceedu-logo.png"
+        src="/spaceedu-logo-dark.svg"
         alt="SpaceEdu"
-        width={52}
-        height={52}
-        className="h-12 w-auto sm:h-[52px]"
+        width={117}
+        height={36}
+        className="hidden h-9 w-auto sm:block"
+      />
+      <img
+        src="/spaceedu-mark-dark.svg"
+        alt="SpaceEdu"
+        width={36}
+        height={36}
+        className="h-9 w-9 sm:hidden"
       />
     </Link>
   );

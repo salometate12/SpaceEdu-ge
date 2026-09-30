@@ -229,12 +229,21 @@ export function RegistrationForm() {
       }}
     >
       <header className="space-y-3 text-center">
+        {/* The books on either ground: the light file's dark-green top book
+            is lost on the dark card, so dark mode gets the -dark artwork. */}
         <img
-          src="/spaceedu-mark.png"
+          src="/spaceedu-mark.svg"
           alt="SpaceEdu"
           width={48}
           height={48}
-          className="mx-auto h-12 w-auto"
+          className="mx-auto h-12 w-12 dark:hidden"
+        />
+        <img
+          src="/spaceedu-mark-dark.svg"
+          alt="SpaceEdu"
+          width={48}
+          height={48}
+          className="mx-auto h-12 w-12 hidden dark:block"
         />
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">

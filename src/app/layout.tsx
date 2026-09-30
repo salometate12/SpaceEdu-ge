@@ -105,15 +105,22 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  // The books on a white tile, so the tab icon reads on light and dark tab
+  // strips alike. `src/app/icon.png`, `apple-icon.png` and `favicon.ico`
+  // hold the same artwork, so the file-convention tags Next adds agree
+  // with these. The SVG goes last: browsers that take it pick the sharpest.
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/spaceedu-mark-tile.svg", type: "image/svg+xml" },
     ],
-    apple: [{ url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" }],
-    shortcut: "/icons/icon-192x192.png",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon-32x32.png",
   },
 };
 
