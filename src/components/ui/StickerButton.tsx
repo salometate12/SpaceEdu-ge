@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
-import { ACCENT_SOLID } from "@/components/landing/notebook/accents";
 
 interface StickerButtonProps {
   children: ReactNode;
@@ -16,6 +15,12 @@ interface StickerButtonProps {
   fullWidth?: boolean;
   className?: string;
 }
+
+/** Brand pink on the light page; the sky blue of the reference in dark,
+ * where it reads better against near-black. Same rim-and-fill pairing as
+ * ACCENT_SOLID. */
+const STICKER_COLOURS =
+  "border-pink-700 bg-pink-600 text-white dark:border-sky-300/40 dark:bg-sky-600";
 
 /**
  * The "paper sticker" primary button — the one on the reading-comprehension
@@ -41,7 +46,7 @@ export function StickerButton({
       {live && (
         <motion.span
           aria-hidden
-          className="absolute inset-0 rounded-full bg-sky-500/30 blur-md"
+          className="absolute inset-0 rounded-full bg-pink-500/30 blur-md dark:bg-sky-500/30"
           animate={reduceMotion ? undefined : { opacity: [0.35, 0.7, 0.35], scale: [1, 1.06, 1] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -51,9 +56,9 @@ export function StickerButton({
         onClick={onClick}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
-        className={`paper-sticker relative z-[1] inline-flex items-center justify-center gap-2 rounded-full border-2 px-6 py-3 text-sm font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`paper-sticker relative z-[1] inline-flex items-center justify-center gap-2 rounded-full border-2 px-6 py-3 text-sm font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pink-500/30 dark:focus-visible:ring-sky-500/30 disabled:cursor-not-allowed disabled:opacity-50 ${
           fullWidth ? "w-full" : ""
-        } ${live ? "" : "pointer-events-none"} ${ACCENT_SOLID.blue}`}
+        } ${live ? "" : "pointer-events-none"} ${STICKER_COLOURS}`}
       >
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
