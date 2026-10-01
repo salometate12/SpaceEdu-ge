@@ -15,7 +15,13 @@ import { getToolCardClass, isLivePreviewMode } from "@/lib/dashboard-preview-lay
 import { ABITURIENT_TOOLS } from "@/lib/abiturient-tools";
 import { recordToolUsage } from "@/lib/activity";
 
-const TOOLS = ABITURIENT_TOOLS.filter((tool) => tool.id !== "abit-conspectus").map((tool) => ({
+/** Tools the dashboard grid leaves out: the conspectus has its own card
+ * below, and the Georgian question panel is reached from the Georgian
+ * subject space instead. Both stay in ABITURIENT_TOOLS, so their usage
+ * still shows on the stats page. */
+const HIDDEN_ON_DASHBOARD = new Set(["abit-conspectus", "abit-georgian-quiz"]);
+
+const TOOLS = ABITURIENT_TOOLS.filter((tool) => !HIDDEN_ON_DASHBOARD.has(tool.id)).map((tool) => ({
   ...tool,
   action: "გახსნა",
 }));
