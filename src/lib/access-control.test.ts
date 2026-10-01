@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  aiTeacherHrefForSpace,
   authEntryRedirectHref,
   dashboardHrefForUserSpace,
   getSpaceRedirectHref,
   resolvePostLoginHref,
   SELECT_SPACE_HREF,
+  spaceFromPathname,
 } from "./access-control";
 import {
   DASHBOARD_ABIT_HREF,
@@ -153,5 +155,26 @@ describe("settings routes are shared, never space-guarded", () => {
   it("does not guard /profile/edit (it redirects to shared /settings/profile)", () => {
     expect(getSpaceRedirectHref("/profile/edit", "student")).toBeNull();
     expect(getSpaceRedirectHref("/profile/edit", "abiturient")).toBeNull();
+  });
+});
+
+describe("AI teacher pages per space", () => {
+  it("links each space to its own AI teacher", () => {
+    expect(aiTeacherHrefForSpace("student")).toBe("/ai-teacher");
+    expect(aiTeacherHrefForSpace("abiturient")).toBe("/ai-teacher/abit");
+    expect(aiTeacherHrefForSpace("school")).toBe("/ai-teacher/abit");
+    expect(aiTeacherHrefForSpace(null)).toBe("/ai-teacher");
+  });
+
+  it("keeps each page to its own space", () => {
+    expect(getSpaceRedirectHref("/ai-teacher", "student")).toBeNull();
+    expect(getSpaceRedirectHref("/ai-teacher/abit", "abiturient")).toBeNull();
+    expect(getSpaceRedirectHref("/ai-teacher", "abiturient")).toBe(DASHBOARD_ABIT_HREF);
+    expect(getSpaceRedirectHref("/ai-teacher/abit", "student")).toBe(DASHBOARD_STUDENT_HREF);
+  });
+
+  it("shows the right space in the header on each page", () => {
+    expect(spaceFromPathname("/ai-teacher")).toBe("student");
+    expect(spaceFromPathname("/ai-teacher/abit")).toBe("abiturient");
   });
 });

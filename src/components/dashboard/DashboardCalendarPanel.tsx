@@ -31,6 +31,8 @@ import {
   type DashboardCalendarEvent,
   type SyllabusMilestoneType,
 } from "@/lib/syllabus-calendar";
+import { aiTeacherHrefForSpace } from "@/lib/access-control";
+import { readSpaceeduSpace } from "@/lib/space-back-navigation";
 
 const MONTH_NAMES = [
   "იანვარი",
@@ -271,6 +273,8 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
   };
 
   const handleStartStudying = (event: DashboardCalendarEvent) => {
+    // The AI teacher of the space this calendar belongs to.
+    const aiTeacherHref = aiTeacherHrefForSpace(readSpaceeduSpace());
     const prompt = buildStudyPromptForEvent(
       event,
       formatDateLabel(eventDateKey(event.date)),
@@ -281,10 +285,10 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     } catch {
       // sessionStorage can be unavailable (private mode) — fall back to the
       // query string so the AI teacher still receives the message.
-      router.push(`/ai-teacher?prompt=${encodeURIComponent(prompt)}`);
+      router.push(`${aiTeacherHref}?prompt=${encodeURIComponent(prompt)}`);
       return;
     }
-    router.push("/ai-teacher");
+    router.push(aiTeacherHref);
   };
 
   const handleExport = () => {
