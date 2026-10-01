@@ -16,6 +16,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { AIChatPanelProvider } from "@/contexts/AIChatPanelContext";
 import { AIChatSidePanel } from "@/components/AITeacher/AIChatSidePanel";
+import { AIChatBubble } from "@/components/AITeacher/AIChatBubble";
 import { FocusModeProvider } from "@/contexts/FocusModeContext";
 import { FocusModeExitPill } from "@/components/layout/FocusModeToggle";
 import { MobileSideMenuProvider } from "@/contexts/MobileSideMenuContext";
@@ -162,6 +163,7 @@ export default function RootLayout({
                     <DocumentGround />
                     <HeaderByPath />
                     <AIChatSidePanel />
+                    <AIChatBubble />
                     <MobileSideMenuDrawer />
                     <TrialNotice />
                     <SiteShell>{children}</SiteShell>

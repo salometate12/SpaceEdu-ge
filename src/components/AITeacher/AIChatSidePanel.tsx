@@ -24,7 +24,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
-import { AI_PANEL_WIDTH_PX, useAIChatPanel } from "@/contexts/AIChatPanelContext";
+import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -134,9 +134,10 @@ const QUICK_ACTIONS: {
 type View = "home" | "chat";
 
 /**
- * Persistent AI-teacher chat panel. Slides in on desktop (pushing dashboard
- * content aside — see SiteShell's md:mr-*) and takes over the full screen on
- * mobile where there's no room to split.
+ * The AI-teacher chat, as a rounded floating window. It opens out of the
+ * round button in the bottom-right corner (AIChatBubble) — or from the
+ * rail / mobile menu — and floats over the page instead of pushing it aside.
+ * On a phone it is a rounded card over almost the whole screen.
  *
  * The AI itself is never gated behind a subject: typing a question straight
  * away answers it directly. Clicking a subject card only shows a friendly
@@ -189,6 +190,16 @@ export function AIChatSidePanel() {
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // Escape closes the window, wherever focus is inside it.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, close]);
 
   // While fullscreen-expanded, the panel visually covers the whole viewport —
   // lock body scroll so the dashboard behind it can't scroll/reflow underneath.
@@ -300,17 +311,28 @@ export function AIChatSidePanel() {
 
   return (
     <div
-      className={`ai-teacher-surface fixed inset-0 z-[60] flex flex-col overflow-hidden transition-transform duration-300 ease-in-out will-change-transform md:inset-y-0 md:left-auto md:right-0 md:top-20 md:z-[45] md:border-l md:border-white/60 md:shadow-[-8px_0_40px_rgba(15,23,42,0.16)] md:dark:border-white/[0.06] md:dark:shadow-[-8px_0_40px_rgba(0,0,0,0.35)] ${
+      id="ai-chat-window"
+      role="dialog"
+      aria-label="AI მასწავლებელი"
+      className={`ai-teacher-surface fixed z-[62] flex origin-bottom-right flex-col overflow-hidden rounded-3xl border border-white/60 shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] transition-[opacity,transform] duration-200 ease-out dark:border-white/10 dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.6)] ${
+        // Phone: a rounded card over almost the whole screen, clear of the
+        // notch and home bar. Desktop: a window rising out of the bubble's
+        // corner, or a larger rounded window when expanded.
+        "inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))]"
+      } ${
+        isExpanded
+          ? "md:inset-x-6 md:bottom-6 md:top-24"
+          : "md:inset-x-auto md:bottom-[5.75rem] md:right-6 md:top-auto md:h-[min(640px,calc(100dvh-8.5rem))] md:w-[420px] md:max-w-[calc(100vw-3rem)]"
+      } ${
         isOpen
-          ? "translate-x-0"
-          : "pointer-events-none -translate-x-full md:translate-x-full"
+          ? "translate-y-0 scale-100 opacity-100"
+          : "pointer-events-none translate-y-3 scale-95 opacity-0"
       }`}
-      style={{ width: isExpanded ? "100%" : `min(100%, ${AI_PANEL_WIDTH_PX}px)` }}
       aria-hidden={!isOpen}
       inert={!isOpen || undefined}
     >
 
-      <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 pb-3.5 pt-[max(0.875rem,env(safe-area-inset-top))] md:pt-3.5">
+      <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -461,7 +483,7 @@ export function AIChatSidePanel() {
         )}
       </div>
 
-      <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 px-3 pb-3 pt-2">
         {friendlyError ? (
           <div className="mb-2 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-xs text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
