@@ -5,6 +5,7 @@ import { Dices, Plus, X } from "lucide-react";
 import { STUDY_PLAN_SUBJECTS } from "@/lib/study-plan-subjects";
 import { pickEstimatedExamDate } from "@/lib/study-plan-estimated-date";
 import type { StudyPlanFormValues } from "./StudyPlanForm";
+import { StickerButton } from "@/components/ui/StickerButton";
 
 interface AbitStudyPlanFormProps {
   loading: boolean;
@@ -266,13 +267,15 @@ export function AbitStudyPlanForm({ loading, onSubmit }: AbitStudyPlanFormProps)
         </p>
       </div>
 
-      <button
+      <StickerButton
         type="submit"
-        disabled={loading || !canSubmit}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 py-3 font-medium text-white shadow-lg shadow-pink-500/10 transition-all hover:from-pink-500 hover:to-indigo-500 hover:shadow-pink-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+        disabled={!canSubmit}
+        loading={loading}
+        fullWidth
+        className="mt-2"
       >
         {loading ? "გეგმა იქმნება..." : "გეგმის გენერაცია"}
-      </button>
+      </StickerButton>
     </form>
   );
 }

@@ -11,6 +11,7 @@ import {
   type DragEvent,
 } from "react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
+import { StickerButton } from "@/components/ui/StickerButton";
 import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
@@ -314,14 +315,14 @@ export default function QuizPage() {
             </div>
           </div>
 
-          <button
-            type="button"
+          <StickerButton
             onClick={handleQuizGeneration}
             disabled={isLoading || !file}
-            className="rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-500/10 transition hover:from-pink-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+            loading={isLoading}
+            fullWidth
           >
             ქვიზის გენერირება
-          </button>
+          </StickerButton>
         </section>
       )}
 
