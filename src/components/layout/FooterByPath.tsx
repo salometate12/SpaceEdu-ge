@@ -10,7 +10,7 @@ const FULL_BLEED_PATHS = new Set(["/conspectus/stream"]);
 const CUSTOM_FOOTER_PATHS = new Set(["/"]);
 // Full-screen app surfaces: a footer below one of these only shows up as
 // dead space under a full-height chat/stream, so they stay footer-less.
-const NO_FOOTER_PATHS = new Set(["/ai-teacher"]);
+const NO_FOOTER_PATHS = new Set(["/ai-teacher", "/ai-teacher/abit"]);
 
 export function FooterByPath() {
   const pathname = usePathname();

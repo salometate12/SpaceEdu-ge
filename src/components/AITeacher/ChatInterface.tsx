@@ -10,19 +10,35 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, BookOpen, Calculator, Dna, Landmark, Menu, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  BarChart3,
+  BookOpen,
+  Calculator,
+  Code2,
+  Dna,
+  Landmark,
+  Menu,
+  PenLine,
+  Plus,
+  Sigma,
+  Trash2,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import {
   conversationTitleFrom,
   deleteConversation,
   loadConversations,
   saveConversation,
+  type AiTeacherAudience,
   type AiTeacherConversation,
 } from "@/lib/ai-teacher-history";
 import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { readSpaceeduSpace } from "@/lib/space-back-navigation";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -31,34 +47,94 @@ interface ChatMessage {
   content: string;
 }
 
-const QUICK_ACTIONS = [
-  {
-    title: "ამიხსენი თემა ღრმად",
-    prompt: "ამიხსენი უჯრედის ორგანოიდები — ინტუიცია, მაგალითი და გამოცდის ხაფანგები.",
-    icon: Dna,
-    color: "var(--accent-green)",
-  },
-  {
-    title: "ამიხსენი ფორმულა",
-    prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში, ნაბიჯ-ნაბიჯ.",
-    icon: Calculator,
-    color: "var(--accent-cyan)",
-  },
-  {
-    title: "გამიხსენი ნაწარმოები",
-    prompt: "დეტალურად ამიხსენი „ვეფხისტყაოსნის“ მთავარი იდეა და პერსონაჟები.",
-    icon: BookOpen,
-    color: "var(--accent-purple)",
-  },
-  {
-    title: "ისტორიის მოვლენა",
-    prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები და შედეგები გასაგებად.",
-    icon: Landmark,
-    color: "var(--accent-amber)",
-  },
-];
+interface QuickAction {
+  title: string;
+  prompt: string;
+  icon: LucideIcon;
+  color: string;
+}
 
-export function ChatInterface() {
+interface AudienceCopy {
+  intro: string;
+  quickActions: QuickAction[];
+}
+
+/**
+ * What each AI-teacher page says. The abiturient page keeps the original
+ * exam-prep copy; the student page speaks to university courses. The
+ * layout and behaviour are the same.
+ */
+const COPY: Record<AiTeacherAudience, AudienceCopy> = {
+  abiturient: {
+    intro:
+      "აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ. პასუხი იქნება სრული, ნაბიჯ-ნაბიჯ ახსნილი და შენს კითხვაზე მორგებული.",
+    quickActions: [
+      {
+        title: "ამიხსენი თემა ღრმად",
+        prompt: "ამიხსენი უჯრედის ორგანოიდები — ინტუიცია, მაგალითი და გამოცდის ხაფანგები.",
+        icon: Dna,
+        color: "var(--accent-green)",
+      },
+      {
+        title: "ამიხსენი ფორმულა",
+        prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში, ნაბიჯ-ნაბიჯ.",
+        icon: Calculator,
+        color: "var(--accent-cyan)",
+      },
+      {
+        title: "გამიხსენი ნაწარმოები",
+        prompt: "დეტალურად ამიხსენი „ვეფხისტყაოსნის“ მთავარი იდეა და პერსონაჟები.",
+        icon: BookOpen,
+        color: "var(--accent-purple)",
+      },
+      {
+        title: "ისტორიის მოვლენა",
+        prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები და შედეგები გასაგებად.",
+        icon: Landmark,
+        color: "var(--accent-amber)",
+      },
+    ],
+  },
+  student: {
+    intro:
+      "აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ — ლექციის თემა, დავალება თუ შუალედური გამოცდა. პასუხი იქნება სრული, ნაბიჯ-ნაბიჯ ახსნილი და შენს კურსზე მორგებული.",
+    quickActions: [
+      {
+        title: "ლექციის თემა",
+        prompt: "ამიხსენი რეკურსია და სტეკი — ინტუიცია, მაგალითი კოდით და ხშირი შეცდომები.",
+        icon: Code2,
+        color: "var(--accent-green)",
+      },
+      {
+        title: "მათემატიკური ანალიზი",
+        prompt: "ამიხსენი წარმოებული და ინტეგრალი ნაბიჯ-ნაბიჯ, ამოხსნილი მაგალითით.",
+        icon: Sigma,
+        color: "var(--accent-cyan)",
+      },
+      {
+        title: "სტატისტიკა",
+        prompt: "რა განსხვავებაა p-მნიშვნელობასა და ნდობის ინტერვალს შორის? ამიხსენი მაგალითით.",
+        icon: BarChart3,
+        color: "var(--accent-purple)",
+      },
+      {
+        title: "აკადემიური წერა",
+        prompt: "დამეხმარე კვლევითი ესეს სტრუქტურაში: შესავალი, არგუმენტები, დასკვნა და ციტირება.",
+        icon: PenLine,
+        color: "var(--accent-amber)",
+      },
+    ],
+  },
+};
+
+interface ChatInterfaceProps {
+  /** Which space's AI teacher this is: its texts, its saved history, where
+   * "უკან" goes, and the learner level the AI is told about. */
+  space: AiTeacherAudience;
+}
+
+export function ChatInterface({ space }: ChatInterfaceProps) {
+  const copy = COPY[space];
   const [material, setMaterial] = useState("");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -108,11 +184,11 @@ export function ChatInterface() {
   // Load the recent-conversation list once, and keep it in sync if another
   // tab changes it.
   useEffect(() => {
-    const sync = () => setConversations(loadConversations());
+    const sync = () => setConversations(loadConversations(space));
     sync();
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
-  }, []);
+  }, [space]);
 
   const persistCurrentConversation = (finalMessages: ChatMessage[]) => {
     if (!conversationIdRef.current) conversationIdRef.current = crypto.randomUUID();
@@ -122,7 +198,7 @@ export function ChatInterface() {
         id: conversationIdRef.current,
         title: conversationTitleFrom(finalMessages),
         messages: finalMessages,
-      }),
+      }, space),
     );
   };
 
@@ -155,6 +231,7 @@ export function ChatInterface() {
           payload: {
             material: material.trim() || undefined,
             message: trimmed,
+            audience: space,
           },
         },
         (partial) => {
@@ -244,13 +321,13 @@ export function ChatInterface() {
   };
 
   const removeConversation = (id: string) => {
-    setConversations(deleteConversation(id));
+    setConversations(deleteConversation(id, space));
     if (conversationIdRef.current === id) startNewChat();
   };
 
   const handleBackToDashboard = () => {
     setSidebarOpen(false);
-    router.push(dashboardHrefForSpace(readSpaceeduSpace()));
+    router.push(dashboardHrefForSpace(space));
   };
 
   const sidebarContent = (
@@ -458,12 +535,11 @@ export function ChatInterface() {
                 </span>
               </h1>
               <p className="mt-3 hidden max-w-md text-sm leading-relaxed text-[var(--text-muted)] sm:mt-4 sm:block">
-                აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ. პასუხი იქნება სრული,
-                ნაბიჯ-ნაბიჯ ახსნილი და შენს კითხვაზე მორგებული.
+                {copy.intro}
               </p>
 
               <div className="mt-5 grid w-full grid-cols-2 gap-2.5 pb-2 sm:mt-9 sm:gap-3">
-                {QUICK_ACTIONS.map((action) => {
+                {copy.quickActions.map((action) => {
                   const ActionIcon = action.icon;
                   return (
                     <button

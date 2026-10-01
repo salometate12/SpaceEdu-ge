@@ -22,7 +22,11 @@ export function isPremiumAssistantPath(pathname: string | null): boolean {
  * that config's purposes, but it still needs the same full-bleed
  * layout treatment.
  */
-const FULL_BLEED_ASSISTANT_PATHS = [...PREMIUM_ASSISTANT_PATHS, "/ai-teacher"] as const;
+const FULL_BLEED_ASSISTANT_PATHS = [
+  ...PREMIUM_ASSISTANT_PATHS,
+  "/ai-teacher",
+  "/ai-teacher/abit",
+] as const;
 
 export function isFullBleedAssistantPath(pathname: string | null): boolean {
   if (!pathname) return false;

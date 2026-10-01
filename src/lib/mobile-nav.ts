@@ -1,5 +1,5 @@
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
-import { profileHrefForSpace } from "@/lib/access-control";
+import { aiTeacherHrefForSpace, profileHrefForSpace } from "@/lib/access-control";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -44,10 +44,10 @@ function appDock(space: SpaceeduSpace | null, isAdmin: boolean): MobileDockItem[
   return [
     {
       slot: "first",
-      href: "/ai-teacher",
+      href: aiTeacherHrefForSpace(space),
       label: "AI",
       icon: Sparkles,
-      match: (p) => p === "/ai-teacher",
+      match: (p) => p === "/ai-teacher" || p === "/ai-teacher/abit",
     },
     {
       slot: "second",

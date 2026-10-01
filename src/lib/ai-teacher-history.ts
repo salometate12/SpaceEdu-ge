@@ -12,7 +12,14 @@ export interface AiTeacherConversation {
   updatedAt: number;
 }
 
-const STORAGE_KEY = "spaceedu-ai-teacher-conversations";
+export type AiTeacherAudience = "student" | "abiturient";
+
+/** Each AI-teacher page keeps its own history. The student key is the
+ * original one, so existing conversations stay where they were. */
+const STORAGE_KEYS: Record<AiTeacherAudience, string> = {
+  student: "spaceedu-ai-teacher-conversations",
+  abiturient: "spaceedu-ai-teacher-conversations-abit",
+};
 const MAX_CONVERSATIONS = 20;
 const TITLE_MAX_LENGTH = 80;
 
@@ -22,10 +29,12 @@ export function conversationTitleFrom(messages: AiTeacherMessage[]): string {
   return raw.length > TITLE_MAX_LENGTH ? `${raw.slice(0, TITLE_MAX_LENGTH)}…` : raw;
 }
 
-export function loadConversations(): AiTeacherConversation[] {
+export function loadConversations(
+  audience: AiTeacherAudience = "student",
+): AiTeacherConversation[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(STORAGE_KEYS[audience]);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as AiTeacherConversation[];
     if (!Array.isArray(parsed)) return [];
@@ -46,29 +55,33 @@ function isWorthSaving(messages: AiTeacherMessage[]): boolean {
 
 export function saveConversation(
   conversation: Omit<AiTeacherConversation, "updatedAt">,
+  audience: AiTeacherAudience = "student",
 ): AiTeacherConversation[] {
   if (typeof window === "undefined") return [];
-  if (!isWorthSaving(conversation.messages)) return loadConversations();
+  if (!isWorthSaving(conversation.messages)) return loadConversations(audience);
 
   const stamped: AiTeacherConversation = { ...conversation, updatedAt: Date.now() };
-  const others = loadConversations().filter((entry) => entry.id !== stamped.id);
+  const others = loadConversations(audience).filter((entry) => entry.id !== stamped.id);
   const next = [stamped, ...others]
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, MAX_CONVERSATIONS);
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem(STORAGE_KEYS[audience], JSON.stringify(next));
   } catch {
     // storage full / unavailable — history is a convenience, not critical.
   }
   return next;
 }
 
-export function deleteConversation(id: string): AiTeacherConversation[] {
+export function deleteConversation(
+  id: string,
+  audience: AiTeacherAudience = "student",
+): AiTeacherConversation[] {
   if (typeof window === "undefined") return [];
-  const next = loadConversations().filter((entry) => entry.id !== id);
+  const next = loadConversations(audience).filter((entry) => entry.id !== id);
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem(STORAGE_KEYS[audience], JSON.stringify(next));
   } catch {
     // ignore
   }

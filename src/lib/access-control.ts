@@ -46,6 +46,15 @@ export function profileHrefForSpace(
   return options.isAdmin ? NO_SPACE_ADMIN_HREF : SELECT_SPACE_HREF;
 }
 
+export const AI_TEACHER_STUDENT_HREF = "/ai-teacher";
+export const AI_TEACHER_ABIT_HREF = "/ai-teacher/abit";
+
+/** The full-page AI teacher for a space: the abiturient (and school) one
+ * talks national-exam prep, the student one university courses. */
+export function aiTeacherHrefForSpace(space: SpaceeduSpace | null | undefined): string {
+  return space === "abiturient" || space === "school" ? AI_TEACHER_ABIT_HREF : AI_TEACHER_STUDENT_HREF;
+}
+
 export function studyPlanHrefForSpace(space: SpaceeduSpace | null | undefined): string {
   if (space === "student") return "/study-plan";
   return "/study-plan/abit";
@@ -84,6 +93,7 @@ export const SPACE_GUARDED_ROUTES: {
   { path: "/profile/stats", space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile-abiturient/stats", space: "abiturient", match: "exact", redirectTo: "profile" },
   { path: "/ai-teacher", space: "student", match: "exact", redirectTo: "dashboard" },
+  { path: "/ai-teacher/abit", space: "abiturient", match: "exact", redirectTo: "dashboard" },
 ];
 
 function matchesRoute(pathname: string, route: { path: string; match: "exact" | "prefix" }): boolean {
@@ -135,6 +145,7 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact" },
   { path: "/study-plan/abit", space: "abiturient", match: "prefix" },
   { path: "/study-plan", space: "student", match: "prefix" },
+  { path: "/ai-teacher/abit", space: "abiturient", match: "exact" },
   { path: "/ai-teacher", space: "student", match: "exact" },
   { path: "/lecture-notes", space: "student", match: "prefix" },
   { path: "/journal", space: "student", match: "prefix" },

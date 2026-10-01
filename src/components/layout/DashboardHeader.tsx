@@ -18,7 +18,7 @@ import { FocusModeToggle } from "./FocusModeToggle";
 import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
 import { SpaceChip } from "./SpaceChip";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { aiTeacherHrefForSpace, profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -87,7 +87,7 @@ export function DashboardHeader({
           { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },
           { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace) },
           { label: "Quiz", href: "/quiz" },
-          { label: "AI", href: "/ai-teacher" },
+          { label: "AI", href: aiTeacherHrefForSpace(effectiveSpace) },
           { label: "პროფილი", href: profileHrefForSpace(effectiveSpace) },
         ];
 
