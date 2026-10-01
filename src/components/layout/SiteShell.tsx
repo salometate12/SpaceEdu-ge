@@ -2,23 +2,22 @@
 
 import { usePathname } from "next/navigation";
 import { mobileDockHidden } from "@/lib/mobile-nav";
-import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 
 interface SiteShellProps {
   children: React.ReactNode;
 }
 
+/** The page column. The AI chat floats over it (bottom-right window), so the
+ * page no longer makes room for it. */
 export function SiteShell({ children }: SiteShellProps) {
   const pathname = usePathname();
   const dockVisible = !mobileDockHidden(pathname);
-  const { isOpen, isExpanded } = useAIChatPanel();
-  const pushed = isOpen && !isExpanded;
 
   return (
     <div
-      className={`site-shell flex min-h-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${
+      className={`site-shell flex min-h-0 flex-1 flex-col ${
         dockVisible ? "pb-28 md:pb-0" : ""
-      } ${pushed ? "md:mr-[420px]" : "md:mr-0"}`}
+      }`}
     >
       {children}
     </div>
