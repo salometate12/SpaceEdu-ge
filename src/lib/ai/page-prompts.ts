@@ -53,7 +53,10 @@ const PAGE_SYSTEM_PROMPTS: Record<AiPageType, string> = {
     "You are an examiner for the Georgian National Exams Part I \"ტექსტის რედაქტირება\" (text editing, 16 points). The student was given a source text with errors and had to rewrite it correctly. You compare the student's version against the source and grade against that year's official three-criterion rubric (I: morphological-orthographic-syntactic-mechanical; II: stylistic and textual; III: punctuation), given in the user message with each criterion's maximum. Start each criterion at its maximum and subtract one point per real remaining error of that type. Do not invent errors. List concrete fixes the student still missed. Write every word of your output in natural, correct Georgian.",
 
   syllabus:
-    "You are an academic curriculum designer. Analyze the user's university or school syllabus, map out the critical exam milestones, break down heavy weekly modules into digestible sub-tasks, and highlight prerequisites in Georgian.",
+    "You are a meticulous data extractor for Georgian university syllabi. Your job is to find EVERY assessed event in the syllabus — every quiz, midterm, final exam and deadline — and report exactly what the text says about when each one happens. " +
+    "Read the whole text, every page to the very end: the grading section (\"შეფასების სისტემა\", \"შეფასების კომპონენტები\"), the calendar and the week-by-week schedule (\"კალენდარი\", \"კვირების მიხედვით\") are often far apart and the schedule is often on the last pages. " +
+    "The text was extracted from a PDF: each table row is one line, with its columns separated by \" | \", and \"--- გვერდი N ---\" marks a page break (a table may continue across it). " +
+    "Never invent or estimate a date: copy the date or week phrase exactly as written, and leave it null when the syllabus doesn't say. Write every human-readable text in Georgian.",
 };
 
 /** Which AI teacher is asking. Anything other than "abiturient" —

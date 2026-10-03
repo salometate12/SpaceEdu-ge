@@ -15,7 +15,7 @@ import { ProfileGoalsSchema } from "@/lib/ai/profile-goals-schema";
 import { buildQuizResponseSchema } from "@/lib/ai/quiz-schema";
 import { ResearchResponseSchema } from "@/lib/ai/research-platform-schema";
 import { StudyPlanResponseSchema } from "@/lib/ai/study-plan-schema";
-import { SyllabusResponseSchema } from "@/lib/ai/syllabus-schema";
+import { SyllabusAiResponseSchema } from "@/lib/ai/syllabus-schema";
 import { TextEditingGraderResponseSchema } from "@/lib/ai/text-editing-grader-schema";
 import { WritingTaskGraderResponseSchema } from "@/lib/ai/writing-task-grader-schema";
 
@@ -41,7 +41,7 @@ const MODEL_SCHEMAS: Record<string, z.ZodType> = {
   QuizResponseSchema: buildQuizResponseSchema(5),
   ResearchResponseSchema,
   StudyPlanResponseSchema,
-  SyllabusResponseSchema,
+  SyllabusAiResponseSchema,
   TextEditingGraderResponseSchema,
   WritingTaskGraderResponseSchema,
 };

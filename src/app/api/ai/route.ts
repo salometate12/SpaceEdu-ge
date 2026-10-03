@@ -112,10 +112,11 @@ import {
   type ResearchResponse,
 } from "@/lib/ai/research-platform-schema";
 import {
+  SyllabusAiResponseSchema,
   SyllabusOptionsSchema,
   SyllabusRequestSchema,
-  SyllabusResponseSchema,
   normalizeSyllabusMilestones,
+  type SyllabusAiResponse,
   type SyllabusResponse,
 } from "@/lib/ai/syllabus-schema";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
@@ -165,25 +166,43 @@ Return ONLY valid JSON (all text in Georgian):
 Do not invent employers or degrees not implied by the profile.`;
 
 const SYLLABUS_JSON_INSTRUCTIONS = `
-Return ONLY valid JSON (all text in Georgian):
+Return ONLY valid JSON (all human-readable text in Georgian):
 {
-  "insight": "2-3 წინადადება სილაბუსის სტრუქტურის შეჯამება",
+  "insight": "2-3 წინადადება სილაბუსის სტრუქტურისა და შეფასების შეჯამება",
+  "expectedCounts": { "quiz": 4, "midterm": 1, "final": 1 },
+  "warnings": ["გაფრთხილება, თუ რამე ბუნდოვანია"],
   "milestones": [
     {
-      "id": "unique-slug",
-      "title": "მოვლენის სახელი",
-      "date": "YYYY-MM-DD — STRICT ISO format, always a real calendar date, never a week label",
-      "week": "სემესტრის კვირის ნომერი, თუ სილაბუსში მითითებულია (მაგ. \\"8\\")",
-      "topic": "მოკლე თემა/თავი, რასაც ეს მოვლენა ეხება, თუ სილაბუსში ჩანს",
-      "type": "midterm" | "quiz" | "deadline"
+      "title": "ქვიზი 1",
+      "type": "quiz" | "midterm" | "final" | "deadline",
+      "number": 1,
+      "rawDateText": "the exact date/week fragment copied from the text, e.g. \"28.09\" or \"მე-6 კვირა, ხუთშაბათი\" — or null",
+      "week": "week number exactly as written, e.g. \"6\" or \"VIII\" — or null",
+      "weekday": "weekday exactly as written, e.g. \"ხუთშაბათი\" — or null",
+      "date": "YYYY-MM-DD only if the text states an explicit calendar date, otherwise null",
+      "topic": "the topic/chapter covered, if stated — or null",
+      "points": 5,
+      "weight": 10,
+      "sourceText": "the table row or sentence this was read from, copied verbatim"
     }
   ]
 }
-Extract dates/weeks/topics only from the provided syllabus text.
-The "date" field MUST always be a real YYYY-MM-DD calendar date — never a bare week label like "Week 8" or "კვირა VIII".
-If the syllabus only states a week number (not an absolute date), compute the real date yourself using the provided semester start date: date = semester start date + (week_number - 1) * 7 days. Put the week number itself in "week" regardless.
-If no semester start date is provided and the syllabus has no absolute date either, make your best estimate but still return a valid YYYY-MM-DD string.
-Respect the requested focus options.`;
+
+Classification:
+- "quiz": ქვიზი / ქვიზ- / კვიზი, Quiz, Q1/Q2…, მოკლე ტესტი, ტესტი, საკონტროლო (წერა/სამუშაო).
+- "midterm": შუალედური (გამოცდა/შეფასება), Midterm.
+- "final": ფინალური / დასკვნითი (გამოცდა), Final exam.
+- "deadline": დავალების / პროექტის / ნაშრომის / პრეზენტაციის ჩაბარება, Deadline, Due.
+
+Rules:
+- Read the ENTIRE text, every page to the end. Cross-reference the grading section with the schedule.
+- If the grading section says e.g. "ქვიზი 4 × 5 ქულა", there are 4 quizzes: find all 4 and give each its own week/date from the schedule. Put these totals in "expectedCounts" (null when not stated).
+- In a table, a date belongs to the SAME row (line) as the event. Never take a date or week from a neighbouring row.
+- Numeric dates in Georgian syllabi are day-first: "05.11" is 5 November. Copy them verbatim into "rawDateText"; do not convert.
+- Never invent a date. If the text gives no date and no week for an event, set rawDateText, week, weekday and date to null.
+- List each event once: the same quiz mentioned in the grading section and in the schedule is ONE milestone.
+- "points" is the points it is worth, "weight" its percentage of the final grade; null when not stated.
+- Add a Georgian warning for anything ambiguous (e.g. two different dates for the same quiz).`;
 
 const PRESENTATION_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all text in Georgian):
@@ -271,16 +290,54 @@ async function generateSyllabusFromText(
   const prompt = buildUserPrompt("syllabus", payload);
 
   const raw = (await generateGeminiObject({
-    schema: SyllabusResponseSchema,
+    schema: SyllabusAiResponseSchema,
     system: `${system}\n${SYLLABUS_JSON_INSTRUCTIONS}`,
     prompt,
-    temperature: 0.25,
-  })) as SyllabusResponse;
+    // Extraction, not writing — the same syllabus should read the same way.
+    temperature: 0,
+    // A long syllabus has dozens of events, each with its source row; the
+    // provider default can cut the JSON off mid-array and drop the last ones.
+    maxOutputTokens: 32_768,
+    // normalizeSyllabusMilestones works on nulls, not missing keys.
+    keepNulls: true,
+  })) as SyllabusAiResponse;
+
+  const normalized = normalizeSyllabusMilestones(raw, {
+    semesterStartDate: payload.semesterStartDate,
+    sourceText: payload.textBody,
+    fileName,
+  });
+
+  if (normalized.dateMismatches.length > 0) {
+    console.warn("[syllabus] model date differs from computed date", normalized.dateMismatches);
+  }
+  const foundQuizzes = normalized.milestones.filter((item) => item.type === "quiz").length;
+  if (normalized.quizMentionsInText > foundQuizzes) {
+    console.warn("[syllabus] fewer quizzes returned than the text mentions", {
+      fileName,
+      mentionedInText: normalized.quizMentionsInText,
+      expectedByModel: raw.expectedCounts.quiz,
+      found: foundQuizzes,
+    });
+  }
 
   return {
-    ...raw,
-    milestones: normalizeSyllabusMilestones(raw.milestones, semesterStartDate),
+    insight: raw.insight,
+    milestones: normalized.milestones,
+    expectedCounts: raw.expectedCounts,
+    warnings: normalized.warnings,
   };
+}
+
+/** A clear message for a bad syllabus request — not "the file is empty"
+ * for, say, a malformed semester start date. */
+function syllabusValidationMessage(error: z.ZodError): string {
+  const issue = error.issues[0];
+  const field = issue?.path[0];
+  if (field === "textBody") return PDF_TEXT_EMPTY_ERROR;
+  if (field === "semesterStartDate") return "სემესტრის დაწყების თარიღი არასწორია.";
+  if (field === "options") return "ანალიზის პარამეტრები არასწორია.";
+  return issue?.message || "შეყვანილი მონაცემები არასწორია.";
 }
 
 async function handleMultipartPost(request: Request) {
@@ -332,8 +389,18 @@ async function handleMultipartPost(request: Request) {
       typeof semesterStartDateRaw === "string" && semesterStartDateRaw.trim()
         ? semesterStartDateRaw.trim()
         : undefined;
-    const result = await generateSyllabusFromText(file.name, textBody, options, semesterStartDate);
-    return Response.json(result);
+    try {
+      const result = await generateSyllabusFromText(file.name, textBody, options, semesterStartDate);
+      return Response.json(result);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return Response.json(
+          { error: true, message: syllabusValidationMessage(error) },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
   }
 
   let toggles: z.infer<typeof ResearchTogglesSchema> | undefined;
@@ -436,10 +503,7 @@ export async function POST(request: Request) {
       } catch (error) {
         if (error instanceof z.ZodError) {
           return Response.json(
-            {
-              error: true,
-              message: PDF_TEXT_EMPTY_ERROR,
-            },
+            { error: true, message: syllabusValidationMessage(error) },
             { status: 400 },
           );
         }

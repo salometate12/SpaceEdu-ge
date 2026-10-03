@@ -1,6 +1,6 @@
 import { generateObject, generateText, type ModelMessage } from "ai";
 import { z } from "zod";
-import { getConfiguredProviders } from "@/lib/ai/llm-providers";
+import { getConfiguredProviders, type LlmProviderId } from "@/lib/ai/llm-providers";
 import { requireAtLeastOneLlmProvider } from "@/lib/ai/llm-providers";
 import {
   extractStatusCode,
@@ -122,7 +122,20 @@ interface GenerateGeminiObjectArgs {
   prompt?: string;
   messages?: ModelMessage[];
   temperature?: number;
+  /** Output budget for long structured answers. Capped per provider to what
+   * its default model accepts; omitted, each provider's own default applies. */
+  maxOutputTokens?: number;
+  /** Return the model's nulls as they are instead of dropping those keys —
+   * for callers whose own pipeline is null-based (the syllabus). */
+  keepNulls?: boolean;
 }
+
+/** The most each provider's default model can emit in one answer. */
+const PROVIDER_MAX_OUTPUT_TOKENS: Record<LlmProviderId, number> = {
+  gemini: 65_536,
+  openai: 16_384,
+  anthropic: 8_192,
+};
 
 export async function generateGeminiObject({
   schema,
@@ -130,6 +143,8 @@ export async function generateGeminiObject({
   prompt,
   messages,
   temperature = 0.35,
+  maxOutputTokens,
+  keepNulls = false,
 }: GenerateGeminiObjectArgs): Promise<unknown> {
   requireAtLeastOneLlmProvider();
   const providers = getConfiguredProviders();
@@ -148,11 +163,14 @@ export async function generateGeminiObject({
         schema: schema as any,
         system,
         temperature,
+        ...(maxOutputTokens
+          ? { maxOutputTokens: Math.min(maxOutputTokens, PROVIDER_MAX_OUTPUT_TOKENS[provider.id]) }
+          : {}),
         ...promptOrMessages,
       });
       // Absent fields come back as null (see model-nulls.ts); the client
       // shape has them as missing keys.
-      return stripNulls(object);
+      return keepNulls ? object : stripNulls(object);
     },
     "generateGeminiObject",
   );
