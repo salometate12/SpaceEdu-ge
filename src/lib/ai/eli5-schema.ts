@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 
 export const Eli5LevelSchema = z.enum(["kid", "school", "freshman"]);
 
@@ -15,10 +16,10 @@ export const Eli5ResponseSchema = z.object({
   explanation: z.string(),
   analogy: z.string(),
   rememberThis: z.string(),
-  followUpQuestion: z.string().optional(),
+  followUpQuestion: z.string().nullable(),
 });
 
-export type Eli5Response = z.infer<typeof Eli5ResponseSchema>;
+export type Eli5Response = NullsToOptional<z.infer<typeof Eli5ResponseSchema>>;
 
 export const ELI5_LEVEL_LABELS: Record<Eli5Request["level"], string> = {
   kid: "5 წლის ბავშვი",

@@ -14,7 +14,7 @@ import {
   Plus,
   NotebookPen,
 } from "lucide-react";
-import { fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
+import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import {
   addMilestoneToDashboardCalendar,
@@ -117,6 +117,8 @@ export function SyllabusAnalyzer() {
   const [isLoading, setIsLoading] = useState(false);
   const [aiInsight, setAiInsight] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // The AI was busy (503): the same file and date can simply be sent again.
+  const [canRetry, setCanRetry] = useState(false);
 
   useEffect(() => {
     const resetState = () => {
@@ -149,10 +151,12 @@ export function SyllabusAnalyzer() {
 
     if (!isPdf) {
       setError("მხოლოდ PDF ფორმატის ფაილია დაშვებული.");
+      setCanRetry(false);
       return;
     }
 
     setError(null);
+    setCanRetry(false);
     setFileName(file.name);
     setSyllabusFile(file);
     setGenerated(false);
@@ -176,15 +180,18 @@ export function SyllabusAnalyzer() {
   const handleGenerate = async () => {
     if (!syllabusFile) {
       setError("გთხოვ, ჯერ ატვირთე სილაბუსის PDF.");
+      setCanRetry(false);
       return;
     }
     if (!semesterStartDate) {
       setError("გთხოვ, მიუთითე სემესტრის დაწყების თარიღი — ეს სჭირდება AI-ს რეალური თარიღების გამოსათვლელად.");
+      setCanRetry(false);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setCanRetry(false);
     setAiInsight("");
 
     try {
@@ -220,6 +227,7 @@ export function SyllabusAnalyzer() {
           ? err.message
           : "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.",
       );
+      setCanRetry(err instanceof FetchAiError && err.retryable);
     } finally {
       setIsLoading(false);
     }
@@ -346,6 +354,15 @@ export function SyllabusAnalyzer() {
             <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
               {error}
             </p>
+          )}
+          {error && canRetry && !isLoading && (
+            <button
+              type="button"
+              onClick={() => void handleGenerate()}
+              className="mt-2 inline-flex items-center self-start rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
+            >
+              ხელახლა ცდა
+            </button>
           )}
           </div>
         </div>

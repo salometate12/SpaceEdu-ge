@@ -35,6 +35,16 @@ function resolveModel(id: LlmProviderId): string {
   return getRuntimeModel(id, envFallback);
 }
 
+/** Lighter Gemini model tried with the same key when the main one is
+ * overloaded — Google's "high demand" 503s often hit one model only.
+ * Not gemini-2.5-flash-lite: Google no longer serves 2.5 models to keys
+ * that haven't used them before (404 "no longer available to new users"). */
+export const DEFAULT_GEMINI_FALLBACK_MODEL = "gemini-3.5-flash-lite";
+
+function resolveGeminiFallbackModel(): string {
+  return process.env.GEMINI_FALLBACK_MODEL?.trim() || DEFAULT_GEMINI_FALLBACK_MODEL;
+}
+
 const DEFAULT_ORDER: LlmProviderId[] = ["gemini", "openai", "anthropic"];
 
 function readEnvKey(id: LlmProviderId): string | undefined {
@@ -69,6 +79,12 @@ export function parseProviderOrder(): LlmProviderId[] {
 export interface LlmProviderEntry {
   id: LlmProviderId;
   label: string;
+  /** Model id, for logs. */
+  model: string;
+  /** Only worth trying when the previous attempt failed because the model
+   * was overloaded (the Gemini lite fallback: same key, so an auth or
+   * quota error would fail it too). */
+  onlyAfterOverload?: boolean;
   getModel: () => LanguageModel;
 }
 
@@ -101,9 +117,7 @@ function getAnthropicClient(): AnthropicClient | null {
   return anthropicClient;
 }
 
-function createModel(id: LlmProviderId): LanguageModel {
-  const modelId = resolveModel(id);
-
+function createModel(id: LlmProviderId, modelId: string = resolveModel(id)): LanguageModel {
   if (id === "gemini") {
     const client = getGoogleClient();
     if (!client) {
@@ -133,6 +147,7 @@ export function getConfiguredProviders(): LlmProviderEntry[] {
 
   for (const id of order) {
     if (!isProviderConfigured(id)) continue;
+    const model = resolveModel(id);
     entries.push({
       id,
       label:
@@ -141,8 +156,21 @@ export function getConfiguredProviders(): LlmProviderEntry[] {
           : id === "openai"
             ? "OpenAI"
             : "Anthropic",
-      getModel: () => createModel(id),
+      model,
+      getModel: () => createModel(id, model),
     });
+    if (id === "gemini") {
+      const fallbackModel = resolveGeminiFallbackModel();
+      if (fallbackModel !== model) {
+        entries.push({
+          id,
+          label: "Gemini (fallback model)",
+          model: fallbackModel,
+          onlyAfterOverload: true,
+          getModel: () => createModel(id, fallbackModel),
+        });
+      }
+    }
   }
 
   return entries;

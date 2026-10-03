@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 import type { ChemistryOpenCriterion } from "@/data/chemistryExamsData";
 
 /**
@@ -12,18 +13,18 @@ import type { ChemistryOpenCriterion } from "@/data/chemistryExamsData";
 export const ChemistryGradedCriterionSchema = z.object({
   id: z.string(),
   met: z.boolean(),
-  comment: z.string().optional(),
+  comment: z.string().nullable(),
 });
 
 export const ChemistryOpenGraderResponseSchema = z.object({
   summary: z.string(),
   criteria: z.array(ChemistryGradedCriterionSchema),
-  whatWasMissing: z.string().optional(),
-  correctAnswer: z.string().optional(),
-  explanation: z.string().optional(),
+  whatWasMissing: z.string().nullable(),
+  correctAnswer: z.string().nullable(),
+  explanation: z.string().nullable(),
 });
 
-export type ChemistryOpenGraderResponse = z.infer<typeof ChemistryOpenGraderResponseSchema>;
+export type ChemistryOpenGraderResponse = NullsToOptional<z.infer<typeof ChemistryOpenGraderResponseSchema>>;
 
 export interface ChemistryOpenGraderReport extends ChemistryOpenGraderResponse {
   score: number;

@@ -1,5 +1,6 @@
 import { readTextStream } from "@/lib/read-text-stream";
 import type { AiPageType } from "./page-types";
+import { aiMessageForStatus } from "./ai-messages";
 
 export interface FetchAiOptions {
   pageType: AiPageType;
@@ -15,6 +16,11 @@ export class FetchAiError extends Error {
   ) {
     super(message);
     this.name = "FetchAiError";
+  }
+
+  /** The AI was busy: the same request is worth retrying in a minute. */
+  get retryable(): boolean {
+    return this.status === 503;
   }
 }
 
@@ -32,15 +38,27 @@ export async function fetchAi({
   });
 }
 
-async function parseAiError(response: Response): Promise<never> {
-  let message = "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.";
+/**
+ * Turns a failed /api/ai response into a FetchAiError. Uses the server's
+ * JSON message when there is one; otherwise (a platform error page, a
+ * timeout) picks a message from the status.
+ */
+export async function aiErrorFromResponse(response: Response): Promise<FetchAiError> {
+  let message = aiMessageForStatus(response.status);
   try {
-    const data = (await response.json()) as { message?: string; error?: string };
-    message = data.message ?? data.error ?? message;
+    const data = JSON.parse(await response.text()) as { message?: unknown; error?: unknown };
+    const fromServer = [data.message, data.error].find(
+      (value): value is string => typeof value === "string" && value.trim().length > 0,
+    );
+    if (fromServer) message = fromServer;
   } catch {
-    // ignore
+    // not JSON — keep the status-based message
   }
-  throw new FetchAiError(message, response.status);
+  return new FetchAiError(message, response.status);
+}
+
+async function parseAiError(response: Response): Promise<never> {
+  throw await aiErrorFromResponse(response);
 }
 
 export async function fetchAiJson<T>(options: FetchAiOptions): Promise<T> {

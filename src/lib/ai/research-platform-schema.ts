@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 
 export const ResearchTogglesSchema = z.object({
   theses: z.boolean().optional(),
@@ -26,18 +27,18 @@ export const ResearchSourceSchema = z.object({
 export const ResearchQuoteSchema = z.object({
   quote: z.string(),
   context: z.string(),
-  location: z.string().optional(),
+  location: z.string().nullable(),
 });
 
 export const ResearchResponseSchema = z.object({
   summary: z.string(),
   sources: z.array(ResearchSourceSchema).min(1),
   quotes: z.array(ResearchQuoteSchema).min(1),
-  theses: z.array(z.string()).optional(),
-  methodology: z.string().optional(),
-  literatureReview: z.string().optional(),
-  criticalAnalysis: z.string().optional(),
-  conclusions: z.string().optional(),
+  theses: z.array(z.string()).nullable(),
+  methodology: z.string().nullable(),
+  literatureReview: z.string().nullable(),
+  criticalAnalysis: z.string().nullable(),
+  conclusions: z.string().nullable(),
 });
 
-export type ResearchResponse = z.infer<typeof ResearchResponseSchema>;
+export type ResearchResponse = NullsToOptional<z.infer<typeof ResearchResponseSchema>>;

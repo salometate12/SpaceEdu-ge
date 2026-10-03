@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 
 /**
  * Georgian National Exam — Part I "ტექსტის რედაქტირება" (text editing) rubric.
@@ -54,7 +55,7 @@ export const TextEditingCriterionScoreSchema = z.object({
 export const TextEditingCorrectionSchema = z.object({
   original: z.string(),
   fixed: z.string(),
-  type: z.enum(TEXT_EDITING_CRITERION_IDS).optional(),
+  type: z.enum(TEXT_EDITING_CRITERION_IDS).nullable(),
 });
 
 /**
@@ -69,9 +70,9 @@ export const TextEditingGraderResponseSchema = z.object({
   corrections: z.array(TextEditingCorrectionSchema),
 });
 
-export type TextEditingGraderResponse = z.infer<typeof TextEditingGraderResponseSchema>;
-export type TextEditingCriterionScore = z.infer<typeof TextEditingCriterionScoreSchema>;
-export type TextEditingCorrection = z.infer<typeof TextEditingCorrectionSchema>;
+export type TextEditingGraderResponse = NullsToOptional<z.infer<typeof TextEditingGraderResponseSchema>>;
+export type TextEditingCriterionScore = NullsToOptional<z.infer<typeof TextEditingCriterionScoreSchema>>;
+export type TextEditingCorrection = NullsToOptional<z.infer<typeof TextEditingCorrectionSchema>>;
 
 /**
  * Guarantees exactly one entry per criterion, clamped to that year's maximum,

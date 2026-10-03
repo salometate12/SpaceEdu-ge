@@ -1,11 +1,18 @@
 import { streamText, type ModelMessage, type ToolSet } from "ai";
 import { getConfiguredProviders } from "@/lib/ai/llm-providers";
-import { shouldTryNextProvider } from "@/lib/ai/llm-fallback";
+import {
+  LlmChainError,
+  logProviderFailure,
+  shouldSkipProvider,
+  shouldTryNextProvider,
+  type ProviderAttempt,
+} from "@/lib/ai/llm-fallback";
 import { aiStreamHeaders } from "@/lib/ai/assistant-text-stream";
 import { formatUrlSources } from "@/lib/history-sources";
 import {
   buildFriendlyError,
   FRIENDLY_AI_ERROR_MESSAGE,
+  LLM_MAX_RETRIES,
 } from "@/lib/gemini";
 
 const SOURCES_MARKER = "\x1ESOURCES\x1E";
@@ -42,14 +49,16 @@ export function createFallbackLlmPlainTextStream(
       }
 
       console.info(
-        `[llm-stream] LLM failover chain: ${providers.map((p) => p.id).join(" → ")}`,
+        `[llm-stream] LLM failover chain: ${providers.map((p) => `${p.id}:${p.model}`).join(" → ")}`,
       );
 
-      let lastError: unknown;
+      const attempts: ProviderAttempt[] = [];
+      const chainError = () =>
+        attempts.length === 1 ? attempts[0].error : new LlmChainError(attempts);
 
-      for (let index = 0; index < providers.length; index += 1) {
-        const provider = providers[index];
-        const hasNext = index < providers.length - 1;
+      for (const provider of providers) {
+        if (shouldSkipProvider(provider, attempts)) continue;
+        const startedAt = Date.now();
 
         try {
           const promptOrMessages =
@@ -59,6 +68,7 @@ export function createFallbackLlmPlainTextStream(
 
           const result = streamText({
             model: provider.getModel(),
+            maxRetries: LLM_MAX_RETRIES,
             system: request.system,
             temperature: request.temperature ?? 0.3,
             tools:
@@ -106,34 +116,30 @@ export function createFallbackLlmPlainTextStream(
             }
           }
 
-          if (index > 0) {
+          if (attempts.length > 0) {
             console.info(
-              `[llm-stream] stream succeeded via fallback: ${provider.id}`,
+              `[llm-stream] stream succeeded via fallback: ${provider.id}:${provider.model}`,
             );
           }
 
           controller.close();
           return;
         } catch (error) {
-          lastError = error;
-          console.error(`[llm-stream] ${provider.id} failed`, error);
+          attempts.push({ provider: provider.id, model: provider.model, error });
+          logProviderFailure("llm-stream", provider, error, startedAt);
 
-          if (!hasNext || !shouldTryNextProvider(error)) {
-            controller.enqueue(encoder.encode(buildFriendlyError(error)));
+          if (!shouldTryNextProvider(error)) {
+            controller.enqueue(encoder.encode(buildFriendlyError(chainError())));
             controller.close();
             return;
           }
-
-          console.warn(
-            `[llm-stream] provider ${provider.id} failed (failover-eligible), trying next`,
-          );
         }
       }
 
       controller.enqueue(
         encoder.encode(
-          lastError
-            ? buildFriendlyError(lastError)
+          attempts.length > 0
+            ? buildFriendlyError(chainError())
             : FRIENDLY_AI_ERROR_MESSAGE,
         ),
       );

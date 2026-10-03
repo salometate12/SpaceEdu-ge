@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 import type { GeographyOpenCriterion } from "@/data/geographyExamsData";
 
 /**
@@ -16,18 +17,18 @@ import type { GeographyOpenCriterion } from "@/data/geographyExamsData";
 export const GeographyGradedCriterionSchema = z.object({
   id: z.string(),
   met: z.boolean(),
-  comment: z.string().optional(),
+  comment: z.string().nullable(),
 });
 
 export const GeographyOpenGraderResponseSchema = z.object({
   summary: z.string(),
   criteria: z.array(GeographyGradedCriterionSchema),
-  whatWasMissing: z.string().optional(),
-  correctAnswer: z.string().optional(),
-  explanation: z.string().optional(),
+  whatWasMissing: z.string().nullable(),
+  correctAnswer: z.string().nullable(),
+  explanation: z.string().nullable(),
 });
 
-export type GeographyOpenGraderResponse = z.infer<typeof GeographyOpenGraderResponseSchema>;
+export type GeographyOpenGraderResponse = NullsToOptional<z.infer<typeof GeographyOpenGraderResponseSchema>>;
 
 /** The report the UI renders — the response plus the derived score. */
 export interface GeographyOpenGraderReport extends GeographyOpenGraderResponse {
