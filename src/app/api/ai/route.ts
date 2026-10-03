@@ -382,7 +382,7 @@ export async function POST(request: Request) {
     }
 
     const pageType = body.pageType;
-    const system = getSystemPromptForPageType(pageType);
+    const system = getSystemPromptForPageType(pageType, body.payload);
 
     if (pageType === "study-plan") {
       try {

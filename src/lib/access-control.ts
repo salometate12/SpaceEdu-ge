@@ -83,7 +83,11 @@ export const SPACE_GUARDED_ROUTES: {
   path: string;
   space: SpaceeduSpace;
   match: "exact" | "prefix";
-  redirectTo: "profile" | "dashboard";
+  /** Other spaces that may open the route too. */
+  alsoAllowed?: SpaceeduSpace[];
+  /** Where a user from another space goes: their profile, their
+   * dashboard, or their own AI teacher. */
+  redirectTo: "profile" | "dashboard" | "ai-teacher";
 }[] = [
   { path: DASHBOARD_ABIT_HREF, space: "abiturient", match: "prefix", redirectTo: "dashboard" },
   { path: DASHBOARD_STUDENT_HREF, space: "student", match: "prefix", redirectTo: "dashboard" },
@@ -92,8 +96,16 @@ export const SPACE_GUARDED_ROUTES: {
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile/stats", space: "student", match: "exact", redirectTo: "profile" },
   { path: "/profile-abiturient/stats", space: "abiturient", match: "exact", redirectTo: "profile" },
-  { path: "/ai-teacher", space: "student", match: "exact", redirectTo: "dashboard" },
-  { path: "/ai-teacher/abit", space: "abiturient", match: "exact", redirectTo: "dashboard" },
+  // Each AI teacher sends the other space to its own one, so a public
+  // link to /ai-teacher still lands a signed-in abiturient on theirs.
+  { path: AI_TEACHER_STUDENT_HREF, space: "student", match: "exact", redirectTo: "ai-teacher" },
+  {
+    path: AI_TEACHER_ABIT_HREF,
+    space: "abiturient",
+    alsoAllowed: ["school"],
+    match: "exact",
+    redirectTo: "ai-teacher",
+  },
 ];
 
 function matchesRoute(pathname: string, route: { path: string; match: "exact" | "prefix" }): boolean {
@@ -105,8 +117,7 @@ function matchesRoute(pathname: string, route: { path: string; match: "exact" | 
  * A space's own home routes — its dashboard, profile overview and stats.
  * Opening one of these is what makes it the working space (see
  * `active-space.ts`). Narrower than SPACE_GUARDED_ROUTES on purpose:
- * /ai-teacher is guarded as student-only but linked from the abiturient
- * header too, and must not switch an admin's space by being opened.
+ * opening a tool such as an AI teacher must not switch an admin's space.
  */
 const SPACE_HOME_ROUTES: { path: string; space: SpaceeduSpace; match: "exact" | "prefix" }[] = [
   { path: DASHBOARD_ABIT_HREF, space: "abiturient", match: "prefix" },
@@ -160,7 +171,7 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
 
 /**
  * Given the current URL, returns the space that page visibly belongs to
- * (or null if the route isn't space-specific, e.g. /quiz or /ai-teacher).
+ * (or null if the route isn't space-specific, e.g. /quiz).
  * The header uses this ahead of the account's own registered space, so
  * an admin browsing another space's dashboard sees a chip/nav that
  * matches what's actually on screen instead of their own home space.
@@ -278,11 +289,15 @@ export function getSpaceRedirectHref(
   userSpace: SpaceeduSpace,
 ): string | null {
   for (const route of SPACE_GUARDED_ROUTES) {
-    if (matchesRoute(pathname, route) && route.space !== userSpace) {
-      return route.redirectTo === "profile"
-        ? profileHrefForSpace(userSpace)
-        : dashboardHrefForUserSpace(userSpace);
+    if (!matchesRoute(pathname, route)) continue;
+    if (route.space === userSpace || route.alsoAllowed?.includes(userSpace)) continue;
+    if (route.redirectTo === "profile") return profileHrefForSpace(userSpace);
+    if (route.redirectTo === "ai-teacher") {
+      const own = aiTeacherHrefForSpace(userSpace);
+      // Never redirect a page to itself.
+      if (own !== pathname) return own;
     }
+    return dashboardHrefForUserSpace(userSpace);
   }
 
   return null;

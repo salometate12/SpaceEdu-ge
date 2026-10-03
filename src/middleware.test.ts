@@ -67,6 +67,11 @@ describe("middleware — admin", () => {
     expect(remembered(response)).toBe("abiturient");
   });
 
+  it("opens both AI teachers", async () => {
+    expect(redirectPath(await middleware(request("/ai-teacher", "abiturient")))).toBeNull();
+    expect(redirectPath(await middleware(request("/ai-teacher/abit", "student")))).toBeNull();
+  });
+
   it("leaves the cookie alone on /settings, so the menu stays in the student space", async () => {
     const response = await middleware(request("/settings/profile", "student"));
     expect(redirectPath(response)).toBeNull();
@@ -91,6 +96,10 @@ describe("middleware — normal student", () => {
     expect(remembered(response)).toBeNull();
   });
 
+  it("sends them from the abiturient AI teacher to their own", async () => {
+    expect(redirectPath(await middleware(request("/ai-teacher/abit")))).toBe("/ai-teacher");
+  });
+
   it("still redirects them away from the abiturient dashboard", async () => {
     const response = await middleware(request("/dashboard-abit"));
     expect(redirectPath(response)).toBe("/dashboard-student");
@@ -100,6 +109,11 @@ describe("middleware — normal student", () => {
 describe("middleware — normal abiturient", () => {
   beforeEach(() => {
     session.user = ABITURIENT;
+  });
+
+  it("sends them from /ai-teacher to their own AI teacher, not the dashboard", async () => {
+    expect(redirectPath(await middleware(request("/ai-teacher")))).toBe("/ai-teacher/abit");
+    expect(redirectPath(await middleware(request("/ai-teacher/abit")))).toBeNull();
   });
 
   it("redirects them away from the student profile and stats", async () => {
