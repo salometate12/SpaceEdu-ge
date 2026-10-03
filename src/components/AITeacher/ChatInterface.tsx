@@ -10,32 +10,16 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import {
-  ArrowLeft,
-  ArrowUp,
-  BarChart3,
-  BookOpen,
-  Calculator,
-  Code2,
-  Dna,
-  Landmark,
-  Menu,
-  PenLine,
-  Plus,
-  Sigma,
-  Trash2,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, ArrowUp, Menu, Plus, Trash2, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import {
   conversationTitleFrom,
   deleteConversation,
   loadConversations,
   saveConversation,
-  type AiTeacherAudience,
   type AiTeacherConversation,
 } from "@/lib/ai-teacher-history";
+import { AI_TEACHER_CONTENT, type AiTeacherSpace } from "@/lib/ai-teacher-content";
 import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
@@ -47,94 +31,14 @@ interface ChatMessage {
   content: string;
 }
 
-interface QuickAction {
-  title: string;
-  prompt: string;
-  icon: LucideIcon;
-  color: string;
-}
-
-interface AudienceCopy {
-  intro: string;
-  quickActions: QuickAction[];
-}
-
-/**
- * What each AI-teacher page says. The abiturient page keeps the original
- * exam-prep copy; the student page speaks to university courses. The
- * layout and behaviour are the same.
- */
-const COPY: Record<AiTeacherAudience, AudienceCopy> = {
-  abiturient: {
-    intro:
-      "აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ. პასუხი იქნება სრული, ნაბიჯ-ნაბიჯ ახსნილი და შენს კითხვაზე მორგებული.",
-    quickActions: [
-      {
-        title: "ამიხსენი თემა ღრმად",
-        prompt: "ამიხსენი უჯრედის ორგანოიდები — ინტუიცია, მაგალითი და გამოცდის ხაფანგები.",
-        icon: Dna,
-        color: "var(--accent-green)",
-      },
-      {
-        title: "ამიხსენი ფორმულა",
-        prompt: "მითხარი როგორ ვიყენებ კვადრატულ ფორმულას პრაქტიკაში, ნაბიჯ-ნაბიჯ.",
-        icon: Calculator,
-        color: "var(--accent-cyan)",
-      },
-      {
-        title: "გამიხსენი ნაწარმოები",
-        prompt: "დეტალურად ამიხსენი „ვეფხისტყაოსნის“ მთავარი იდეა და პერსონაჟები.",
-        icon: BookOpen,
-        color: "var(--accent-purple)",
-      },
-      {
-        title: "ისტორიის მოვლენა",
-        prompt: "ამიხსენი პირველი მსოფლიო ომის მიზეზები და შედეგები გასაგებად.",
-        icon: Landmark,
-        color: "var(--accent-amber)",
-      },
-    ],
-  },
-  student: {
-    intro:
-      "აირჩიე ერთ-ერთი შეთავაზება ან დაწერე კითხვა ქვემოთ — ლექციის თემა, დავალება თუ შუალედური გამოცდა. პასუხი იქნება სრული, ნაბიჯ-ნაბიჯ ახსნილი და შენს კურსზე მორგებული.",
-    quickActions: [
-      {
-        title: "ლექციის თემა",
-        prompt: "ამიხსენი რეკურსია და სტეკი — ინტუიცია, მაგალითი კოდით და ხშირი შეცდომები.",
-        icon: Code2,
-        color: "var(--accent-green)",
-      },
-      {
-        title: "მათემატიკური ანალიზი",
-        prompt: "ამიხსენი წარმოებული და ინტეგრალი ნაბიჯ-ნაბიჯ, ამოხსნილი მაგალითით.",
-        icon: Sigma,
-        color: "var(--accent-cyan)",
-      },
-      {
-        title: "სტატისტიკა",
-        prompt: "რა განსხვავებაა p-მნიშვნელობასა და ნდობის ინტერვალს შორის? ამიხსენი მაგალითით.",
-        icon: BarChart3,
-        color: "var(--accent-purple)",
-      },
-      {
-        title: "აკადემიური წერა",
-        prompt: "დამეხმარე კვლევითი ესეს სტრუქტურაში: შესავალი, არგუმენტები, დასკვნა და ციტირება.",
-        icon: PenLine,
-        color: "var(--accent-amber)",
-      },
-    ],
-  },
-};
-
 interface ChatInterfaceProps {
   /** Which space's AI teacher this is: its texts, its saved history, where
    * "უკან" goes, and the learner level the AI is told about. */
-  space: AiTeacherAudience;
+  space: AiTeacherSpace;
 }
 
 export function ChatInterface({ space }: ChatInterfaceProps) {
-  const copy = COPY[space];
+  const copy = AI_TEACHER_CONTENT[space];
   const [material, setMaterial] = useState("");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -231,7 +135,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           payload: {
             material: material.trim() || undefined,
             message: trimmed,
-            audience: space,
+            space,
           },
         },
         (partial) => {
@@ -355,7 +259,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       <div className="mt-3 flex-1 space-y-1 overflow-y-auto pr-1">
         {conversations.length === 0 ? (
           <p className="px-1 py-2 text-xs leading-relaxed text-[var(--text-muted)]">
-            აქ გამოჩნდება შენი ბოლო კითხვები, რომლებზეც AI-მ უკვე გიპასუხა.
+            {copy.emptyHistory}
           </p>
         ) : (
           conversations.map((conversation) => {
@@ -422,7 +326,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 onKeyDown={handleKeyDown}
-                placeholder="მომწერე შენი კითხვა..."
+                placeholder={copy.placeholder}
                 className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
               />
               <button
@@ -458,7 +362,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             <ArrowLeft className="h-4 w-4" strokeWidth={2} />
             <span className="text-xs font-medium">უკან</span>
           </button>
-          <span className="text-sm font-medium text-[var(--text-secondary)]">AI მასწავლებელი</span>
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-[var(--text-secondary)]">{copy.headerTitle}</span>
+            <span className="block text-[11px] leading-tight text-[var(--text-muted)]">{copy.headerSubtitle}</span>
+          </span>
         </div>
         {sidebarContent}
       </aside>
@@ -508,8 +415,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           >
             <Menu className="h-4 w-4" />
           </button>
-          <div className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--text-primary)]">
-            AI მასწავლებელი
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-[var(--text-primary)]">{copy.headerTitle}</div>
+            <div className="text-[11px] leading-tight text-[var(--text-muted)]">{copy.headerSubtitle}</div>
           </div>
           <button
             type="button"
@@ -529,9 +437,11 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-start px-2 pt-1 text-center sm:justify-center sm:pt-0">
               <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
               <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-[2.5rem]">
-                {firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა!"}
+                {firstName
+                  ? copy.greetingWithName.replace("{name}", firstName)
+                  : copy.greetingWithoutName}
                 <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
-                  რით შემიძლია დაგეხმარო?
+                  {copy.greetingQuestion}
                 </span>
               </h1>
               <p className="mt-3 hidden max-w-md text-sm leading-relaxed text-[var(--text-muted)] sm:mt-4 sm:block">
@@ -539,7 +449,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
               </p>
 
               <div className="mt-5 grid w-full grid-cols-2 gap-2.5 pb-2 sm:mt-9 sm:gap-3">
-                {copy.quickActions.map((action) => {
+                {copy.suggestions.map((action) => {
                   const ActionIcon = action.icon;
                   return (
                     <button

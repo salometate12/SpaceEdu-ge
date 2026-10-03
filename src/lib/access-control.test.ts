@@ -166,11 +166,16 @@ describe("AI teacher pages per space", () => {
     expect(aiTeacherHrefForSpace(null)).toBe("/ai-teacher");
   });
 
-  it("keeps each page to its own space", () => {
+  it("lets each space into its own AI teacher", () => {
     expect(getSpaceRedirectHref("/ai-teacher", "student")).toBeNull();
     expect(getSpaceRedirectHref("/ai-teacher/abit", "abiturient")).toBeNull();
-    expect(getSpaceRedirectHref("/ai-teacher", "abiturient")).toBe(DASHBOARD_ABIT_HREF);
-    expect(getSpaceRedirectHref("/ai-teacher/abit", "student")).toBe(DASHBOARD_STUDENT_HREF);
+    expect(getSpaceRedirectHref("/ai-teacher/abit", "school")).toBeNull();
+  });
+
+  it("sends the other space to its own AI teacher, not the dashboard", () => {
+    expect(getSpaceRedirectHref("/ai-teacher", "abiturient")).toBe("/ai-teacher/abit");
+    expect(getSpaceRedirectHref("/ai-teacher", "school")).toBe("/ai-teacher/abit");
+    expect(getSpaceRedirectHref("/ai-teacher/abit", "student")).toBe("/ai-teacher");
   });
 
   it("shows the right space in the header on each page", () => {
