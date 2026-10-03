@@ -47,15 +47,15 @@ function StatTile({
   iconColor: string;
 }) {
   return (
-    <div className="dashboard-tool-card rounded-[26px] p-4 sm:p-5">
+    <div className="dashboard-tool-card rounded-2xl p-3.5 sm:p-4">
       <div
         className="flex h-10 w-10 items-center justify-center rounded-full"
         style={{ background: iconBg, color: iconColor }}
       >
         <Icon className="h-4 w-4 stroke-[2.25]" />
       </div>
-      <p className="mono mt-3 text-2xl font-black text-[var(--text-primary)]">{value}</p>
-      <p className="mt-0.5 text-xs font-semibold text-[var(--text-muted)]">{label}</p>
+      <p className="mono mt-2.5 text-3xl font-bold text-[var(--text-primary)]">{value}</p>
+      <p className="mt-0.5 text-sm font-medium text-[var(--text-secondary)]">{label}</p>
     </div>
   );
 }
@@ -189,7 +189,7 @@ function ToolUsageBars({ counts }: { counts: Record<string, number> }) {
               <span className="text-[var(--text-secondary)]">{tool.title}</span>
               <span className="text-[var(--text-primary)]">{count}</span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-[var(--bg-secondary)]">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -218,7 +218,7 @@ function SubjectAnswerBreakdown() {
 
   return (
     <div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-[var(--bg-secondary)]">
         {items.map((item) =>
           item.answered > 0 ? (
             <div
@@ -248,7 +248,7 @@ function SubjectAnswerBreakdown() {
 
 function EmptyUsageState() {
   return (
-    <div className="dashboard-tool-card rounded-[32px] p-8 text-center sm:p-10">
+    <div className="dashboard-tool-card rounded-2xl p-8 text-center sm:p-10">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
         <Sparkles className="h-6 w-6" strokeWidth={1.75} />
       </div>
@@ -272,7 +272,7 @@ function EmptyUsageState() {
 
 function LoadingSkeleton() {
   return (
-    <div className="dashboard-tool-card animate-pulse rounded-[32px] p-8 sm:p-10">
+    <div className="dashboard-tool-card animate-pulse rounded-2xl p-8 sm:p-10">
       <div className="mx-auto h-4 w-40 rounded-full bg-[var(--bg-secondary)]" />
       <div className="mx-auto mt-3 h-3 w-64 max-w-full rounded-full bg-[var(--bg-secondary)]" />
     </div>
@@ -375,7 +375,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
         />
       </div>
 
-      <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+      <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
         <h3 className="headline text-lg font-bold text-[var(--text-primary)]">საგნების პროგრესი</h3>
         <p className="mt-1 text-xs font-medium text-[var(--text-muted)]">
           საშუალო პროგრესი აქტიურ საგნებში: {avgSubjectProgress}%
@@ -397,7 +397,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
                   {subject.answered}/{subject.total} · {subject.percent}%
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-[var(--bg-secondary)]">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${subject.percent}%`, background: subject.theme.glow }}
@@ -428,7 +428,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
       {hydrated && totalOpens > 0 && (
         <>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
               <h3 className="headline text-lg font-bold text-[var(--text-primary)]">აქტივობის ქულა</h3>
               <p className="mt-1 text-xs font-medium text-[var(--text-muted)]">
                 სტრიკისა და ბოლო კვირის აქტივობის მიხედვით
@@ -438,7 +438,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
               </div>
             </div>
 
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
               <h3 className="headline text-lg font-bold text-[var(--text-primary)]">პროგრესის რგოლები</h3>
               <p className="mt-1 text-xs font-medium text-[var(--text-muted)]">სწრაფი მიმოხილვა</p>
               <div className="mt-5 flex items-start justify-around gap-2">
@@ -452,7 +452,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
               </div>
             </div>
 
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="headline text-lg font-bold text-[var(--text-primary)]">ბოლო 7 დღე</h3>
                 <span className="rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
@@ -466,7 +466,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
               <h3 className="headline text-lg font-bold text-[var(--text-primary)]">
                 ხელსაწყოების გამოყენება
               </h3>
@@ -476,7 +476,7 @@ export function AbiturientStatsView({ user }: AbiturientStatsViewProps) {
               <ToolUsageBars counts={toolCounts} />
             </div>
 
-            <div className="dashboard-tool-card rounded-[32px] p-6 sm:p-8">
+            <div className="dashboard-tool-card rounded-2xl p-6 sm:p-8">
               <h3 className="headline text-lg font-bold text-[var(--text-primary)]">
                 პასუხების განაწილება საგნების მიხედვით
               </h3>
