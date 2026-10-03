@@ -37,6 +37,7 @@ function shouldForceClosePanel(pathname: string | null): boolean {
     pathname.startsWith("/login") ||
     pathname.startsWith("/admin") ||
     pathname === "/ai-teacher" ||
+    pathname === "/ai-teacher/abit" ||
     isPremiumAssistantPath(pathname)
   ) {
     return true;

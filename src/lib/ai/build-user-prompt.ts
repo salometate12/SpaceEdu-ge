@@ -64,7 +64,15 @@ export function buildUserPrompt(
       const subject = asString(payload.subject);
       const material = asString(payload.material);
       const message = asString(payload.message);
+      // Which AI-teacher page asked: pitch depth and examples to the learner.
+      const audience =
+        payload.audience === "abiturient"
+          ? "Learner: an abiturient (grades 11–12) preparing for the Georgian National Exams — tie explanations to the exam programme and typical exam tasks."
+          : payload.audience === "student"
+            ? "Learner: a university student — explain at course level and connect to lectures, assignments and university exams."
+            : "";
       return [
+        audience,
         material ? `Reference material:\n${material}` : "",
         subject
           ? `Student question (${subject}): ${message}`
