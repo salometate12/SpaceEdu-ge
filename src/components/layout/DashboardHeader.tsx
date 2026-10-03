@@ -81,7 +81,7 @@ export function DashboardHeader({
           { label: "ჟურნალი", href: "/journal" },
           { label: "ლექციები", href: "/lecture-notes" },
           { label: "პრეზენტაცია", href: "/presentation" },
-          { label: "AI", href: "/ai-teacher" },
+          { label: "AI", href: aiTeacherHrefForSpace(effectiveSpace) },
         ]
       : [
           { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },

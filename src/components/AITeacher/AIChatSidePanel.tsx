@@ -9,22 +9,16 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import {
-  ArrowLeft,
-  ArrowUp,
-  BookOpen,
-  Dna,
-  Globe2,
-  Maximize2,
-  Minimize2,
-  Plus,
-  Sigma,
-  Sparkles,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, ArrowUp, Maximize2, Minimize2, Plus, Sparkles, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
+import { useWorkingSpace } from "@/hooks/useWorkingSpace";
+import {
+  AI_TEACHER_CONTENT,
+  aiTeacherSpaceFor,
+  type AiTeacherAccent,
+  type AiTeacherPanelTopic,
+} from "@/lib/ai-teacher-content";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -43,7 +37,7 @@ interface PendingSuggestions {
   items: SuggestionOption[];
 }
 
-type Accent = "emerald" | "cyan" | "violet" | "amber";
+type Accent = AiTeacherAccent;
 
 /** Light and dark pairs, so the panel reads on /ai-teacher's own surface
  *  rather than only on near-black. */
@@ -77,60 +71,6 @@ const ACCENTS: Record<
   },
 };
 
-const QUICK_ACTIONS: {
-  icon: LucideIcon;
-  title: string;
-  subject: string;
-  accent: Accent;
-  greeting: string;
-  suggestions: SuggestionOption[];
-}[] = [
-  {
-    icon: Dna,
-    title: "ბიოლოგია",
-    subject: "ბიოლოგია",
-    accent: "emerald",
-    greeting: "გისმენთ! მზად ვარ დაგეხმაროთ ბიოლოგიაში 🧬 რომელი თემა გაინტერესებთ?",
-    suggestions: [
-      { label: "უჯრედის აგებულება", prompt: "ამიხსენი უჯრედის აგებულება და ორგანოიდები." },
-      { label: "გენეტიკის საფუძვლები", prompt: "ამიხსენი გენეტიკის ძირითადი პრინციპები მარტივად." },
-    ],
-  },
-  {
-    icon: Sigma,
-    title: "ფორმულა",
-    subject: "მათემატიკა",
-    accent: "cyan",
-    greeting: "გისმენთ! დაგეხმარებით მათემატიკაში 📐 საიდან დავიწყოთ?",
-    suggestions: [
-      { label: "კვადრატული განტოლება", prompt: "ამიხსენი კვადრატული განტოლების ამოხსნის წესი მაგალითით." },
-      { label: "წარმოებულები", prompt: "ამიხსენი წარმოებულის ცნება და მისი გამოთვლის წესები." },
-    ],
-  },
-  {
-    icon: BookOpen,
-    title: "ლიტერატურა",
-    subject: "ქართული ენა და ლიტერატურა",
-    accent: "violet",
-    greeting: "გისმენთ! დაგეხმარებით ქართულ ენასა და ლიტერატურაში 📚 რა გაინტერესებთ?",
-    suggestions: [
-      { label: "ლიტერატურული ანალიზი", prompt: "დამეხმარე ვეფხისტყაოსნის მთავარი გმირების ანალიზში." },
-      { label: "გრამატიკის წესები", prompt: "ამიხსენი ქართული ენის სინტაქსური წესები მაგალითებით." },
-    ],
-  },
-  {
-    icon: Globe2,
-    title: "ისტორია",
-    subject: "ისტორია",
-    accent: "amber",
-    greeting: "გისმენთ! დაგეხმარებით ისტორიაში 🌍 რომელი პერიოდი გაინტერესებთ?",
-    suggestions: [
-      { label: "საქართველოს ისტორია", prompt: "ამიხსენი საქართველოს გაერთიანების ისტორია მოკლედ." },
-      { label: "მსოფლიო ისტორია", prompt: "ამიხსენი პირველი მსოფლიო ომის მთავარი მიზეზები." },
-    ],
-  },
-];
-
 type View = "home" | "chat";
 
 /**
@@ -147,6 +87,11 @@ type View = "home" | "chat";
  */
 export function AIChatSidePanel() {
   const { isOpen, close, isExpanded, toggleExpanded } = useAIChatPanel();
+  // The window floats over every page, so its topics follow the space the
+  // user is working in: university topics for students, exam prep otherwise.
+  const { space: workingSpace } = useWorkingSpace();
+  const teacherSpace = aiTeacherSpaceFor(workingSpace);
+  const content = AI_TEACHER_CONTENT[teacherSpace];
 
   const [view, setView] = useState<View>("home");
   const [subject, setSubject] = useState<string | null>(null);
@@ -235,7 +180,9 @@ export function AIChatSidePanel() {
           pageType: "ai-teacher",
           // No subject = the model just answers the question directly,
           // instead of being artificially framed around an unrelated topic.
-          payload: subject ? { subject, message: trimmed } : { message: trimmed },
+          payload: subject
+            ? { subject, message: trimmed, space: teacherSpace }
+            : { message: trimmed, space: teacherSpace },
         },
         (partial) => {
           setMessages((prev) =>
@@ -295,7 +242,7 @@ export function AIChatSidePanel() {
     close();
   };
 
-  const pickSubject = (action: (typeof QUICK_ACTIONS)[number]) => {
+  const pickSubject = (action: AiTeacherPanelTopic) => {
     setSubject(action.subject);
     setSubjectAccent(action.accent);
     setFriendlyError(null);
@@ -304,7 +251,7 @@ export function AIChatSidePanel() {
       ...prev,
       { id: crypto.randomUUID(), role: "assistant", content: action.greeting },
     ]);
-    setPendingSuggestions({ accent: action.accent, items: action.suggestions });
+    setPendingSuggestions({ accent: action.accent, items: action.followUps });
   };
 
   const activeAccent = ACCENTS[subjectAccent];
@@ -357,7 +304,7 @@ export function AIChatSidePanel() {
                 {subject}
               </span>
             ) : (
-              <p className="truncate text-[11px] text-[var(--text-muted)]">ნებისმიერ თემაზე მკითხე</p>
+              <p className="text-[11px] leading-tight text-[var(--text-muted)]">{content.headerSubtitle}</p>
             )}
           </div>
         </div>
@@ -425,7 +372,7 @@ export function AIChatSidePanel() {
             ) : null}
 
             <div className="mt-6 grid grid-cols-2 gap-2.5">
-              {QUICK_ACTIONS.map((action) => {
+              {content.panelTopics.map((action) => {
                 const a = ACCENTS[action.accent];
                 return (
                   <button

@@ -12,6 +12,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { normalizeSmartSpace, type SmartSpace } from "@/lib/smart-space";
+import { aiTeacherHrefForSpace } from "@/lib/access-control";
 import { DashboardDecorIcons } from "./dashboard/DashboardDecorIcons";
 import { DashboardGreetingBanner } from "./dashboard/DashboardGreetingBanner";
 import { DashboardSideRail } from "./dashboard/DashboardSideRail";
@@ -400,7 +401,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
                 {[
                   ["#7C3AED", "ახალი სასწავლო გეგმა", "/study-plan"],
                   ["#22d3ee", "Quiz რეჟიმი", "/quiz"],
-                  ["#22c55e", "AI მასწავლებელი", "/ai-teacher"],
+                  ["#22c55e", "AI მასწავლებელი", aiTeacherHrefForSpace(activeSpace === "university" ? "student" : "school")],
                   ["#a78bfa", "CV-ის შექმნა", "/cv"],
                   ["#f472b6", "სილაბუსის ატვირთვა", "/syllabus"],
                 ].map(([color, label, href]) => (

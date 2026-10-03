@@ -56,6 +56,29 @@ const PAGE_SYSTEM_PROMPTS: Record<AiPageType, string> = {
     "You are an academic curriculum designer. Analyze the user's university or school syllabus, map out the critical exam milestones, break down heavy weekly modules into digestible sub-tasks, and highlight prerequisites in Georgian.",
 };
 
-export function getSystemPromptForPageType(pageType: AiPageType): string {
+/** Which AI teacher is asking. Anything other than "abiturient" —
+ * including a missing value — is the student (university) teacher. */
+export function aiTeacherSpaceFromPayload(
+  payload: Record<string, unknown> | undefined,
+): "student" | "abiturient" {
+  return payload?.space === "abiturient" ? "abiturient" : "student";
+}
+
+/** Added after the shared "ai-teacher" prompt, per space. */
+export const AI_TEACHER_SPACE_PROMPTS: Record<"student" | "abiturient", string> = {
+  student:
+    "The learner is a university student in Georgia. Pitch explanations at university level: precise academic terminology (give the English term in parentheses when it helps), formal definitions, and links between theory and real cases. Help with lectures, seminars, midterms and finals, essays, reports and research. For essays and graded assignments, coach instead of ghost-writing: help with structure, thesis, arguments and feedback on the student's own drafts, rather than producing a finished text to hand in. When facts or sources matter, say what to verify in the course syllabus or literature.",
+  abiturient:
+    "The learner is a Georgian school graduate preparing for the National Exams (ეროვნული გამოცდები, NAEC). Stay within the national exam programme for the subject. Explain clearly for a 17–18-year-old, then tie the topic to how it is tested: typical question formats, common traps, and what earns or loses points. Offer exam-style practice questions, and check the student's answers when asked. Use the Georgian school terminology the exam uses.",
+};
+
+export function getSystemPromptForPageType(
+  pageType: AiPageType,
+  payload?: Record<string, unknown>,
+): string {
+  if (pageType === "ai-teacher") {
+    const space = aiTeacherSpaceFromPayload(payload);
+    return `${PAGE_SYSTEM_PROMPTS["ai-teacher"]}\n\n${AI_TEACHER_SPACE_PROMPTS[space]}`;
+  }
   return PAGE_SYSTEM_PROMPTS[pageType];
 }
