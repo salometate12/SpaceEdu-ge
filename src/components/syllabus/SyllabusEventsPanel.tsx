@@ -23,6 +23,11 @@ const TYPE_META: Record<DashboardCalendarEvent["type"], { label: string; badge: 
     badge:
       "border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300",
   },
+  final: {
+    label: "ფინალური",
+    badge:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300",
+  },
   deadline: {
     label: "დედლაინი",
     badge:

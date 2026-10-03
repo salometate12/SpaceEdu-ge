@@ -1,8 +1,8 @@
-import { z } from "zod";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { extractTextFromPdfFile, PdfExtractError } from "@/lib/ai/extract-pdf-text";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
+import { buildQuizResponseSchema } from "@/lib/ai/quiz-schema";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -10,22 +10,6 @@ export const maxDuration = 120;
 const MIN_QUESTION_COUNT = 3;
 const MAX_QUESTION_COUNT = 25;
 const DEFAULT_QUESTION_COUNT = 5;
-
-function buildQuizResponseSchema(count: number) {
-  return z.object({
-    questions: z
-      .array(
-        z.object({
-          id: z.number(),
-          questionText: z.string(),
-          options: z.array(z.string()).length(4),
-          correctAnswerIndex: z.number().min(0).max(3),
-          explanation: z.string(),
-        }),
-      )
-      .length(count),
-  });
-}
 
 function parseQuestionCount(raw: FormDataEntryValue | null): number {
   if (typeof raw !== "string") return DEFAULT_QUESTION_COUNT;

@@ -1,18 +1,30 @@
 /** What a dated entry on the dashboard calendar is.
  *  `study` covers the days of a saved study plan, which are neither an
  *  exam nor something due — just work planned for that date. */
-export type SyllabusMilestoneType = "midterm" | "quiz" | "deadline" | "study";
+export type SyllabusMilestoneType = "midterm" | "quiz" | "final" | "deadline" | "study";
+
+/** How a milestone's date was obtained: read from the syllabus, computed
+ * from its week number, not stated at all, or typed in by the student. */
+export type SyllabusMilestoneDateStatus = "exact" | "computed-from-week" | "unknown" | "manual";
 
 export interface SyllabusMilestone {
   id: string;
   title: string;
-  /** Real, placeable calendar date — always YYYY-MM-DD, resolved server-side. */
-  date: string;
+  /** YYYY-MM-DD, or null when the syllabus doesn't say — such a milestone
+   * can't go on the calendar until the student sets a date. */
+  date: string | null;
+  dateStatus?: SyllabusMilestoneDateStatus;
   /** Week-of-semester label, e.g. "8", as stated in the syllabus. */
   week?: string;
   /** Short topic/chapter this milestone covers, if the syllabus states one. */
   topic?: string;
   type: SyllabusMilestoneType;
+}
+
+type DatedMilestone = SyllabusMilestone & { date: string };
+
+function hasDate(milestone: SyllabusMilestone): milestone is DatedMilestone {
+  return typeof milestone.date === "string" && milestone.date.length > 0;
 }
 
 export interface DashboardCalendarEvent {
@@ -79,6 +91,7 @@ export function addMilestoneToDashboardCalendar(
   milestone: SyllabusMilestone,
 ): DashboardCalendarEvent[] {
   const existing = getDashboardCalendarEvents();
+  if (!hasDate(milestone)) return existing;
   const event: DashboardCalendarEvent = {
     id: milestone.id,
     title: milestone.title,
@@ -101,8 +114,9 @@ export function addMilestonesToDashboardCalendar(
   milestones: SyllabusMilestone[],
 ): DashboardCalendarEvent[] {
   const existing = getDashboardCalendarEvents();
-  const incomingIds = new Set(milestones.map((milestone) => milestone.id));
-  const events: DashboardCalendarEvent[] = milestones.map((milestone) => ({
+  const dated = milestones.filter(hasDate);
+  const incomingIds = new Set(dated.map((milestone) => milestone.id));
+  const events: DashboardCalendarEvent[] = dated.map((milestone) => ({
     id: milestone.id,
     title: milestone.title,
     date: milestone.date,
@@ -195,6 +209,7 @@ export const AI_TEACHER_PROMPT_KEY = "spaceedu-ai-teacher-initial-prompt";
 const STUDY_PROMPT_TYPE_LABEL: Record<SyllabusMilestoneType, string> = {
   midterm: "შუალედური გამოცდა",
   quiz: "ქვიზი",
+  final: "ფინალური გამოცდა",
   deadline: "დავალების დედლაინი",
   study: "სასწავლო დღე",
 };

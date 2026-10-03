@@ -13,8 +13,10 @@ import {
   GraduationCap,
   Plus,
   NotebookPen,
+  Trophy,
+  TriangleAlert,
 } from "lucide-react";
-import { fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
+import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import {
   addMilestoneToDashboardCalendar,
@@ -51,9 +53,24 @@ type SyllabusOption = "plan" | "midterms" | "quiz-weeks";
 
 const OPTIONS: Array<{ id: SyllabusOption; label: string }> = [
   { id: "plan", label: "სემესტრული გეგმა" },
-  { id: "midterms", label: "შუალედურების თარიღები" },
+  { id: "midterms", label: "შუალედური და ფინალური" },
   { id: "quiz-weeks", label: "Quiz კვირები" },
 ];
+
+/** Which checkbox shows which type. The checkboxes only filter what's on
+ * screen — the analysis itself always extracts every type. */
+const OPTION_FOR_TYPE: Partial<Record<SyllabusMilestoneType, SyllabusOption>> = {
+  quiz: "quiz-weeks",
+  midterm: "midterms",
+  final: "midterms",
+  deadline: "plan",
+};
+
+const HIDDEN_NOUN: Record<SyllabusOption, string> = {
+  "quiz-weeks": "ქვიზი",
+  midterms: "გამოცდა",
+  plan: "დედლაინი",
+};
 
 const TYPE_META: Record<
   SyllabusMilestoneType,
@@ -72,6 +89,13 @@ const TYPE_META: Record<
     dot: "border-sky-400 dark:border-sky-400/60",
     badge:
       "border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300",
+  },
+  final: {
+    label: "ფინალური",
+    icon: Trophy,
+    dot: "border-amber-400 dark:border-amber-400/60",
+    badge:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300",
   },
   deadline: {
     label: "დედლაინი",
@@ -94,10 +118,24 @@ function filterMilestonesByOptions(
   enabled: Record<SyllabusOption, boolean>,
 ): SyllabusMilestone[] {
   return milestones.filter((item) => {
-    if (item.type === "midterm") return enabled.midterms;
-    if (item.type === "quiz") return enabled["quiz-weeks"];
-    if (item.type === "deadline") return enabled.plan;
-    return true;
+    const option = OPTION_FOR_TYPE[item.type];
+    return option ? enabled[option] : true;
+  });
+}
+
+/** How many results each unticked checkbox is currently hiding. */
+function countHiddenByOption(
+  milestones: SyllabusMilestone[],
+  enabled: Record<SyllabusOption, boolean>,
+): Array<{ option: SyllabusOption; count: number }> {
+  const counts = new Map<SyllabusOption, number>();
+  for (const item of milestones) {
+    const option = OPTION_FOR_TYPE[item.type];
+    if (option && !enabled[option]) counts.set(option, (counts.get(option) ?? 0) + 1);
+  }
+  return OPTIONS.flatMap(({ id }) => {
+    const count = counts.get(id) ?? 0;
+    return count > 0 ? [{ option: id, count }] : [];
   });
 }
 
@@ -109,14 +147,17 @@ export function SyllabusAnalyzer() {
   const [enabled, setEnabled] = useState<Record<SyllabusOption, boolean>>({
     plan: true,
     midterms: true,
-    "quiz-weeks": false,
+    "quiz-weeks": true,
   });
   const [generated, setGenerated] = useState(false);
   const [milestones, setMilestones] = useState<SyllabusMilestone[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [aiInsight, setAiInsight] = useState("");
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // The AI was busy (503): the same file and date can simply be sent again.
+  const [canRetry, setCanRetry] = useState(false);
 
   useEffect(() => {
     const resetState = () => {
@@ -124,6 +165,7 @@ export function SyllabusAnalyzer() {
       setGenerated(false);
       setMilestones([]);
       setAiInsight("");
+      setWarnings([]);
       setAddedIds(new Set());
     };
     resetState();
@@ -143,22 +185,30 @@ export function SyllabusAnalyzer() {
     [milestones, enabled],
   );
 
+  const hiddenByOption = useMemo(
+    () => countHiddenByOption(milestones, enabled),
+    [milestones, enabled],
+  );
+
   const handleFile = (file: File) => {
     const isPdf =
       file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
     if (!isPdf) {
       setError("მხოლოდ PDF ფორმატის ფაილია დაშვებული.");
+      setCanRetry(false);
       return;
     }
 
     setError(null);
+    setCanRetry(false);
     setFileName(file.name);
     setSyllabusFile(file);
     setGenerated(false);
     setMilestones([]);
     setAddedIds(new Set());
     setAiInsight("");
+    setWarnings([]);
   };
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -176,32 +226,45 @@ export function SyllabusAnalyzer() {
   const handleGenerate = async () => {
     if (!syllabusFile) {
       setError("გთხოვ, ჯერ ატვირთე სილაბუსის PDF.");
+      setCanRetry(false);
       return;
     }
     if (!semesterStartDate) {
       setError("გთხოვ, მიუთითე სემესტრის დაწყების თარიღი — ეს სჭირდება AI-ს რეალური თარიღების გამოსათვლელად.");
+      setCanRetry(false);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setCanRetry(false);
     setAiInsight("");
+    setWarnings([]);
 
     try {
       const data = await fetchAiMultipartJson<SyllabusResponse>({
         pageType: "syllabus",
         file: syllabusFile,
-        fields: { options: JSON.stringify(enabled), semesterStartDate },
+        fields: { semesterStartDate },
       });
 
-      const next: SyllabusMilestone[] = data.milestones.map((item, index) => ({
-        id: item.id?.trim() || `syllabus-ms-${index + 1}`,
-        title: item.title,
-        date: item.date,
-        week: item.week,
-        topic: item.topic,
-        type: item.type,
-      }));
+      // A date the student already filled in for this same event (same
+      // file, same id) survives re-analysing the syllabus.
+      const onCalendar = new Map(
+        getDashboardCalendarEvents().map((event) => [event.id, event.date]),
+      );
+      const next: SyllabusMilestone[] = data.milestones.map((item) => {
+        const manualDate = item.date === null ? onCalendar.get(item.id) : undefined;
+        return {
+          id: item.id,
+          title: item.title,
+          date: manualDate ?? item.date,
+          dateStatus: manualDate ? "manual" : item.dateStatus,
+          week: item.week ?? undefined,
+          topic: item.topic ?? undefined,
+          type: item.type,
+        };
+      });
 
       if (next.length === 0) {
         throw new Error(
@@ -210,6 +273,7 @@ export function SyllabusAnalyzer() {
       }
 
       setAiInsight(data.insight);
+      setWarnings(data.warnings ?? []);
       setMilestones(next);
       setGeneratedMilestones(next);
       setAddedIds(new Set());
@@ -220,26 +284,49 @@ export function SyllabusAnalyzer() {
           ? err.message
           : "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.",
       );
+      setCanRetry(err instanceof FetchAiError && err.retryable);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAddToCalendar = (milestone: SyllabusMilestone) => {
+    if (!milestone.date) return;
     addMilestoneToDashboardCalendar(milestone);
     setAddedIds((prev) => new Set(prev).add(milestone.id));
+  };
+
+  /** The student fills in a date the syllabus didn't state. */
+  const handleManualDate = (id: string, value: string) => {
+    const next = milestones.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            date: value || null,
+            dateStatus: value ? ("manual" as const) : ("unknown" as const),
+          }
+        : item,
+    );
+    setMilestones(next);
+    setGeneratedMilestones(next);
+    const updated = next.find((item) => item.id === id);
+    // Already on the calendar: move it to the new day rather than leave it stale.
+    if (updated?.date && (addedIds.has(id) || isMilestoneOnDashboard(id))) {
+      addMilestoneToDashboardCalendar(updated);
+    }
   };
 
   const pendingMilestones = useMemo(
     () =>
       visibleMilestones.filter(
-        (item) => !addedIds.has(item.id) && !isMilestoneOnDashboard(item.id),
+        (item) =>
+          item.date !== null && !addedIds.has(item.id) && !isMilestoneOnDashboard(item.id),
       ),
     [visibleMilestones, addedIds],
   );
 
-  const allMilestonesAdded =
-    visibleMilestones.length > 0 && pendingMilestones.length === 0;
+  const datedVisibleCount = visibleMilestones.filter((item) => item.date !== null).length;
+  const allMilestonesAdded = datedVisibleCount > 0 && pendingMilestones.length === 0;
 
   const handleAddAllToCalendar = () => {
     if (pendingMilestones.length === 0) return;
@@ -311,7 +398,7 @@ export function SyllabusAnalyzer() {
             />
             <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
               სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების ნაცვლად — ეს
-              გვჭირდება, რომ AI-მ რეალურ თარიღებად გადათვალოს.
+              გვჭირდება, რომ კვირები რეალურ თარიღებად გადავთვალოთ.
             </p>
           </label>
 
@@ -346,6 +433,15 @@ export function SyllabusAnalyzer() {
             <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
               {error}
             </p>
+          )}
+          {error && canRetry && !isLoading && (
+            <button
+              type="button"
+              onClick={() => void handleGenerate()}
+              className="mt-2 inline-flex items-center self-start rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
+            >
+              ხელახლა ცდა
+            </button>
           )}
           </div>
         </div>
@@ -383,7 +479,7 @@ export function SyllabusAnalyzer() {
                   </p>
                 </div>
               </div>
-              {visibleMilestones.length > 0 && (
+              {datedVisibleCount > 0 && (
                 allMilestonesAdded ? (
                   <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold ${ACCENT_PILL.green}`}>
                     <Check className="h-3.5 w-3.5 shrink-0" />
@@ -405,6 +501,39 @@ export function SyllabusAnalyzer() {
             {aiInsight && (
               <div className={`mb-5 rounded-2xl border-2 p-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 ${ACCENT_CARD.amber}`}>
                 {aiInsight}
+              </div>
+            )}
+
+            {warnings.length > 0 && (
+              <div
+                role="status"
+                className="mb-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200"
+              >
+                <p className="mb-1.5 flex items-center gap-1.5 font-bold">
+                  <TriangleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  შეამოწმე ორიგინალ სილაბუსთან
+                </p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {hiddenByOption.length > 0 && (
+              <div className="mb-5 flex flex-wrap gap-2">
+                {hiddenByOption.map(({ option, count }) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setEnabled((prev) => ({ ...prev, [option]: true }))}
+                    className={`rounded-full border-2 px-3 py-1.5 text-left text-xs font-semibold text-slate-600 transition hover:border-pink-400 dark:text-slate-300 ${PLAIN_CARD}`}
+                  >
+                    დამალულია {count} {HIDDEN_NOUN[option]} — ჩართე „
+                    {OPTIONS.find((item) => item.id === option)?.label}“
+                  </button>
+                ))}
               </div>
             )}
 
@@ -445,9 +574,35 @@ export function SyllabusAnalyzer() {
                       <p className="text-sm font-bold leading-snug text-slate-900 dark:text-slate-50">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                        {formatIsoDateGeorgian(item.date)}
-                      </p>
+                      {item.date && item.dateStatus !== "manual" ? (
+                        <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          {formatIsoDateGeorgian(item.date)}
+                          {item.dateStatus === "computed-from-week" && (
+                            <span className="ml-1.5 font-normal text-slate-500 dark:text-slate-400">
+                              · კვირის მიხედვით გამოთვლილი
+                            </span>
+                          )}
+                        </p>
+                      ) : (
+                        <div className="mt-2 space-y-1.5">
+                          {!item.date && (
+                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+                              <TriangleAlert className="h-3 w-3" aria-hidden />
+                              თარიღი დასაზუსტებელია
+                            </span>
+                          )}
+                          <label className="block text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="sr-only">{item.title} — </span>
+                            მიუთითე თარიღი
+                            <input
+                              type="date"
+                              value={item.date ?? ""}
+                              onChange={(event) => handleManualDate(item.id, event.target.value)}
+                              className="mt-1 block w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3 py-1.5 text-xs text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
+                            />
+                          </label>
+                        </div>
+                      )}
                       {item.topic && (
                         <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
                           {item.topic}
@@ -455,7 +610,7 @@ export function SyllabusAnalyzer() {
                       )}
                     </div>
 
-                    {added ? (
+                    {!item.date ? null : added ? (
                       <span
                         className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${ACCENT_PILL.green}`}
                       >

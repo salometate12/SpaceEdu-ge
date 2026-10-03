@@ -176,24 +176,19 @@ export function buildUserPrompt(
     }
 
     case "syllabus": {
-      const options = payload.options as Record<string, boolean> | undefined;
-      const enabled: string[] = [];
-      if (options?.plan) enabled.push("სემესტრული გეგმა და დედლაინები");
-      if (options?.midterms) enabled.push("შუალედური გამოცდები");
-      if (options?.["quiz-weeks"]) enabled.push("Quiz კვირები");
+      // The page's option checkboxes only filter the results on screen —
+      // the extraction always looks for every event type, so a quiz is
+      // never missed just because a box was unticked.
       return [
         payload.fileName ? `სილაბუსის ფაილი: ${asString(payload.fileName)}` : "",
         payload.semesterStartDate
-          ? `სემესტრის დაწყების თარიღი: ${asString(payload.semesterStartDate)} (გამოიყენე ეს კვირის ნომრების რეალურ თარიღებად გადასაყვანად).`
+          ? `სემესტრის დაწყების თარიღი: ${asString(payload.semesterStartDate)}. თარიღს კოდი გამოითვლის — შენ დააბრუნე ის, რაც ტექსტში წერია (rawDateText, week, weekday).`
           : "",
-        "შიგთავსი: უკვე ამოღებული ტექსტი PDF-დან (არა ბინარული ნაკადი).",
+        "შიგთავსი: PDF-დან ამოღებული ტექსტი. ცხრილის თითო მწკრივი ერთ ხაზზეა, სვეტები „ | “-ით არის გამოყოფილი, „--- გვერდი N ---“ გვერდის საზღვარია.",
         "--- BEGIN SYLLABUS TEXT ---",
         asString(payload.textBody),
         "--- END SYLLABUS TEXT ---",
-        enabled.length
-          ? `ანალიზის ფოკუსი: ${enabled.join("; ")}`
-          : "ანალიზის ფოკუსი: სრული სემესტრული კალენდარი",
-        "ამოიღე მხოლოდ იმ თარიღები და მოვლენები, რომლებიც ტექსტში ნამდვილად ჩანს.",
+        "იპოვე ყველა ქვიზი, შუალედური, ფინალური და დედლაინი მთელ ტექსტში, ბოლო გვერდის ჩათვლით. თარიღი არ გამოიგონო.",
       ]
         .filter(Boolean)
         .join("\n\n");

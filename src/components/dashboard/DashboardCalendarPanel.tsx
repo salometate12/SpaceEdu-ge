@@ -75,6 +75,13 @@ const TYPE_STYLE: Record<
     label: "Quiz",
     mobileRow: "mobile-vivid-sky",
   },
+  final: {
+    dot: "bg-amber-400",
+    icon: GraduationCap,
+    iconWrap: "bg-amber-400/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300",
+    label: "ფინალური",
+    mobileRow: "mobile-vivid-violet",
+  },
   deadline: {
     dot: "bg-pink-400",
     icon: AlertCircle,
@@ -96,8 +103,15 @@ function toDateKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+/** Reads "YYYY-MM-DD" as that local calendar day. `new Date("2026-10-12")`
+ * is UTC midnight, which is the previous evening anywhere west of UTC. */
+function parseDateKey(dateStr: string): Date {
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(dateStr);
+}
+
 function eventDateKey(dateStr: string): string {
-  const d = new Date(dateStr);
+  const d = parseDateKey(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr.slice(0, 10);
   return toDateKey(d);
 }
@@ -123,7 +137,7 @@ function buildMonthCells(viewDate: Date, today: Date) {
 }
 
 function formatDateLabel(dateStr: string): string {
-  const d = new Date(dateStr);
+  const d = parseDateKey(dateStr);
   if (Number.isNaN(d.getTime())) return "თარიღის არჩევა";
   return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
 }
@@ -220,7 +234,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     setFormTime("");
     setFormType("deadline");
     setFormDescription("");
-    setPickerMonth(new Date(selectedKey));
+    setPickerMonth(parseDateKey(selectedKey));
     setShowDatePicker(false);
     setShowTimePicker(false);
     setFormAnimDone(false);
@@ -235,7 +249,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
     setFormTime(event.time ?? "");
     setFormType(event.type);
     setFormDescription(event.description ?? "");
-    setPickerMonth(new Date(dateKey));
+    setPickerMonth(parseDateKey(dateKey));
     setShowDatePicker(false);
     setShowTimePicker(false);
     setFormAnimDone(false);
@@ -258,7 +272,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
       addManualCalendarEvent(payload);
     }
     setSelectedKey(formDate);
-    setViewDate(new Date(formDate));
+    setViewDate(parseDateKey(formDate));
     setShowAddForm(false);
     setEditingId(null);
   };
@@ -298,7 +312,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
       "VERSION:2.0",
       "PRODID:-//SpaceEdu//Dashboard Calendar//KA",
       ...events.flatMap((event) => {
-        const d = new Date(event.date);
+        const d = parseDateKey(event.date);
         const stamp = Number.isNaN(d.getTime())
           ? ""
           : `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
@@ -499,7 +513,7 @@ export function DashboardCalendarPanel({ variant = "sidebar" }: DashboardCalenda
                           <button
                             type="button"
                             onClick={() => {
-                              setPickerMonth(new Date(formDate));
+                              setPickerMonth(parseDateKey(formDate));
                               setShowTimePicker(false);
                               setShowDatePicker((v) => !v);
                             }}

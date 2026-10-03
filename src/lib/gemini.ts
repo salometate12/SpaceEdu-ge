@@ -1,23 +1,35 @@
 import { generateObject, generateText, type ModelMessage } from "ai";
 import { z } from "zod";
-import { getConfiguredProviders } from "@/lib/ai/llm-providers";
+import { getConfiguredProviders, type LlmProviderId } from "@/lib/ai/llm-providers";
 import { requireAtLeastOneLlmProvider } from "@/lib/ai/llm-providers";
-import { runWithProviderFallback } from "@/lib/ai/llm-fallback";
+import {
+  extractStatusCode,
+  isOverloadError,
+  isQuotaError,
+  LlmChainError,
+  runWithProviderFallback,
+} from "@/lib/ai/llm-fallback";
+import { stripNulls } from "@/lib/ai/model-nulls";
+import { AI_BUSY_MESSAGE, AI_UNAVAILABLE_MESSAGE } from "@/lib/ai/ai-messages";
 import { llmTextStreamResponse, type LlmStreamRequest } from "@/lib/ai/llm-stream";
 
-export const FRIENDLY_AI_ERROR_MESSAGE =
-  "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.";
+export const FRIENDLY_AI_ERROR_MESSAGE = AI_UNAVAILABLE_MESSAGE;
+export const FRIENDLY_AI_BUSY_MESSAGE = AI_BUSY_MESSAGE;
 
-function extractStatusCode(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const record = error as Record<string, unknown>;
-  if (typeof record.statusCode === "number") return record.statusCode;
-  if (Array.isArray(record.errors) && record.errors.length > 0) {
-    return extractStatusCode(record.errors[record.errors.length - 1]);
+/** Seconds a client should wait before retrying a "busy" answer. */
+export const AI_BUSY_RETRY_AFTER_SECONDS = 60;
+
+/**
+ * Whether the request failed because the AI was overloaded rather than
+ * because of the request. For a whole failed chain, one overloaded
+ * provider is enough: the others usually failed only as a knock-on (e.g.
+ * OpenAI rejecting a schema), and the user's best move is to retry soon.
+ */
+export function isAiBusyError(error: unknown): boolean {
+  if (error instanceof LlmChainError) {
+    return error.attempts.some((attempt) => isOverloadError(attempt.error));
   }
-  if (record.lastError) return extractStatusCode(record.lastError);
-  if (record.cause) return extractStatusCode(record.cause);
-  return undefined;
+  return isOverloadError(error);
 }
 
 function extractErrorText(error: unknown): string {
@@ -38,8 +50,17 @@ export function buildFriendlyError(error: unknown): string {
     return "AI გასაღები არ არის კონფიგურირებული. დაამატე მინიმუმ ერთი API გასაღები (.env.local და Vercel).";
   }
 
+  if (isAiBusyError(error)) {
+    return FRIENDLY_AI_BUSY_MESSAGE;
+  }
+
   const status = extractStatusCode(error);
+  const outOfQuota =
+    error instanceof LlmChainError
+      ? error.attempts.every((attempt) => isQuotaError(attempt.error))
+      : isQuotaError(error);
   if (
+    outOfQuota ||
     status === 429 ||
     text.includes("quota") ||
     text.includes("RESOURCE_EXHAUSTED")
@@ -47,9 +68,6 @@ export function buildFriendlyError(error: unknown): string {
     return "AI პროვაიდერების ლიმიტი ამოიწურა. სცადე ცოტა მოგვიანებით ან დაამატე სხვა გასაღები (Gemini / OpenAI / Anthropic).";
   }
 
-  if (status === 503 || text.includes("high demand")) {
-    return "AI დროებით დატვირთულია. სისტემა ავტომატურად სცადებს სხვა მოდელს — სცადე 1-2 წუთში.";
-  }
 
   if (error instanceof z.ZodError) {
     const first = error.issues[0];
@@ -72,11 +90,19 @@ export function buildFriendlyError(error: unknown): string {
 
 export function errorJsonResponse(error: unknown, fallbackLogScope: string) {
   console.error(`[${fallbackLogScope}]`, error);
-  return Response.json(
-    { error: buildFriendlyError(error), message: buildFriendlyError(error) },
-    { status: 500 },
-  );
+  const message = buildFriendlyError(error);
+  if (isAiBusyError(error)) {
+    return Response.json(
+      { error: message, message, retryable: true },
+      { status: 503, headers: { "Retry-After": String(AI_BUSY_RETRY_AFTER_SECONDS) } },
+    );
+  }
+  return Response.json({ error: message, message }, { status: 500 });
 }
+
+/** One retry inside the AI SDK is enough: a second attempt on an
+ * overloaded model rarely helps, and the provider chain is the real retry. */
+export const LLM_MAX_RETRIES = 1;
 
 interface StreamGeminiTextArgs {
   system: string;
@@ -96,7 +122,20 @@ interface GenerateGeminiObjectArgs {
   prompt?: string;
   messages?: ModelMessage[];
   temperature?: number;
+  /** Output budget for long structured answers. Capped per provider to what
+   * its default model accepts; omitted, each provider's own default applies. */
+  maxOutputTokens?: number;
+  /** Return the model's nulls as they are instead of dropping those keys —
+   * for callers whose own pipeline is null-based (the syllabus). */
+  keepNulls?: boolean;
 }
+
+/** The most each provider's default model can emit in one answer. */
+const PROVIDER_MAX_OUTPUT_TOKENS: Record<LlmProviderId, number> = {
+  gemini: 65_536,
+  openai: 16_384,
+  anthropic: 8_192,
+};
 
 export async function generateGeminiObject({
   schema,
@@ -104,6 +143,8 @@ export async function generateGeminiObject({
   prompt,
   messages,
   temperature = 0.35,
+  maxOutputTokens,
+  keepNulls = false,
 }: GenerateGeminiObjectArgs): Promise<unknown> {
   requireAtLeastOneLlmProvider();
   const providers = getConfiguredProviders();
@@ -117,13 +158,19 @@ export async function generateGeminiObject({
     async (provider) => {
       const { object } = await generateObject({
         model: provider.getModel(),
+        maxRetries: LLM_MAX_RETRIES,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schema: schema as any,
         system,
         temperature,
+        ...(maxOutputTokens
+          ? { maxOutputTokens: Math.min(maxOutputTokens, PROVIDER_MAX_OUTPUT_TOKENS[provider.id]) }
+          : {}),
         ...promptOrMessages,
       });
-      return object;
+      // Absent fields come back as null (see model-nulls.ts); the client
+      // shape has them as missing keys.
+      return keepNulls ? object : stripNulls(object);
     },
     "generateGeminiObject",
   );
@@ -150,6 +197,7 @@ export async function generateLlmText({
     async (provider) => {
       const { text } = await generateText({
         model: provider.getModel(),
+        maxRetries: LLM_MAX_RETRIES,
         system,
         temperature,
         ...promptOrMessages,

@@ -3,20 +3,12 @@ import { enforceJsonBodyLimit } from "@/lib/request-limits";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
+import { ProfileGoalsSchema } from "@/lib/ai/profile-goals-schema";
 
 export const maxDuration = 120;
 
 const BodySchema = z.object({
   prompt: z.string().min(1),
-});
-
-const GoalsSchema = z.object({
-  goals: z.array(
-    z.object({
-      text: z.string(),
-      type: z.enum(["quiz", "study", "read", "chat"]),
-    }),
-  ),
 });
 
 export async function POST(request: Request) {
@@ -30,11 +22,11 @@ export async function POST(request: Request) {
     const body = BodySchema.parse(await request.json());
 
     const object = (await generateGeminiObject({
-      schema: GoalsSchema,
+      schema: ProfileGoalsSchema,
       system: "შენ ქმნი მოკლე, პრაქტიკულ ყოველდღიურ სასწავლო მიზნებს ქართულად.",
       prompt: body.prompt,
       temperature: 0.3,
-    })) as z.infer<typeof GoalsSchema>;
+    })) as z.infer<typeof ProfileGoalsSchema>;
 
     return Response.json(object);
   } catch (error) {

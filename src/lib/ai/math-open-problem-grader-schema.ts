@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 import type { MathScoringRow, MathOpenStep } from "@/data/mathExamsData";
 
 /**
@@ -12,7 +13,7 @@ import type { MathScoringRow, MathOpenStep } from "@/data/mathExamsData";
 export const MathGradedStepSchema = z.object({
   id: z.string(),
   done: z.boolean(),
-  comment: z.string().optional(),
+  comment: z.string().nullable(),
 });
 
 export const MathOpenGraderResponseSchema = z.object({
@@ -20,11 +21,11 @@ export const MathOpenGraderResponseSchema = z.object({
   summary: z.string(),
   steps: z.array(MathGradedStepSchema),
   /** Where the student went wrong and what the correct move was. */
-  mistake: z.string().optional(),
-  correctMove: z.string().optional(),
+  mistake: z.string().nullable(),
+  correctMove: z.string().nullable(),
 });
 
-export type MathOpenGraderResponse = z.infer<typeof MathOpenGraderResponseSchema>;
+export type MathOpenGraderResponse = NullsToOptional<z.infer<typeof MathOpenGraderResponseSchema>>;
 
 export const MathOpenGraderRequestSchema = z.object({
   problemPrompt: z.string().min(1),
