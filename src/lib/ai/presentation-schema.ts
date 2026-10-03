@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 
 export const PresentationQASchema = z.object({
   goal: z.string().optional(),
@@ -25,9 +26,9 @@ export const GeneratedSlideSchema = z.object({
   type: z.enum(["cover", "content", "image", "stats", "conclusion"]),
   slideType: z.string(),
   title: z.string(),
-  body: z.string().optional(),
-  points: z.array(z.string()).optional(),
-  photoSlot: z.string().nullable().optional(),
+  body: z.string().nullable(),
+  points: z.array(z.string()).nullable(),
+  photoSlot: z.string().nullable(),
 });
 
 export const PresentationResponseSchema = z.object({
@@ -35,11 +36,12 @@ export const PresentationResponseSchema = z.object({
   slides: z.array(GeneratedSlideSchema).min(3),
 });
 
-export type PresentationResponse = z.infer<typeof PresentationResponseSchema>;
+export type PresentationResponse = NullsToOptional<z.infer<typeof PresentationResponseSchema>>;
 
+/** Numbers the slides and always sends `photoSlot` (null when unused). */
 export function normalizePresentationSlides(
   slides: PresentationResponse["slides"],
-): PresentationResponse["slides"] {
+): Array<Omit<PresentationResponse["slides"][number], "photoSlot"> & { photoSlot: string | null }> {
   return slides.map((slide, index) => ({
     ...slide,
     id: index + 1,

@@ -1,9 +1,27 @@
+import { z } from "zod";
 import type { LlmProviderEntry } from "@/lib/ai/llm-providers";
 
-function extractStatusCode(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const record = error as Record<string, unknown>;
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+/** The innermost error worth reading: AI SDK retry errors wrap the real
+ * API error in `lastError` / `errors`. */
+function innermost(error: unknown): unknown {
+  const record = asRecord(error);
+  if (!record) return error;
+  if (record.lastError) return innermost(record.lastError);
+  if (Array.isArray(record.errors) && record.errors.length > 0 && !(error instanceof LlmChainError)) {
+    return innermost(record.errors[record.errors.length - 1]);
+  }
+  return error;
+}
+
+export function extractStatusCode(error: unknown): number | undefined {
+  const record = asRecord(error);
+  if (!record) return undefined;
   if (typeof record.statusCode === "number") return record.statusCode;
+  if (typeof record.status === "number") return record.status;
   if (Array.isArray(record.errors) && record.errors.length > 0) {
     return extractStatusCode(record.errors[record.errors.length - 1]);
   }
@@ -12,23 +30,111 @@ function extractStatusCode(error: unknown): number | undefined {
   return undefined;
 }
 
-function extractErrorText(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  return "";
+/** Provider error code, e.g. OpenAI's "invalid_json_schema" or Google's
+ * "UNAVAILABLE", read from the parsed response body. */
+export function extractErrorCode(error: unknown): string | undefined {
+  const inner = asRecord(innermost(error));
+  if (!inner) return undefined;
+  const data = asRecord(inner.data);
+  const body = asRecord(data?.error) ?? data;
+  const code = body?.code ?? body?.status ?? body?.type ?? inner.code;
+  if (typeof code === "string" && code) return code;
+  if (typeof inner.responseBody === "string") {
+    const match = inner.responseBody.match(/"(?:code|status|type)"\s*:\s*"([A-Za-z_]+)"/);
+    if (match) return match[1];
+  }
+  return undefined;
+}
+
+/** Everything searchable about an error: message, name, code and body. */
+function errorText(error: unknown): string {
+  const parts: string[] = [];
+  const visit = (value: unknown, depth: number) => {
+    if (depth > 4 || !value) return;
+    if (typeof value === "string") {
+      parts.push(value);
+      return;
+    }
+    const record = asRecord(value);
+    if (!record) return;
+    if (value instanceof Error) parts.push(value.name, value.message);
+    if (typeof record.responseBody === "string") parts.push(record.responseBody);
+    if (typeof record.code === "string") parts.push(record.code);
+    if (record.lastError) visit(record.lastError, depth + 1);
+    if (record.cause) visit(record.cause, depth + 1);
+  };
+  visit(error, 0);
+  return parts.join(" ").toLowerCase();
+}
+
+const OVERLOAD_STATUSES = new Set([502, 503, 504, 529]);
+
+/** The model (not the request) was the problem: Google's "high demand"
+ * 503s, Anthropic's 529 "overloaded" and the like. */
+export function isOverloadError(error: unknown): boolean {
+  const status = extractStatusCode(error);
+  if (status && OVERLOAD_STATUSES.has(status)) return true;
+  const text = errorText(error);
+  return (
+    text.includes("high demand") ||
+    text.includes("overloaded") ||
+    text.includes("unavailable") ||
+    text.includes("capacity")
+  );
+}
+
+/** The account ran out: rate limit, quota or no credits left. */
+export function isQuotaError(error: unknown): boolean {
+  if (extractStatusCode(error) === 429) return true;
+  const text = errorText(error);
+  return (
+    text.includes("quota") ||
+    text.includes("resource_exhausted") ||
+    text.includes("credit balance") ||
+    text.includes("credit_balance") ||
+    text.includes("no credits") ||
+    text.includes("billing") ||
+    text.includes("insufficient_quota")
+  );
+}
+
+/**
+ * Errors one provider can't handle but another may: its own JSON-schema
+ * rules, request limits, context window, or an answer that didn't fit the
+ * schema. These come back as 400s, but they aren't the user's fault.
+ */
+function isProviderSpecificRequestError(error: unknown): boolean {
+  const text = errorText(error);
+  return (
+    text.includes("invalid_json_schema") ||
+    text.includes("invalid schema") ||
+    text.includes("invalid_request_error") ||
+    text.includes("invalid_argument") ||
+    text.includes("context_length_exceeded") ||
+    text.includes("maximum context length") ||
+    text.includes("noobjectgenerated") ||
+    text.includes("no object generated") ||
+    text.includes("typevalidationerror") ||
+    text.includes("jsonparseerror") ||
+    text.includes("model not found") ||
+    text.includes("not_found") ||
+    text.includes("is not found") ||
+    text.includes("does not exist")
+  );
 }
 
 /** Whether to try the next provider in the chain. */
 export function shouldTryNextProvider(error: unknown): boolean {
-  const text = extractErrorText(error).toLowerCase();
+  // Our own input validation: every provider would get the same bad input.
+  if (error instanceof z.ZodError) return false;
+  if (error instanceof Error && error.name === "AbortError") return false;
+
   const status = extractStatusCode(error);
+  if (status === 401 || status === 403 || status === 404 || status === 408) return true;
+  if (status === 429 || (status !== undefined && status >= 500)) return true;
+  if (isOverloadError(error) || isProviderSpecificRequestError(error)) return true;
 
-  if (status === 401 || status === 403) return true;
-  if (status === 429 || status === 503 || status === 502 || status === 529) {
-    return true;
-  }
-  if (status && status >= 500) return true;
-
+  const text = errorText(error);
   return (
     text.includes("quota") ||
     text.includes("rate limit") ||
@@ -39,15 +145,57 @@ export function shouldTryNextProvider(error: unknown): boolean {
     text.includes("exceeded your current") ||
     text.includes("billing") ||
     text.includes("insufficient") ||
-    text.includes("high demand") ||
-    text.includes("overloaded") ||
-    text.includes("unavailable") ||
-    text.includes("capacity") ||
     text.includes("too many requests") ||
     text.includes("maxretriesexceeded") ||
     text.includes("failed after") ||
-    text.includes("all providers failed")
+    text.includes("all providers failed") ||
+    text.includes("empty model response")
   );
+}
+
+export interface ProviderAttempt {
+  provider: string;
+  model: string;
+  error: unknown;
+}
+
+/** Thrown when every provider in the chain failed; keeps each attempt so
+ * the user message can tell "AI is busy" from a real error. */
+export class LlmChainError extends AggregateError {
+  readonly attempts: ProviderAttempt[];
+
+  constructor(attempts: ProviderAttempt[]) {
+    const last = attempts[attempts.length - 1];
+    super(
+      attempts.map((attempt) => attempt.error),
+      `All AI providers failed (${attempts.map((a) => `${a.provider}:${a.model}`).join(" → ")})` +
+        (last?.error instanceof Error ? `: ${last.error.message}` : ""),
+    );
+    this.name = "LlmChainError";
+    this.attempts = attempts;
+  }
+}
+
+/** One line per failed attempt, so the cause is obvious in Vercel logs. */
+export function logProviderFailure(
+  scope: string,
+  provider: Pick<LlmProviderEntry, "id" | "model">,
+  error: unknown,
+  startedAt: number,
+): void {
+  const inner = innermost(error);
+  const message = (inner instanceof Error ? inner.message : String(inner)).replace(/\s+/g, " ").slice(0, 300);
+  console.error(
+    `[${scope}] provider=${provider.id} model=${provider.model} status=${extractStatusCode(error) ?? "-"} ` +
+      `code=${extractErrorCode(error) ?? "-"} durationMs=${Date.now() - startedAt} — ${message}`,
+  );
+}
+
+/** Whether to skip this entry given what went wrong before it. */
+export function shouldSkipProvider(provider: LlmProviderEntry, attempts: ProviderAttempt[]): boolean {
+  if (!provider.onlyAfterOverload) return false;
+  const previous = attempts[attempts.length - 1];
+  return !previous || !isOverloadError(previous.error);
 }
 
 export async function runWithProviderFallback<T>(
@@ -60,39 +208,31 @@ export async function runWithProviderFallback<T>(
   }
 
   console.info(
-    `[${scope}] LLM failover chain: ${providers.map((p) => p.id).join(" → ")}`,
+    `[${scope}] LLM failover chain: ${providers.map((p) => `${p.id}:${p.model}`).join(" → ")}`,
   );
 
-  let lastError: unknown;
+  const attempts: ProviderAttempt[] = [];
 
-  for (let index = 0; index < providers.length; index += 1) {
-    const provider = providers[index];
-    const hasNext = index < providers.length - 1;
+  for (const provider of providers) {
+    if (shouldSkipProvider(provider, attempts)) continue;
+    const startedAt = Date.now();
 
     try {
       const result = await run(provider);
-      if (index > 0) {
-        console.info(`[${scope}] succeeded via fallback provider: ${provider.id}`);
+      if (attempts.length > 0) {
+        console.info(`[${scope}] succeeded via fallback: ${provider.id}:${provider.model}`);
       }
       return result;
     } catch (error) {
-      lastError = error;
-      console.error(`[${scope}] provider ${provider.id} failed`, error);
+      attempts.push({ provider: provider.id, model: provider.model, error });
+      logProviderFailure(scope, provider, error, startedAt);
 
-      if (!hasNext || !shouldTryNextProvider(error)) {
-        if (hasNext && !shouldTryNextProvider(error)) {
-          console.error(
-            `[${scope}] not retrying with next provider — error is not failover-eligible`,
-          );
-        }
-        throw error;
+      if (!shouldTryNextProvider(error)) {
+        console.error(`[${scope}] not trying the next provider — error is not failover-eligible`);
+        throw attempts.length === 1 ? error : new LlmChainError(attempts);
       }
-
-      console.warn(
-        `[${scope}] provider ${provider.id} failed (failover-eligible), trying next`,
-      );
     }
   }
 
-  throw lastError;
+  throw attempts.length === 1 ? attempts[0].error : new LlmChainError(attempts);
 }

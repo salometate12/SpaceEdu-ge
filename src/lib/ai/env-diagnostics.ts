@@ -25,7 +25,8 @@ export function logMissingAiEnvKeys(routeScope: string): void {
     return;
   }
 
-  if (configured.length === 1) {
+  // The Gemini fallback model shares Gemini's key, so count providers, not models.
+  if (new Set(configured.map((provider) => provider.id)).size === 1) {
     console.warn(
       `[${routeScope}] Only one LLM provider configured (${configured[0].id}) — quota failover will not help until a second key is added`,
     );

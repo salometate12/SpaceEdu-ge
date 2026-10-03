@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 import type { CivicsOpenCriterion } from "@/data/civicsExamsData";
 
 /**
@@ -12,18 +13,18 @@ import type { CivicsOpenCriterion } from "@/data/civicsExamsData";
 export const CivicsGradedCriterionSchema = z.object({
   id: z.string(),
   met: z.boolean(),
-  comment: z.string().optional(),
+  comment: z.string().nullable(),
 });
 
 export const CivicsOpenGraderResponseSchema = z.object({
   summary: z.string(),
   criteria: z.array(CivicsGradedCriterionSchema),
-  whatWasMissing: z.string().optional(),
-  correctAnswer: z.string().optional(),
-  explanation: z.string().optional(),
+  whatWasMissing: z.string().nullable(),
+  correctAnswer: z.string().nullable(),
+  explanation: z.string().nullable(),
 });
 
-export type CivicsOpenGraderResponse = z.infer<typeof CivicsOpenGraderResponseSchema>;
+export type CivicsOpenGraderResponse = NullsToOptional<z.infer<typeof CivicsOpenGraderResponseSchema>>;
 
 export interface CivicsOpenGraderReport extends CivicsOpenGraderResponse {
   score: number;

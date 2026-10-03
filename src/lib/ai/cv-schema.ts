@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 
 export const CvProfileSchema = z.object({
   fullName: z.string().optional(),
@@ -33,7 +34,7 @@ export const CvResponseSchema = z.object({
   headline: z.string(),
   experienceBullets: z.array(z.string()).min(1),
   highlightedSkills: z.array(z.string()),
-  optimizationTips: z.array(z.string()).default([]),
+  optimizationTips: z.array(z.string()),
 });
 
-export type CvResponse = z.infer<typeof CvResponseSchema>;
+export type CvResponse = NullsToOptional<z.infer<typeof CvResponseSchema>>;
