@@ -1,14 +1,18 @@
 "use client";
 
 import { FileText } from "lucide-react";
+import type { UploadedPhoto } from "@/lib/presentation-photos";
+import { PhotoUploader } from "./PhotoUploader";
 import type { PresentationForm } from "./PresentationWizard";
 
 interface Step1InfoProps {
   form: PresentationForm;
   onChange: (next: Partial<PresentationForm>) => void;
+  photos: UploadedPhoto[];
+  onPhotosChange: (photos: UploadedPhoto[]) => void;
 }
 
-export function Step1Info({ form, onChange }: Step1InfoProps) {
+export function Step1Info({ form, onChange, photos, onPhotosChange }: Step1InfoProps) {
   const quickTags = ["+ სტატისტიკა", "+ მოკლე", "+ მაგალითები", "+ აკადემიური"];
   const options = {
     slideCount: [5, 8, 10, 12, 15],
@@ -134,6 +138,10 @@ export function Step1Info({ form, onChange }: Step1InfoProps) {
             );
           })}
         </div>
+      </div>
+      <div className="space-y-2">
+        <p className={labelClass}>ფოტოები (არასავალდებულო)</p>
+        <PhotoUploader photos={photos} onChange={onPhotosChange} />
       </div>
       <label className="space-y-1 text-sm">
         <span className={labelClass}>დამატებითი მითითებები</span>

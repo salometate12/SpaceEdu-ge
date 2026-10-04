@@ -13,6 +13,29 @@ function asNumber(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
+/** The user's photos (metadata only) and the rules for placing them. */
+function presentationPhotosBlock(raw: unknown): string {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return "Photos: none — set photoIds to null on every slide.";
+  }
+  const lines = raw.map((entry) => {
+    const photo = (entry ?? {}) as Record<string, unknown>;
+    const caption = asString(photo.caption).trim();
+    return `- id="${asString(photo.id)}" · ${asString(photo.orientation)} · file "${asString(photo.name)}"${caption ? ` · caption: "${caption}"` : ""}`;
+  });
+  return [
+    "Photos the user uploaded (put each one on the slide whose topic it matches):",
+    ...lines,
+    "Photo rules:",
+    "- Match by meaning: the caption, then the file name, are your hints.",
+    "- Use each photo exactly once, on at most one slide; at most 2 photos per slide.",
+    "- Use only the ids above — never invent an id.",
+    "- A slide with a photo keeps its text short: at most 3 points.",
+    "- Put a photo on the cover only if it shows the presentation's main subject.",
+    "- Slides without a photo get photoIds: null.",
+  ].join("\n");
+}
+
 export function buildUserPrompt(
   pageType: AiPageType,
   payload: Record<string, unknown>,
@@ -98,6 +121,7 @@ export function buildUserPrompt(
           ? `დამატებითი ინსტრუქცია: ${asString(payload.extraInstructions)}`
           : "",
         payload.templateId ? `ტემპლეიტი: ${asString(payload.templateId)}` : "",
+        presentationPhotosBlock(payload.photos),
         "შექმენი სრული სლაიდ-დეკი JSON კონტრაქტის მიხედვით — ყველა ტექსტი ქართულად.",
       ]
         .filter(Boolean)
