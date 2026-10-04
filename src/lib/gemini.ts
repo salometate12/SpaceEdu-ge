@@ -134,7 +134,7 @@ interface GenerateGeminiObjectArgs {
 const PROVIDER_MAX_OUTPUT_TOKENS: Record<LlmProviderId, number> = {
   gemini: 65_536,
   openai: 16_384,
-  anthropic: 8_192,
+  anthropic: 64_000,
 };
 
 export async function generateGeminiObject({
