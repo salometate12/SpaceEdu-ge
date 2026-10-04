@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { PresentationResponse } from "@/lib/ai/presentation-schema";
+import { DEFAULT_PRESENTATION_LEVEL, type SlideLayout } from "@/lib/presentation-constants";
 import { assignPhotosToSlides, type SlideImage } from "@/lib/presentation-layout";
 import { photoMeta, type UploadedPhoto } from "@/lib/presentation-photos";
 import { PresentationThinkingLoader } from "./PresentationThinkingLoader";
@@ -48,11 +49,18 @@ export interface PresentationTemplate {
 
 export interface GeneratedSlide {
   id: number;
-  type: "cover" | "content" | "image" | "stats" | "conclusion";
+  type: "cover" | "content" | "image" | "stats" | "conclusion" | "thanks";
   slideType: string;
   title: string;
+  /** How the text is laid out; older slides have none (see effectiveLayout). */
+  layout?: SlideLayout;
   body?: string;
   points?: string[];
+  columns?: { heading: string; text: string }[];
+  quote?: { text: string; author?: string };
+  figure?: { value: string; caption: string };
+  /** Small closing line, e.g. „კითხვები?“ on the thank-you slide. */
+  footnote?: string;
   /** The user's photos on this slide, positioned in percent of the slide. */
   images: SlideImage[];
 }
@@ -84,7 +92,7 @@ export function PresentationWizard() {
     topic: "",
     subject: "",
     slideCount: 10,
-    level: "უნივერსიტეტი",
+    level: DEFAULT_PRESENTATION_LEVEL,
     language: "ქართული",
     extraInstructions: "",
   });
@@ -136,8 +144,13 @@ export function PresentationWizard() {
           type: slide.type,
           slideType: slide.slideType,
           title: slide.title,
+          layout: slide.layout,
           body: slide.body,
           points: slide.points,
+          columns: slide.columns,
+          quote: slide.quote,
+          figure: slide.figure,
+          footnote: (slide as { footnote?: string }).footnote,
           images: layouts[index],
         })),
       });

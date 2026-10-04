@@ -12,7 +12,7 @@ export interface SlideImage {
   h: number;
 }
 
-export type SlideType = "cover" | "content" | "image" | "stats" | "conclusion";
+export type SlideType = "cover" | "content" | "image" | "stats" | "conclusion" | "thanks";
 
 /** The part of a photo the layout needs. */
 export interface PhotoSize {
@@ -37,7 +37,23 @@ export const TEXT_SIZE = {
   coverTitle: 5.4,
   title: 3.6,
   body: 2.05,
+  prose: 2.25,
+  column: 1.95,
+  quote: 2.8,
+  figure: 8,
+  sectionTitle: 4.6,
+  footnote: 1.6,
 } as const;
+
+/** A key figure is big when it's a short number and shrinks as it grows
+ * (e.g. a „[მონაცემი მიუთითე]“ placeholder), so it never runs into its
+ * caption. Percent of the slide width, like TEXT_SIZE. */
+export function keyFigureSize(value: string): number {
+  const length = value.trim().length;
+  if (length <= 6) return TEXT_SIZE.figure;
+  if (length <= 12) return 6;
+  return 4.2;
+}
 
 /** Height of the title line on a regular slide, in percent. */
 export const TITLE_BAND = 15;

@@ -6,13 +6,112 @@ import { slideTheme } from "@/lib/presentation-theme";
 import {
   aspectRatio,
   clampImage,
+  keyFigureSize,
   resizeImage,
   snapImage,
   TEXT_SIZE,
   textBoxFor,
   type SlideImage,
 } from "@/lib/presentation-layout";
+import { effectiveLayout } from "@/lib/presentation-style";
+import type { SlideTheme } from "@/lib/presentation-theme";
+import type { SlideLayout } from "@/lib/presentation-constants";
 import type { GeneratedSlide, PresentationTemplate } from "./PresentationWizard";
+
+const cqw = (size: number) => `${size}cqw`;
+
+/** A slide's text in its layout. Sizes are in container-width units so the
+ * slide scales as a whole; the PPTX export mirrors the same structure. */
+function SlideText({ slide, layout, theme }: { slide: GeneratedSlide; layout: SlideLayout; theme: SlideTheme }) {
+  const title = (size: number, extra = "") => (
+    <h3 className={`font-bold leading-[1.15] ${extra}`} style={{ color: theme.title, fontSize: cqw(size) }}>
+      {slide.title}
+    </h3>
+  );
+
+  if (slide.type === "thanks") {
+    return (
+      <>
+        {title(TEXT_SIZE.coverTitle)}
+        {slide.body ? (
+          <p className="mt-[1.4cqw]" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
+        ) : null}
+        {/* Georgian letters (ყ, ღ…) reach well below the baseline: keep clear. */}
+        <span className="mt-[3.4cqw] block h-[0.3cqw] w-[8cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
+        {slide.footnote ? (
+          <p className="mt-[1.6cqw] tracking-wide" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.footnote) }}>{slide.footnote}</p>
+        ) : null}
+      </>
+    );
+  }
+
+  if (slide.type === "cover") {
+    return (
+      <>
+        {title(TEXT_SIZE.coverTitle)}
+        {slide.body ? (
+          <p className="mt-[1.6cqw] leading-snug" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.body) }}>{slide.body}</p>
+        ) : null}
+      </>
+    );
+  }
+
+  if (layout === "section") {
+    return (
+      <>
+        <span className="mb-[1.6cqw] block h-[0.35cqw] w-[6cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
+        {title(TEXT_SIZE.sectionTitle)}
+        {slide.body ? (
+          <p className="mt-[1.4cqw] leading-snug" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
+        ) : null}
+      </>
+    );
+  }
+
+  const bodyStyle = { color: theme.body };
+  return (
+    <>
+      {title(TEXT_SIZE.title)}
+      {layout === "bullets" && slide.points?.length ? (
+        <ul className="mt-[2.2cqw] space-y-[0.9cqw]" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.body) }}>
+          {slide.points.map((point) => (
+            <li key={point} className="flex gap-[0.8cqw] leading-snug">
+              <span style={{ color: theme.accent }}>•</span>
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      ) : layout === "two-column" && slide.columns?.length ? (
+        <div className="mt-[2.4cqw] grid grid-cols-2 gap-[3cqw]">
+          {slide.columns.slice(0, 2).map((column) => (
+            <div key={column.heading} className="border-t-[0.25cqw] pt-[1.2cqw]" style={{ borderColor: theme.accent }}>
+              <p className="font-semibold" style={{ color: theme.title, fontSize: cqw(TEXT_SIZE.column + 0.25) }}>{column.heading}</p>
+              <p className="mt-[0.8cqw] leading-snug" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.column) }}>{column.text}</p>
+            </div>
+          ))}
+        </div>
+      ) : layout === "quote" && slide.quote ? (
+        <figure className="mt-[2.4cqw] border-l-[0.4cqw] pl-[2.2cqw]" style={{ borderColor: theme.accent }}>
+          <blockquote className="italic leading-snug" style={{ color: theme.title, fontSize: cqw(TEXT_SIZE.quote) }}>
+            „{slide.quote.text}“
+          </blockquote>
+          {slide.quote.author ? (
+            <figcaption className="mt-[1.2cqw]" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.body) }}>{slide.quote.author}</figcaption>
+          ) : null}
+        </figure>
+      ) : layout === "key-figure" && slide.figure ? (
+        <div className="mt-[1.8cqw]">
+          <p className="font-bold leading-[1.05]" style={{ color: theme.accent, fontSize: cqw(keyFigureSize(slide.figure.value)) }}>{slide.figure.value}</p>
+          <p className="mt-[1.4cqw] leading-snug" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.figure.caption}</p>
+        </div>
+      ) : slide.body ? (
+        <p className="mt-[2cqw] leading-relaxed" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
+      ) : slide.points?.length ? (
+        <p className="mt-[2cqw] leading-relaxed" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.points.join(" ")}</p>
+      ) : null}
+    </>
+  );
+}
 
 type Corner = "nw" | "ne" | "sw" | "se";
 
@@ -102,6 +201,8 @@ export function SlideCard({
     .map((image) => (live && live.photoId === image.photoId ? live : image));
   const text = textBoxFor(images);
   const isCover = slide.type === "cover";
+  const centered = slide.type === "thanks";
+  const layout = effectiveLayout(slide);
 
   useEffect(() => {
     if (!interactive) return;
@@ -216,7 +317,7 @@ export function SlideCard({
       style={{ backgroundColor: theme.bg, borderColor: template.border }}
     >
       <div
-        className={`absolute flex flex-col overflow-hidden ${isCover ? "justify-center" : ""}`}
+        className={`absolute flex flex-col overflow-hidden ${centered ? "items-center justify-center text-center" : isCover || layout === "section" ? "justify-center" : ""}`}
         style={{
           left: `${text.left}%`,
           top: `${text.top}%`,
@@ -224,26 +325,7 @@ export function SlideCard({
           bottom: `${100 - text.bottom}%`,
         }}
       >
-        <h3
-          className="font-bold leading-[1.15]"
-          style={{ color: theme.title, fontSize: `${isCover ? TEXT_SIZE.coverTitle : TEXT_SIZE.title}cqw` }}
-        >
-          {slide.title}
-        </h3>
-        {slide.points && slide.points.length > 0 && !isCover ? (
-          <ul className="mt-[2.2cqw] space-y-[0.9cqw]" style={{ color: theme.body, fontSize: `${TEXT_SIZE.body}cqw` }}>
-            {slide.points.map((point) => (
-              <li key={point} className="flex gap-[0.8cqw] leading-snug">
-                <span style={{ color: theme.accent }}>•</span>
-                <span>{point}</span>
-              </li>
-            ))}
-          </ul>
-        ) : slide.body ? (
-          <p className="mt-[1.6cqw] leading-snug" style={{ color: theme.body, fontSize: `${TEXT_SIZE.body}cqw` }}>
-            {slide.body}
-          </p>
-        ) : null}
+        <SlideText slide={slide} layout={layout} theme={theme} />
       </div>
 
       {images.map((image) => {

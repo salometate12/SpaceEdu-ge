@@ -2,6 +2,7 @@
 
 import { FileText } from "lucide-react";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
+import { PRESENTATION_LEVELS } from "@/lib/presentation-constants";
 import { PhotoUploader } from "./PhotoUploader";
 import type { PresentationForm } from "./PresentationWizard";
 
@@ -16,7 +17,7 @@ export function Step1Info({ form, onChange, photos, onPhotosChange }: Step1InfoP
   const quickTags = ["+ სტატისტიკა", "+ მოკლე", "+ მაგალითები", "+ აკადემიური"];
   const options = {
     slideCount: [5, 8, 10, 12, 15],
-    level: ["სკოლა", "ეროვნულები", "უნივერსიტეტი"],
+    level: PRESENTATION_LEVELS,
     language: [
       { value: "ქართული", label: "ქართული" },
       { value: "ინგლისური", label: "English" },
