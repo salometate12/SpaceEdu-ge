@@ -46,6 +46,14 @@ export function extractErrorCode(error: unknown): string | undefined {
   return undefined;
 }
 
+function safeJson(value: unknown): string {
+  try {
+    return JSON.stringify(value).slice(0, 2000);
+  } catch {
+    return "";
+  }
+}
+
 /** Everything searchable about an error: message, name, code and body. */
 function errorText(error: unknown): string {
   const parts: string[] = [];
@@ -58,6 +66,9 @@ function errorText(error: unknown): string {
     const record = asRecord(value);
     if (!record) return;
     if (value instanceof Error) parts.push(value.name, value.message);
+    // Some stream errors arrive as plain objects (e.g. OpenAI's
+    // { error: { message, code } }) — read them as JSON.
+    else parts.push(safeJson(value));
     if (typeof record.responseBody === "string") parts.push(record.responseBody);
     if (typeof record.code === "string") parts.push(record.code);
     if (record.lastError) visit(record.lastError, depth + 1);
@@ -184,18 +195,24 @@ export function logProviderFailure(
   startedAt: number,
 ): void {
   const inner = innermost(error);
-  const message = (inner instanceof Error ? inner.message : String(inner)).replace(/\s+/g, " ").slice(0, 300);
+  const message = (inner instanceof Error ? inner.message : typeof inner === "string" ? inner : safeJson(inner))
+    .replace(/\s+/g, " ")
+    .slice(0, 300);
   console.error(
     `[${scope}] provider=${provider.id} model=${provider.model} status=${extractStatusCode(error) ?? "-"} ` +
       `code=${extractErrorCode(error) ?? "-"} durationMs=${Date.now() - startedAt} — ${message}`,
   );
 }
 
-/** Whether to skip this entry given what went wrong before it. */
+/** Whether to skip this entry given what went wrong before it. The
+ * Gemini fallback model shares the key, so it's only worth a try when the
+ * main model was overloaded or over its quota — Google's free-tier limits
+ * are per model, so the lighter model may still have room. */
 export function shouldSkipProvider(provider: LlmProviderEntry, attempts: ProviderAttempt[]): boolean {
   if (!provider.onlyAfterOverload) return false;
   const previous = attempts[attempts.length - 1];
-  return !previous || !isOverloadError(previous.error);
+  if (!previous) return true;
+  return !isOverloadError(previous.error) && extractStatusCode(previous.error) !== 429;
 }
 
 export async function runWithProviderFallback<T>(

@@ -38,3 +38,19 @@ describe("AI teacher prompts per space", () => {
     );
   });
 });
+
+describe("AI teacher: length and conversation rules", () => {
+  const system = getSystemPromptForPageType("ai-teacher", { space: "abiturient", message: "x" });
+
+  it("caps answers at 5–6 paragraphs and one next-step offer", () => {
+    expect(system).toContain("at most 5–6 short paragraphs");
+    expect(system).toContain("exactly one short, one-line offer");
+    expect(system).not.toContain("Teach thoroughly and completely");
+  });
+
+  it("tells the model how follow-ups refer to the previous topic", () => {
+    expect(system).toContain("„უფრო მოკლედ“");
+    expect(system).toContain("„კი“");
+    expect(system).toContain("starts fresh");
+  });
+});

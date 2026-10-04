@@ -72,6 +72,11 @@ describe("shouldTryNextProvider", () => {
     expect(shouldTryNextProvider(noObject)).toBe(true);
   });
 
+  it("reads a plain-object stream error (no Error instance, no status)", () => {
+    const plain = { error: { message: "You have no credits remaining.", code: "insufficient_quota" } };
+    expect(shouldTryNextProvider(plain)).toBe(true);
+  });
+
   it("stops on our own input validation", () => {
     const zod = z.object({ a: z.string() }).safeParse({});
     expect(shouldTryNextProvider(zod.error)).toBe(false);
@@ -121,6 +126,22 @@ describe("runWithProviderFallback", () => {
       "test",
     );
     expect(tried).toEqual(["gemini-2.5-flash", "gpt-4o-mini"]);
+  });
+
+  it("tries the lite model when the main one is over its (per-model) quota", async () => {
+    const tried: string[] = [];
+    await runWithProviderFallback(
+      chain,
+      async (p) => {
+        tried.push(p.model);
+        if (p.model === "gemini-2.5-flash") {
+          throw new APICallError({ message: "Quota exceeded", url: "x", requestBodyValues: {}, statusCode: 429 });
+        }
+        return "ok";
+      },
+      "test",
+    );
+    expect(tried).toEqual(["gemini-2.5-flash", "gemini-2.5-flash-lite"]);
   });
 
   it("keeps every attempt when the whole chain fails", async () => {
