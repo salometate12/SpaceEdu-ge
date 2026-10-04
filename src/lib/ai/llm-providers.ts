@@ -22,7 +22,7 @@ export const PROVIDER_ENV_VAR_NAMES: Record<LlmProviderId, string> = {
 const DEFAULT_MODELS: Record<LlmProviderId, string> = {
   gemini: DEFAULT_GEMINI_MODEL,
   openai: "gpt-4o-mini",
-  anthropic: "claude-3-5-haiku-20241022",
+  anthropic: "claude-haiku-4-5-20251001",
 };
 
 function resolveModel(id: LlmProviderId): string {

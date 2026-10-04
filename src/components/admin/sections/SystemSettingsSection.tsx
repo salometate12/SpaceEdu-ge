@@ -250,7 +250,7 @@ export function SystemSettingsSection() {
                     ai: { ...current!.ai, anthropicModel: event.target.value },
                   }))
                 }
-                placeholder="claude-3-5-haiku-20241022"
+                placeholder="claude-haiku-4-5-20251001"
               />
             </label>
           </div>
