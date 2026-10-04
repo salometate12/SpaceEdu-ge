@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { PresentationResponse } from "@/lib/ai/presentation-schema";
+import { assignPhotosToSlides, type SlideImage } from "@/lib/presentation-layout";
+import { photoMeta, type UploadedPhoto } from "@/lib/presentation-photos";
 import { PresentationThinkingLoader } from "./PresentationThinkingLoader";
 import { Step1Info } from "./Step1Info";
 import { Step2Templates } from "./Step2Templates";
@@ -51,8 +53,8 @@ export interface GeneratedSlide {
   title: string;
   body?: string;
   points?: string[];
-  photoSlot?: string | null;
-  photoBase64?: string | null;
+  /** The user's photos on this slide, positioned in percent of the slide. */
+  images: SlideImage[];
 }
 
 interface GeneratedPresentation {
@@ -96,6 +98,9 @@ export function PresentationWizard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedPresentation | null>(null);
+  // Uploaded photos stay in memory only (data URLs would blow the
+  // localStorage quota); nothing about the presentation is persisted.
+  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
 
   const selectedTemplate = useMemo(
     () => TEMPLATES.find((t) => t.id === selectedTemplateId) ?? TEMPLATES[0],
@@ -118,12 +123,23 @@ export function PresentationWizard() {
           extraInstructions: form.extraInstructions,
           qa,
           templateId: selectedTemplateId,
+          // Only metadata — the images themselves never leave the browser.
+          photos: photos.map(photoMeta),
         },
       });
 
+      const layouts = assignPhotosToSlides(parsed.slides, photos);
       setGenerated({
         title: parsed.title,
-        slides: parsed.slides.map((slide) => ({ ...slide, photoBase64: null })),
+        slides: parsed.slides.map((slide, index) => ({
+          id: slide.id,
+          type: slide.type,
+          slideType: slide.slideType,
+          title: slide.title,
+          body: slide.body,
+          points: slide.points,
+          images: layouts[index],
+        })),
       });
       setStep(4);
     } catch (err) {
@@ -196,8 +212,10 @@ export function PresentationWizard() {
         })}
       </div>
 
-      <section className="dashboard-tool-card mt-6 rounded-[28px] p-5 sm:p-8">
-        <div className="dashboard-glass-card rounded-2xl p-5 sm:p-6">
+      {/* On a phone the result step gets the width back: the slides are
+          16:9 and their text scales with them. */}
+      <section className={`dashboard-tool-card mt-6 rounded-[28px] sm:p-8 ${step === 4 ? "p-2" : "p-5"}`}>
+        <div className={`dashboard-glass-card rounded-2xl sm:p-6 ${step === 4 ? "p-3" : "p-5"}`}>
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div
@@ -221,6 +239,8 @@ export function PresentationWizard() {
                   <Step1Info
                     form={form}
                     onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
+                    photos={photos}
+                    onPhotosChange={setPhotos}
                   />
                 )}
                 {step === 2 && (
@@ -241,6 +261,9 @@ export function PresentationWizard() {
                     title={generated.title}
                     slides={generated.slides}
                     template={selectedTemplate}
+                    photos={photos}
+                    onSlidesChange={(slides) => setGenerated((prev) => (prev ? { ...prev, slides } : prev))}
+                    onPhotosChange={setPhotos}
                     onReset={reset}
                   />
                 )}

@@ -216,11 +216,12 @@ Return ONLY valid JSON (all text in Georgian):
       "title": "სლაიდის სათაური",
       "body": "ოპციონალური პარაგრაფი",
       "points": ["ბულეტი 1", "ბულეტი 2"],
-      "photoSlot": "optional-slot-name or null"
+      "photoIds": ["photo id from the list"] or null
     }
   ]
 }
-First slide should be type "cover", last slide "conclusion". Match requested slide count closely.`;
+First slide should be type "cover", last slide "conclusion". Match requested slide count closely.
+Every key is required; use null for an empty body, points or photoIds.`;
 
 const ELI5_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all text in Georgian):
@@ -524,7 +525,10 @@ export async function POST(request: Request) {
 
       return Response.json({
         ...raw,
-        slides: normalizePresentationSlides(raw.slides),
+        slides: normalizePresentationSlides(
+          raw.slides,
+          (presentationPayload.photos ?? []).map((photo) => photo.id),
+        ),
       });
     }
 
