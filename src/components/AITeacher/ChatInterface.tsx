@@ -12,6 +12,7 @@ import {
 } from "react";
 import { ArrowLeft, ArrowUp, Menu, Plus, Trash2, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import {
   conversationTitleFrom,
   deleteConversation,
@@ -136,6 +137,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             material: material.trim() || undefined,
             message: trimmed,
             space,
+            // This chat's earlier turns (empty after „ახალი ჩატი“).
+            history: buildChatHistory(priorMessages),
           },
         },
         (partial) => {

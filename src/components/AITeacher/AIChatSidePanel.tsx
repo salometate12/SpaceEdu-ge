@@ -11,6 +11,7 @@ import {
 } from "react";
 import { ArrowLeft, ArrowUp, Maximize2, Minimize2, Plus, Sparkles, X } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import {
@@ -160,6 +161,8 @@ export function AIChatSidePanel() {
   const sendMessage = async (rawMessage: string) => {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
+    // The turns before this question, so follow-ups keep their topic.
+    const history = buildChatHistory(messages);
 
     setView("chat");
     setPendingSuggestions(null);
@@ -181,8 +184,8 @@ export function AIChatSidePanel() {
           // No subject = the model just answers the question directly,
           // instead of being artificially framed around an unrelated topic.
           payload: subject
-            ? { subject, message: trimmed, space: teacherSpace }
-            : { message: trimmed, space: teacherSpace },
+            ? { subject, message: trimmed, space: teacherSpace, history }
+            : { message: trimmed, space: teacherSpace, history },
         },
         (partial) => {
           setMessages((prev) =>

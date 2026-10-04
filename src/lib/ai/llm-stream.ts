@@ -17,6 +17,13 @@ import {
 
 const SOURCES_MARKER = "\x1ESOURCES\x1E";
 
+/**
+ * Gemini counts its hidden reasoning ("thinking") inside maxOutputTokens,
+ * so a capped answer could be spent on thinking and cut off mid-sentence.
+ * With a cap, thinking gets its own fixed budget on top of it.
+ */
+export const GEMINI_THINKING_BUDGET = 1024;
+
 export interface LlmStreamRequest {
   system: string;
   prompt?: string;
@@ -25,6 +32,10 @@ export interface LlmStreamRequest {
   /** Only applied when provider is Gemini (e.g. Google Search). */
   geminiTools?: ToolSet;
   appendSources?: boolean;
+  /** Safety cap on the answer length. */
+  maxOutputTokens?: number;
+  /** Stops generating when the client goes away (e.g. presses ■). */
+  abortSignal?: AbortSignal;
 }
 
 /**
@@ -66,11 +77,26 @@ export function createFallbackLlmPlainTextStream(
               ? { messages: request.messages }
               : { prompt: request.prompt ?? "" };
 
+          // The real provider error (429, 503…) arrives here; the text
+          // stream itself only says "No output generated".
+          let streamError: unknown;
           const result = streamText({
             model: provider.getModel(),
             maxRetries: LLM_MAX_RETRIES,
             system: request.system,
             temperature: request.temperature ?? 0.3,
+            maxOutputTokens:
+              request.maxOutputTokens && provider.id === "gemini"
+                ? request.maxOutputTokens + GEMINI_THINKING_BUDGET
+                : request.maxOutputTokens,
+            providerOptions:
+              request.maxOutputTokens && provider.id === "gemini"
+                ? { google: { thinkingConfig: { thinkingBudget: GEMINI_THINKING_BUDGET } } }
+                : undefined,
+            abortSignal: request.abortSignal,
+            onError: ({ error }) => {
+              streamError = error;
+            },
             tools:
               provider.id === "gemini" ? request.geminiTools : undefined,
             ...promptOrMessages,
@@ -83,11 +109,11 @@ export function createFallbackLlmPlainTextStream(
               wroteText = true;
               controller.enqueue(encoder.encode(chunk));
             }
-          } catch (streamError) {
-            if (wroteText) throw streamError;
-            throw streamError;
+          } catch (caught) {
+            throw streamError ?? caught;
           }
 
+          if (!wroteText && streamError) throw streamError;
           if (!wroteText) {
             const fallbackText = (await result.text).trim();
             if (fallbackText) {
@@ -125,6 +151,15 @@ export function createFallbackLlmPlainTextStream(
           controller.close();
           return;
         } catch (error) {
+          // The student stopped the answer: no retry, no error text.
+          if (request.abortSignal?.aborted) {
+            try {
+              controller.close();
+            } catch {
+              // already closed
+            }
+            return;
+          }
           attempts.push({ provider: provider.id, model: provider.model, error });
           logProviderFailure("llm-stream", provider, error, startedAt);
 

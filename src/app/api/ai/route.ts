@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { buildUserPrompt } from "@/lib/ai/build-user-prompt";
+import { AiTeacherHistorySchema, buildAiTeacherMessages } from "@/lib/ai/ai-teacher-request";
+import { AI_TEACHER_MAX_OUTPUT_TOKENS, wantsDetailedAnswer } from "@/lib/ai/ai-teacher-conversation";
 import { CvRequestSchema, CvResponseSchema, type CvResponse } from "@/lib/ai/cv-schema";
 import {
   Eli5RequestSchema,
@@ -754,10 +756,32 @@ export async function POST(request: Request) {
 
     const prompt = buildUserPrompt(pageType, body.payload);
 
+    if (pageType === "ai-teacher") {
+      // The chat so far goes along as real messages, so a follow-up like
+      // „უფრო მოკლედ“ or „კი“ is read against the previous answer.
+      const parsedHistory = AiTeacherHistorySchema.safeParse(body.payload.history ?? []);
+      if (!parsedHistory.success) {
+        return Response.json(
+          { error: true, message: "საუბრის ისტორია არასწორია. დაიწყე ახალი ჩატი." },
+          { status: 400 },
+        );
+      }
+      const detailed = wantsDetailedAnswer(String(body.payload.message ?? ""));
+      return llmTextStreamResponse({
+        system,
+        messages: buildAiTeacherMessages(parsedHistory.data, prompt),
+        temperature: 0.35,
+        maxOutputTokens: detailed
+          ? AI_TEACHER_MAX_OUTPUT_TOKENS.detailed
+          : AI_TEACHER_MAX_OUTPUT_TOKENS.normal,
+        abortSignal: request.signal,
+      });
+    }
+
     return llmTextStreamResponse({
       system,
       prompt,
-      temperature: pageType === "ai-teacher" ? 0.35 : 0.3,
+      temperature: 0.3,
     });
   } catch (error) {
     return errorJsonResponse(error, "ai");
