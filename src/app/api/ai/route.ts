@@ -1,6 +1,15 @@
 import { z } from "zod";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { buildUserPrompt } from "@/lib/ai/build-user-prompt";
+import {
+  checkBullets,
+  convertExcessBullets,
+  deckLanguage,
+  ensureThanksSlide,
+  findAiTells,
+  normalizeSlidePlaceholders,
+  slideText,
+} from "@/lib/presentation-style";
 import { AiTeacherHistorySchema, buildAiTeacherMessages } from "@/lib/ai/ai-teacher-request";
 import { AI_TEACHER_MAX_OUTPUT_TOKENS, wantsDetailedAnswer } from "@/lib/ai/ai-teacher-conversation";
 import { CvRequestSchema, CvResponseSchema, type CvResponse } from "@/lib/ai/cv-schema";
@@ -207,7 +216,7 @@ Rules:
 - Add a Georgian warning for anything ambiguous (e.g. two different dates for the same quiz).`;
 
 const PRESENTATION_JSON_INSTRUCTIONS = `
-Return ONLY valid JSON (all text in Georgian):
+Return ONLY valid JSON, all text in the requested language:
 {
   "title": "პრეზენტაციის სათაური",
   "slides": [
@@ -215,15 +224,19 @@ Return ONLY valid JSON (all text in Georgian):
       "id": 1,
       "type": "cover" | "content" | "image" | "stats" | "conclusion",
       "slideType": "მოკლე ტიპის აღწერა",
-      "title": "სლაიდის სათაური",
-      "body": "ოპციონალური პარაგრაფი",
-      "points": ["ბულეტი 1", "ბულეტი 2"],
+      "title": "აზრი, არა მხოლოდ თემა (≤ 8 სიტყვა)",
+      "layout": "prose" | "bullets" | "two-column" | "quote" | "key-figure" | "section",
+      "body": "prose: 2–4 წინადადება; section/key-figure: ერთი ხაზი; სხვაგან null",
+      "points": ["bullets only: 2–4 მოკლე პუნქტი"] or null,
+      "columns": [{ "heading": "…", "text": "…" }, { "heading": "…", "text": "…" }] or null,
+      "quote": { "text": "…", "author": "…" or null } or null,
+      "figure": { "value": "…", "caption": "…" } or null,
       "photoIds": ["photo id from the list"] or null
     }
   ]
 }
-First slide should be type "cover", last slide "conclusion". Match requested slide count closely.
-Every key is required; use null for an empty body, points or photoIds.`;
+The first slide is type "cover" (layout "section", body = subtitle); the last is "conclusion". Give exactly the requested number of slides.
+Every key is required; use null for fields the slide's layout doesn't use.`;
 
 const ELI5_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all text in Georgian):
@@ -275,6 +288,51 @@ async function generateResearchFromText(
     prompt,
     temperature: 0.3,
   })) as ResearchResponse;
+}
+
+/**
+ * Generates a deck and, if it leans on bullets (> 30% or two in a row) or
+ * reads machine-made (3+ stock phrases), asks once more with the specific
+ * problems spelled out. The better of the two is returned.
+ */
+async function generatePresentationDeck(system: string, prompt: string): Promise<PresentationResponse> {
+  const ask = async (extra: string) =>
+    (await generateGeminiObject({
+      schema: PresentationResponseSchema,
+      system: `${system}\n${PRESENTATION_JSON_INSTRUCTIONS}${extra}`,
+      prompt,
+      temperature: 0.5,
+    })) as PresentationResponse;
+
+  const problemsOf = (deck: PresentationResponse) => {
+    const bullets = checkBullets(deck.slides);
+    const tells = findAiTells(deck.slides.map(slideText).join("\n"));
+    return { bullets, tells, bad: !bullets.ok || tells.length >= 3 };
+  };
+
+  const first = await ask("");
+  const firstProblems = problemsOf(first);
+  if (!firstProblems.bad) return first;
+
+  console.info("[presentation] retrying: bullets", firstProblems.bullets, "tells", firstProblems.tells);
+  const notes = [
+    !firstProblems.bullets.ok
+      ? `Your previous draft used bullets on ${firstProblems.bullets.bulletSlides} of ${firstProblems.bullets.contentSlides} slides${firstProblems.bullets.consecutive ? ", including two in a row" : ""}. Use bullets on at most ${firstProblems.bullets.allowed} slide(s), never consecutive; write the rest as prose, two-column, quote or key-figure.`
+      : "",
+    firstProblems.tells.length >= 3
+      ? `It also contained machine-sounding phrases (${firstProblems.tells.join(", ")}). Rewrite without any of them.`
+      : "",
+  ].filter(Boolean);
+  try {
+    const second = await ask(`\n\nIMPORTANT — fix these problems:\n${notes.join("\n")}`);
+    const secondProblems = problemsOf(second);
+    const score = (p: ReturnType<typeof problemsOf>) =>
+      (p.bullets.ok ? 0 : 10 + p.bullets.bulletSlides) + p.tells.length;
+    return score(secondProblems) <= score(firstProblems) ? second : first;
+  } catch {
+    // The retry is an improvement, not a requirement.
+    return first;
+  }
 }
 
 async function generateSyllabusFromText(
@@ -518,17 +576,16 @@ export async function POST(request: Request) {
       const presentationPayload = PresentationRequestSchema.parse(body.payload);
       const prompt = buildUserPrompt(pageType, presentationPayload);
 
-      const raw = (await generateGeminiObject({
-        schema: PresentationResponseSchema,
-        system: `${system}\n${PRESENTATION_JSON_INSTRUCTIONS}`,
-        prompt,
-        temperature: 0.4,
-      })) as PresentationResponse;
+      const deck = await generatePresentationDeck(system, prompt);
+      const slides = ensureThanksSlide(
+        convertExcessBullets(deck.slides).map(normalizeSlidePlaceholders),
+        deckLanguage(presentationPayload.language),
+      ).map((slide, index) => ({ ...slide, id: index + 1 }));
 
       return Response.json({
-        ...raw,
+        ...deck,
         slides: normalizePresentationSlides(
-          raw.slides,
+          slides as PresentationResponse["slides"],
           (presentationPayload.photos ?? []).map((photo) => photo.id),
         ),
       });

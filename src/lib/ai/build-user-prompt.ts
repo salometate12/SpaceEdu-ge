@@ -1,4 +1,5 @@
 import type { AiPageType } from "./page-types";
+import { normalizePresentationLevel, type PresentationLevel } from "@/lib/presentation-constants";
 import { aiTeacherSpaceFromPayload } from "./page-prompts";
 import { studyPlanDaysToGenerate } from "./study-plan-days";
 import { writingTaskRubricText } from "./writing-task-grader-schema";
@@ -12,6 +13,16 @@ function asString(value: unknown, fallback = ""): string {
 function asNumber(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
+
+/** What each level means for the content of a deck. */
+export const PRESENTATION_LEVEL_GUIDANCE: Record<PresentationLevel, string> = {
+  "ბაკალავრიატი":
+    "Level guidance (bachelor): explain concepts clearly, define the key terms, and ground ideas in concrete examples.",
+  "მაგისტრატურა":
+    "Level guidance (master's): analytical depth — compare theories and approaches, rely on research and data (with placeholders, never invented), evaluate critically, use the field's terminology.",
+  "დოქტორანტურა":
+    "Level guidance (doctoral): a research focus — research question or hypothesis, methodology, literature review, findings, limitations and the contribution; formal academic language.",
+};
 
 /** The user's photos (metadata only) and the rules for placing them. */
 function presentationPhotosBlock(raw: unknown): string {
@@ -110,8 +121,10 @@ export function buildUserPrompt(
       return [
         `თემა: ${asString(payload.topic)}`,
         `საგანი/სფერო: ${asString(payload.subject)}`,
-        `სლაიდების რაოდენობა: ${asNumber(payload.slideCount, 10)}`,
-        `აუდიტორიის დონე: ${asString(payload.level, "უნივერსიტეტი")}`,
+        // The thank-you slide is added in code and counts toward the total.
+        `სლაიდების რაოდენობა: ${Math.max(2, asNumber(payload.slideCount, 10) - 1)} (the last one type "conclusion"; do not write a thank-you slide — it is added automatically)`,
+        `აუდიტორიის დონე: ${normalizePresentationLevel(payload.level)}`,
+        PRESENTATION_LEVEL_GUIDANCE[normalizePresentationLevel(payload.level)],
         `ენა: ${asString(payload.language, "ქართული")}`,
         qa?.goal ? `მიზანი: ${asString(qa.goal)}` : "",
         qa?.audience ? `აუდიტორია: ${asString(qa.audience)}` : "",

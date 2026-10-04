@@ -1,5 +1,16 @@
 import { z } from "zod";
 import type { NullsToOptional } from "@/lib/ai/model-nulls";
+import { SLIDE_LAYOUTS, SLIDE_TYPES } from "@/lib/presentation-constants";
+
+export {
+  DEFAULT_PRESENTATION_LEVEL,
+  normalizePresentationLevel,
+  PRESENTATION_LEVELS,
+  SLIDE_LAYOUTS,
+  SLIDE_TYPES,
+  type PresentationLevel,
+  type SlideLayout,
+} from "@/lib/presentation-constants";
 
 export const PresentationQASchema = z.object({
   goal: z.string().optional(),
@@ -35,11 +46,20 @@ export type PresentationRequest = z.infer<typeof PresentationRequestSchema>;
 
 export const GeneratedSlideSchema = z.object({
   id: z.number().int(),
-  type: z.enum(["cover", "content", "image", "stats", "conclusion"]),
+  type: z.enum(SLIDE_TYPES),
   slideType: z.string(),
   title: z.string(),
+  /** prose / section / key-figure explanation / cover subtitle. */
+  layout: z.enum(SLIDE_LAYOUTS).nullable(),
   body: z.string().nullable(),
+  /** bullets only: 2–4 short points. */
   points: z.array(z.string()).nullable(),
+  /** two-column only: exactly two columns. */
+  columns: z.array(z.object({ heading: z.string(), text: z.string() })).nullable(),
+  /** quote only: a real quote with its author, or a thesis with author null. */
+  quote: z.object({ text: z.string(), author: z.string().nullable() }).nullable(),
+  /** key-figure only: one number/fact and a sentence explaining it. */
+  figure: z.object({ value: z.string(), caption: z.string() }).nullable(),
   /** Ids of the user's photos that belong on this slide (max 2), or null. */
   photoIds: z.array(z.string()).nullable(),
 });
