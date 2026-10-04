@@ -62,7 +62,7 @@ export interface AiTeacherContent {
 export const AI_TEACHER_CONTENT: Record<AiTeacherSpace, AiTeacherContent> = {
   student: {
     headerTitle: "AI მასწავლებელი",
-    headerSubtitle: "უნივერსიტეტის კურსები და ლექციები",
+    headerSubtitle: "კურსები და ლექციები",
     greetingWithName: "გამარჯობა, {name}!",
     greetingWithoutName: "გამარჯობა!",
     greetingQuestion: "რომელ საგანზე ვიმუშაოთ დღეს?",
@@ -162,7 +162,7 @@ export const AI_TEACHER_CONTENT: Record<AiTeacherSpace, AiTeacherContent> = {
   },
   abiturient: {
     headerTitle: "AI მასწავლებელი",
-    headerSubtitle: "ეროვნული გამოცდებისთვის მზადება",
+    headerSubtitle: "ეროვნული გამოცდები",
     greetingWithName: "გამარჯობა, {name}!",
     greetingWithoutName: "გამარჯობა!",
     greetingQuestion: "რომელ საგანს ვიმეცადინოთ?",

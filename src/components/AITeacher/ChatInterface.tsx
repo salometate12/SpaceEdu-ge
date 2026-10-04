@@ -7,16 +7,19 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, Menu, Plus, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowUp, PanelLeft, Square, SquarePen } from "lucide-react";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import {
   conversationTitleFrom,
   deleteConversation,
   loadConversations,
+  renameConversation,
   saveConversation,
   type AiTeacherConversation,
 } from "@/lib/ai-teacher-history";
@@ -24,7 +27,42 @@ import { AI_TEACHER_CONTENT, type AiTeacherSpace } from "@/lib/ai-teacher-conten
 import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { AITeacherSidebar, trapFocus } from "./AITeacherSidebar";
 import { MessageBubble } from "./MessageBubble";
+
+/** Remembers whether the desktop sidebar is collapsed. */
+const SIDEBAR_KEY = "spaceedu-ai-teacher-sidebar";
+const SIDEBAR_EVENT = "spaceedu-ai-teacher-sidebar-change";
+
+// Per-tab memory for when localStorage is unavailable.
+let sidebarFallback = false;
+
+function readSidebarCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_KEY) === "collapsed";
+  } catch {
+    return sidebarFallback;
+  }
+}
+
+function writeSidebarCollapsed(collapsed: boolean) {
+  sidebarFallback = collapsed;
+  try {
+    window.localStorage.setItem(SIDEBAR_KEY, collapsed ? "collapsed" : "open");
+  } catch {
+    // remembered for this visit only
+  }
+  window.dispatchEvent(new Event(SIDEBAR_EVENT));
+}
+
+function subscribeSidebar(onChange: () => void) {
+  window.addEventListener(SIDEBAR_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(SIDEBAR_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
 
 interface ChatMessage {
   id: string;
@@ -49,6 +87,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -129,6 +169,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       { id: assistantId, role: "assistant", content: "" },
     ]);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let partialText = "";
+
     try {
       const text = await fetchAiTextStream(
         {
@@ -140,8 +184,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             // This chat's earlier turns (empty after „ახალი ჩატი“).
             history: buildChatHistory(priorMessages),
           },
+          signal: controller.signal,
         },
         (partial) => {
+          partialText = partial;
           setMessages((prev) =>
             prev.map((message) =>
               message.id === assistantId ? { ...message, content: partial } : message,
@@ -159,12 +205,30 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       setMessages(finalMessages);
       persistCurrentConversation(finalMessages);
     } catch {
-      setFriendlyError("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
-      setMessages((prev) => prev.filter((message) => message.id !== assistantId));
+      if (controller.signal.aborted) {
+        // Stopped with ■: keep whatever already arrived.
+        if (partialText.trim()) {
+          const finalMessages: ChatMessage[] = [
+            ...priorMessages,
+            userMessage,
+            { id: assistantId, role: "assistant", content: partialText.trim() },
+          ];
+          setMessages(finalMessages);
+          persistCurrentConversation(finalMessages);
+        } else {
+          setMessages((prev) => prev.filter((message) => message.id !== assistantId));
+        }
+      } else {
+        setFriendlyError("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
+        setMessages((prev) => prev.filter((message) => message.id !== assistantId));
+      }
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setIsLoading(false);
     }
   };
+
+  const stopGenerating = () => abortRef.current?.abort();
 
   // Consume a one-shot prompt handed over from another page (e.g. the
   // dashboard calendar's "დაიწყე სწავლა"), then auto-send it once. The ref
@@ -207,6 +271,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   };
 
   const startNewChat = () => {
+    abortRef.current?.abort();
     conversationIdRef.current = null;
     setActiveConversationId(null);
     setMessages([]);
@@ -218,6 +283,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   };
 
   const openConversation = (conversation: AiTeacherConversation) => {
+    abortRef.current?.abort();
     conversationIdRef.current = conversation.id;
     setActiveConversationId(conversation.id);
     setMessages(conversation.messages);
@@ -237,71 +303,62 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     router.push(dashboardHrefForSpace(space));
   };
 
-  const sidebarContent = (
-    <>
-      <button
-        type="button"
-        onClick={startNewChat}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2.5 text-sm font-semibold text-[var(--text-primary)] shadow-sm transition hover:border-[var(--accent-primary)]/40 hover:bg-[var(--accent-primary)]/5"
-      >
-        <span className="inline-flex items-center gap-2">
-          <Plus className="h-4 w-4 text-[var(--accent-primary)]" strokeWidth={2} />
-          ახალი ჩატი
-        </span>
-      </button>
+  // Collapsed state lives in localStorage; the server render (and the
+  // first client render) show it open, then the stored value applies.
+  const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
+  const toggleCollapsed = useCallback(() => writeSidebarCollapsed(!readSidebarCollapsed()), []);
 
-      <div className="mt-6 flex items-center justify-between px-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
-          ბოლო საუბრები
-        </p>
-        {conversations.length > 0 && (
-          <span className="text-xs text-[var(--text-muted)]">{conversations.length}</span>
-        )}
-      </div>
+  // Ctrl/Cmd+B collapses the sidebar, Ctrl/Cmd+Shift+O starts a new chat.
+  const startNewChatRef = useRef(startNewChat);
+  useEffect(() => {
+    startNewChatRef.current = startNewChat;
+  });
+  useEffect(() => {
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) return;
+      const key = event.key.toLowerCase();
+      if (key === "b" && !event.shiftKey && window.matchMedia("(min-width: 768px)").matches) {
+        event.preventDefault();
+        toggleCollapsed();
+      } else if (key === "o" && event.shiftKey) {
+        event.preventDefault();
+        startNewChatRef.current();
+        textareaRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleCollapsed]);
 
-      <div className="mt-3 flex-1 space-y-1 overflow-y-auto pr-1">
-        {conversations.length === 0 ? (
-          <p className="px-1 py-2 text-xs leading-relaxed text-[var(--text-muted)]">
-            {copy.emptyHistory}
-          </p>
-        ) : (
-          conversations.map((conversation) => {
-            const isActive = conversation.id === activeConversationId;
-            return (
-              <div
-                key={conversation.id}
-                className={`group flex items-center gap-1 rounded-xl transition ${
-                  isActive
-                    ? "bg-[var(--accent-primary)]/10"
-                    : "hover:bg-[var(--bg-secondary)]"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => openConversation(conversation)}
-                  className={`min-w-0 flex-1 truncate rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                    isActive
-                      ? "text-[var(--text-primary)]"
-                      : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  {conversation.title}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeConversation(conversation.id)}
-                  aria-label="საუბრის წაშლა"
-                  className="mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] opacity-0 transition hover:bg-[var(--bg-primary)] hover:text-[var(--text-primary)] focus-visible:opacity-100 group-hover:opacity-100"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </>
-  );
+  // Mobile drawer: Esc closes it; focus moves in when it opens.
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const focusTimer = window.setTimeout(() => drawerRef.current?.querySelector<HTMLElement>("button")?.focus(), 50);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.clearTimeout(focusTimer);
+    };
+  }, [sidebarOpen]);
+
+  // Swipe left on the drawer closes it.
+  const swipeStart = useRef<number | null>(null);
+
+  const sidebarProps = {
+    title: copy.headerTitle,
+    subtitle: copy.headerSubtitle,
+    conversations,
+    activeId: activeConversationId,
+    onBack: handleBackToDashboard,
+    onNewChat: startNewChat,
+    onOpen: openConversation,
+    onRename: (id: string, title: string) => setConversations(renameConversation(id, title, space)),
+    onDelete: removeConversation,
+  };
 
   const floatingInput = (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-white via-white/90 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+4.75rem)] pt-8 dark:from-[#0a0a0f] dark:via-[#0a0a0f]/90 md:pb-5">
@@ -332,18 +389,30 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 placeholder={copy.placeholder}
                 className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
               />
-              <button
-                type="submit"
-                disabled={!canSend}
-                aria-label="გაგზავნა"
-                className={`mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
-                  canSend
-                    ? "bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-4px_rgba(99,102,241,0.6)] hover:opacity-90"
-                    : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
-                }`}
-              >
-                <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-              </button>
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={stopGenerating}
+                  aria-label="შეჩერება"
+                  title="შეჩერება"
+                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85"
+                >
+                  <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!canSend}
+                  aria-label="გაგზავნა"
+                  className={`mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
+                    canSend
+                      ? "bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-4px_rgba(99,102,241,0.6)] hover:opacity-90"
+                      : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
+                  }`}
+                >
+                  <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              )}
             </div>
           </div>
         </form>
@@ -353,82 +422,80 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
 
   return (
     <section className="relative flex h-full w-full overflow-hidden">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-[280px] shrink-0 flex-col border-r border-white/50 bg-white/45 px-3 py-4 backdrop-blur-xl md:flex dark:border-white/10 dark:bg-white/[0.03]">
-        <div className="mb-4 flex items-center gap-2 px-1">
-          <button
-            type="button"
-            onClick={handleBackToDashboard}
-            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
-            aria-label="დეშბორდზე დაბრუნება"
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            <span className="text-xs font-medium">უკან</span>
-          </button>
-          <span className="min-w-0">
-            <span className="block text-sm font-medium text-[var(--text-secondary)]">{copy.headerTitle}</span>
-            <span className="block text-[11px] leading-tight text-[var(--text-muted)]">{copy.headerSubtitle}</span>
-          </span>
+      {/* Desktop sidebar: full height under the header, collapses to icons. */}
+      <aside
+        aria-label="AI მასწავლებლის მენიუ"
+        className={`hidden h-full shrink-0 overflow-hidden border-r border-[var(--border)] bg-white/70 backdrop-blur-xl transition-[width] duration-[220ms] ease-out motion-reduce:transition-none md:block dark:bg-white/[0.03] ${
+          collapsed ? "w-14" : "w-[264px]"
+        }`}
+      >
+        <div className={`h-full ${collapsed ? "w-14" : "w-[264px]"}`}>
+          <AITeacherSidebar {...sidebarProps} variant="desktop" collapsed={collapsed} onToggleCollapse={toggleCollapsed} />
         </div>
-        {sidebarContent}
       </aside>
 
-      {/* Mobile sidebar drawer */}
-      {sidebarOpen ? (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            aria-label="Close sidebar"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <aside className="relative flex h-full w-[280px] flex-col border-r border-white/40 bg-white/85 px-3 py-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#0b0b12]/90">
-            <div className="mb-4 flex items-center justify-between px-1">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">ბოლო საუბრები</span>
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {sidebarContent}
-          </aside>
-        </div>
-      ) : null}
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {sidebarOpen ? (
+          <div className="fixed inset-0 z-[70] md:hidden">
+            <motion.button
+              type="button"
+              aria-label="მენიუს დახურვა"
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setSidebarOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.2 }}
+            />
+            <motion.div
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="საუბრები"
+              onKeyDown={trapFocus}
+              onPointerDown={(event) => {
+                swipeStart.current = event.clientX;
+              }}
+              onPointerUp={(event) => {
+                if (swipeStart.current !== null && event.clientX - swipeStart.current < -60) setSidebarOpen(false);
+                swipeStart.current = null;
+              }}
+              className="absolute inset-y-0 left-0 w-[min(300px,86vw)] border-r border-[var(--border)] bg-[var(--bg-card)] pt-[env(safe-area-inset-top)] shadow-2xl"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeOut" }}
+            >
+              <AITeacherSidebar {...sidebarProps} variant="drawer" onClose={() => setSidebarOpen(false)} />
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
 
       <div className="relative flex min-w-0 flex-1 flex-col">
         {/* Top bar — mobile */}
-        <div className="flex items-center gap-2 border-b border-white/40 px-3 py-3 backdrop-blur-sm md:hidden dark:border-white/10">
-          <button
-            type="button"
-            onClick={handleBackToDashboard}
-            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
-            aria-label="დეშბორდზე დაბრუნება"
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            <span className="text-xs font-medium">უკან</span>
-          </button>
+        <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2.5 backdrop-blur-sm md:hidden">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)]"
-            aria-label="Open history"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+            aria-label="საუბრების მენიუ"
+            aria-expanded={sidebarOpen}
           >
-            <Menu className="h-4 w-4" />
+            <PanelLeft className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-[var(--text-primary)]">{copy.headerTitle}</div>
-            <div className="text-[11px] leading-tight text-[var(--text-muted)]">{copy.headerSubtitle}</div>
+            <div className="truncate text-sm font-semibold text-[var(--text-primary)]">{copy.headerTitle}</div>
+            <div className="truncate text-xs text-[var(--text-muted)]">{copy.headerSubtitle}</div>
           </div>
           <button
             type="button"
             onClick={startNewChat}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--accent-primary)]"
-            aria-label="New chat"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+            aria-label="ახალი ჩატი"
           >
-            <Plus className="h-4 w-4" />
+            <SquarePen className="h-5 w-5" />
           </button>
         </div>
 
@@ -485,6 +552,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   key={message.id}
                   role={message.role}
                   content={message.content}
+                  waitingVariant="full"
+                  space={space}
                 />
               ))}
             </div>
