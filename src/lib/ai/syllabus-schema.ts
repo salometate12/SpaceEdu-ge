@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripNulls, type NullsToOptional } from "@/lib/ai/model-nulls";
 import { resolveMilestoneIsoDate } from "@/lib/syllabus-date-utils";
 
 export const SyllabusOptionsSchema = z.object({
@@ -20,13 +21,13 @@ export const SyllabusRequestSchema = z.object({
 export type SyllabusRequest = z.infer<typeof SyllabusRequestSchema>;
 
 export const SyllabusMilestoneSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullable(),
   title: z.string(),
   date: z.string(),
   /** Week-of-semester label, e.g. "8" or "VIII" — whatever the syllabus itself says. */
-  week: z.string().optional(),
+  week: z.string().nullable(),
   /** Short topic/chapter this milestone covers, if the syllabus states one. */
-  topic: z.string().optional(),
+  topic: z.string().nullable(),
   type: z.enum(["midterm", "quiz", "deadline"]),
 });
 
@@ -35,20 +36,25 @@ export const SyllabusResponseSchema = z.object({
   milestones: z.array(SyllabusMilestoneSchema).min(1),
 });
 
-export type SyllabusResponse = z.infer<typeof SyllabusResponseSchema>;
+export type SyllabusResponse = NullsToOptional<z.infer<typeof SyllabusResponseSchema>>;
 
+/** Accepts the model's raw milestones (absent fields are `null`) or
+ * already-stripped ones; either way the result has no null keys. */
 export function normalizeSyllabusMilestones(
-  milestones: SyllabusResponse["milestones"],
+  milestones: Array<z.infer<typeof SyllabusMilestoneSchema>> | SyllabusResponse["milestones"],
   semesterStartDate?: string,
 ): Array<SyllabusResponse["milestones"][number] & { id: string; date: string }> {
-  return milestones.map((item, index) => ({
-    ...item,
-    id: item.id?.trim() || `syllabus-ms-${index + 1}`,
-    date: resolveMilestoneIsoDate({
-      rawDate: item.date,
-      week: item.week,
-      semesterStartDate,
-      fallbackIndex: index,
-    }),
-  }));
+  return milestones.map((raw, index) => {
+    const item = stripNulls(raw) as SyllabusResponse["milestones"][number];
+    return {
+      ...item,
+      id: item.id?.trim() || `syllabus-ms-${index + 1}`,
+      date: resolveMilestoneIsoDate({
+        rawDate: item.date,
+        week: item.week,
+        semesterStartDate,
+        fallbackIndex: index,
+      }),
+    };
+  });
 }

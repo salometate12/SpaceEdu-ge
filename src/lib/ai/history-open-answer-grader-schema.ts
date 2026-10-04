@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { NullsToOptional } from "@/lib/ai/model-nulls";
 import type { HistoryOpenCriterion } from "@/data/historyExamsData";
 
 /**
@@ -14,21 +15,21 @@ import type { HistoryOpenCriterion } from "@/data/historyExamsData";
 export const HistoryGradedCriterionSchema = z.object({
   id: z.string(),
   met: z.boolean(),
-  comment: z.string().optional(),
+  comment: z.string().nullable(),
 });
 
 export const HistoryOpenGraderResponseSchema = z.object({
   summary: z.string(),
   criteria: z.array(HistoryGradedCriterionSchema),
   /** What the answer was missing to earn full marks. */
-  whatWasMissing: z.string().optional(),
+  whatWasMissing: z.string().nullable(),
   /** The expected key point(s), grounded in the source when relevant. */
-  correctAnswer: z.string().optional(),
+  correctAnswer: z.string().nullable(),
   /** Why that answer is the correct one. */
-  explanation: z.string().optional(),
+  explanation: z.string().nullable(),
 });
 
-export type HistoryOpenGraderResponse = z.infer<typeof HistoryOpenGraderResponseSchema>;
+export type HistoryOpenGraderResponse = NullsToOptional<z.infer<typeof HistoryOpenGraderResponseSchema>>;
 
 /** The report the UI renders — the response plus the derived score. */
 export interface HistoryOpenGraderReport extends HistoryOpenGraderResponse {
