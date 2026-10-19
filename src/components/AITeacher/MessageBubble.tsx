@@ -1,13 +1,18 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { GeneratingIndicator } from "./GeneratingIndicator";
+import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 
 interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
+  /** While the answer is empty: "full" waiting card (page) or stages only. */
+  waitingVariant?: "full" | "compact";
+  space?: AiTeacherSpace;
 }
 
-export function MessageBubble({ role, content }: MessageBubbleProps) {
+export function MessageBubble({ role, content, waitingVariant = "compact", space }: MessageBubbleProps) {
   const isUser = role === "user";
 
   if (isUser) {
@@ -31,7 +36,19 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
         <Sparkles className="h-4 w-4" strokeWidth={1.75} />
       </div>
       <div className="relative min-w-0 max-w-[88%] pt-1">
-        <GeneratingIndicator visible={!showContent} />
+        <AnimatePresence initial={false}>
+          {!showContent ? (
+            <motion.div
+              key="thinking"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              <ThinkingIndicator variant={waitingVariant} space={space} />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
         {showContent ? (
           <div className="ai-message-reveal text-[15px] leading-[1.75] text-[var(--text-primary)]">
             <MarkdownContent

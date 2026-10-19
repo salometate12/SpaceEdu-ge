@@ -12,6 +12,9 @@ export interface AiTeacherConversation {
   title: string;
   messages: AiTeacherMessage[];
   updatedAt: number;
+  /** Set once the student renamed it; the title then stops following the
+   * first question. */
+  renamed?: boolean;
 }
 
 /** Each AI teacher keeps its own history, so an admin (or anyone who
@@ -23,13 +26,49 @@ export const AI_TEACHER_HISTORY_KEYS: Record<AiTeacherSpace, string> = {
 /** The single shared key from before the split. /ai-teacher was the
  * student page then, so its chats move to the student key. */
 export const LEGACY_AI_TEACHER_HISTORY_KEY = "spaceedu-ai-teacher-conversations";
-const MAX_CONVERSATIONS = 20;
-const TITLE_MAX_LENGTH = 80;
+const MAX_CONVERSATIONS = 50;
+export const TITLE_MAX_LENGTH = 40;
 
+/** A one-line title from the first question: markdown and extra spaces
+ * stripped, cut at a word boundary to ~40 characters. */
 export function conversationTitleFrom(messages: AiTeacherMessage[]): string {
   const firstUser = messages.find((message) => message.role === "user");
-  const raw = firstUser?.content.trim().replace(/\s+/g, " ") ?? "ახალი საუბარი";
-  return raw.length > TITLE_MAX_LENGTH ? `${raw.slice(0, TITLE_MAX_LENGTH)}…` : raw;
+  const raw = (firstUser?.content ?? "")
+    .replace(/[*_`#>~]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!raw) return "ახალი საუბარი";
+  if (raw.length <= TITLE_MAX_LENGTH) return raw;
+  const cut = raw.slice(0, TITLE_MAX_LENGTH);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > TITLE_MAX_LENGTH * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:–-]+$/, "")}…`;
+}
+
+export type ConversationGroupLabel = "დღეს" | "გუშინ" | "ბოლო 7 დღე" | "ადრე";
+
+/** Conversations bucketed by their last update, newest first. */
+export function groupConversationsByDate(
+  conversations: AiTeacherConversation[],
+  now: Date = new Date(),
+): { label: ConversationGroupLabel; items: AiTeacherConversation[] }[] {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day = 86_400_000;
+  const groups: Record<ConversationGroupLabel, AiTeacherConversation[]> = {
+    "დღეს": [],
+    "გუშინ": [],
+    "ბოლო 7 დღე": [],
+    "ადრე": [],
+  };
+  for (const conversation of [...conversations].sort((a, b) => b.updatedAt - a.updatedAt)) {
+    const at = conversation.updatedAt;
+    if (at >= startOfToday) groups["დღეს"].push(conversation);
+    else if (at >= startOfToday - day) groups["გუშინ"].push(conversation);
+    else if (at >= startOfToday - 7 * day) groups["ბოლო 7 დღე"].push(conversation);
+    else groups["ადრე"].push(conversation);
+  }
+  return (Object.keys(groups) as ConversationGroupLabel[])
+    .filter((label) => groups[label].length > 0)
+    .map((label) => ({ label, items: groups[label] }));
 }
 
 /**
@@ -98,7 +137,13 @@ export function saveConversation(
   if (typeof window === "undefined") return [];
   if (!isWorthSaving(conversation.messages)) return loadConversations(space);
 
-  const stamped: AiTeacherConversation = { ...conversation, updatedAt: Date.now() };
+  const existing = loadConversations(space).find((entry) => entry.id === conversation.id);
+  const stamped: AiTeacherConversation = {
+    ...conversation,
+    // A name the student chose survives new messages.
+    ...(existing?.renamed ? { title: existing.title, renamed: true } : {}),
+    updatedAt: Date.now(),
+  };
   const others = loadConversations(space).filter((entry) => entry.id !== stamped.id);
   const next = [stamped, ...others]
     .sort((a, b) => b.updatedAt - a.updatedAt)
@@ -118,6 +163,29 @@ export function deleteConversation(
 ): AiTeacherConversation[] {
   if (typeof window === "undefined") return [];
   const next = loadConversations(space).filter((entry) => entry.id !== id);
+  try {
+    window.localStorage.setItem(AI_TEACHER_HISTORY_KEYS[space], JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+  return next;
+}
+
+/** Renames a conversation; an empty name goes back to the first question. */
+export function renameConversation(
+  id: string,
+  title: string,
+  space: AiTeacherSpace = "student",
+): AiTeacherConversation[] {
+  if (typeof window === "undefined") return [];
+  const clean = title.replace(/\s+/g, " ").trim().slice(0, 80);
+  const next = loadConversations(space).map((entry) =>
+    entry.id === id
+      ? clean
+        ? { ...entry, title: clean, renamed: true }
+        : { ...entry, title: conversationTitleFrom(entry.messages), renamed: false }
+      : entry,
+  );
   try {
     window.localStorage.setItem(AI_TEACHER_HISTORY_KEYS[space], JSON.stringify(next));
   } catch {
