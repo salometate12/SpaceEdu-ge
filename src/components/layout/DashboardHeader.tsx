@@ -17,7 +17,7 @@ import { AvatarDropdown } from "./AvatarDropdown";
 import { FocusModeToggle } from "./FocusModeToggle";
 import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
 import { SpaceChip } from "./SpaceChip";
-import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { brandHomeHref, dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { aiTeacherHrefForSpace, profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 
 interface DashboardHeaderProps {
@@ -96,7 +96,7 @@ export function DashboardHeader({
 
   return (
     <HeaderPill scrolled={scrolled}>
-      <HeaderBrand href="/select-space" />
+      <HeaderBrand href={brandHomeHref(workingSpace)} />
       <SpaceChip space={effectiveSpace} />
 
       <HeaderNav>

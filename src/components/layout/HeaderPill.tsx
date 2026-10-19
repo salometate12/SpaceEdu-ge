@@ -39,6 +39,15 @@ export function HeaderPill({
   );
 }
 
+/** The full logo (books + "SpaceEdu") in its -dark artwork, for dark
+ * surfaces — the header pill and the mobile menu. One place to change it. */
+export function BrandLogo({ className = "h-9 w-auto" }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static SVG
+    <img src="/spaceedu-logo-dark.svg" alt="SpaceEdu" width={117} height={36} className={className} />
+  );
+}
+
 /** Logo badge + wordmark, always the left-most item in the pill. */
 export function HeaderBrand({ href }: { href: string }) {
   return (
@@ -50,13 +59,7 @@ export function HeaderBrand({ href }: { href: string }) {
           light files' deep-green top book disappears on black. From `sm`
           the full logo (books + "SpaceEdu"); on a phone — only the landing
           shows the pill there — just the books, so the menu button fits. */}
-      <img
-        src="/spaceedu-logo-dark.svg"
-        alt="SpaceEdu"
-        width={117}
-        height={36}
-        className="hidden h-9 w-auto sm:block"
-      />
+      <BrandLogo className="hidden h-9 w-auto sm:block" />
       <img
         src="/spaceedu-mark-dark.svg"
         alt="SpaceEdu"

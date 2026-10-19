@@ -17,6 +17,12 @@ export const SPACE_SELECT_ROUTES: Record<SpaceeduSpace, string> = {
   student: DASHBOARD_STUDENT_HREF,
 };
 
+/** Where the logo goes: the dashboard of the space the user is working
+ * in, or the home page when no space is known. */
+export function brandHomeHref(space: SpaceeduSpace | null | undefined): string {
+  return space && space in SPACE_SELECT_ROUTES ? SPACE_SELECT_ROUTES[space] : "/";
+}
+
 export function dashboardHrefForSpace(
   space: SpaceeduSpace | null | undefined,
 ): string {
