@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogOut, Moon, Rocket, Sun, X } from "lucide-react";
+import { LogOut, Moon, Sun, X } from "lucide-react";
+import { BrandLogo } from "@/components/layout/HeaderPill";
+import { useWorkingSpace } from "@/hooks/useWorkingSpace";
+import { brandHomeHref } from "@/lib/dashboard-routes";
 import { useTheme } from "@/components/ThemeProvider";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
@@ -13,6 +16,7 @@ import { buildRailGroups, RailGroup } from "./DashboardSideRail";
 
 export function MobileSideMenuDrawer() {
   const { theme, setTheme } = useTheme();
+  const { space: workingSpace } = useWorkingSpace();
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, close } = useMobileSideMenu();
@@ -66,11 +70,9 @@ export function MobileSideMenuDrawer() {
       aria-hidden={!isOpen}
     >
       <div className="flex items-center justify-between border-b border-white/10 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4">
-        <Link href="/select-space" className="flex items-center gap-2" onClick={close}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#d81878]">
-            <Rocket className="h-4 w-4 text-white" />
-          </div>
-          <span className="headline text-base font-medium text-white">SpaceEdu</span>
+        {/* The menu is dark in both themes, so the -dark logo (see BrandLogo). */}
+        <Link href={brandHomeHref(workingSpace)} className="flex items-center rounded-lg" onClick={close}>
+          <BrandLogo className="h-8 w-auto" />
         </Link>
         <button
           type="button"
