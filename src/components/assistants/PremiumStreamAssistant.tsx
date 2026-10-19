@@ -15,7 +15,7 @@ import {
 } from "@/components/conspectus/ConspectusViewer";
 import { useSmartSpace } from "@/components/layout/AssistantControlsContext";
 import { splitCompletionAndSources, type HistorySource } from "@/lib/history-sources";
-import { sanitizeStreamMarkdown } from "@/lib/ai/parse-flashcards-json";
+import { sanitizeChatMarkdown } from "@/lib/ai/sanitize-chat-markdown";
 import { SourcesPanel } from "@/components/history-assistant/SourcesPanel";
 import type { PremiumAssistantPath } from "@/lib/assistant-routes";
 import { useAssistantGenerationHistory } from "@/hooks/useAssistantGenerationHistory";
@@ -63,7 +63,7 @@ function applyStreamChunk(
   if (withSources) {
     return splitCompletionAndSources(raw);
   }
-  return { content: sanitizeStreamMarkdown(raw), sources: [] };
+  return { content: sanitizeChatMarkdown(raw), sources: [] };
 }
 
 export function PremiumStreamAssistant({
