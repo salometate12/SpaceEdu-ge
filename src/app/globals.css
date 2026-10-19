@@ -1627,28 +1627,18 @@ html.dark[data-ground="paper"] body {
 }
 
 /* AI Teacher — generating sparkle & message reveal */
-@keyframes ai-sparkle-pulse {
-  0%,
-  100% {
-    transform: rotate(0deg) scale(1);
-    filter: drop-shadow(0 0 6px rgb(45 212 191 / 0.35));
+/* AI teacher: the "+1 ✨" that floats up when a waiting tip is flipped. */
+@keyframes ai-plus-one {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
   }
-  50% {
-    transform: rotate(180deg) scale(1.14);
-    filter: drop-shadow(0 0 12px rgb(45 212 191 / 0.65));
-  }
-}
-
-@keyframes ai-typing-dot-wave {
-  0%,
-  80%,
-  100% {
-    opacity: 0.15;
-    transform: translateY(0);
-  }
-  40% {
+  25% {
     opacity: 1;
-    transform: translateY(-2px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-14px) scale(1.05);
   }
 }
 
@@ -1663,16 +1653,15 @@ html.dark[data-ground="paper"] body {
   }
 }
 
-.ai-sparkle-icon {
-  animation: ai-sparkle-pulse 2.4s ease-in-out infinite;
+.ai-plus-one {
+  animation: ai-plus-one 1.1s ease-out both;
 }
 
-.ai-typing-dot {
-  display: inline-block;
-  font-weight: 700;
-  line-height: 1;
-  color: rgb(34 211 238 / 0.9);
-  animation: ai-typing-dot-wave 1.4s ease-in-out infinite;
+@media (prefers-reduced-motion: reduce) {
+  .ai-plus-one {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .ai-message-reveal {

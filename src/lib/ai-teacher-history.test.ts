@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   AI_TEACHER_HISTORY_KEYS,
+  conversationTitleFrom,
+  groupConversationsByDate,
   LEGACY_AI_TEACHER_HISTORY_KEY,
   loadConversations,
   migrateLegacyConversations,
+  renameConversation,
   saveConversation,
 } from "./ai-teacher-history";
 
@@ -79,5 +82,46 @@ describe("AI teacher history", () => {
     saveConversation(conversation("a", 1), "abiturient");
     expect(loadConversations("student").map((c) => c.id)).toEqual(["s"]);
     expect(loadConversations("abiturient").map((c) => c.id)).toEqual(["a"]);
+  });
+});
+
+describe("sidebar helpers", () => {
+  it("titles a chat from its first question, ~40 chars at a word boundary", () => {
+    const title = conversationTitleFrom([
+      { id: "q", role: "user", content: "**ამიხსენი** მოთხოვნის ფასით ელასტიურობა — ინტუიცია, ფორმულა და მაგალითი" },
+    ]);
+    expect(title.length).toBeLessThanOrEqual(41);
+    expect(title.endsWith("…")).toBe(true);
+    expect(title).not.toContain("*");
+  });
+
+  it("groups conversations into today / yesterday / last 7 days / earlier", () => {
+    const now = new Date(2026, 9, 4, 15, 0);
+    const at = (daysAgo: number, hour = 10) => new Date(2026, 9, 4 - daysAgo, hour).getTime();
+    const groups = groupConversationsByDate(
+      [
+        { ...conversation("old", at(20)) },
+        { ...conversation("today", at(0)) },
+        { ...conversation("yesterday", at(1, 23)) },
+        { ...conversation("week", at(5)) },
+      ],
+      now,
+    );
+    expect(groups.map((g) => [g.label, g.items.map((c) => c.id)])).toEqual([
+      ["დღეს", ["today"]],
+      ["გუშინ", ["yesterday"]],
+      ["ბოლო 7 დღე", ["week"]],
+      ["ადრე", ["old"]],
+    ]);
+  });
+
+  it("keeps a renamed title when the chat gets new messages", () => {
+    saveConversation(conversation("r", 1), "student");
+    renameConversation("r", "ჩემი სახელი", "student");
+    saveConversation({ ...conversation("r", 2), title: "ავტომატური სათაური" }, "student");
+    const [saved] = loadConversations("student");
+    expect(saved.title).toBe("ჩემი სახელი");
+    renameConversation("r", "", "student");
+    expect(loadConversations("student")[0].title).toBe("კითხვა");
   });
 });
