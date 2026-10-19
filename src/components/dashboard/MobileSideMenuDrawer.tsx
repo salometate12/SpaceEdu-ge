@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogOut, Rocket, X } from "lucide-react";
+import { LogOut, Moon, Rocket, Sun, X } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
@@ -11,6 +12,7 @@ import { spaceFromPathname } from "@/lib/access-control";
 import { buildRailGroups, RailGroup } from "./DashboardSideRail";
 
 export function MobileSideMenuDrawer() {
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, close } = useMobileSideMenu();
@@ -92,6 +94,26 @@ export function MobileSideMenuDrawer() {
       </div>
 
       <div className="border-t border-white/10 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {/* The theme switch lives here now that the dock is five tabs. */}
+        <div className="mb-1 flex items-center justify-between rounded-full px-3 py-1.5" role="group" aria-label="თემა">
+          <span className="text-sm font-semibold text-white/70">თემა</span>
+          <div className="flex rounded-full bg-white/[0.06] p-0.5">
+            {(["light", "dark"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setTheme(option)}
+                aria-pressed={theme === option}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  theme === option ? "bg-white text-[#0b0b0e]" : "text-white/60 hover:text-white"
+                }`}
+              >
+                {option === "light" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                {option === "light" ? "ღია" : "მუქი"}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           type="button"
           onClick={handleSignOut}

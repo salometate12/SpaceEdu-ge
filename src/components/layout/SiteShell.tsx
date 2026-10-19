@@ -22,7 +22,7 @@ export function SiteShell({ children }: SiteShellProps) {
   return (
     <div
       className={`site-shell flex min-h-0 flex-1 flex-col ${
-        dockVisible ? "pb-28 md:pb-0" : ""
+        dockVisible ? "pb-36 md:pb-0" : ""
       }`}
     >
       {children}
