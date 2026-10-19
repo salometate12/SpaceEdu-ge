@@ -4,13 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useFocusMode } from "@/contexts/FocusModeContext";
+import { useCurrentUserAvatar, type UserAvatar } from "@/hooks/useCurrentUserAvatar";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import {
-  DASHBOARD_MOBILE_MENU_HREF,
   isDockItemActive,
   mobileDockHidden,
   mobileDockItems,
@@ -21,31 +20,43 @@ const SCROLL_DOWN_THRESHOLD = 8;
 const SCROLL_UP_THRESHOLD = 4;
 const MIN_SCROLL_Y = 48;
 
-/** A plain icon slot, styled like a link in the header's nav. */
-function DockIconLink({
-  href,
-  label,
-  icon: Icon,
-  active,
-}: {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  active: boolean;
-}) {
+const TAB_BASE =
+  "group flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center gap-[3px] rounded-2xl outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/40 motion-reduce:transition-none";
+
+function TabContent({ item, active, avatar }: { item: MobileDockItem; active: boolean; avatar: UserAvatar }) {
+  const Icon = item.icon;
   return (
-    <Link
-      href={href}
-      aria-label={label}
-      aria-current={active ? "page" : undefined}
-      className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors active:scale-90 ${
-        active
-          ? "bg-white/[0.14] text-white"
-          : "text-white/65 hover:bg-white/[0.08] hover:text-white"
-      }`}
-    >
-      <Icon className="h-[21px] w-[21px] stroke-[1.75]" />
-    </Link>
+    <>
+      {item.avatar ? (
+        <span
+          className={`flex h-[23px] w-[23px] items-center justify-center overflow-hidden rounded-full bg-[#3f3f46] text-[11px] font-semibold text-white ring-1 ${
+            active ? "ring-white" : "ring-transparent"
+          }`}
+          aria-hidden
+        >
+          {avatar.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- provider avatar, tiny
+            <img src={avatar.photoUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+          ) : avatar.initial ? (
+            avatar.initial
+          ) : (
+            <Icon className="h-[14px] w-[14px] stroke-[2]" />
+          )}
+        </span>
+      ) : (
+        <Icon className={`h-[21px] w-[21px] stroke-[1.8] ${active ? "text-white" : "text-[#a1a1aa]"}`} aria-hidden />
+      )}
+      <span
+        // On the narrowest phones (360px) „ხელსაწყოები“ needs a hair less room.
+        className={`whitespace-nowrap text-[10.5px] leading-none max-[379px]:text-[10px] max-[379px]:tracking-[-0.02em] ${active ? "font-semibold text-white" : "text-[#a1a1aa]"}`}
+      >
+        {item.label}
+      </span>
+      <span
+        className={`h-1 w-1 rounded-full transition-colors duration-200 ${active ? "bg-[#f472b6]" : "bg-transparent"}`}
+        aria-hidden
+      />
+    </>
   );
 }
 
@@ -55,6 +66,8 @@ export function MobileGlassDock() {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const { open: openMobileMenu } = useMobileSideMenu();
+  const { available: chatAvailable, isOpen: chatOpen, open: openChat } = useAIChatPanel();
+  const avatar = useCurrentUserAvatar();
   // URL → remembered working space → account → this device's last space,
   // the same order as the header (see useWorkingSpace).
   const { space: effectiveSpace, isAdmin } = useWorkingSpace();
@@ -76,7 +89,8 @@ export function MobileGlassDock() {
   }, []);
 
   useEffect(() => {
-    if (hidden) return;
+    // While the chat sheet is open the dock stays put.
+    if (hidden || chatOpen) return;
 
     lastScrollY.current = window.scrollY;
 
@@ -89,7 +103,7 @@ export function MobileGlassDock() {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [hidden, handleScroll]);
+  }, [hidden, chatOpen, handleScroll]);
 
   useEffect(() => {
     const resetOnNav = () => {
@@ -101,88 +115,91 @@ export function MobileGlassDock() {
 
   if (hidden) return null;
 
-  const bySlot = (slot: MobileDockItem["slot"]) =>
-    items.find((item) => item.slot === slot);
-  const first = bySlot("first");
-  const second = bySlot("second");
-  const primary = bySlot("primary");
-  const accent = bySlot("accent");
+  const activeFor = (item: MobileDockItem) => (pathname ? isDockItemActive(pathname, item) : false);
+  const shown = visible || chatOpen;
 
-  const activeFor = (item: MobileDockItem | undefined) =>
-    item && pathname ? isDockItemActive(pathname, item) : false;
+  const renderTab = (item: MobileDockItem) => {
+    const active = activeFor(item);
+    if (item.action === "menu") {
+      return (
+        <button key={item.slot} type="button" onClick={openMobileMenu} aria-label={item.label} className={TAB_BASE}>
+          <TabContent item={item} active={false} avatar={avatar} />
+        </button>
+      );
+    }
+    return (
+      <Link
+        key={item.slot}
+        href={item.href}
+        aria-label={item.label}
+        aria-current={active ? "page" : undefined}
+        className={TAB_BASE}
+      >
+        <TabContent item={item} active={active} avatar={avatar} />
+      </Link>
+    );
+  };
 
-  const PrimaryIcon = primary?.icon;
-  const AccentIcon = accent?.icon;
-  const accentActive = activeFor(accent);
-
-  // The primary slot is the drawer on app pages and an ordinary link on the
-  // marketing ones; both wear the header's white call-to-action.
-  const primaryClass =
-    "mx-0.5 flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0f0f14] shadow-[0_6px_18px_-6px_rgba(0,0,0,0.65)] transition-transform active:scale-90";
+  const center = items.find((item) => item.slot === "center");
+  const CenterIcon = center?.icon;
+  const centerActive = center ? activeFor(center) : false;
+  // The AI button opens the chat sheet in place; on the AI teacher pages
+  // (where the sheet is unavailable) it is simply the current page.
+  const centerOpensChat = center?.action === "ai-chat" && chatAvailable;
+  const ringed = (center?.action === "ai-chat" && chatOpen) || centerActive;
+  const circleClass = `box-content flex h-14 w-14 items-center justify-center rounded-full border-4 border-[var(--bg-primary)] bg-[var(--accent-primary)] text-white transition-[transform,box-shadow] duration-200 active:scale-[0.94] motion-reduce:transition-none ${
+    ringed
+      ? "shadow-[0_0_0_6px_rgba(216,24,120,0.22),0_10px_24px_-8px_rgba(216,24,120,0.5)]"
+      : "shadow-[0_10px_24px_-8px_rgba(216,24,120,0.5)]"
+  }`;
+  const centerInner =
+    center && CenterIcon ? (
+      <>
+        <span className={circleClass}>
+          <CenterIcon className="h-[23px] w-[23px] stroke-[2]" aria-hidden />
+        </span>
+        <span className="mt-1 whitespace-nowrap text-[10.5px] font-semibold leading-none text-white">{center.label}</span>
+      </>
+    ) : null;
 
   return (
     <nav
       aria-label="მობილური ნავიგაცია"
-      className={`fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden transition-[transform,opacity] duration-300 ease-out ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-full opacity-0"
+      className={`fixed inset-x-3 bottom-[max(22px,calc(env(safe-area-inset-bottom)+10px))] z-50 md:hidden transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none ${
+        shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[140%] opacity-0"
       }`}
     >
       {/* Same surface as the header pill — see `.header-pill` in globals.css.
           The bar is dark in both themes, so its children render their
           night-mode styling; hence the `dark` class. */}
-      <div className="header-pill dark flex items-center gap-1 rounded-full border border-white/[0.08] px-2 py-2 shadow-[0_18px_44px_-14px_rgba(2,6,23,0.75)]">
-        {first && (
-          <DockIconLink
-            href={first.href}
-            label={first.label}
-            icon={first.icon}
-            active={activeFor(first)}
-          />
-        )}
-        {second && (
-          <DockIconLink
-            href={second.href}
-            label={second.label}
-            icon={second.icon}
-            active={activeFor(second)}
-          />
-        )}
-
-        {primary &&
-          PrimaryIcon &&
-          (primary.href === DASHBOARD_MOBILE_MENU_HREF ? (
-            <button
-              type="button"
-              onClick={openMobileMenu}
-              aria-label={primary.label}
-              className={primaryClass}
-            >
-              <PrimaryIcon className="h-[21px] w-[21px] stroke-[2]" />
-            </button>
-          ) : (
-            <Link href={primary.href} aria-label={primary.label} className={primaryClass}>
-              <PrimaryIcon className="h-[21px] w-[21px] stroke-[2]" />
-            </Link>
-          ))}
-
-        <div className="flex h-11 w-11 items-center justify-center">
-          <ThemeToggle className="!h-11 !w-11 !rounded-full !border-0 !bg-transparent !text-white/65 hover:!bg-white/[0.08] hover:!text-white" />
-        </div>
-
-        {accent && AccentIcon && (
-          <Link
-            href={accent.href}
-            aria-label={accent.label}
-            aria-current={accentActive ? "page" : undefined}
-            className={`flex h-12 w-12 items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#f5b8ec,#d946ef_55%,#a855f7)] text-white shadow-[0_8px_22px_-4px_rgba(217,70,239,0.65)] transition-transform active:scale-90 ${
-              accentActive ? "ring-2 ring-white/80" : ""
-            }`}
-          >
-            <AccentIcon className="h-[21px] w-[21px] stroke-[2]" />
-          </Link>
-        )}
+      <div className="header-pill dark flex h-[66px] items-center rounded-full border border-white/[0.08] px-1 shadow-[0_18px_44px_-14px_rgba(2,6,23,0.75)]">
+        {items.filter((item) => item.slot === "tab1" || item.slot === "tab2").map(renderTab)}
+        {center ? (
+          <div className="relative flex w-[60px] shrink-0 justify-center">
+            {centerOpensChat ? (
+              <button
+                type="button"
+                onClick={openChat}
+                aria-label="AI მასწავლებელი"
+                aria-expanded={chatOpen}
+                aria-controls="ai-chat-window"
+                className="-mt-[30px] flex flex-col items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              >
+                {centerInner}
+              </button>
+            ) : (
+              <Link
+                href={center.href}
+                aria-label={center.label}
+                aria-current={centerActive ? "page" : undefined}
+                className="-mt-[30px] flex flex-col items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              >
+                {centerInner}
+              </Link>
+            )}
+          </div>
+        ) : null}
+        {items.filter((item) => item.slot === "tab4" || item.slot === "tab5").map(renderTab)}
       </div>
     </nav>
   );

@@ -1,12 +1,14 @@
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
 import { aiTeacherHrefForSpace, profileHrefForSpace } from "@/lib/access-control";
+import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
   Home,
+  Info,
+  LayoutGrid,
   LogIn,
-  Menu,
   Rocket,
   Sparkles,
   Tag,
@@ -14,26 +16,30 @@ import {
 } from "lucide-react";
 
 /**
- * The dock has four fixed slots, and every page fills them with whatever
- * it has: two plain icons, one primary action in a white circle (the
- * bottom-bar echo of the header's white call to action) and the accent
- * sphere on the right. Naming the slots rather than the destinations is
- * what lets the marketing pages and the app share one bar.
+ * Five fixed places, left to right: two tabs, the raised pink button in
+ * the centre, two tabs. Every page fills them with what it has — the app
+ * and the marketing pages share one bar.
  */
-export type MobileDockSlot = "first" | "second" | "primary" | "accent";
+export type MobileDockSlot = "tab1" | "tab2" | "center" | "tab4" | "tab5";
+export const MOBILE_DOCK_SLOTS: readonly MobileDockSlot[] = ["tab1", "tab2", "center", "tab4", "tab5"];
 
 export interface MobileDockItem {
+  slot: MobileDockSlot;
   href: string;
   label: string;
   icon: LucideIcon;
   match?: (pathname: string) => boolean;
-  slot: MobileDockSlot;
+  /** Instead of navigating: open the AI chat sheet, or the tools menu. */
+  action?: "ai-chat" | "menu";
+  /** Draw the signed-in user's avatar instead of the icon. */
+  avatar?: boolean;
 }
 
-export const DASHBOARD_MOBILE_MENU_HREF = "#dashboard-mobile-menu";
 export const DASHBOARD_CALENDAR_ANCHOR_HREF = "/dashboard-student#dashboard-calendar-panel";
 
-/** Inside the app: AI · Calendar · Menu · Profile. */
+const isAiTeacherPath = (p: string) => p === "/ai-teacher" || p === "/ai-teacher/abit";
+
+/** Inside the app: მთავარი · კალენდარი · AI · ხელსაწყოები · პროფილი. */
 function appDock(space: SpaceeduSpace | null, isAdmin: boolean): MobileDockItem[] {
   const calendarHref =
     space === "abiturient"
@@ -41,61 +47,57 @@ function appDock(space: SpaceeduSpace | null, isAdmin: boolean): MobileDockItem[
       : space === "school"
         ? "/study-plan"
         : DASHBOARD_CALENDAR_ANCHOR_HREF;
+  const home = dashboardHrefForSpace(space);
   return [
     {
-      slot: "first",
-      href: aiTeacherHrefForSpace(space),
-      label: "AI",
-      icon: Sparkles,
-      match: (p) => p === "/ai-teacher" || p === "/ai-teacher/abit",
+      slot: "tab1",
+      href: home,
+      label: "მთავარი",
+      icon: Home,
+      match: (p) => p === home || p.startsWith("/dashboard") || p === "/school",
     },
     {
-      slot: "second",
+      slot: "tab2",
       href: calendarHref,
       label: "კალენდარი",
       icon: CalendarDays,
       match: (p) => p.startsWith("/study-plan"),
     },
     {
-      slot: "primary",
-      href: DASHBOARD_MOBILE_MENU_HREF,
-      label: "მენიუ",
-      icon: Menu,
+      slot: "center",
+      href: aiTeacherHrefForSpace(space),
+      label: "AI",
+      icon: Sparkles,
+      action: "ai-chat",
+      match: isAiTeacherPath,
     },
     {
-      slot: "accent",
+      slot: "tab4",
+      href: "#mobile-tools-menu",
+      label: "ხელსაწყოები",
+      icon: LayoutGrid,
+      action: "menu",
+      // A menu, not a place: never the current page.
+      match: () => false,
+    },
+    {
+      slot: "tab5",
       href: profileHrefForSpace(space, { isAdmin }),
       label: "პროფილი",
       icon: UserRound,
-      match: (p) => p.startsWith("/profile"),
+      avatar: true,
+      match: (p) => p.startsWith("/profile") || p.startsWith("/settings"),
     },
   ];
 }
 
-/** On the marketing pages the same four slots carry the visitor's path —
- *  home, pricing, the call to action, and signing in. */
-const LANDING_DOCK: MobileDockItem[] = [
-  { slot: "first", href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
-  {
-    slot: "second",
-    href: "/pricing",
-    label: "ფასები",
-    icon: Tag,
-    match: (p) => p === "/pricing",
-  },
-  {
-    slot: "primary",
-    href: "/select-space",
-    label: "დაწყება",
-    icon: Rocket,
-  },
-  {
-    slot: "accent",
-    href: "/login",
-    label: "შესვლა",
-    icon: LogIn,
-    match: (p) => p === "/login",
-  },
+/** On the marketing pages the same five places carry the visitor's path. */
+export const LANDING_DOCK: MobileDockItem[] = [
+  { slot: "tab1", href: "/", label: "მთავარი", icon: Home, match: (p) => p === "/" },
+  { slot: "tab2", href: "/pricing", label: "ფასები", icon: Tag, match: (p) => p === "/pricing" },
+  { slot: "center", href: "/select-space", label: "დაწყება", icon: Rocket },
+  { slot: "tab4", href: "/about", label: "ჩვენ შესახებ", icon: Info, match: (p) => p === "/about" },
+  { slot: "tab5", href: "/login", label: "შესვლა", icon: LogIn, match: (p) => p === "/login" },
 ];
 
 export function mobileDockHidden(pathname: string | null): boolean {

@@ -6,10 +6,26 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowLeft, ArrowUp, Maximize2, Minimize2, Plus, Sparkles, X } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  ChevronRight,
+  Copy,
+  Maximize2,
+  Minimize2,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  X,
+} from "lucide-react";
+import { aiTeacherHrefForSpace } from "@/lib/access-control";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
@@ -73,6 +89,36 @@ const ACCENTS: Record<
 };
 
 type View = "home" | "chat";
+
+const PHONE_QUERY = "(max-width: 767.98px)";
+function subscribePhone(onChange: () => void) {
+  const query = window.matchMedia(PHONE_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const readPhone = () => window.matchMedia(PHONE_QUERY).matches;
+
+/** How far the on-screen keyboard pushes up from the bottom, and the
+ * visible height above it, so the sheet's input stays over the keyboard. */
+function useKeyboardInset(active: boolean): { inset: number; height: number } {
+  const [state, setState] = useState({ inset: 0, height: 0 });
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!active || !viewport) return;
+    const update = () => {
+      const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+      setState({ inset: inset > 80 ? inset : 0, height: Math.round(viewport.height) });
+    };
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+    };
+  }, [active]);
+  return active ? state : { inset: 0, height: 0 };
+}
 
 /**
  * The AI-teacher chat, as a rounded floating window. It opens out of the
@@ -158,24 +204,43 @@ export function AIChatSidePanel() {
     };
   }, [isExpanded]);
 
-  const sendMessage = async (rawMessage: string) => {
+  // Phone: the chat is a bottom sheet (see the phone branch below).
+  const isPhone = useSyncExternalStore(subscribePhone, readPhone, () => false);
+  const keyboard = useKeyboardInset(isPhone && isOpen);
+  const [sheetDrag, setSheetDrag] = useState(0);
+  const dragStart = useRef<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // The page behind an open sheet doesn't scroll (and the dock stays put).
+  useEffect(() => {
+    if (!isPhone || !isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isPhone, isOpen]);
+
+  /** `base` replaces the conversation so far — „თავიდან დაწერა“ resends a
+   * question with the turns before it. */
+  const sendMessage = async (rawMessage: string, base: ChatMessage[] = messages) => {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
     // The turns before this question, so follow-ups keep their topic.
-    const history = buildChatHistory(messages);
+    const history = buildChatHistory(base);
 
     setView("chat");
     setPendingSuggestions(null);
     setFriendlyError(null);
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: trimmed },
-    ]);
     setInput("");
 
     const assistantId = crypto.randomUUID();
     setIsLoading(true);
-    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
+    setMessages([
+      ...base,
+      { id: crypto.randomUUID(), role: "user", content: trimmed },
+      { id: assistantId, role: "assistant", content: "" },
+    ]);
 
     try {
       const text = await fetchAiTextStream(
@@ -259,6 +324,209 @@ export function AIChatSidePanel() {
 
   const activeAccent = ACCENTS[subjectAccent];
 
+  const copyAnswer = async (message: ChatMessage) => {
+    if (await copyToClipboard(message.content)) {
+      setCopiedId(message.id);
+      window.setTimeout(() => setCopiedId((id) => (id === message.id ? null : id)), 2000);
+    }
+  };
+
+  /** Asks the question behind this answer again. */
+  const regenerate = (assistantIndex: number) => {
+    const userIndex = messages.slice(0, assistantIndex).map((m) => m.role).lastIndexOf("user");
+    if (userIndex === -1) return;
+    void sendMessage(messages[userIndex].content, messages.slice(0, userIndex));
+  };
+
+  if (isPhone) {
+    const sheetHeight = keyboard.inset > 0 ? `min(78dvh, ${Math.max(240, keyboard.height - 12)}px)` : "78dvh";
+    const lastAssistant = messages.map((m) => m.role).lastIndexOf("assistant");
+    const iconButton =
+      "flex h-8 w-8 items-center justify-center rounded-full text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10";
+    return (
+      <>
+        <div
+          aria-hidden
+          onClick={close}
+          className={`fixed inset-0 z-[61] bg-[rgba(15,23,42,0.32)] transition-opacity duration-[280ms] ease-out motion-reduce:transition-none ${
+            isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        />
+        <div
+          id="ai-chat-window"
+          role="dialog"
+          aria-modal="true"
+          aria-label="AI მასწავლებელი"
+          aria-hidden={!isOpen}
+          inert={!isOpen || undefined}
+          className={`fixed inset-x-0 z-[62] flex flex-col overflow-hidden rounded-t-[28px] bg-white text-[#18181b] shadow-[0_-16px_40px_-16px_rgba(15,23,42,0.35)] ease-out motion-reduce:transition-none dark:bg-[var(--bg-card)] dark:text-[#f4f4f5] ${
+            sheetDrag ? "" : "transition-transform duration-[280ms]"
+          } ${isOpen ? "" : "pointer-events-none"}`}
+          style={{
+            bottom: keyboard.inset,
+            height: sheetHeight,
+            transform: isOpen ? `translateY(${sheetDrag}px)` : "translateY(105%)",
+          }}
+        >
+          {/* Handle + header: drag down to close. */}
+          <div
+            className="shrink-0 touch-none"
+            onPointerDown={(event) => {
+              if ((event.target as HTMLElement).closest("button, a")) return;
+              dragStart.current = event.clientY;
+              try {
+                event.currentTarget.setPointerCapture(event.pointerId);
+              } catch {
+                // moves still arrive without capture
+              }
+            }}
+            onPointerMove={(event) => {
+              if (dragStart.current === null) return;
+              setSheetDrag(Math.max(0, event.clientY - dragStart.current));
+            }}
+            onPointerUp={() => {
+              if (dragStart.current === null) return;
+              dragStart.current = null;
+              if (sheetDrag > 90) close();
+              setSheetDrag(0);
+            }}
+            onPointerCancel={() => {
+              dragStart.current = null;
+              setSheetDrag(0);
+            }}
+          >
+            <div className="flex justify-center pb-1 pt-2.5">
+              <span className="h-1 w-9 rounded-full bg-[#e4e4e7] dark:bg-white/20" aria-hidden />
+            </div>
+            <div className="flex items-center gap-2.5 px-4 pb-3 pt-1.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] bg-[#fdf2f8] text-[var(--accent-primary)] dark:bg-[rgba(216,24,120,0.15)]">
+                <Sparkles className="h-4 w-4" strokeWidth={2} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15px] font-semibold leading-tight">AI მასწავლებელი</p>
+                <p className="truncate text-xs text-[#71717a] dark:text-[#a1a1aa]">{subject ?? content.headerSubtitle}</p>
+              </div>
+              {hasMessages ? (
+                <button type="button" onClick={startNewChat} aria-label="ახალი ჩატი" className={iconButton}>
+                  <Plus className="h-[18px] w-[18px]" />
+                </button>
+              ) : null}
+              <Link href={aiTeacherHrefForSpace(workingSpace)} onClick={close} aria-label="სრულ ეკრანზე" className={iconButton}>
+                <Maximize2 className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="დახურვა"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f4f4f5] text-[#52525b] dark:bg-white/10 dark:text-[#d4d4d8]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="h-px bg-[#f1f1f3] dark:bg-white/[0.08]" />
+          </div>
+
+          <div ref={feedRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 pt-5">
+            {!hasMessages ? (
+              <div>
+                <h2 className="text-2xl font-bold leading-tight">რით დაგეხმარო?</h2>
+                <p className="mt-1.5 text-sm text-[#71717a] dark:text-[#a1a1aa]">დაწერე კითხვა ან აირჩიე ერთ-ერთი:</p>
+                <div className="mt-5 space-y-2">
+                  {content.suggestions.slice(0, 3).map((suggestion) => (
+                    <button
+                      key={suggestion.title}
+                      type="button"
+                      onClick={() => void sendMessage(suggestion.prompt)}
+                      className="flex w-full items-center gap-3 rounded-2xl border border-[#ececef] px-4 py-3 text-left active:bg-black/[0.03] dark:border-white/[0.08] dark:active:bg-white/[0.04]"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14px] font-medium">{suggestion.title}</span>
+                        <span className="block truncate text-xs text-[#71717a] dark:text-[#a1a1aa]">{suggestion.prompt}</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-[#a1a1aa]" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {messages.map((message, index) => (
+                  <div key={message.id}>
+                    <MessageBubble role={message.role} content={message.content} appearance="sheet" />
+                    {message.role === "assistant" && message.content.trim() && !(isLoading && index === messages.length - 1) ? (
+                      <div className="mt-1.5 flex gap-1 pl-[34px]">
+                        <button
+                          type="button"
+                          onClick={() => void copyAnswer(message)}
+                          aria-label={copiedId === message.id ? "დაკოპირდა" : "კოპირება"}
+                          className="flex h-8 items-center gap-1 rounded-full px-2 text-xs text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10"
+                        >
+                          {copiedId === message.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          {copiedId === message.id ? "დაკოპირდა" : null}
+                        </button>
+                        {index === lastAssistant && messages[index - 1]?.role === "user" ? (
+                          <button type="button" onClick={() => regenerate(index)} aria-label="თავიდან დაწერა" className={iconButton}>
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+                {pendingSuggestions && !isLoading ? (
+                  <div className="flex flex-wrap gap-2 pl-[34px]">
+                    {pendingSuggestions.items.map((option) => (
+                      <button
+                        key={option.label}
+                        type="button"
+                        onClick={() => void sendMessage(option.prompt)}
+                        className="rounded-full border border-[#ececef] px-3.5 py-2 text-xs font-medium dark:border-white/[0.08]"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <div
+            className="shrink-0 px-3 pt-2"
+            style={{ paddingBottom: keyboard.inset > 0 ? 10 : "max(12px, env(safe-area-inset-bottom))" }}
+          >
+            {friendlyError ? (
+              <div className="mb-2 rounded-2xl bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
+                {friendlyError}
+              </div>
+            ) : null}
+            <form onSubmit={handleSubmit} className="flex items-end gap-2">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                rows={1}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="დაწერე კითხვა…"
+                aria-label="შენი კითხვა"
+                // 16px keeps iOS from zooming into the field.
+                className="max-h-32 min-h-[44px] flex-1 resize-none rounded-[22px] bg-[#f4f4f5] px-4 py-[11px] text-base leading-snug text-[#18181b] outline-none placeholder:text-[#a1a1aa] dark:bg-white/[0.06] dark:text-[#f4f4f5]"
+              />
+              <button
+                type="submit"
+                disabled={!canSend}
+                aria-label="გაგზავნა"
+                className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#18181b] text-white transition-opacity disabled:opacity-35 dark:bg-white dark:text-[#18181b]"
+              >
+                <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.5} />
+              </button>
+            </form>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div
       id="ai-chat-window"
@@ -294,7 +562,7 @@ export function AIChatSidePanel() {
             <span className="pr-1 text-xs font-medium">უკან</span>
           </button>
           <span
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-6px_rgba(99,102,241,0.7)]"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-primary)] text-white shadow-[0_6px_18px_-6px_rgba(216,24,120,0.55)]"
           >
             <Sparkles className="h-4 w-4" strokeWidth={2} />
           </span>
@@ -471,7 +739,7 @@ export function AIChatSidePanel() {
                 aria-label="გაგზავნა"
                 className={`ml-auto inline-flex h-10 w-16 shrink-0 items-center justify-center rounded-full transition ${
                   canSend
-                    ? "bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-4px_rgba(99,102,241,0.6)] hover:opacity-90 active:scale-95"
+                    ? "bg-[var(--accent-primary)] text-white shadow-[0_6px_18px_-6px_rgba(216,24,120,0.5)] hover:opacity-90 active:scale-95"
                     : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
                 }`}
               >
