@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { NullsToOptional } from "@/lib/ai/model-nulls";
-import { SLIDE_LAYOUTS, SLIDE_TYPES } from "@/lib/presentation-constants";
+import { PRESENTATION_REWRITE_MODES, SLIDE_LAYOUTS, SLIDE_TYPES } from "@/lib/presentation-constants";
 
 export {
   DEFAULT_PRESENTATION_LEVEL,
@@ -43,6 +43,17 @@ export const PresentationRequestSchema = z.object({
 });
 
 export type PresentationRequest = z.infer<typeof PresentationRequestSchema>;
+
+/** „AI-ით გადაწერა“ in the editor: one text block, one instruction. */
+export const PresentationRewriteRequestSchema = z.object({
+  text: z.string().min(1).max(4000),
+  mode: z.enum(PRESENTATION_REWRITE_MODES),
+  kind: z.string().max(40).optional(),
+  topic: z.string().max(300).optional(),
+  slideTitle: z.string().max(300).optional(),
+});
+
+export const PresentationRewriteResponseSchema = z.object({ text: z.string() });
 
 export const GeneratedSlideSchema = z.object({
   id: z.number().int(),

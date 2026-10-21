@@ -2304,3 +2304,23 @@ html.no-animations *::after {
 .code-block .hljs-tag,
 .code-block .hljs-name { color: #89ddff; }
 .code-block .hljs-deletion { color: #ff5370; }
+
+/* Presentation editor: slide text you can click and edit in place. */
+.slide-editable {
+  outline: 1px dashed transparent;
+  outline-offset: 0.35cqw;
+  transition: outline-color 0.12s ease;
+}
+.slide-editable:hover {
+  outline-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.slide-editable:focus {
+  outline: 1.5px solid color-mix(in srgb, currentColor 75%, transparent);
+}
+.slide-editable:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.45;
+}
+.point-drop-target {
+  box-shadow: 0 -0.25cqw 0 0 #ec4899;
+}

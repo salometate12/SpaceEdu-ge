@@ -7,6 +7,7 @@ import {
   deckLanguage,
   ensureThanksSlide,
   findAiTells,
+  normalizePlaceholders,
   normalizeSlidePlaceholders,
   slideText,
 } from "@/lib/presentation-style";
@@ -93,6 +94,8 @@ import {
 import {
   PresentationRequestSchema,
   PresentationResponseSchema,
+  PresentationRewriteRequestSchema,
+  PresentationRewriteResponseSchema,
   normalizePresentationSlides,
   type PresentationResponse,
 } from "@/lib/ai/presentation-schema";
@@ -589,6 +592,17 @@ export async function POST(request: Request) {
           (presentationPayload.photos ?? []).map((photo) => photo.id),
         ),
       });
+    }
+
+    if (pageType === "presentation-rewrite") {
+      const rewritePayload = PresentationRewriteRequestSchema.parse(body.payload);
+      const object = (await generateGeminiObject({
+        schema: PresentationRewriteResponseSchema,
+        system,
+        prompt: buildUserPrompt(pageType, rewritePayload),
+        temperature: 0.5,
+      })) as { text: string };
+      return Response.json({ text: normalizePlaceholders(object.text.trim()) });
     }
 
     if (pageType === "eli5") {

@@ -1,5 +1,5 @@
 import pptxgen from "pptxgenjs";
-import type { GeneratedSlide } from "@/components/presentation/PresentationWizard";
+import type { GeneratedSlide } from "@/lib/presentation-types";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
 import { slideTheme } from "@/lib/presentation-theme";
 import {
@@ -160,13 +160,16 @@ export async function exportToPptx(
   template: string,
   title: string,
   photos: UploadedPhoto[] = [],
+  /** Per slide: how much the editor shrank the text to fit (1 = not at all). */
+  fitScales: number[] = [],
 ) {
   const pptx = new pptxgen();
   pptx.layout = "LAYOUT_WIDE";
   const theme = slideTheme(template);
   const photoById = new Map(photos.map((photo) => [photo.id, photo]));
 
-  slides.forEach((slide) => {
+  slides.forEach((slide, slideIndex) => {
+    const fit = fitScales[slideIndex] ?? 1;
     const s = pptx.addSlide();
     s.background = { color: hex(theme.bg) };
 
@@ -191,7 +194,7 @@ export async function exportToPptx(
             bullet: run.bullet,
             breakLine: run.breakLine,
             color: hex(run.tone === "title" ? theme.title : run.tone === "accent" ? theme.accent : theme.body),
-            fontSize: slidePercentToPoints(run.size),
+            fontSize: Math.round(slidePercentToPoints(run.size) * fit * 10) / 10,
           },
         })),
         {

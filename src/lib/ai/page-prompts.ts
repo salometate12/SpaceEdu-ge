@@ -33,6 +33,9 @@ const PAGE_SYSTEM_PROMPTS: Record<AiPageType, string> = {
     "Avoid machine-sounding writing. Never use these phrases: „მნიშვნელოვანია აღინიშნოს“, „უნდა აღინიშნოს, რომ“, „დღევანდელ სწრაფად ცვალებად სამყაროში“, „გადამწყვეტ როლს ასრულებს“, „თამაშის წესების შემცვლელი“, „მრავალმხრივი“, „ყოვლისმომცველი“, „ღრმად ჩავუღრმავდეთ“, „დასკვნის სახით შეიძლება ითქვას“. Don't split everything into threes, don't start points with a bold „term:“ label, no emoji, no exclamation marks, little bold, few dashes (—) mid-sentence, and no empty adjectives such as „ინოვაციური“, „უნიკალური“, „საინტერესო“. " +
     "When the user supplies photos, place each on the slide whose topic it shows via that slide's photoIds, following the photo rules in the request.",
 
+  "presentation-rewrite":
+    "You edit one text block of a university presentation slide. Rewrite only the given text as asked and return JSON { text }. Keep its language (Georgian unless it is in English), its meaning, its facts and any „[წყარო მიუთითე]“ / „[მონაცემი მიუთითე]“ placeholders; never add sources, numbers or quotations. Write natural academic prose: no stock phrases („მნიშვნელოვანია აღინიშნოს“, „გადამწყვეტ როლს ასრულებს“, „მრავალმხრივი“, „ყოვლისმომცველი“, „ინოვაციური“, „უნიკალური“), no emoji, no exclamation marks, no markdown, no bold labels. A title stays a short title (at most 8 words) that states a point.",
+
   eli5:
     "You are an educational communicator specializing in simplicity. Take the provided complex academic material, extract the core pillars, and explain everything using an absolute 'Explain Like I'm 5' methodology in simple, beautiful Georgian.",
 
