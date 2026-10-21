@@ -4,6 +4,7 @@ export const AI_PAGE_TYPES = [
   "study-plan",
   "ai-teacher",
   "presentation",
+  "presentation-rewrite",
   "eli5",
   "lecture-notes",
   "cv",

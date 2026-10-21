@@ -21,3 +21,7 @@ export const SLIDE_LAYOUTS = ["prose", "bullets", "two-column", "quote", "key-fi
 export type SlideLayout = (typeof SLIDE_LAYOUTS)[number];
 
 export const SLIDE_TYPES = ["cover", "content", "image", "stats", "conclusion", "thanks"] as const;
+
+/** „AI-ით გადაწერა“ options in the editor. */
+export const PRESENTATION_REWRITE_MODES = ["shorter", "academic", "simpler", "prose"] as const;
+export type PresentationRewriteMode = (typeof PRESENTATION_REWRITE_MODES)[number];

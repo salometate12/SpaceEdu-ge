@@ -1,6 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ElementType,
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
+import { GripVertical, ImagePlus, X } from "lucide-react";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
 import { slideTheme } from "@/lib/presentation-theme";
 import {
@@ -16,31 +27,109 @@ import {
 import { effectiveLayout } from "@/lib/presentation-style";
 import type { SlideTheme } from "@/lib/presentation-theme";
 import type { SlideLayout } from "@/lib/presentation-constants";
-import type { GeneratedSlide, PresentationTemplate } from "./PresentationWizard";
+import { FIELD_LABEL, getField, sameField, type TextField } from "@/lib/presentation-deck";
+import type { GeneratedSlide, PresentationTemplate } from "@/lib/presentation-types";
+import { EditableText } from "./EditableText";
 
-const cqw = (size: number) => `${size}cqw`;
+/** Font sizes shrink together with --fit when the text doesn't fit. */
+const fs = (size: number) => `calc(${size}cqw * var(--fit, 1))`;
+
+/** The text-editing hooks a slide in the editor gets. */
+export interface SlideTextEditing {
+  /** The field to focus when it renders (a point just added with Enter). */
+  focus: TextField | null;
+  onFocusField: (field: TextField) => void;
+  onCommit: (field: TextField, value: string) => void;
+  onEnterPoint: (index: number) => void;
+  onBackspacePoint: (index: number) => void;
+  onRemovePoint: (index: number) => void;
+  onMovePoint: (from: number, to: number) => void;
+}
+
+/** Drags a bullet point by its ⋮⋮ handle onto another point of the same list. */
+function startPointDrag(event: ReactPointerEvent<HTMLElement>, from: number, onMove: (from: number, to: number) => void) {
+  event.preventDefault();
+  event.stopPropagation();
+  const list = event.currentTarget.closest("ul");
+  if (!list) return;
+  const target = (x: number, y: number) => {
+    const item = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-point-index]");
+    return item && list.contains(item) ? item : null;
+  };
+  let marked: HTMLElement | null = null;
+  const mark = (item: HTMLElement | null) => {
+    marked?.classList.remove("point-drop-target");
+    marked = item;
+    marked?.classList.add("point-drop-target");
+  };
+  const move = (ev: PointerEvent) => mark(target(ev.clientX, ev.clientY));
+  const up = (ev: PointerEvent) => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    window.removeEventListener("pointercancel", up);
+    mark(null);
+    const item = target(ev.clientX, ev.clientY);
+    if (item) onMove(from, Number(item.dataset.pointIndex));
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
+}
 
 /** A slide's text in its layout. Sizes are in container-width units so the
  * slide scales as a whole; the PPTX export mirrors the same structure. */
-function SlideText({ slide, layout, theme }: { slide: GeneratedSlide; layout: SlideLayout; theme: SlideTheme }) {
-  const title = (size: number, extra = "") => (
-    <h3 className={`font-bold leading-[1.15] ${extra}`} style={{ color: theme.title, fontSize: cqw(size) }}>
-      {slide.title}
-    </h3>
+function SlideText({
+  slide,
+  layout,
+  theme,
+  edit,
+}: {
+  slide: GeneratedSlide;
+  layout: SlideLayout;
+  theme: SlideTheme;
+  edit?: SlideTextEditing;
+}) {
+  const text = (
+    field: TextField,
+    props: {
+      as?: ElementType;
+      className?: string;
+      style?: CSSProperties;
+      multiline?: boolean;
+      placeholder?: string;
+      onEnterAtEnd?: () => void;
+      onBackspaceEmpty?: () => void;
+    } = {},
+  ) => (
+    <EditableText
+      value={getField(slide, field)}
+      editable={Boolean(edit)}
+      label={FIELD_LABEL[field.kind]}
+      autoFocus={sameField(edit?.focus, field)}
+      onFocus={() => edit?.onFocusField(field)}
+      onCommit={(value) => edit?.onCommit(field, value)}
+      placeholder={props.placeholder ?? FIELD_LABEL[field.kind]}
+      {...props}
+    />
   );
+
+  const title = (size: number, extra = "") =>
+    text({ kind: "title" }, { as: "h3", className: `block font-bold leading-[1.15] ${extra}`, style: { color: theme.title, fontSize: fs(size) } });
+  const body = (size: number, className: string) =>
+    slide.body !== undefined && (slide.body || edit)
+      ? text({ kind: "body" }, { as: "p", className: `block ${className}`, style: { color: theme.body, fontSize: fs(size) }, multiline: true })
+      : null;
 
   if (slide.type === "thanks") {
     return (
       <>
         {title(TEXT_SIZE.coverTitle)}
-        {slide.body ? (
-          <p className="mt-[1.4cqw]" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
-        ) : null}
+        {slide.body ? body(TEXT_SIZE.prose, "mt-[1.4cqw]") : null}
         {/* Georgian letters (ყ, ღ…) reach well below the baseline: keep clear. */}
         <span className="mt-[3.4cqw] block h-[0.3cqw] w-[8cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
-        {slide.footnote ? (
-          <p className="mt-[1.6cqw] tracking-wide" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.footnote) }}>{slide.footnote}</p>
-        ) : null}
+        {slide.footnote
+          ? text({ kind: "footnote" }, { as: "p", className: "mt-[1.6cqw] block tracking-wide", style: { color: theme.body, fontSize: fs(TEXT_SIZE.footnote) } })
+          : null}
       </>
     );
   }
@@ -49,9 +138,7 @@ function SlideText({ slide, layout, theme }: { slide: GeneratedSlide; layout: Sl
     return (
       <>
         {title(TEXT_SIZE.coverTitle)}
-        {slide.body ? (
-          <p className="mt-[1.6cqw] leading-snug" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.body) }}>{slide.body}</p>
-        ) : null}
+        {body(TEXT_SIZE.body, "mt-[1.6cqw] leading-snug")}
       </>
     );
   }
@@ -61,53 +148,99 @@ function SlideText({ slide, layout, theme }: { slide: GeneratedSlide; layout: Sl
       <>
         <span className="mb-[1.6cqw] block h-[0.35cqw] w-[6cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
         {title(TEXT_SIZE.sectionTitle)}
-        {slide.body ? (
-          <p className="mt-[1.4cqw] leading-snug" style={{ color: theme.body, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
-        ) : null}
+        {body(TEXT_SIZE.prose, "mt-[1.4cqw] leading-snug")}
       </>
     );
   }
 
   const bodyStyle = { color: theme.body };
+  const points = slide.points ?? [];
   return (
     <>
       {title(TEXT_SIZE.title)}
-      {layout === "bullets" && slide.points?.length ? (
-        <ul className="mt-[2.2cqw] space-y-[0.9cqw]" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.body) }}>
-          {slide.points.map((point) => (
-            <li key={point} className="flex gap-[0.8cqw] leading-snug">
+      {layout === "bullets" && (points.length || edit) ? (
+        <ul className="mt-[2.2cqw] space-y-[0.9cqw]" style={{ ...bodyStyle, fontSize: fs(TEXT_SIZE.body) }}>
+          {points.map((_, index) => (
+            <li key={index} data-point-index={index} className="group/point relative flex gap-[0.8cqw] rounded-[0.4cqw] leading-snug">
               <span style={{ color: theme.accent }}>•</span>
-              <span>{point}</span>
+              {text(
+                { kind: "point", index },
+                {
+                  className: "min-w-0 flex-1",
+                  onEnterAtEnd: () => edit?.onEnterPoint(index),
+                  onBackspaceEmpty: () => edit?.onBackspacePoint(index),
+                },
+              )}
+              {edit ? (
+                <span
+                  data-html2canvas-ignore
+                  className="absolute -right-1 -top-1 flex items-center gap-0.5 rounded-full bg-white/95 p-0.5 text-slate-600 opacity-0 shadow-sm ring-1 ring-black/10 transition-opacity group-focus-within/point:opacity-100 group-hover/point:opacity-100 [@media(hover:none)]:hidden"
+                >
+                  <button
+                    type="button"
+                    aria-label="პუნქტის გადატანა"
+                    title="გადაათრიე რიგის შესაცვლელად"
+                    onPointerDown={(event) => startPointDrag(event, index, edit.onMovePoint)}
+                    className="flex h-6 w-6 cursor-grab touch-none items-center justify-center rounded-full hover:bg-slate-100 active:cursor-grabbing"
+                  >
+                    <GripVertical className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="პუნქტის წაშლა"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={() => edit.onRemovePoint(index)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-rose-50 hover:text-rose-600"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>
       ) : layout === "two-column" && slide.columns?.length ? (
         <div className="mt-[2.4cqw] grid grid-cols-2 gap-[3cqw]">
-          {slide.columns.slice(0, 2).map((column) => (
-            <div key={column.heading} className="border-t-[0.25cqw] pt-[1.2cqw]" style={{ borderColor: theme.accent }}>
-              <p className="font-semibold" style={{ color: theme.title, fontSize: cqw(TEXT_SIZE.column + 0.25) }}>{column.heading}</p>
-              <p className="mt-[0.8cqw] leading-snug" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.column) }}>{column.text}</p>
+          {slide.columns.slice(0, 2).map((_, index) => (
+            <div key={index} className="border-t-[0.25cqw] pt-[1.2cqw]" style={{ borderColor: theme.accent }}>
+              {text(
+                { kind: "column-heading", index },
+                { as: "p", className: "block font-semibold", style: { color: theme.title, fontSize: fs(TEXT_SIZE.column + 0.25) } },
+              )}
+              {text(
+                { kind: "column-text", index },
+                { as: "p", className: "mt-[0.8cqw] block leading-snug", style: { ...bodyStyle, fontSize: fs(TEXT_SIZE.column) }, multiline: true },
+              )}
             </div>
           ))}
         </div>
       ) : layout === "quote" && slide.quote ? (
         <figure className="mt-[2.4cqw] border-l-[0.4cqw] pl-[2.2cqw]" style={{ borderColor: theme.accent }}>
-          <blockquote className="italic leading-snug" style={{ color: theme.title, fontSize: cqw(TEXT_SIZE.quote) }}>
-            „{slide.quote.text}“
+          <blockquote className="italic leading-snug" style={{ color: theme.title, fontSize: fs(TEXT_SIZE.quote) }}>
+            „{text({ kind: "quote" }, { multiline: true })}“
           </blockquote>
-          {slide.quote.author ? (
-            <figcaption className="mt-[1.2cqw]" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.body) }}>{slide.quote.author}</figcaption>
-          ) : null}
+          {slide.quote.author || edit
+            ? text(
+                { kind: "quote-author" },
+                { as: "figcaption", className: "mt-[1.2cqw] block", style: { ...bodyStyle, fontSize: fs(TEXT_SIZE.body) }, placeholder: "ავტორი (არასავალდებულო)" },
+              )
+            : null}
         </figure>
       ) : layout === "key-figure" && slide.figure ? (
         <div className="mt-[1.8cqw]">
-          <p className="font-bold leading-[1.05]" style={{ color: theme.accent, fontSize: cqw(keyFigureSize(slide.figure.value)) }}>{slide.figure.value}</p>
-          <p className="mt-[1.4cqw] leading-snug" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.figure.caption}</p>
+          {text(
+            { kind: "figure-value" },
+            { as: "p", className: "block font-bold leading-[1.05]", style: { color: theme.accent, fontSize: fs(keyFigureSize(slide.figure.value)) } },
+          )}
+          {text(
+            { kind: "figure-caption" },
+            { as: "p", className: "mt-[1.4cqw] block leading-snug", style: { ...bodyStyle, fontSize: fs(TEXT_SIZE.prose) }, multiline: true },
+          )}
         </div>
-      ) : slide.body ? (
-        <p className="mt-[2cqw] leading-relaxed" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.body}</p>
+      ) : slide.body !== undefined && (slide.body || edit) ? (
+        body(TEXT_SIZE.prose, "mt-[2cqw] leading-relaxed")
       ) : slide.points?.length ? (
-        <p className="mt-[2cqw] leading-relaxed" style={{ ...bodyStyle, fontSize: cqw(TEXT_SIZE.prose) }}>{slide.points.join(" ")}</p>
+        <p className="mt-[2cqw] leading-relaxed" style={{ ...bodyStyle, fontSize: fs(TEXT_SIZE.prose) }}>{slide.points.join(" ")}</p>
       ) : null}
     </>
   );
@@ -137,7 +270,21 @@ interface SlideCardProps {
   onTransfer?: (photoId: string, targetSlideIndex: number) => void;
   /** Shows a floating copy of the photo while it's dragged off the slide. */
   onDragGhost?: (ghost: DragGhost | null) => void;
+  /** Makes the text editable in place. */
+  textEditing?: SlideTextEditing;
+  /** How much the text had to shrink to fit, and whether it still overflows. */
+  onFitChange?: (fit: SlideFit, slideId: number) => void;
+  /** A photo slide without a photo shows a slot; clicking it calls this. */
+  onPhotoSlot?: () => void;
 }
+
+export interface SlideFit {
+  scale: number;
+  overflow: boolean;
+}
+
+/** Text shrinks in 5% steps down to this before the slide warns. */
+export const MIN_FIT_SCALE = 0.75;
 
 interface DragState {
   mode: "move" | "resize";
@@ -158,6 +305,9 @@ export function slideIndexAt(x: number, y: number): number | null {
   const value = Number(target.dataset.slideDrop);
   return Number.isInteger(value) ? value : null;
 }
+
+/** Where a photo slide's empty photo slot sits (autoLayout's image region). */
+const PHOTO_SLOT = { x: 8, y: 24, w: 84, h: 69 };
 
 const HANDLES: { corner: Corner; className: string; cursor: string }[] = [
   { corner: "nw", className: "-left-1.5 -top-1.5", cursor: "nwse-resize" },
@@ -183,6 +333,9 @@ export function SlideCard({
   onRemovePhoto,
   onTransfer,
   onDragGhost,
+  textEditing,
+  onFitChange,
+  onPhotoSlot,
 }: SlideCardProps) {
   const theme = slideTheme(template.id);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -203,6 +356,38 @@ export function SlideCard({
   const isCover = slide.type === "cover";
   const centered = slide.type === "thanks";
   const layout = effectiveLayout(slide);
+
+  // Text that doesn't fit shrinks a little (to MIN_FIT_SCALE), then warns;
+  // it never spills off the slide. Measured on the DOM, so it also follows
+  // typing (the input event) and late-loading fonts.
+  const textRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState<SlideFit>({ scale: 1, overflow: false });
+  const measure = useCallback(() => {
+    const element = textRef.current;
+    if (!element) return;
+    const overflows = () => element.scrollHeight > element.clientHeight + 1;
+    let scale = 1;
+    element.style.setProperty("--fit", "1");
+    while (overflows() && scale > MIN_FIT_SCALE + 0.001) {
+      scale = Math.round((scale - 0.05) * 100) / 100;
+      element.style.setProperty("--fit", String(scale));
+    }
+    const overflow = overflows();
+    setFit((previous) => (previous.scale === scale && previous.overflow === overflow ? previous : { scale, overflow }));
+  }, []);
+  const textBoxKey = `${text.left}/${text.top}/${text.right}/${text.bottom}`;
+  useLayoutEffect(measure, [measure, slide, layout, textBoxKey]);
+  useEffect(() => {
+    let active = true;
+    void document.fonts?.ready.then(() => active && measure());
+    return () => {
+      active = false;
+    };
+  }, [measure]);
+  useEffect(() => {
+    onFitChange?.(fit, slide.id);
+  }, [fit, onFitChange, slide.id]);
+  const showPhotoSlot = interactive && Boolean(onPhotoSlot) && slide.type === "image" && images.length === 0;
 
   useEffect(() => {
     if (!interactive) return;
@@ -317,16 +502,41 @@ export function SlideCard({
       style={{ backgroundColor: theme.bg, borderColor: template.border }}
     >
       <div
+        ref={textRef}
+        onInput={measure}
         className={`absolute flex flex-col overflow-hidden ${centered ? "items-center justify-center text-center" : isCover || layout === "section" ? "justify-center" : ""}`}
         style={{
           left: `${text.left}%`,
           top: `${text.top}%`,
           right: `${100 - text.right}%`,
-          bottom: `${100 - text.bottom}%`,
+          bottom: `${showPhotoSlot ? 100 - PHOTO_SLOT.y + 2 : 100 - text.bottom}%`,
+          ["--fit" as string]: fit.scale,
         }}
       >
-        <SlideText slide={slide} layout={layout} theme={theme} />
+        <SlideText slide={slide} layout={layout} theme={theme} edit={interactive ? textEditing : undefined} />
       </div>
+
+      {showPhotoSlot ? (
+        <button
+          type="button"
+          data-html2canvas-ignore
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onPhotoSlot}
+          className="absolute flex flex-col items-center justify-center gap-2 rounded-[0.8cqw] border-2 border-dashed text-sm font-semibold transition hover:opacity-100"
+          style={{
+            left: `${PHOTO_SLOT.x}%`,
+            top: `${PHOTO_SLOT.y}%`,
+            width: `${PHOTO_SLOT.w}%`,
+            height: `${PHOTO_SLOT.h}%`,
+            borderColor: theme.accent,
+            color: theme.body,
+            opacity: 0.8,
+          }}
+        >
+          <ImagePlus className="h-6 w-6" />
+          ფოტოს ჩასმა
+        </button>
+      ) : null}
 
       {images.map((image) => {
         const photo = photos.get(image.photoId) as UploadedPhoto;

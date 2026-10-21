@@ -141,6 +141,25 @@ export function buildUserPrompt(
         .join("\n");
     }
 
+    case "presentation-rewrite": {
+      const instruction: Record<string, string> = {
+        shorter: "Make it noticeably shorter (about half), keeping the main point.",
+        academic: "Make it more academic: precise terminology and formal, well-built sentences, same length or a little longer.",
+        simpler: "Make it simpler: plain words and short sentences a first-year student understands at once.",
+        prose: "These are bullet points: turn them into one connected paragraph of 2–4 sentences.",
+      };
+      return [
+        `რა არის: ${asString(payload.kind, "ტექსტი")}`,
+        asString(payload.topic) ? `პრეზენტაციის თემა: ${asString(payload.topic)}` : "",
+        asString(payload.slideTitle) ? `სლაიდის სათაური: ${asString(payload.slideTitle)}` : "",
+        `დავალება: ${instruction[asString(payload.mode)] ?? instruction.academic}`,
+        "ტექსტი:",
+        asString(payload.text),
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+
     case "lecture-notes": {
       const mode = asString(payload.mode, "chat");
       const title = asString(payload.title, "ლექციის ნოტი");
