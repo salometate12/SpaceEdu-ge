@@ -1,4 +1,4 @@
-import { sanitizeStreamMarkdown } from "@/lib/ai/parse-flashcards-json";
+import { sanitizeChatMarkdown } from "@/lib/ai/sanitize-chat-markdown";
 
 export interface ReadTextStreamOptions {
   onChunk?: (partial: string) => void;
@@ -20,27 +20,29 @@ export async function readTextStream(
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  // The raw text is kept apart from what's shown: cleaning runs on the
+  // whole raw text each time, so a wrapper fence opened in one chunk can be
+  // recognised when it closes in a later one.
+  let raw = "";
   let result = "";
 
-  const emit = (value: string) => {
-    const next = options.sanitizeMarkdown ? sanitizeStreamMarkdown(value) : value;
-    options.onChunk?.(next);
-    return next;
+  const emit = () => {
+    result = options.sanitizeMarkdown ? sanitizeChatMarkdown(raw) : raw;
+    options.onChunk?.(result);
   };
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      result += chunk;
-      result = emit(result);
+      raw += decoder.decode(value, { stream: true });
+      emit();
     }
 
     const flushed = decoder.decode();
     if (flushed) {
-      result += flushed;
-      result = emit(result);
+      raw += flushed;
+      emit();
     }
   } catch (error) {
     if (result.trim()) {

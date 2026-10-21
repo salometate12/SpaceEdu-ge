@@ -547,13 +547,14 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             </div>
           ) : (
             <div className="mx-auto w-full max-w-3xl space-y-6">
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <MessageBubble
                   key={message.id}
                   role={message.role}
                   content={message.content}
                   waitingVariant="full"
                   space={space}
+                  complete={!(isLoading && index === messages.length - 1)}
                 />
               ))}
             </div>

@@ -27,11 +27,6 @@ export function stripCodeFences(text: string): string {
   return out.trim();
 }
 
-export function sanitizeStreamMarkdown(text: string): string {
-  return stripCodeFences(text)
-    .replace(/^\uFEFF/, "")
-    .replace(/\r\n/g, "\n");
-}
 
 function extractQuotedField(source: string, field: string): string | undefined {
   const re = new RegExp(`"${field}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`, "i");

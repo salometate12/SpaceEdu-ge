@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { CopyButton } from "@/components/CodeBlock";
+import { markdownToPlainText } from "@/lib/markdown-blocks";
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
 import { ThinkingIndicator } from "./ThinkingIndicator";
 
@@ -13,6 +15,8 @@ interface MessageBubbleProps {
   /** "sheet": the phone chat sheet's neutral look — a dark user bubble and
    * the AI's answer as plain text beside a small mark. */
   appearance?: "default" | "sheet";
+  /** The answer has finished streaming: show its copy buttons. */
+  complete?: boolean;
 }
 
 export function MessageBubble({
@@ -21,13 +25,21 @@ export function MessageBubble({
   waitingVariant = "compact",
   space,
   appearance = "default",
+  complete = false,
 }: MessageBubbleProps) {
   const isUser = role === "user";
   const sheet = appearance === "sheet";
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
+      <div className="group flex items-start justify-end gap-1.5">
+        {sheet ? null : (
+          <CopyButton
+            text={content}
+            iconOnly
+            className="mt-2.5 p-1 text-[var(--text-muted)] opacity-0 hover:text-[var(--text-primary)] focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:hidden"
+          />
+        )}
         <div
           className={
             sheet
@@ -93,6 +105,19 @@ export function MessageBubble({
                 [&_ul]:my-2.5 [&_ul]:space-y-2 [&_ol]:my-2.5 [&_ol]:space-y-2
                 [&_li]:leading-[1.7] [&_li]:text-[var(--text-secondary)]
                 [&_strong]:!text-[var(--accent-amber)] [&_strong]:!bg-[var(--accent-amber)]/10 [&_strong]:rounded [&_strong]:px-1 [&_strong]:py-0.5 [&_strong]:font-semibold"
+            />
+          </div>
+        ) : null}
+        {complete && showContent && !sheet ? (
+          <div className="mt-1.5 flex items-center gap-1 opacity-70 transition-opacity hover:opacity-100 [@media(hover:none)]:opacity-100">
+            <CopyButton
+              text={content}
+              className="px-2 py-1 text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+            />
+            <CopyButton
+              text={markdownToPlainText(content)}
+              label="ტექსტად"
+              className="px-2 py-1 text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
             />
           </div>
         ) : null}

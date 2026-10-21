@@ -2276,3 +2276,31 @@ html.no-animations *::after {
   transition-delay: 0ms !important;
   scroll-behavior: auto !important;
 }
+
+/* Chat code blocks (CodeBlock.tsx): highlight.js token colours. The block is
+   dark in both themes, so one palette, tuned for #0f1117. */
+.code-block .hljs-keyword,
+.code-block .hljs-selector-tag,
+.code-block .hljs-built_in,
+.code-block .hljs-literal { color: #c792ea; }
+.code-block .hljs-string,
+.code-block .hljs-regexp,
+.code-block .hljs-addition { color: #c3e88d; }
+.code-block .hljs-number,
+.code-block .hljs-symbol { color: #f78c6c; }
+.code-block .hljs-comment,
+.code-block .hljs-quote { color: #6b7280; font-style: italic; }
+.code-block .hljs-title,
+.code-block .hljs-title.function_,
+.code-block .hljs-section { color: #82aaff; }
+.code-block .hljs-title.class_,
+.code-block .hljs-type { color: #ffcb6b; }
+.code-block .hljs-attr,
+.code-block .hljs-attribute,
+.code-block .hljs-variable,
+.code-block .hljs-template-variable,
+.code-block .hljs-params { color: #f07178; }
+.code-block .hljs-meta,
+.code-block .hljs-tag,
+.code-block .hljs-name { color: #89ddff; }
+.code-block .hljs-deletion { color: #ff5370; }

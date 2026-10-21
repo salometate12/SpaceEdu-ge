@@ -14,9 +14,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowUp,
-  Check,
   ChevronRight,
-  Copy,
   Maximize2,
   Minimize2,
   Plus,
@@ -25,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { aiTeacherHrefForSpace } from "@/lib/access-control";
-import { copyToClipboard } from "@/lib/copy-to-clipboard";
+import { CopyButton } from "@/components/CodeBlock";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
@@ -209,7 +207,6 @@ export function AIChatSidePanel() {
   const keyboard = useKeyboardInset(isPhone && isOpen);
   const [sheetDrag, setSheetDrag] = useState(0);
   const dragStart = useRef<number | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // The page behind an open sheet doesn't scroll (and the dock stays put).
   useEffect(() => {
@@ -323,13 +320,6 @@ export function AIChatSidePanel() {
   };
 
   const activeAccent = ACCENTS[subjectAccent];
-
-  const copyAnswer = async (message: ChatMessage) => {
-    if (await copyToClipboard(message.content)) {
-      setCopiedId(message.id);
-      window.setTimeout(() => setCopiedId((id) => (id === message.id ? null : id)), 2000);
-    }
-  };
 
   /** Asks the question behind this answer again. */
   const regenerate = (assistantIndex: number) => {
@@ -455,15 +445,10 @@ export function AIChatSidePanel() {
                     <MessageBubble role={message.role} content={message.content} appearance="sheet" />
                     {message.role === "assistant" && message.content.trim() && !(isLoading && index === messages.length - 1) ? (
                       <div className="mt-1.5 flex gap-1 pl-[34px]">
-                        <button
-                          type="button"
-                          onClick={() => void copyAnswer(message)}
-                          aria-label={copiedId === message.id ? "დაკოპირდა" : "კოპირება"}
-                          className="flex h-8 items-center gap-1 rounded-full px-2 text-xs text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10"
-                        >
-                          {copiedId === message.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                          {copiedId === message.id ? "დაკოპირდა" : null}
-                        </button>
+                        <CopyButton
+                          text={message.content}
+                          className="h-8 rounded-full px-2 text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10"
+                        />
                         {index === lastAssistant && messages[index - 1]?.role === "user" ? (
                           <button type="button" onClick={() => regenerate(index)} aria-label="თავიდან დაწერა" className={iconButton}>
                             <RotateCcw className="h-3.5 w-3.5" />
@@ -676,8 +661,13 @@ export function AIChatSidePanel() {
           </div>
         ) : (
           <div className="space-y-5">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} role={message.role} content={message.content} />
+            {messages.map((message, index) => (
+              <MessageBubble
+                key={message.id}
+                role={message.role}
+                content={message.content}
+                complete={!(isLoading && index === messages.length - 1)}
+              />
             ))}
 
             {pendingSuggestions && !isLoading ? (
