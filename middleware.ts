@@ -54,6 +54,12 @@ const PUBLIC_PATHS = new Set([
   "/terms",
   "/auth/callback",
   "/auth/complete",
+  // Password reset: reachable signed out. /reset-password is opened with the
+  // recovery session already set, and it isn't in AUTH_ENTRY_PATHS, so that
+  // session doesn't bounce the user to their dashboard before they choose a
+  // new password.
+  "/forgot-password",
+  "/reset-password",
 ]);
 
 /**

@@ -3,12 +3,9 @@
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { AUTH_FORM_PATHS } from "@/lib/password-reset";
 
-const HEADERLESS_PREFIXES = [
-  "/select-space",
-  "/registration",
-  "/login",
-];
+const HEADERLESS_PREFIXES = ["/select-space", "/registration", ...AUTH_FORM_PATHS];
 
 function isHeaderlessPath(pathname: string | null): boolean {
   if (!pathname) return false;

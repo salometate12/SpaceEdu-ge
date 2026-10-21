@@ -17,6 +17,11 @@ export function validateLoginFields(email: string, password: string): LoginField
   return null;
 }
 
+export const INVALID_PASSWORD_MESSAGE = "პაროლი არასწორია. სცადე თავიდან.";
+
+/** After this many wrong passwords in a row the form offers a reset more prominently. */
+export const FAILED_ATTEMPTS_BEFORE_RESET_HINT = 3;
+
 export type LoginOutcome =
   | { kind: "unconfirmed" }
   | { kind: "field"; error: LoginFieldError }
@@ -24,7 +29,7 @@ export type LoginOutcome =
 
 /** Classifies a Supabase sign-in error into what the form should show:
  *  - an unconfirmed email keeps the fields normal (resend flow, unchanged);
- *  - invalid credentials turns the password field red with "პაროლი არასწორია";
+ *  - invalid credentials turns the password field red with "პაროლი არასწორია. სცადე თავიდან.";
  *  - anything else is a generic error message. */
 export function classifyLoginError(err: unknown): LoginOutcome {
   const code = (err as { code?: string } | null)?.code;
@@ -34,7 +39,9 @@ export function classifyLoginError(err: unknown): LoginOutcome {
     return { kind: "unconfirmed" };
   }
   if (code === "invalid_credentials" || message.includes("invalid login credentials")) {
-    return { kind: "field", error: { field: "password", message: "პაროლი არასწორია" } };
+    // Supabase answers the same for a wrong password and an unknown account,
+    // so the message never says which (and never "no such email").
+    return { kind: "field", error: { field: "password", message: INVALID_PASSWORD_MESSAGE } };
   }
   return { kind: "general" };
 }

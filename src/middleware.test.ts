@@ -160,3 +160,17 @@ describe("middleware — local development", () => {
     expect(remembered(response)).toBe("abiturient");
   });
 });
+
+describe("middleware — password reset", () => {
+  it("opens both reset pages signed out", async () => {
+    expect(redirectPath(await middleware(request("/forgot-password")))).toBeNull();
+    expect(redirectPath(await middleware(request("/reset-password")))).toBeNull();
+  });
+
+  it("keeps a user with a recovery session on /reset-password", async () => {
+    session.user = STUDENT;
+    expect(redirectPath(await middleware(request("/reset-password")))).toBeNull();
+    // /login still sends them to their dashboard, as before
+    expect(redirectPath(await middleware(request("/login")))).toBe("/dashboard-student");
+  });
+});
