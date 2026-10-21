@@ -435,7 +435,7 @@ export function LectureNotesPage() {
                       key={tag}
                       type="button"
                       onClick={() => onKeywordClick(tag)}
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                      className={`max-w-full break-words rounded-[18px] border px-3 py-1 text-left text-xs font-semibold transition ${
                         on
                           ? "border-amber-400 bg-amber-100 text-amber-950 dark:border-amber-300/40 dark:bg-amber-400/20 dark:text-amber-100"
                           : "border-slate-200 bg-slate-50 text-slate-700 hover:border-amber-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"

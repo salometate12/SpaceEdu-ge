@@ -105,9 +105,11 @@ export function SemesterSubjects() {
             {subjects.map((subject) => {
               const isActive = activeSubject === subject.name;
               return (
+                // Grows with the name (up to two lines) instead of a fixed
+                // height; ✕ stays at the right edge, centred.
                 <li
                   key={subject.id}
-                  className={`group inline-flex h-8 items-center rounded-full border text-sm transition-colors ${
+                  className={`group inline-flex min-h-8 max-w-full items-center rounded-[18px] border text-sm transition-colors ${
                     isActive
                       ? "border-[var(--accent-primary)]/40 bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]"
                       : "border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]"
@@ -117,18 +119,22 @@ export function SemesterSubjects() {
                     type="button"
                     onClick={() => toggleActive(subject.name)}
                     aria-pressed={isActive}
-                    className="inline-flex h-full items-center gap-1.5 rounded-full pl-3 pr-1 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
+                    title={subject.name}
+                    className="flex min-w-0 items-center gap-1.5 self-stretch rounded-[18px] py-1.5 pl-3 text-left font-medium leading-snug focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
                   >
-                    {isActive && <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />}
-                    {subject.name}
+                    {isActive && <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />}
+                    <span className="line-clamp-2 min-w-0 break-words">{subject.name}</span>
                   </button>
+                  {/* 40×40 touch target; the round hover mark inside stays 24px. */}
                   <button
                     type="button"
                     onClick={() => removeSubject(subject.id, subject.name)}
                     aria-label={`${subject.name} წაშლა`}
-                    className="mr-1 flex h-6 w-6 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
+                    className="group/x -my-1 flex h-10 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-muted)] focus-visible:outline-none"
                   >
-                    <X className="h-3 w-3" strokeWidth={2.25} aria-hidden />
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full transition-colors group-hover/x:bg-[var(--bg-secondary)] group-hover/x:text-[var(--text-primary)] group-focus-visible/x:ring-2 group-focus-visible/x:ring-[var(--accent-primary)]/50">
+                      <X className="h-3 w-3" strokeWidth={2.25} aria-hidden />
+                    </span>
                   </button>
                 </li>
               );
