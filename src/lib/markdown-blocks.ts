@@ -1,6 +1,6 @@
 /**
  * The small markdown dialect MarkdownContent renders: headings, lists,
- * paragraphs, **bold**, `inline code` and fenced code blocks. Pure, so the
+ * paragraphs, > quotes, **bold**, `inline code` and fenced code blocks. Pure, so the
  * parsing is testable apart from the React rendering.
  */
 
@@ -8,6 +8,8 @@ export type MarkdownBlock =
   | { type: "heading"; level: 1 | 2 | 3; text: string }
   | { type: "list"; ordered: boolean; items: string[] }
   | { type: "paragraph"; text: string }
+  /** Consecutive `> ` lines, joined into one block. */
+  | { type: "quote"; text: string }
   | {
       type: "code";
       /** Lower-case language tag, or "" when none was given. */
@@ -23,10 +25,15 @@ export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const blocks: MarkdownBlock[] = [];
   let list: { ordered: boolean; items: string[] } | null = null;
+  let quote: string[] | null = null;
 
   const flushList = () => {
     if (list && list.items.length > 0) blocks.push({ type: "list", ...list });
     list = null;
+  };
+  const flushQuote = () => {
+    if (quote && quote.length > 0) blocks.push({ type: "quote", text: quote.join(" ") });
+    quote = null;
   };
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -34,6 +41,7 @@ export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
     const fence = line.match(FENCE_OPEN);
     if (fence) {
       flushList();
+      flushQuote();
       const marker = fence[1];
       const closing = new RegExp(`^ {0,3}${marker[0] === "`" ? "`" : "~"}{${marker.length},}\\s*$`);
       const body: string[] = [];
@@ -53,8 +61,18 @@ export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
     const trimmed = line.trim();
     if (!trimmed) {
       flushList();
+      flushQuote();
       continue;
     }
+
+    const quoted = trimmed.match(/^>\s?(.*)$/);
+    if (quoted) {
+      flushList();
+      quote ??= [];
+      if (quoted[1].trim()) quote.push(quoted[1].trim());
+      continue;
+    }
+    flushQuote();
 
     const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
     if (heading) {
@@ -78,6 +96,7 @@ export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
   }
 
   flushList();
+  flushQuote();
   return blocks;
 }
 
@@ -115,6 +134,7 @@ export function markdownToPlainText(content: string): string {
           return block.code;
         case "heading":
         case "paragraph":
+        case "quote":
           return inline(block.text);
         case "list":
           return block.items.map((item, i) => `${block.ordered ? `${i + 1}.` : "•"} ${inline(item)}`).join("\n");

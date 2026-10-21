@@ -53,4 +53,9 @@ describe("AI teacher: length and conversation rules", () => {
     expect(system).toContain("„კი“");
     expect(system).toContain("starts fresh");
   });
+
+  it("asks for at most one blockquote, only for a real key point", () => {
+    expect(system).toContain("blockquote");
+    expect(system).toContain("at most once per answer");
+  });
 });

@@ -73,6 +73,14 @@ describe("parseMarkdownBlocks", () => {
       { type: "list", ordered: true, items: ["პირველი"] },
     ]);
   });
+
+  it("joins consecutive > lines into one quote, in order with what follows", () => {
+    expect(parseMarkdownBlocks("შესავალი\n> მთავარი აზრი\n> გაგრძელება\n- პუნქტი")).toEqual([
+      { type: "paragraph", text: "შესავალი" },
+      { type: "quote", text: "მთავარი აზრი გაგრძელება" },
+      { type: "list", ordered: false, items: ["პუნქტი"] },
+    ]);
+  });
 });
 
 describe("parseInline", () => {
@@ -91,6 +99,10 @@ describe("parseInline", () => {
 });
 
 describe("markdownToPlainText", () => {
+  it("keeps a quote's text without the >", () => {
+    expect(markdownToPlainText("> **მთავარი:** ფასი იზრდება")).toBe("მთავარი: ფასი იზრდება");
+  });
+
   it("drops markdown syntax but keeps code lines and list markers", () => {
     expect(markdownToPlainText("## სათაური\n\n**მთავარი** `x`\n\n- ა\n- ბ\n\n```py\nprint(1)\n```")).toBe(
       "სათაური\n\nმთავარი x\n\n• ა\n• ბ\n\nprint(1)",

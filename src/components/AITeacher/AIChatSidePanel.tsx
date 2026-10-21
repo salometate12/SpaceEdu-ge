@@ -28,12 +28,14 @@ import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
+import { useChatScroll } from "@/hooks/useChatScroll";
 import {
   AI_TEACHER_CONTENT,
   aiTeacherSpaceFor,
   type AiTeacherAccent,
   type AiTeacherPanelTopic,
 } from "@/lib/ai-teacher-content";
+import { JumpToEndButton } from "./JumpToEndButton";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessage {
@@ -148,9 +150,7 @@ export function AIChatSidePanel() {
   );
   const [friendlyError, setFriendlyError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
 
-  const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
@@ -168,11 +168,17 @@ export function AIChatSidePanel() {
     adjustTextareaHeight();
   }, [input, adjustTextareaHeight]);
 
-  useEffect(() => {
-    const element = feedRef.current;
-    if (!element) return;
-    element.scrollTop = element.scrollHeight;
-  }, [messages, isLoading, pendingSuggestions, view]);
+  // A sent question scrolls to the top and its answer is read from the
+  // start; coming back to the chat view opens it at the last question.
+  const lastQuestion = messages.map((message) => message.role).lastIndexOf("user");
+  const { attachFeed, turnStyle, showJump, jumpToEnd } = useChatScroll({
+    questionKey: lastQuestion === -1 ? null : messages[lastQuestion].id,
+    openKey: view,
+  });
+  /** Messages before the current question, then the question + answer in a
+   * wrapper tall enough for the question to reach the top. */
+  const earlier = lastQuestion === -1 ? messages : messages.slice(0, lastQuestion);
+  const current = lastQuestion === -1 ? [] : messages.slice(lastQuestion);
 
   useEffect(() => {
     if (isOpen) {
@@ -333,6 +339,24 @@ export function AIChatSidePanel() {
     const lastAssistant = messages.map((m) => m.role).lastIndexOf("assistant");
     const iconButton =
       "flex h-8 w-8 items-center justify-center rounded-full text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10";
+    const sheetMessage = (message: ChatMessage, index: number) => (
+      <div key={message.id}>
+        <MessageBubble role={message.role} content={message.content} appearance="sheet" />
+        {message.role === "assistant" && message.content.trim() && !(isLoading && index === messages.length - 1) ? (
+          <div className="mt-1.5 flex gap-1 pl-[34px]">
+            <CopyButton
+              text={message.content}
+              className="h-8 rounded-full px-2 text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10"
+            />
+            {index === lastAssistant && messages[index - 1]?.role === "user" ? (
+              <button type="button" onClick={() => regenerate(index)} aria-label="თავიდან დაწერა" className={iconButton}>
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
     return (
       <>
         <div
@@ -416,7 +440,7 @@ export function AIChatSidePanel() {
             <div className="h-px bg-[#f1f1f3] dark:bg-white/[0.08]" />
           </div>
 
-          <div ref={feedRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 pt-5">
+          <div ref={attachFeed} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 pt-5">
             {!hasMessages ? (
               <div>
                 <h2 className="text-2xl font-bold leading-tight">რით დაგეხმარო?</h2>
@@ -440,24 +464,12 @@ export function AIChatSidePanel() {
               </div>
             ) : (
               <div className="space-y-5">
-                {messages.map((message, index) => (
-                  <div key={message.id}>
-                    <MessageBubble role={message.role} content={message.content} appearance="sheet" />
-                    {message.role === "assistant" && message.content.trim() && !(isLoading && index === messages.length - 1) ? (
-                      <div className="mt-1.5 flex gap-1 pl-[34px]">
-                        <CopyButton
-                          text={message.content}
-                          className="h-8 rounded-full px-2 text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10"
-                        />
-                        {index === lastAssistant && messages[index - 1]?.role === "user" ? (
-                          <button type="button" onClick={() => regenerate(index)} aria-label="თავიდან დაწერა" className={iconButton}>
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
+                {earlier.map((message, index) => sheetMessage(message, index))}
+                {current.length ? (
+                  <div className="space-y-5" style={turnStyle}>
+                    {current.map((message, index) => sheetMessage(message, lastQuestion + index))}
                   </div>
-                ))}
+                ) : null}
                 {pendingSuggestions && !isLoading ? (
                   <div className="flex flex-wrap gap-2 pl-[34px]">
                     {pendingSuggestions.items.map((option) => (
@@ -477,9 +489,10 @@ export function AIChatSidePanel() {
           </div>
 
           <div
-            className="shrink-0 px-3 pt-2"
+            className="relative shrink-0 px-3 pt-2"
             style={{ paddingBottom: keyboard.inset > 0 ? 10 : "max(12px, env(safe-area-inset-bottom))" }}
           >
+            {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
             {friendlyError ? (
               <div className="mb-2 rounded-2xl bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
                 {friendlyError}
@@ -511,6 +524,15 @@ export function AIChatSidePanel() {
       </>
     );
   }
+
+  const panelMessage = (message: ChatMessage, index: number) => (
+    <MessageBubble
+      key={message.id}
+      role={message.role}
+      content={message.content}
+      complete={!(isLoading && index === messages.length - 1)}
+    />
+  );
 
   return (
     <div
@@ -598,7 +620,7 @@ export function AIChatSidePanel() {
       <div className="relative z-[1] h-px shrink-0 bg-gradient-to-r from-transparent via-black/10 to-transparent dark:via-white/[0.08]" />
 
       <div
-        ref={feedRef}
+        ref={attachFeed}
         className="scrollbar-thin relative z-[1] mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto px-4 pb-4 pt-5"
       >
         {showHome ? (
@@ -661,14 +683,12 @@ export function AIChatSidePanel() {
           </div>
         ) : (
           <div className="space-y-5">
-            {messages.map((message, index) => (
-              <MessageBubble
-                key={message.id}
-                role={message.role}
-                content={message.content}
-                complete={!(isLoading && index === messages.length - 1)}
-              />
-            ))}
+            {earlier.map((message, index) => panelMessage(message, index))}
+            {current.length ? (
+              <div className="space-y-5" style={turnStyle}>
+                {current.map((message, index) => panelMessage(message, lastQuestion + index))}
+              </div>
+            ) : null}
 
             {pendingSuggestions && !isLoading ? (
               <div className="flex flex-wrap gap-2 pl-12">
@@ -692,6 +712,7 @@ export function AIChatSidePanel() {
       </div>
 
       <div className="relative z-[1] mx-auto w-full max-w-2xl shrink-0 px-3 pb-3 pt-2">
+        {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
         {friendlyError ? (
           <div className="mb-2 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-xs text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
@@ -702,19 +723,13 @@ export function AIChatSidePanel() {
               with it underneath — the shape of the composer in the
               reference, on /ai-teacher's own card. */}
           <div
-            className={`overflow-hidden rounded-[28px] border bg-white/70 shadow-[0_16px_44px_-16px_rgba(79,70,229,0.35)] backdrop-blur-xl transition-all duration-300 dark:bg-white/[0.06] ${
-              inputFocused
-                ? "border-[var(--accent-primary)]/50 shadow-[0_0_0_4px_rgba(124,58,237,0.12)]"
-                : "border-white/60 dark:border-white/10"
-            }`}
+            className="overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)]"
           >
             <textarea
               ref={textareaRef}
               value={input}
               rows={1}
               onChange={(event) => setInput(event.target.value)}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={
                 subject ? `${subject} — დაწერე შენი კითხვა...` : "დაწერე შენი კითხვა..."
@@ -727,11 +742,7 @@ export function AIChatSidePanel() {
                 type="submit"
                 disabled={!canSend}
                 aria-label="გაგზავნა"
-                className={`ml-auto inline-flex h-10 w-16 shrink-0 items-center justify-center rounded-full transition ${
-                  canSend
-                    ? "bg-[var(--accent-primary)] text-white shadow-[0_6px_18px_-6px_rgba(216,24,120,0.5)] hover:opacity-90 active:scale-95"
-                    : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
-                }`}
+                className="ml-auto inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 active:scale-95 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100 disabled:active:scale-100"
               >
                 <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
               </button>
