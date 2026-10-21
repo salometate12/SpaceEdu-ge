@@ -29,6 +29,7 @@ import { presentationTemplate } from "@/lib/presentation-templates";
 import type { GeneratedSlide } from "@/lib/presentation-types";
 import { relativeTimeKa } from "@/lib/relative-time-ka";
 import { Menu, MenuItem, useToast } from "./EditorMenus";
+import { SURFACE } from "./surface";
 import { SlideCard } from "./SlideCard";
 
 const NO_PHOTOS = new Map<string, UploadedPhoto>();
@@ -179,7 +180,7 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
         </button>
       ) : null}
 
-      <div className="dashboard-tool-card rounded-[28px] p-4 sm:p-6">
+      <div className={SURFACE}>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h2 className="headline mr-auto text-xl font-semibold text-slate-900 dark:text-zinc-100">ჩემი პრეზენტაციები</h2>
           <label className="relative w-full sm:w-64">

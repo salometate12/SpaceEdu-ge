@@ -35,6 +35,7 @@ import { Step1Info } from "./Step1Info";
 import { Step2Templates } from "./Step2Templates";
 import { Step3PhotosQA } from "./Step3PhotosQA";
 import { Step4Result } from "./Step4Result";
+import { SURFACE } from "./surface";
 
 export type { GeneratedSlide, PresentationForm, PresentationTemplate, QAAnswers } from "@/lib/presentation-types";
 
@@ -46,6 +47,7 @@ const STEPS = [
 ] as const;
 
 const SAVE_DELAY_MS = 800;
+
 
 const DEFAULT_FORM: PresentationForm = {
   topic: "",
@@ -296,6 +298,8 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
   const undo = useCallback(() => dispatch({ type: "undo" }), []);
   const redo = useCallback(() => dispatch({ type: "redo" }), []);
 
+  const editorStep = step === 4 && Boolean(deck) && !loading;
+
   if (!loaded) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-slate-500 dark:text-zinc-500">
@@ -363,10 +367,10 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         })}
       </div>
 
-      {/* On a phone the result step gets the width back: the slides are
-          16:9 and their text scales with them. */}
-      <section className={`dashboard-tool-card mt-6 rounded-[28px] sm:p-8 ${step === 4 ? "p-2" : "p-5"}`}>
-        <div className={`dashboard-glass-card rounded-2xl sm:p-6 ${step === 4 ? "p-3" : "p-5"}`}>
+      {/* One plain surface for steps 1–3. The editor (step 4) needs the full
+          width, so it sits straight on the page with no card around it. */}
+      <section className={editorStep ? "mt-6" : `mt-6 ${SURFACE}`}>
+        <>
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div
@@ -435,7 +439,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
               </button>
             </div>
           )}
-        </div>
+        </>
 
         {step < 4 && (
           <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-white/[0.08]">
