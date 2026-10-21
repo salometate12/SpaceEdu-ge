@@ -58,7 +58,7 @@ import type { Deck, GeneratedSlide } from "@/lib/presentation-types";
 import { EditableText } from "./EditableText";
 import { Menu, MenuItem, MenuLabel, useToast } from "./EditorMenus";
 import { SlideCard, slideIndexAt, type DragGhost, type SlideFit, type SlideTextEditing } from "./SlideCard";
-import { TemplatePreview } from "./TemplatePreview";
+import { NewBadge, TemplatePreview } from "./TemplatePreview";
 
 interface Step4ResultProps {
   deck: Deck;
@@ -739,8 +739,11 @@ export function Step4Result({
                       : "hover:bg-slate-50 dark:hover:bg-white/[0.04]"
                   }`}
                 >
-                  <TemplatePreview bg={option.bg} accent={option.accent} />
-                  <span className="mt-1 block text-xs font-semibold text-slate-700 dark:text-zinc-200">{option.name}</span>
+                  <TemplatePreview template={option} />
+                  <span className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-zinc-200">
+                    {option.name}
+                    {option.isNew ? <NewBadge /> : null}
+                  </span>
                 </button>
               ))}
             </div>

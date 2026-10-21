@@ -1,11 +1,19 @@
 import { Suspense } from "react";
+import { Noto_Serif_Georgian } from "next/font/google";
 import { Loader2 } from "lucide-react";
 import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
 import { PresentationApp } from "@/components/presentation/PresentationApp";
 
+/** Paper's slide titles (the sans font is the site's own). */
+const notoSerifGeorgian = Noto_Serif_Georgian({
+  variable: "--font-noto-serif-georgian",
+  subsets: ["georgian", "latin"],
+  weight: ["600", "700"],
+});
+
 export default function PresentationPage() {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
+    <main className={`${notoSerifGeorgian.variable} mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8`}>
       <ToolPageHeader
         title="პრეზენტაციების გენერატორი"
         subtitle="მიუთითე თემა და AI წამებში მოგიმზადებს სრულყოფილ სლაიდების სტრუქტურასა და ტექსტებს"

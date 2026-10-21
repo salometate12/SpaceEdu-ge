@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useSyncExternalStore,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -13,7 +14,16 @@ import {
 } from "react";
 import { GripVertical, ImagePlus, X } from "lucide-react";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
-import { slideTheme } from "@/lib/presentation-theme";
+import { geometricShapes, AURORA_LINE_CSS, auroraBackground } from "@/lib/presentation-decor";
+import {
+  BAR,
+  bulletMarker,
+  GLASS,
+  PAPER_RULE,
+  slideTheme,
+  themedTextBox,
+  titleDecor,
+} from "@/lib/presentation-theme";
 import {
   aspectRatio,
   clampImage,
@@ -113,8 +123,19 @@ function SlideText({
     />
   );
 
-  const title = (size: number, extra = "") =>
-    text({ kind: "title" }, { as: "h3", className: `block font-bold leading-[1.15] ${extra}`, style: { color: theme.title, fontSize: fs(size) } });
+  const decor = titleDecor(theme, slide.type, layout);
+  const titleStyle = { color: theme.title, fontFamily: theme.fontTitle, textAlign: slide.type === "thanks" ? undefined : theme.titleAlign };
+  const title = (size: number, extra = "") => (
+    <>
+      {text({ kind: "title" }, { as: "h3", className: `block font-bold leading-[1.15] ${extra}`, style: { ...titleStyle, fontSize: fs(size) } })}
+      {decor === "gradient" ? (
+        <span className="mt-[1.3cqw] block h-[0.35cqw] w-[9cqw] shrink-0 rounded-full" style={{ backgroundImage: AURORA_LINE_CSS }} />
+      ) : decor === "rule" ? (
+        <span className="mt-[1.3cqw] block w-full shrink-0" style={{ height: "max(1px, 0.1cqw)", backgroundColor: PAPER_RULE }} />
+      ) : null}
+    </>
+  );
+  const detail = theme.detail ?? theme.accent;
   const body = (size: number, className: string) =>
     slide.body !== undefined && (slide.body || edit)
       ? text({ kind: "body" }, { as: "p", className: `block ${className}`, style: { color: theme.body, fontSize: fs(size) }, multiline: true })
@@ -126,7 +147,10 @@ function SlideText({
         {title(TEXT_SIZE.coverTitle)}
         {slide.body ? body(TEXT_SIZE.prose, "mt-[1.4cqw]") : null}
         {/* Georgian letters (ყ, ღ…) reach well below the baseline: keep clear. */}
-        <span className="mt-[3.4cqw] block h-[0.3cqw] w-[8cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
+        <span
+          className="mt-[3.4cqw] block h-[0.3cqw] w-[8cqw] rounded-full"
+          style={theme.decor === "aurora" ? { backgroundImage: AURORA_LINE_CSS } : { backgroundColor: detail }}
+        />
         {slide.footnote
           ? text({ kind: "footnote" }, { as: "p", className: "mt-[1.6cqw] block tracking-wide", style: { color: theme.body, fontSize: fs(TEXT_SIZE.footnote) } })
           : null}
@@ -146,7 +170,7 @@ function SlideText({
   if (layout === "section") {
     return (
       <>
-        <span className="mb-[1.6cqw] block h-[0.35cqw] w-[6cqw] rounded-full" style={{ backgroundColor: theme.accent }} />
+        <span className="mb-[1.6cqw] block h-[0.35cqw] w-[6cqw] rounded-full" style={{ backgroundColor: detail }} />
         {title(TEXT_SIZE.sectionTitle)}
         {body(TEXT_SIZE.prose, "mt-[1.4cqw] leading-snug")}
       </>
@@ -162,7 +186,13 @@ function SlideText({
         <ul className="mt-[2.2cqw] space-y-[0.9cqw]" style={{ ...bodyStyle, fontSize: fs(TEXT_SIZE.body) }}>
           {points.map((_, index) => (
             <li key={index} data-point-index={index} className="group/point relative flex gap-[0.8cqw] rounded-[0.4cqw] leading-snug">
-              <span style={{ color: theme.accent }}>•</span>
+              {theme.bulletStyle === "square" ? (
+                <span className="mt-[0.5em] block h-[0.42em] w-[0.42em] shrink-0" style={{ backgroundColor: theme.accent }} />
+              ) : (
+                <span className="shrink-0" style={{ color: theme.accent }}>
+                  {bulletMarker(theme.bulletStyle, index)}
+                </span>
+              )}
               {text(
                 { kind: "point", index },
                 {
@@ -202,10 +232,10 @@ function SlideText({
       ) : layout === "two-column" && slide.columns?.length ? (
         <div className="mt-[2.4cqw] grid grid-cols-2 gap-[3cqw]">
           {slide.columns.slice(0, 2).map((_, index) => (
-            <div key={index} className="border-t-[0.25cqw] pt-[1.2cqw]" style={{ borderColor: theme.accent }}>
+            <div key={index} className="border-t-[0.25cqw] pt-[1.2cqw]" style={{ borderColor: detail }}>
               {text(
                 { kind: "column-heading", index },
-                { as: "p", className: "block font-semibold", style: { color: theme.title, fontSize: fs(TEXT_SIZE.column + 0.25) } },
+                { as: "p", className: "block font-semibold", style: { color: theme.title, fontFamily: theme.fontTitle, fontSize: fs(TEXT_SIZE.column + 0.25) } },
               )}
               {text(
                 { kind: "column-text", index },
@@ -215,8 +245,8 @@ function SlideText({
           ))}
         </div>
       ) : layout === "quote" && slide.quote ? (
-        <figure className="mt-[2.4cqw] border-l-[0.4cqw] pl-[2.2cqw]" style={{ borderColor: theme.accent }}>
-          <blockquote className="italic leading-snug" style={{ color: theme.title, fontSize: fs(TEXT_SIZE.quote) }}>
+        <figure className="mt-[2.4cqw] border-l-[0.4cqw] pl-[2.2cqw]" style={{ borderColor: detail }}>
+          <blockquote className="italic leading-snug" style={{ color: theme.title, fontFamily: theme.fontTitle, fontSize: fs(TEXT_SIZE.quote) }}>
             „{text({ kind: "quote" }, { multiline: true })}“
           </blockquote>
           {slide.quote.author || edit
@@ -230,7 +260,7 @@ function SlideText({
         <div className="mt-[1.8cqw]">
           {text(
             { kind: "figure-value" },
-            { as: "p", className: "block font-bold leading-[1.05]", style: { color: theme.accent, fontSize: fs(keyFigureSize(slide.figure.value)) } },
+            { as: "p", className: "block font-bold leading-[1.05]", style: { color: theme.figure ?? theme.accent, fontFamily: theme.fontTitle, fontSize: fs(keyFigureSize(slide.figure.value)) } },
           )}
           {text(
             { kind: "figure-caption" },
@@ -281,6 +311,12 @@ interface SlideCardProps {
 export interface SlideFit {
   scale: number;
   overflow: boolean;
+}
+
+const noSubscribe = () => () => {};
+/** Aurora's painted background (drawn once in the browser; plain colour on the server). */
+function useAuroraBackground(enabled: boolean): string | null {
+  return useSyncExternalStore(noSubscribe, () => (enabled ? auroraBackground() : null), () => null);
 }
 
 /** Text shrinks in 5% steps down to this before the slide warns. */
@@ -352,7 +388,8 @@ export function SlideCard({
   const images = slide.images
     .filter((image) => photos.has(image.photoId))
     .map((image) => (live && live.photoId === image.photoId ? live : image));
-  const text = textBoxFor(images);
+  const { text, card } = themedTextBox(theme, textBoxFor(images), slide.type);
+  const auroraImage = useAuroraBackground(theme.decor === "aurora");
   const isCover = slide.type === "cover";
   const centered = slide.type === "thanks";
   const layout = effectiveLayout(slide);
@@ -499,8 +536,66 @@ export function SlideCard({
       data-slide-drop={index}
       onPointerDown={interactive ? () => onSelectPhoto?.(null) : undefined}
       className="@container relative aspect-video w-full select-none overflow-hidden rounded-xl border"
-      style={{ backgroundColor: theme.bg, borderColor: template.border }}
+      style={{
+        backgroundColor: theme.bg,
+        borderColor: template.border,
+        backgroundImage: auroraImage ? `url(${auroraImage})` : undefined,
+        backgroundSize: "100% 100%",
+      }}
     >
+      {theme.decor === "geometric"
+        ? geometricShapes(slide.type === "cover" || slide.type === "thanks").map((shape, i) => (
+            <span
+              key={i}
+              aria-hidden
+              className="pointer-events-none absolute"
+              style={{
+                left: `${shape.x}%`,
+                top: `${shape.y}%`,
+                width: `${shape.w}%`,
+                height: `${shape.h}%`,
+                backgroundColor: shape.color,
+                opacity: shape.opacity,
+                borderRadius: shape.kind === "ellipse" ? "50%" : "0.3cqw",
+              }}
+            />
+          ))
+        : null}
+      {card ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute rounded-[1.2cqw]"
+          style={{
+            left: `${card.left}%`,
+            top: `${card.top}%`,
+            right: `${100 - card.right}%`,
+            bottom: `${100 - card.bottom}%`,
+            backgroundColor: GLASS.fill,
+            border: `1px solid ${GLASS.line}`,
+          }}
+        />
+      ) : null}
+      {titleDecor(theme, slide.type, layout) === "bar" ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute rounded-full"
+          style={{
+            left: `${text.left - BAR.offset}%`,
+            top: `calc(${text.top}% + ${BAR.top}cqw)`,
+            width: `${BAR.w}%`,
+            height: `calc(${BAR.h}cqw * ${fit.scale})`,
+            backgroundColor: theme.accent,
+          }}
+        />
+      ) : null}
+      {theme.slideNumber && index >= 0 && slide.type !== "cover" ? (
+        <span
+          className="pointer-events-none absolute font-semibold tabular-nums"
+          style={{ right: "3.2%", bottom: "3.4%", fontSize: `${TEXT_SIZE.footnote * 0.8}cqw`, color: theme.accent, fontFamily: theme.fontBody }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      ) : null}
       <div
         ref={textRef}
         onInput={measure}
@@ -510,6 +605,7 @@ export function SlideCard({
           top: `${text.top}%`,
           right: `${100 - text.right}%`,
           bottom: `${showPhotoSlot ? 100 - PHOTO_SLOT.y + 2 : 100 - text.bottom}%`,
+          fontFamily: theme.fontBody,
           ["--fit" as string]: fit.scale,
         }}
       >

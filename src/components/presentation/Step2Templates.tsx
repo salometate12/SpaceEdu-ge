@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, LayoutTemplate } from "lucide-react";
-import { TemplatePreview } from "./TemplatePreview";
+import { NewBadge, TemplatePreview } from "./TemplatePreview";
 import type { PresentationTemplate } from "./PresentationWizard";
 
 interface Step2TemplatesProps {
@@ -44,9 +44,10 @@ export function Step2Templates({
                   <Check className="h-3 w-3" strokeWidth={3} />
                 </span>
               )}
-              <TemplatePreview bg={template.bg} accent={template.accent} />
-              <p className="mt-2 headline font-semibold text-slate-900 dark:text-zinc-100">
+              <TemplatePreview template={template} />
+              <p className="mt-2 flex items-center gap-2 headline font-semibold text-slate-900 dark:text-zinc-100">
                 {template.name}
+                {template.isNew ? <NewBadge /> : null}
               </p>
               <p className="text-xs text-slate-500 dark:text-zinc-400">{template.desc}</p>
             </button>

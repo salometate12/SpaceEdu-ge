@@ -27,6 +27,7 @@ import {
   type SavedPresentation,
 } from "@/lib/presentation-store";
 import { PRESENTATION_TEMPLATES as TEMPLATES } from "@/lib/presentation-templates";
+import { DEFAULT_TEMPLATE_ID } from "@/lib/presentation-theme";
 import type { Deck, GeneratedSlide, PresentationForm, QAAnswers } from "@/lib/presentation-types";
 import { photoMeta, type UploadedPhoto } from "@/lib/presentation-photos";
 import { PresentationThinkingLoader } from "./PresentationThinkingLoader";
@@ -84,7 +85,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
   const [loaded, setLoaded] = useState(false);
   const [step, setStep] = useState<SavedPresentation["step"]>(1);
   const [form, setForm] = useState<PresentationForm>(DEFAULT_FORM);
-  const [selectedTemplateId, setSelectedTemplateId] = useState("galaxy");
+  const [selectedTemplateId, setSelectedTemplateId] = useState(DEFAULT_TEMPLATE_ID);
   const [qa, setQa] = useState<QAAnswers>(DEFAULT_QA);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

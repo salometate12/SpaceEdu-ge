@@ -29,6 +29,8 @@ export interface PresentationTemplate {
   bg: string;
   accent: string;
   border: string;
+  /** Shown first in „დიზაინი“ with an „ახალი“ badge. */
+  isNew?: boolean;
 }
 
 export interface GeneratedSlide {
