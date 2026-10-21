@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download, Trash2, TriangleAlert } from "lucide-react";
-import { SettingsCard, SoonBadge } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 
 // Local progress lives entirely in the browser, so clearing it is a real,
@@ -30,8 +30,7 @@ export function SettingsDanger() {
     setCleared(true);
   };
 
-  const rowClass =
-    "flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-3.5 last:border-b-0";
+  const rowClass = `${SETTINGS_ROW} justify-between`;
 
   return (
     <SettingsCard
@@ -39,11 +38,11 @@ export function SettingsDanger() {
       title="საშიში ზონა"
       subtitle="ეს მოქმედებები შეუქცევადია"
       danger
-      bodyClassName="pt-3"
+      flush
     >
-      <div className="-mx-5 -mb-5 border-t border-[var(--border)]">
+      <SettingsRows>
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">მონაცემების ექსპორტი</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               ყველა პროგრესი და კონსპექტი ერთ ფაილად
@@ -62,7 +61,7 @@ export function SettingsDanger() {
         </div>
 
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">პროგრესის გასუფთავება</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               Quiz ისტორია, სტრიქი და სტატისტიკა ამ მოწყობილობაზე წაიშლება
@@ -85,7 +84,7 @@ export function SettingsDanger() {
         </div>
 
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">ანგარიშის წაშლა</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               ყველა მონაცემი სამუდამოდ წაიშლება
@@ -102,7 +101,7 @@ export function SettingsDanger() {
             <SoonBadge />
           </button>
         </div>
-      </div>
+      </SettingsRows>
 
       <ConfirmDialog
         open={confirmClear}

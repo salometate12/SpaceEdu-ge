@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Laptop, LogOut, MonitorSmartphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows } from "@/components/profile/settings-ui";
 
 function describeDevice(ua: string): { name: string; mobile: boolean } {
   const mobile = /iPhone|iPad|Android|Mobile/i.test(ua);
@@ -58,14 +58,14 @@ export function SettingsSessions() {
       icon={MonitorSmartphone}
       title="აქტიური სესიები"
       subtitle="Supabase-ი სესიების სრულ სიას არ აბრუნებს — ჩანს მხოლოდ ეს მოწყობილობა"
-      bodyClassName="pt-3"
+      flush
     >
-      <div className="-mx-5 border-t border-[var(--border)]">
-        <div className="flex items-center gap-3 px-5 py-3">
+      <SettingsRows className="border-b">
+        <div className={SETTINGS_ROW}>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
             <DeviceIcon className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">{device.name}</div>
             <div className="text-[11px] text-[var(--text-secondary)]">მიმდინარე სესია</div>
           </div>
@@ -73,9 +73,9 @@ export function SettingsSessions() {
             მიმდინარე
           </span>
         </div>
-      </div>
+      </SettingsRows>
 
-      <div className="mt-4">
+      <div className="px-4 py-5 sm:px-5">
         <button
           type="button"
           onClick={() => void handleSignOutOthers()}

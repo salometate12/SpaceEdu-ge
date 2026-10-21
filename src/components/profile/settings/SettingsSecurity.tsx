@@ -5,7 +5,7 @@ import { Smartphone, Lock, MessageSquare, ShieldCheck } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -140,9 +140,9 @@ export function SettingsSecurity() {
         icon={ShieldCheck}
         title="ორფაქტორიანი დაცვა"
         subtitle="დაამატე დაცვის დამატებითი ფენა"
-        bodyClassName="pt-3"
+        flush
       >
-        <div className="-mx-5 -mb-5 border-t border-[var(--border)]">
+        <SettingsRows>
           <ToggleRow
             icon={MessageSquare}
             tone="purple"
@@ -158,19 +158,19 @@ export function SettingsSecurity() {
             control={<SoonBadge />}
           />
           {googleEmail && (
-            <div className="flex items-center gap-3 px-5 py-3">
+            <div className={SETTINGS_ROW}>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FAECE7] text-[#D85A30] dark:bg-[rgba(216,90,48,0.16)] dark:text-[#f0916e]">
                 <span className="text-sm font-bold">G</span>
               </span>
-              <div className="min-w-0 flex-1">
+              <div className={SETTINGS_ROW_TEXT}>
                 <div className="text-[13px] text-[var(--text-primary)]">Google</div>
-                <div className="truncate text-[11px] text-[var(--text-secondary)]">
+                <div className="text-[11px] text-[var(--text-secondary)] [overflow-wrap:anywhere]">
                   {googleEmail} — დაკავშირებულია
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </SettingsRows>
       </SettingsCard>
     </>
   );
