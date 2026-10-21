@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { Flame } from "lucide-react";
 import { useStreak } from "@/hooks/useStreak";
+import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
 import { buildProfileNav, isProfileNavItemActive } from "@/lib/settings-nav";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
@@ -36,6 +37,7 @@ export function ProfileShell({
   const groups = buildProfileNav(space, { isAdmin });
   // Same source as the header and the overview's streak card.
   const { current: streakDays } = useStreak();
+  const { photoUrl } = useCurrentUserAvatar();
   const flatItems = groups.flatMap((g) => g.items);
   const activeChipRef = useRef<HTMLAnchorElement>(null);
 
@@ -82,8 +84,13 @@ export function ProfileShell({
           className="hidden flex-col gap-0.5 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 md:flex"
         >
           <div className="mb-3 flex items-center gap-2.5 border-b border-[var(--border)] px-2 pb-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#7F77DD] bg-[#EEEDFE] text-[13px] font-medium text-[#3C3489] dark:bg-[rgba(127,119,221,0.16)] dark:text-[#c9c4fb]">
-              {initials || "მე"}
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-pink-50 text-[13px] font-semibold text-[#be185d] dark:border-[#f4f4f5] dark:bg-pink-500/15 dark:text-pink-200">
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
+                <img src={photoUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                initials || "მე"
+              )}
             </span>
             <div className="min-w-0">
               <div className="truncate text-[13px] font-medium text-[var(--text-primary)]">
