@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Check, IdCard, Loader2, Trash2, Upload } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard } from "@/components/profile/settings-ui";
+import { SETTINGS_TONE, SettingsCard } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 import { AVATAR_ACCEPT, AVATAR_ERRORS, avatarFileProblem } from "@/lib/avatar";
 import { removeAvatar, uploadAvatar } from "@/lib/avatar-upload";
@@ -110,8 +110,7 @@ export function SettingsProfileForm({
     }
   };
 
-  const fieldClass =
-    "w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[#7F77DD]";
+  const fieldClass = `w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`;
   const labelClass =
     "text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]";
 
@@ -119,7 +118,7 @@ export function SettingsProfileForm({
     <SettingsCard bodyClassName="p-0">
       {/* Avatar block */}
       <div className="flex flex-wrap items-center gap-4 border-b border-[var(--border)] px-4 py-5 sm:px-5">
-        <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-pink-50 text-[22px] font-semibold text-[#be185d] dark:border-[#f4f4f5] dark:bg-pink-500/15 dark:text-pink-200">
+        <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-[var(--bg-secondary)] text-[22px] font-semibold text-[var(--text-primary)] dark:border-[#f4f4f5]">
           {shownPhoto ? (
             // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
             <img src={shownPhoto} alt="პროფილის ფოტო" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
@@ -190,7 +189,7 @@ export function SettingsProfileForm({
       {/* Fields */}
       <div className="p-5">
         <h2 className="flex items-center gap-2 text-[15px] font-medium text-[var(--text-primary)]">
-          <IdCard className="h-4 w-4 stroke-[1.75] text-[#7F77DD]" aria-hidden />
+          <IdCard className={`h-4 w-4 stroke-[1.75] ${SETTINGS_TONE.headingIcon}`} aria-hidden />
           პირადი ინფო
         </h2>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">სახელი, კონტაქტი და ბიო</p>

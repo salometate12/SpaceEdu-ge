@@ -53,7 +53,7 @@ export function SettingsAppearance() {
               aria-pressed={selected}
               onClick={() => setPreference(opt.value)}
               className={`rounded-xl border p-2.5 text-center transition-colors ${
-                selected ? "border-2 border-[#7F77DD]" : "border-[var(--border)] hover:border-[var(--border-hover)]"
+                selected ? "border-2 border-[var(--text-primary)]" : "border-[var(--border)] hover:border-[var(--border-hover)]"
               }`}
             >
               <span
@@ -61,7 +61,7 @@ export function SettingsAppearance() {
                 aria-hidden
               />
               <span
-                className={`text-xs ${selected ? "font-medium text-[#7F77DD]" : "text-[var(--text-secondary)]"}`}
+                className={`text-xs ${selected ? "font-medium text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
               >
                 {opt.label}
               </span>
@@ -73,21 +73,18 @@ export function SettingsAppearance() {
       <SettingsRows>
         <ToggleRow
           icon={Sparkles}
-          tone="purple"
           title="ანიმაციები"
           subtitle="ბარათებისა და გადასვლის ეფექტები"
           control={<Toggle checked={animations} onChange={toggleAnimations} label="ანიმაციები" />}
         />
         <ToggleRow
           icon={LayoutTemplate}
-          tone="teal"
           title="კომპაქტური ხედი"
           subtitle="ბარათები ახლოს, ნაკლები whitespace"
           control={<SoonBadge />}
         />
         <ToggleRow
           icon={Flame}
-          tone="amber"
           title="სტრიქის ცეცხლი"
           subtitle="სტრიქ-მთვლელზე ეფექტი"
           control={<SoonBadge />}

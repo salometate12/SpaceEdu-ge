@@ -81,7 +81,7 @@ export function ProfileShell({
           className="hidden flex-col gap-1 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 pr-4 md:flex"
         >
           <div className="mb-3 flex items-center gap-2.5 border-b border-[var(--border)] px-2 pb-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-pink-50 text-[13px] font-semibold text-[#be185d] dark:border-[#f4f4f5] dark:bg-pink-500/15 dark:text-pink-200">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-[var(--bg-secondary)] text-[13px] font-semibold text-[var(--text-primary)] dark:border-[#f4f4f5]">
               {photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
                 <img src={photoUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />

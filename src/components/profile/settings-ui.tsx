@@ -6,6 +6,26 @@ import type { ReactNode } from "react";
 
 export { Toggle } from "./Toggle";
 
+/**
+ * Settings colours, in one place. One accent only, the brand pink, and only on
+ * small markers (icon circle, toggle, focus); cards, chips and text are neutral.
+ */
+export const SETTINGS_TONE = {
+  /** Icon next to a card title. */
+  headingIcon: "text-[var(--text-secondary)]",
+  /** The 40px circle holding the icon of an "active" card. */
+  iconWrap:
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-50 text-[var(--accent-primary)] dark:bg-pink-500/10 dark:text-pink-300",
+  /** The current plan / space card. */
+  activeCard: "flex items-center gap-3.5 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4",
+  /** A subject (or similar) chip. */
+  chip: "rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-1 text-xs text-[var(--text-primary)]",
+  /** The icon square of a toggle row. */
+  rowIcon: "bg-[var(--bg-secondary)] text-[var(--text-secondary)]",
+  /** Focus on a text field: pink border, soft ring. */
+  fieldFocus: "focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)]/15",
+} as const;
+
 /** Horizontal padding every card part and row shares, so edges line up. */
 export const CARD_X = "px-4 sm:px-5";
 
@@ -53,7 +73,7 @@ export function SettingsCard({
           >
             {Icon && (
               <Icon
-                className={`h-4 w-4 stroke-[1.75] ${danger ? "text-rose-600 dark:text-rose-400" : "text-[#7F77DD]"}`}
+                className={`h-4 w-4 stroke-[1.75] ${danger ? "text-rose-600 dark:text-rose-400" : SETTINGS_TONE.headingIcon}`}
                 aria-hidden
               />
             )}
@@ -83,31 +103,48 @@ export function SoonBadge() {
   );
 }
 
-/** One row in a toggle list: coloured icon square, title/sub, and a control. */
+/** The "აქტიური" pill: neutral, with a small green "on" dot. */
+export function ActiveBadge() {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border)] px-2 py-0.5 text-[11px] text-[var(--text-secondary)]">
+      <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" aria-hidden />
+      აქტიური
+    </span>
+  );
+}
+
+/** The current plan / space: neutral card, pink icon circle, "აქტიური" pill. */
+export function ActiveCard({ icon: Icon, title, subtitle }: { icon: LucideIcon; title: string; subtitle?: string }) {
+  return (
+    <div className={SETTINGS_TONE.activeCard}>
+      <span className={SETTINGS_TONE.iconWrap}>
+        <Icon className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold text-[var(--text-primary)]">{title}</div>
+        {subtitle && <div className="mt-0.5 text-[11px] text-[var(--text-secondary)]">{subtitle}</div>}
+      </div>
+      <ActiveBadge />
+    </div>
+  );
+}
+
+/** One row in a toggle list: neutral icon square, title/sub, and a control. */
 export function ToggleRow({
   icon: Icon,
-  tone = "purple",
   title,
   subtitle,
   control,
 }: {
   icon: LucideIcon;
-  tone?: "purple" | "teal" | "amber" | "coral" | "blue";
   title: string;
   subtitle?: string;
   control: ReactNode;
 }) {
-  const tones: Record<string, string> = {
-    purple: "bg-[#EEEDFE] text-[#7F77DD] dark:bg-[rgba(127,119,221,0.16)] dark:text-[#a99ff5]",
-    teal: "bg-[#E1F5EE] text-[#1D9E75] dark:bg-[rgba(29,158,117,0.16)] dark:text-[#4fd1a5]",
-    amber: "bg-[#FAEEDA] text-[#BA7517] dark:bg-[rgba(186,117,23,0.18)] dark:text-[#e0a95f]",
-    coral: "bg-[#FAECE7] text-[#D85A30] dark:bg-[rgba(216,90,48,0.16)] dark:text-[#f0916e]",
-    blue: "bg-[#E6F1FB] text-[#378ADD] dark:bg-[rgba(55,138,221,0.16)] dark:text-[#6cb0f0]",
-  };
   return (
     <div className={SETTINGS_ROW}>
       <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${SETTINGS_TONE.rowIcon}`}
       >
         <Icon className="h-4 w-4 stroke-[1.75]" aria-hidden />
       </span>

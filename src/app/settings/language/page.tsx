@@ -1,9 +1,8 @@
 import { Languages } from "lucide-react";
-import { SettingsCard, SoonBadge } from "@/components/profile/settings-ui";
+import { SETTINGS_TONE, SettingsCard, SoonBadge } from "@/components/profile/settings-ui";
 
 const rowLabel = "flex items-center gap-2 text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]";
-const selectClass =
-  "w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[#7F77DD] disabled:cursor-not-allowed disabled:opacity-60";
+const selectClass = `w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus} disabled:cursor-not-allowed disabled:opacity-60`;
 
 export default function SettingsLanguagePage() {
   return (

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Award, Bell, Brain, Calendar, Flame, Megaphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
+import { SETTINGS_TONE, SettingsCard, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
 import { nbButtonClass } from "@/lib/nb-button";
 
 // These preferences are stored on the account (user_metadata.notificationPrefs)
@@ -83,35 +83,30 @@ export function SettingsNotifications() {
       <SettingsRows className="border-b">
         <ToggleRow
           icon={Flame}
-          tone="amber"
           title="სტრიქის შეხსენება"
           subtitle="ყოველდღიური სასწავლო შეხსენება"
           control={<Toggle checked={prefs.streak} onChange={(v) => set("streak", v)} label="სტრიქის შეხსენება" />}
         />
         <ToggleRow
           icon={Brain}
-          tone="purple"
           title="Quiz შედეგები"
           subtitle="Quiz-ის დასრულების შემდეგ"
           control={<Toggle checked={prefs.quiz} onChange={(v) => set("quiz", v)} label="Quiz შედეგები" />}
         />
         <ToggleRow
           icon={Award}
-          tone="teal"
           title="ახალი ბეჯი"
           subtitle="ბეჯის განბლოკვისას"
           control={<Toggle checked={prefs.badge} onChange={(v) => set("badge", v)} label="ახალი ბეჯი" />}
         />
         <ToggleRow
           icon={Calendar}
-          tone="blue"
           title="სასწავლო გეგმა"
           subtitle="დღევანდელი გეგმის შეხსენება"
           control={<Toggle checked={prefs.studyPlan} onChange={(v) => set("studyPlan", v)} label="სასწავლო გეგმა" />}
         />
         <ToggleRow
           icon={Megaphone}
-          tone="coral"
           title="SpaceEdu სიახლეები"
           subtitle="ახალი ფუნქციები და განახლებები"
           control={<Toggle checked={prefs.news} onChange={(v) => set("news", v)} label="SpaceEdu სიახლეები" />}
@@ -127,7 +122,7 @@ export function SettingsNotifications() {
             type="time"
             value={prefs.reminderTime}
             onChange={(e) => set("reminderTime", e.target.value)}
-            className="w-36 rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[#7F77DD]"
+            className={`w-36 rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`}
           />
         </label>
         <button
