@@ -169,7 +169,7 @@ Return ONLY valid JSON matching this contract (all text in Georgian):
 `;
 
 const CV_JSON_INSTRUCTIONS = `
-Return ONLY valid JSON (all text in Georgian):
+Return ONLY valid JSON. CV texts in the CV language the prompt asks for (Georgian unless it says English); optimizationTips always in Georgian:
 {
   "professionalSummary": "2-4 წინადადება პროფესიული შეჯამება",
   "headline": "მოკლე პოზიციის/პროფილის სათაური",

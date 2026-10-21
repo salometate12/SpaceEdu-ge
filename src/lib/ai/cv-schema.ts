@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { NullsToOptional } from "@/lib/ai/model-nulls";
+import { CV_TEMPLATES, normalizeCvTemplate } from "@/lib/cv-data";
 
 export const CvProfileSchema = z.object({
   fullName: z.string().optional(),
@@ -12,9 +13,10 @@ export const CvProfileSchema = z.object({
   experienceText: z.string().optional(),
   tools: z.array(z.string()).default([]),
   softSkills: z.string().optional(),
-  template: z
-    .enum(["minimal-tech", "creative-ui", "academic-corporate"])
-    .optional(),
+  /** Old ids (minimal-tech…) still arrive from saved state; mapped to the new set. */
+  template: z.preprocess((value) => (value == null ? undefined : normalizeCvTemplate(value)), z.enum(CV_TEMPLATES).optional()),
+  /** The CV's language: its texts (and section titles) are written in it. */
+  language: z.enum(["ka", "en"]).optional(),
   optimizationPills: z
     .object({
       ats: z.boolean().optional(),
