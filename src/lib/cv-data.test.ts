@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   accentColor,
+  cvFileName,
   defaultCvTemplate,
   normalizeCvTemplate,
   showsPhoto,
@@ -78,5 +79,14 @@ describe("defaults and helpers", () => {
     expect(splitList("კოლაბორაცია, პრობლემების გადაჭრა;\nლიდერობა")).toEqual(["კოლაბორაცია", "პრობლემების გადაჭრა", "ლიდერობა"]);
     expect(accentColor("teal")).toBe("#0f766e");
     expect(accentColor("x")).toBe("#1e3a5f");
+  });
+});
+
+describe("cvFileName", () => {
+  it("names the PDF CV_<first>_<last>.pdf", () => {
+    expect(cvFileName("ნინო ბერიძე")).toBe("CV_ნინო_ბერიძე.pdf");
+    expect(cvFileName("  Nino   Beridze ")).toBe("CV_Nino_Beridze.pdf");
+    expect(cvFileName("ანა-მარია / ბერიძე")).toBe("CV_ანა-მარია_ბერიძე.pdf");
+    expect(cvFileName("")).toBe("CV.pdf");
   });
 });
