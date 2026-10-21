@@ -1,7 +1,14 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
-import { Download } from "lucide-react";
+import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { ArrowLeft, Check, Download, FileText, Loader2, Maximize2, RotateCcw, X } from "lucide-react";
+import { CvSheetFrame } from "./CvSheetFrame";
+import { exportCvPdf } from "@/lib/exportCvPdf";
+import { A4_HEIGHT_PX, A4_WIDTH_PX } from "@/lib/cv-sheet";
+
+/** The one plain card steps 1–3 sit on (as on /presentation, PR #139). */
+const SURFACE =
+  "rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[0_1px_2px_rgb(15_23_42/0.04)] sm:p-8";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import { recordCvUpdate } from "@/lib/dashboard-metrics";
@@ -22,25 +29,26 @@ const TEMPLATES: Array<{
   id: CvTemplate;
   title: string;
   subtitle: string;
-  previewClass: string;
+  /** The template's accent, for the dot on its chip. */
+  dot: string;
 }> = [
   {
     id: "minimal-tech",
     title: "Minimal Tech",
     subtitle: "სუფთა სტილი დეველოპერებისთვის",
-    previewClass: "from-pink-500/20 to-pink-700/20",
+    dot: "#f9a8d4",
   },
   {
     id: "creative-ui",
     title: "Creative UI/UX",
     subtitle: "თანამედროვე დიზაინი კრეატიული პროფილებისთვის",
-    previewClass: "from-cyan-500/20 to-indigo-700/20",
+    dot: "#67e8f9",
   },
   {
     id: "academic-corporate",
     title: "Academic Corporate",
     subtitle: "სტაბილური, აკადემიური და პროფესიული ტონი",
-    previewClass: "from-emerald-500/20 to-slate-700/20",
+    dot: "#6ee7b7",
   },
 ];
 
@@ -178,57 +186,200 @@ export function CvGenerator() {
     if (step === 2) setStep(1);
   };
 
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
+  const [bigView, setBigView] = useState(false);
+
+  const exportPdf = async () => {
+    if (!sheetRef.current) return;
+    setExporting(true);
+    setExportError(false);
+    try {
+      await exportCvPdf(sheetRef.current, `CV — ${previewName}`);
+    } catch (error) {
+      console.error("CV PDF export failed", error);
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const startOver = () => {
+    setStep(1);
+    setGenerated(false);
+    setSummary("");
+    setHeadline("");
+    setExperienceBullets([]);
+    setHighlightedSkills([]);
+    setOptimizationTips([]);
+  };
+
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10";
   const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
 
-  return (
-    <section className="space-y-6">
-      <div className="dashboard-tool-card rounded-[28px] p-5 sm:p-6">
-        <div className="relative pb-4">
-          <div className="absolute left-5 right-5 top-5 h-px bg-slate-200 dark:bg-white/[0.06]" />
-          <div className="relative flex items-start justify-between gap-2 overflow-x-auto">
-            {STEPS.map((item) => {
-              const active = step === item.id;
-              return (
-                <div key={item.id} className="min-w-[132px] text-center">
-                  <button
-                    type="button"
-                    onClick={() => setStep(item.id)}
-                    className={`mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
-                      active
-                        ? "bg-pink-600 text-white dark:bg-pink-500 dark:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
-                        : "border border-slate-200 bg-white text-slate-400 dark:border-white/[0.08] dark:bg-[#161619] dark:text-gray-500"
-                    }`}
-                  >
-                    {item.id}
-                  </button>
-                  <p className="mt-2 text-xs text-slate-500 dark:text-zinc-400">{item.label}</p>
-                </div>
-              );
-            })}
+  /** The A4 sheet. Only the copy in the page carries the ref the PDF export captures. */
+  const renderSheet = (forExport: boolean) => (
+      <div
+        ref={forExport ? sheetRef : undefined}
+        data-cv-sheet={forExport ? "" : undefined}
+        className={`p-10 ${templateStyle.pageBg}`}
+        style={{ width: A4_WIDTH_PX, minHeight: A4_HEIGHT_PX }}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-white/[0.12] pb-4">
+          <div>
+            <h3 className={`text-2xl font-semibold ${templateStyle.accent}`}>{previewName}</h3>
+            <p className="mt-1 text-sm text-zinc-300">
+              {generated && headline ? headline : previewPosition}
+            </p>
+            <p className="text-xs text-zinc-400">{email || "candidate@spaceedu.ge"}</p>
+            <p className="text-xs text-zinc-500">{phone || "+995 --- -- -- --"}</p>
+            {portfolio && <p className="text-xs text-zinc-400">{portfolio}</p>}
           </div>
+          {photoPreview && (
+            <img
+              src={photoPreview}
+              alt="Profile"
+              className="h-24 w-24 shrink-0 rounded-xl border border-white/[0.15] object-cover"
+            />
+          )}
         </div>
 
-        <div className="dashboard-glass-card mt-4 rounded-2xl p-5">
+        <div className="mt-4 space-y-4">
+          <section>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Education</p>
+            <p className="mt-1 text-sm text-zinc-200">
+              {university || "University Name"} — {degree || "Degree"}
+              {graduationYear ? ` (${graduationYear})` : ""}
+            </p>
+          </section>
+          <section>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Experience</p>
+            {generated && experienceBullets.length > 0 ? (
+              <ul className="mt-1 list-disc space-y-1 pl-4 text-sm leading-6 text-zinc-200">
+                {experienceBullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm leading-6 text-zinc-200">
+                {experienceText || "გამოცდილება გამოჩნდება გენერაციის შემდეგ."}
+              </p>
+            )}
+          </section>
+          <section>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Tools</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(generated && highlightedSkills.length > 0
+                ? highlightedSkills
+                : tools.length > 0
+                  ? tools
+                  : ["Figma", "Next.js", "Tailwind"]
+              ).map((tool) => (
+                <span
+                  key={tool}
+                  className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 text-xs text-zinc-200"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+          </section>
+          <section>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">AI Summary</p>
+            <p className="mt-1 text-sm leading-6 text-zinc-200">
+              {generated
+                ? summary
+                : "CV-ს გენერირების შემდეგ აქ გამოჩნდება ოპტიმიზებული ტექსტი."}
+            </p>
+            {generated && optimizationTips.length > 0 && (
+              <ul className="mt-2 space-y-1 text-xs text-zinc-400">
+                {optimizationTips.map((tip) => (
+                  <li key={tip}>• {tip}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      </div>
+  );
+
+  const stepCircle = (id: WizardStep) =>
+    step === id
+      ? "border-pink-500 bg-pink-600 text-white shadow-[0_0_0_4px_rgba(236,72,153,0.15)] dark:border-pink-400 dark:bg-pink-500"
+      : id < step
+        ? "border-pink-300 bg-pink-50 text-pink-600 dark:border-pink-400/40 dark:bg-pink-500/10 dark:text-pink-300"
+        : "border-slate-200 bg-white text-slate-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-500";
+  const pill = (on: boolean) =>
+    `rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+      on
+        ? "border-pink-300 bg-pink-50 text-pink-700 dark:border-pink-400/40 dark:bg-pink-500/10 dark:text-pink-300"
+        : "border-[var(--border)] bg-[var(--bg-card)] text-slate-500 hover:border-pink-200 hover:text-pink-700 dark:text-zinc-400 dark:hover:border-pink-400/30 dark:hover:text-white"
+    }`;
+  const secondaryBtn =
+    "inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:text-white";
+  const primaryBtn =
+    "inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-pink-500 dark:hover:bg-pink-400";
+  const activeTemplate = TEMPLATES.find((template) => template.id === selectedTemplate) ?? TEMPLATES[0];
+
+  return (
+    <section className="space-y-6">
+      {/* Steps — outside the card. On a phone only the numbers fit, with
+          the current step's name under them. */}
+      <nav aria-label="CV-ის ნაბიჯები">
+        <ol className="flex items-start">
+          {STEPS.map((item, index) => (
+            <li key={item.id} className="flex flex-1 items-start last:flex-none">
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setStep(item.id)}
+                  aria-current={step === item.id ? "step" : undefined}
+                  aria-label={`${item.id}. ${item.label}`}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition ${stepCircle(item.id)}`}
+                >
+                  {item.id < step ? <Check className="h-4 w-4" strokeWidth={2.5} /> : item.id}
+                </button>
+                <span
+                  className={`hidden max-w-[9rem] text-center text-[11px] font-semibold sm:block ${
+                    step === item.id ? "text-pink-700 dark:text-pink-300" : "text-slate-500 dark:text-zinc-500"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </div>
+              {index < STEPS.length - 1 ? (
+                <span
+                  className={`mx-2 mt-[17px] h-0.5 flex-1 rounded-full ${
+                    item.id < step ? "bg-pink-300 dark:bg-pink-500/40" : "bg-slate-200 dark:bg-white/10"
+                  }`}
+                />
+              ) : null}
+            </li>
+          ))}
+        </ol>
+        <p className="mt-2 text-center text-xs font-semibold text-pink-700 sm:hidden dark:text-pink-300">
+          ნაბიჯი {step}/{STEPS.length} · {STEPS[step - 1].label}
+        </p>
+      </nav>
+
+      {step < 4 ? (
+        <div className={SURFACE}>
           {step === 1 && (
             <div className="grid gap-4 lg:grid-cols-[120px_1fr]">
               <label className="cursor-pointer space-y-2">
                 <span className={`block ${labelClass}`}>ფოტოს დამატება (არასავალდებულო)</span>
-                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 transition-all hover:border-indigo-400 hover:bg-indigo-50 dark:border-white/20 dark:bg-white/[0.03] dark:hover:border-indigo-400/40 dark:hover:bg-indigo-500/10">
+                <div className="flex h-24 w-24 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50 transition-all hover:border-pink-300 hover:bg-pink-50 dark:border-white/20 dark:bg-white/[0.03] dark:hover:border-pink-400/40 dark:hover:bg-pink-500/10">
                   {photoPreview ? (
-                    <img
-                      src={photoPreview}
-                      alt="Profile"
-                      className="h-full w-full rounded-xl object-cover"
-                    />
+                    // eslint-disable-next-line @next/next/no-img-element -- local data URL
+                    <img src={photoPreview} alt="Profile" className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-xs text-slate-400 dark:text-zinc-500">ფოტო</span>
                   )}
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />
               </label>
-
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1 text-sm sm:col-span-2">
                   <span className={labelClass}>სრული სახელი</span>
@@ -298,7 +449,7 @@ export function CvGenerator() {
                 </label>
               </div>
 
-              <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-200">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3.5 py-2.5 text-xs text-slate-600 dark:text-zinc-400">
                 🤖 მოკლედ აღწერე სად მუშაობდი ან რა პროექტები გაქვს გაკეთებული, AI მათ
                 პროფესიონალურ პუნქტებად გადააქცევს.
               </div>
@@ -359,11 +510,7 @@ export function CvGenerator() {
                   onClick={() =>
                     setOptimizationPills((prev) => ({ ...prev, ats: !prev.ats }))
                   }
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                    optimizationPills.ats
-                      ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-white"
-                  }`}
+                  className={pill(optimizationPills.ats)}
                 >
                   + ATS ოპტიმიზაცია
                 </button>
@@ -372,11 +519,7 @@ export function CvGenerator() {
                   onClick={() =>
                     setOptimizationPills((prev) => ({ ...prev, internship: !prev.internship }))
                   }
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                    optimizationPills.internship
-                      ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-white"
-                  }`}
+                  className={pill(optimizationPills.internship)}
                 >
                   + სტაჟირებისთვის მორგება
                 </button>
@@ -384,170 +527,119 @@ export function CvGenerator() {
             </div>
           )}
 
-          {step === 4 && (
-            <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-              <aside className="dashboard-glass-card space-y-3 rounded-2xl p-3">
-                <p className={labelClass}>ტემპლეიტი</p>
+          {cvError && (
+            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5 text-xs text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-200">
+              {cvError}
+            </div>
+          )}
+          {cvLoading && step === 3 && <AiSkeletonLoader rows={2} className="mt-4" />}
+
+          <footer className="mt-6 flex items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
+            <button type="button" onClick={goBack} disabled={step === 1 || cvLoading} className={secondaryBtn}>
+              უკან
+            </button>
+            <button type="button" onClick={goNext} disabled={cvLoading} className={primaryBtn}>
+              {step === 3 ? (cvLoading ? "იტვირთება..." : "CV-ს გენერირება") : "შემდეგი"}
+            </button>
+          </footer>
+        </div>
+      ) : (
+        <div>
+          {/* Result: no card. A header row over a divider, then the sheet. */}
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-pink-600 dark:border-pink-400/15 dark:bg-pink-500/10 dark:text-pink-400">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">შენი CV</h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">{activeTemplate.title} · A4</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => void exportPdf()} disabled={exporting} className={primaryBtn}>
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" strokeWidth={1.75} />}
+                PDF ექსპორტი
+              </button>
+              <button type="button" onClick={() => setStep(3)} className={secondaryBtn}>
+                <ArrowLeft className="h-4 w-4" />
+                უკან რედაქტირებაზე
+              </button>
+              <button type="button" onClick={startOver} className={secondaryBtn}>
+                <RotateCcw className="h-4 w-4" />
+                ახალი CV
+              </button>
+            </div>
+          </header>
+          {exportError ? (
+            <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5 text-xs text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-200">
+              PDF ვერ შეიქმნა. სცადე ხელახლა.
+            </p>
+          ) : null}
+
+          <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
+            {/* Templates: chips in a row on phones/tablets, a narrow column on desktop. */}
+            <div className="min-w-0">
+              <p className={`mb-2 ${labelClass}`}>ტემპლეიტი</p>
+              <div
+                role="radiogroup"
+                aria-label="ტემპლეიტი"
+                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
+              >
                 {TEMPLATES.map((template) => {
                   const active = selectedTemplate === template.id;
                   return (
                     <button
                       key={template.id}
                       type="button"
+                      role="radio"
+                      aria-checked={active}
+                      title={template.subtitle}
                       onClick={() => setSelectedTemplate(template.id)}
-                      className={`w-full rounded-xl border bg-gradient-to-br p-3 text-left transition ${template.previewClass} ${
+                      className={`inline-flex shrink-0 items-center gap-2 rounded-full border bg-[var(--bg-card)] px-3.5 py-2 text-left text-sm font-medium transition lg:w-full ${
                         active
-                          ? "border-indigo-400 dark:border-indigo-400/50"
-                          : "border-slate-200 hover:border-indigo-200 dark:border-white/[0.08] dark:hover:border-indigo-400/25"
+                          ? "border-pink-400 text-pink-700 dark:border-pink-400/60 dark:text-pink-300"
+                          : "border-[var(--border)] text-slate-700 hover:border-pink-200 dark:text-zinc-300 dark:hover:border-pink-400/30"
                       }`}
                     >
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {template.title}
-                      </p>
+                      <span className="h-3 w-3 shrink-0 rounded-full ring-1 ring-black/10" style={{ backgroundColor: template.dot }} />
+                      <span className="whitespace-nowrap">{template.title}</span>
+                      {active ? <Check className="ml-auto h-4 w-4 shrink-0" strokeWidth={2.5} /> : null}
                     </button>
                   );
                 })}
-              </aside>
-
-              <div className="dashboard-tool-card rounded-2xl p-4">
-                <div className="mb-3 flex items-center justify-end">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 dark:bg-pink-500 dark:hover:bg-pink-400"
-                  >
-                    <Download className="h-4 w-4" strokeWidth={1.5} />
-                    PDF ექსპორტი
-                  </button>
-                </div>
-
-                <div className="max-h-[560px] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/[0.08] dark:bg-black/20">
-                  <div className={`mx-auto min-h-[760px] w-full max-w-[760px] rounded-xl border border-white/[0.1] p-6 ${templateStyle.pageBg}`}>
-                    <div className="flex items-start justify-between gap-4 border-b border-white/[0.12] pb-4">
-                      <div>
-                        <h3 className={`text-2xl font-semibold ${templateStyle.accent}`}>{previewName}</h3>
-                        <p className="mt-1 text-sm text-zinc-300">
-                          {generated && headline ? headline : previewPosition}
-                        </p>
-                        <p className="text-xs text-zinc-400">{email || "candidate@spaceedu.ge"}</p>
-                        <p className="text-xs text-zinc-500">{phone || "+995 --- -- -- --"}</p>
-                        {portfolio && <p className="text-xs text-zinc-400">{portfolio}</p>}
-                      </div>
-                      {photoPreview && (
-                        <img
-                          src={photoPreview}
-                          alt="Profile"
-                          className="h-24 w-24 rounded-xl border border-white/[0.15] object-cover"
-                        />
-                      )}
-                    </div>
-
-                    <div className="mt-4 space-y-4">
-                      <section>
-                        <p className="text-xs uppercase tracking-wide text-zinc-400">Education</p>
-                        <p className="mt-1 text-sm text-zinc-200">
-                          {university || "University Name"} — {degree || "Degree"}
-                          {graduationYear ? ` (${graduationYear})` : ""}
-                        </p>
-                      </section>
-                      <section>
-                        <p className="text-xs uppercase tracking-wide text-zinc-400">Experience</p>
-                        {generated && experienceBullets.length > 0 ? (
-                          <ul className="mt-1 list-disc space-y-1 pl-4 text-sm leading-6 text-zinc-200">
-                            {experienceBullets.map((bullet) => (
-                              <li key={bullet}>{bullet}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="mt-1 text-sm leading-6 text-zinc-200">
-                            {experienceText || "გამოცდილება გამოჩნდება გენერაციის შემდეგ."}
-                          </p>
-                        )}
-                      </section>
-                      <section>
-                        <p className="text-xs uppercase tracking-wide text-zinc-400">Tools</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {(generated && highlightedSkills.length > 0
-                            ? highlightedSkills
-                            : tools.length > 0
-                              ? tools
-                              : ["Figma", "Next.js", "Tailwind"]
-                          ).map((tool) => (
-                            <span
-                              key={tool}
-                              className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 text-xs text-zinc-200"
-                            >
-                              {tool}
-                            </span>
-                          ))}
-                        </div>
-                      </section>
-                      <section>
-                        <p className="text-xs uppercase tracking-wide text-zinc-400">AI Summary</p>
-                        <p className="mt-1 text-sm leading-6 text-zinc-200">
-                          {generated
-                            ? summary
-                            : "CV-ს გენერირების შემდეგ აქ გამოჩნდება ოპტიმიზებული ტექსტი."}
-                        </p>
-                        {generated && optimizationTips.length > 0 && (
-                          <ul className="mt-2 space-y-1 text-xs text-zinc-400">
-                            {optimizationTips.map((tip) => (
-                              <li key={tip}>• {tip}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </section>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {cvError && (
-          <div className="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
-            {cvError}
+            <div className="min-w-0">
+              <CvSheetFrame>{renderSheet(true)}</CvSheetFrame>
+              <div className="mt-3 flex justify-center">
+                <button type="button" onClick={() => setBigView(true)} className={secondaryBtn}>
+                  <Maximize2 className="h-4 w-4" />
+                  დიდი ნახვა
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-        {cvLoading && step === 3 && <AiSkeletonLoader rows={2} className="mt-4" />}
 
-        <footer className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-white/[0.08]">
-          <button
-            type="button"
-            onClick={goBack}
-            disabled={step === 1 || cvLoading}
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
-          >
-            უკან
-          </button>
-          {step < 4 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              disabled={cvLoading}
-              className="rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
-            >
-              {step === 3 ? (cvLoading ? "იტვირთება..." : "CV-ს გენერირება") : "შემდეგი"}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setStep(1);
-                setGenerated(false);
-                setSummary("");
-                setHeadline("");
-                setExperienceBullets([]);
-                setHighlightedSkills([]);
-                setOptimizationTips([]);
-              }}
-              className="rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 dark:bg-pink-500 dark:hover:bg-pink-400"
-            >
-              ახალი CV
-            </button>
-          )}
-        </footer>
-      </div>
+          {bigView ? (
+            <div role="dialog" aria-modal="true" aria-label="CV — დიდი ნახვა" className="fixed inset-0 z-[120] overflow-auto bg-black/80 p-4 pt-[calc(env(safe-area-inset-top)+3.5rem)]">
+              <button
+                type="button"
+                onClick={() => setBigView(false)}
+                aria-label="დახურვა"
+                className="fixed right-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-800 shadow-lg"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              {/* Full size: scroll and pinch-zoom like any page. */}
+              <div className="mx-auto w-max shadow-2xl">
+                <CvSheetFrame fit={false}>{renderSheet(false)}</CvSheetFrame>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
     </section>
   );
 }
