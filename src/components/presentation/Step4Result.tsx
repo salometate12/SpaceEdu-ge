@@ -625,9 +625,11 @@ export function Step4Result({
 
   return (
     <section>
-      <div className="dashboard-tool-card mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+      {/* A plain header row (no card): title and chips left, exports right;
+          on a phone the buttons drop below the title. */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="subject-icon-wrap flex h-9 w-9 shrink-0 items-center justify-center text-pink-600 dark:text-pink-400">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-pink-600 dark:border-pink-400/15 dark:bg-pink-500/10 dark:text-pink-400">
             <Sparkles className="h-4 w-4" />
           </span>
           <div className="min-w-0" data-editor-keep>
