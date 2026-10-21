@@ -80,6 +80,12 @@ export function MarkdownContent({
           </ListTag>
         );
       }
+      case "quote":
+        return (
+          <blockquote key={key} className="my-3 border-l-4 border-zinc-300 pl-4 leading-relaxed text-zinc-700 dark:border-zinc-600 dark:text-zinc-300">
+            {inlineFormat(block.text)}
+          </blockquote>
+        );
       case "paragraph":
         return (
           <p key={key} className="my-3 leading-relaxed text-zinc-700 dark:text-zinc-300">

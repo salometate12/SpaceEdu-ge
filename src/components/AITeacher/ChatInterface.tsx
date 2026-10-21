@@ -13,6 +13,7 @@ import {
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, PanelLeft, Square, SquarePen } from "lucide-react";
+import { useChatScroll } from "@/hooks/useChatScroll";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import {
@@ -28,6 +29,7 @@ import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { AITeacherSidebar, trapFocus } from "./AITeacherSidebar";
+import { JumpToEndButton } from "./JumpToEndButton";
 import { MessageBubble } from "./MessageBubble";
 
 /** Remembers whether the desktop sidebar is collapsed. */
@@ -86,11 +88,11 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
+  // Bumped when a saved conversation is opened, so it opens at its last question.
+  const [openCount, setOpenCount] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const reduceMotion = useReducedMotion();
 
-  const feedRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const initialPromptConsumed = useRef(false);
@@ -112,12 +114,13 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     adjustTextareaHeight();
   }, [input, adjustTextareaHeight]);
 
-  useEffect(() => {
-    if (messages.length === 0) return;
-    const element = feedRef.current;
-    if (!element) return;
-    element.scrollTop = element.scrollHeight;
-  }, [messages, isLoading]);
+  // The last question and its answer; the question scrolls to the top when
+  // it's sent, and the answer is read from its start (no following the stream).
+  const lastQuestion = messages.map((message) => message.role).lastIndexOf("user");
+  const { attachFeed, turnStyle, showJump, jumpToEnd } = useChatScroll({
+    questionKey: lastQuestion === -1 ? null : messages[lastQuestion].id,
+    openKey: openCount,
+  });
 
   // Mirror messages into a ref so sendMessage can read the history that
   // preceded the current exchange without a stale closure.
@@ -287,6 +290,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     conversationIdRef.current = conversation.id;
     setActiveConversationId(conversation.id);
     setMessages(conversation.messages);
+    setOpenCount((count) => count + 1);
     setFriendlyError(null);
     setInput("");
     setSidebarOpen(false);
@@ -360,9 +364,21 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     onDelete: removeConversation,
   };
 
+  const renderMessage = (message: ChatMessage, index: number) => (
+    <MessageBubble
+      key={message.id}
+      role={message.role}
+      content={message.content}
+      waitingVariant="full"
+      space={space}
+      complete={!(isLoading && index === messages.length - 1)}
+    />
+  );
+
   const floatingInput = (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-white via-white/90 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+4.75rem)] pt-8 dark:from-[#0a0a0f] dark:via-[#0a0a0f]/90 md:pb-5">
-      <div className="pointer-events-auto w-full max-w-3xl">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/90 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+4.75rem)] pt-8 md:pb-5">
+      <div className="pointer-events-auto relative w-full max-w-3xl">
+        {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
         {friendlyError ? (
           <div className="mb-3 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-sm text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
@@ -371,11 +387,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
 
         <form onSubmit={handleSubmit}>
           <div
-            className={`rounded-[28px] border bg-white/70 shadow-[0_16px_44px_-16px_rgba(79,70,229,0.35)] backdrop-blur-xl transition-all duration-300 dark:bg-white/[0.06] ${
-              inputFocused
-                ? "border-[var(--accent-primary)]/50 shadow-[0_0_0_4px_rgba(124,58,237,0.12)]"
-                : "border-white/60 dark:border-white/10"
-            }`}
+            className="rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)]"
           >
             <div className="flex items-end gap-2 px-3 py-2">
               <textarea
@@ -383,8 +395,6 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 value={input}
                 rows={1}
                 onChange={(event) => setInput(event.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
                 onKeyDown={handleKeyDown}
                 placeholder={copy.placeholder}
                 className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
@@ -404,11 +414,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   type="submit"
                   disabled={!canSend}
                   aria-label="გაგზავნა"
-                  className={`mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
-                    canSend
-                      ? "bg-gradient-to-br from-[var(--accent-primary)] to-[#6366f1] text-white shadow-[0_6px_18px_-4px_rgba(99,102,241,0.6)] hover:opacity-90"
-                      : "bg-black/[0.06] text-[var(--text-muted)] dark:bg-white/10"
-                  }`}
+                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100"
                 >
                   <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -425,7 +431,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       {/* Desktop sidebar: full height under the header, collapses to icons. */}
       <aside
         aria-label="AI მასწავლებლის მენიუ"
-        className={`hidden h-full shrink-0 overflow-hidden border-r border-[var(--border)] bg-white/70 backdrop-blur-xl transition-[width] duration-[220ms] ease-out motion-reduce:transition-none md:block dark:bg-white/[0.03] ${
+        className={`hidden h-full shrink-0 overflow-hidden border-r border-[var(--border)] bg-[var(--bg-card)] transition-[width] duration-[220ms] ease-out motion-reduce:transition-none md:block ${
           collapsed ? "w-14" : "w-[264px]"
         }`}
       >
@@ -500,7 +506,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         </div>
 
         <div
-          ref={feedRef}
+          ref={attachFeed}
           className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-52 pt-6 sm:px-6 md:pb-44"
         >
           {!hasMessages ? (
@@ -526,13 +532,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                       key={action.title}
                       type="button"
                       onClick={() => void sendMessage(action.prompt)}
-                      className="relative rounded-2xl border border-white/60 bg-white/55 p-3 pr-9 text-left shadow-[0_12px_34px_-16px_rgba(79,70,229,0.35)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/75 sm:rounded-3xl sm:p-3.5 sm:pr-10 dark:border-white/10 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]"
+                      className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 pr-9 text-left transition-colors duration-200 hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] sm:p-3.5 sm:pr-10"
                     >
-                      <span
-                        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full shadow-sm sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7"
-                        style={{ background: `color-mix(in oklab, ${action.color}, white 78%)` }}
-                      >
-                        <ActionIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" style={{ color: action.color }} strokeWidth={2} />
+                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7">
+                        <ActionIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
                       </span>
                       <span className="block truncate text-[13px] font-semibold text-[var(--text-primary)]">
                         {action.title}
@@ -547,16 +550,14 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             </div>
           ) : (
             <div className="mx-auto w-full max-w-3xl space-y-6">
-              {messages.map((message, index) => (
-                <MessageBubble
-                  key={message.id}
-                  role={message.role}
-                  content={message.content}
-                  waitingVariant="full"
-                  space={space}
-                  complete={!(isLoading && index === messages.length - 1)}
-                />
-              ))}
+              {messages.slice(0, lastQuestion === -1 ? messages.length : lastQuestion).map(renderMessage)}
+              {lastQuestion === -1 ? null : (
+                // The current question + answer: tall enough for the question
+                // to reach the top while the answer is still short.
+                <div className="space-y-6" style={turnStyle}>
+                  {messages.slice(lastQuestion).map((message, index) => renderMessage(message, lastQuestion + index))}
+                </div>
+              )}
             </div>
           )}
         </div>
