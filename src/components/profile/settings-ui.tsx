@@ -77,7 +77,7 @@ export function SettingsRows({ children, className = "" }: { children: ReactNode
 /** The small grey "მალე" (coming soon) badge. */
 export function SoonBadge() {
   return (
-    <span className="ml-auto shrink-0 rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]">
+    <span className="nb-soon ml-auto shrink-0 text-[var(--text-secondary)]">
       მალე
     </span>
   );

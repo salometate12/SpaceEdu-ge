@@ -2324,3 +2324,143 @@ html.no-animations *::after {
 .point-drop-target {
   box-shadow: 0 -0.25cqw 0 0 #ec4899;
 }
+
+/* ---------------------------------------------------------------------------
+ * Neo-brutalist pill buttons (profile & settings for now) — see
+ * src/lib/nb-button.ts. Hard outline, solid offset shadow, magenta.
+ * ------------------------------------------------------------------------- */
+:root {
+  --nb-ink: #0f0f14;
+  --nb-shadow: #0f0f14;
+  --nb-primary: #e11d74;
+  --nb-on-primary: #ffffff;
+  --nb-surface: #ffffff;
+  --nb-text: #0f0f14;
+  --nb-danger: #be123c;
+}
+html.dark {
+  --nb-ink: #f4f4f5;
+  --nb-shadow: #d81878;
+  --nb-surface: #16161f;
+  --nb-text: #f4f4f5;
+  --nb-danger: #fb7185;
+}
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border: 2px solid var(--nb-ink);
+  border-radius: 9999px;
+  background: var(--nb-surface);
+  color: var(--nb-text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 0 var(--nb-shadow);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.nb-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.nb-btn--sm {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.nb-btn--block {
+  width: 100%;
+}
+.nb-btn--primary {
+  background: var(--nb-primary);
+  color: var(--nb-on-primary);
+}
+.nb-btn--danger {
+  color: var(--nb-danger);
+}
+.nb-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--nb-shadow);
+}
+.nb-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--nb-shadow);
+}
+.nb-btn:focus-visible {
+  outline: 3px solid var(--nb-primary);
+  outline-offset: 3px;
+}
+.nb-btn:disabled,
+.nb-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Profile side menu and mobile chips: calm pills; the active one is a button. */
+.nb-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.nb-nav:hover {
+  border-color: var(--nb-ink);
+  box-shadow: 3px 3px 0 0 var(--nb-shadow);
+  color: var(--text-primary);
+}
+.nb-nav:focus-visible {
+  outline: 3px solid var(--nb-primary);
+  outline-offset: 2px;
+}
+.nb-nav--danger {
+  color: var(--nb-danger);
+}
+.nb-nav--active,
+.nb-nav--active:hover {
+  border-color: var(--nb-ink);
+  background: var(--nb-primary);
+  color: var(--nb-on-primary);
+  box-shadow: 3px 3px 0 0 var(--nb-shadow);
+}
+.nb-nav--active-danger,
+.nb-nav--active-danger:hover {
+  border-color: var(--nb-ink);
+  background: var(--nb-surface);
+  color: var(--nb-danger);
+  box-shadow: 3px 3px 0 0 var(--nb-shadow);
+}
+
+/* „მალე“ — a pill with an outline, no shadow. */
+.nb-soon {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid currentColor;
+  border-radius: 9999px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-btn,
+  .nb-nav {
+    transition: none;
+  }
+  .nb-btn:hover:not(:disabled):not([aria-disabled="true"]),
+  .nb-btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+  }
+}

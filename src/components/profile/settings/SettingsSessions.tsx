@@ -5,6 +5,7 @@ import { Laptop, LogOut, MonitorSmartphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 function describeDevice(ua: string): { name: string; mobile: boolean } {
   const mobile = /iPhone|iPad|Android|Mobile/i.test(ua);
@@ -80,9 +81,9 @@ export function SettingsSessions() {
           type="button"
           onClick={() => void handleSignOutOthers()}
           disabled={state === "working"}
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--border-danger,rgba(220,38,38,0.4))] px-4 py-2.5 text-[13px] font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-60 dark:text-rose-400 dark:hover:bg-rose-500/10"
+          className={nbButtonClass({ variant: "secondary", block: true })}
         >
-          <LogOut className="h-3.5 w-3.5" aria-hidden />
+          <LogOut aria-hidden />
           {state === "working" ? "მიმდინარეობს..." : "ყველა სხვა სესიიდან გასვლა"}
         </button>
         {state === "done" && (

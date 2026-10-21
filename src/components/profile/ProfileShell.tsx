@@ -7,6 +7,7 @@ import { Flame } from "lucide-react";
 import { useStreak } from "@/hooks/useStreak";
 import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
 import { buildProfileNav, isProfileNavItemActive } from "@/lib/settings-nav";
+import { nbNavClass } from "@/lib/nb-button";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 interface ProfileShellProps {
@@ -20,10 +21,6 @@ interface ProfileShellProps {
   children: React.ReactNode;
 }
 
-const ACTIVE_ITEM =
-  "bg-[#EEEDFE] text-[#3C3489] font-medium dark:bg-[rgba(127,119,221,0.14)] dark:text-[#c9c4fb]";
-const IDLE_ITEM =
-  "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]";
 
 export function ProfileShell({
   userName,
@@ -48,10 +45,11 @@ export function ProfileShell({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 sm:py-6">
-      {/* Mobile: horizontally scrollable chips (sidebar is hidden below md) */}
+      {/* Mobile: horizontally scrollable chips (sidebar is hidden below md).
+          Room below/right for the active chip's hard shadow. */}
       <nav
         aria-label="პროფილის მენიუ"
-        className="mb-4 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden"
+        className="mb-4 -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden"
       >
         {flatItems.map((item) => {
           const active = isProfileNavItemActive(pathname, item.href);
@@ -62,13 +60,12 @@ export function ProfileShell({
               href={item.href}
               ref={active ? activeChipRef : undefined}
               aria-current={active ? "page" : undefined}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                active
-                  ? "border-transparent bg-[#7F77DD] text-white"
-                  : item.danger
-                    ? "border-[var(--border)] text-rose-600 dark:text-rose-400"
-                    : "border-[var(--border)] text-[var(--text-secondary)]"
-              }`}
+              className={nbNavClass({
+                active,
+                danger: item.danger,
+                // Idle chips keep a thin outline on a phone (no hover there).
+                className: `shrink-0 px-3 py-1.5 text-xs font-semibold ${active ? "" : "!border-[var(--border)]"}`,
+              })}
             >
               <Icon className="h-3.5 w-3.5 stroke-[1.75]" aria-hidden />
               {item.label}
@@ -81,7 +78,7 @@ export function ProfileShell({
         {/* Desktop sidebar */}
         <nav
           aria-label="პროფილის მენიუ"
-          className="hidden flex-col gap-0.5 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 md:flex"
+          className="hidden flex-col gap-1 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 pr-4 md:flex"
         >
           <div className="mb-3 flex items-center gap-2.5 border-b border-[var(--border)] px-2 pb-3.5">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-pink-50 text-[13px] font-semibold text-[#be185d] dark:border-[#f4f4f5] dark:bg-pink-500/15 dark:text-pink-200">
@@ -121,18 +118,13 @@ export function ProfileShell({
                     key={item.href}
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] transition-colors ${
-                      active
-                        ? ACTIVE_ITEM
-                        : item.danger
-                          ? "text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                          : IDLE_ITEM
-                    }`}
+                    className={nbNavClass({
+                      active,
+                      danger: item.danger,
+                      className: `px-3 py-1.5 text-[13px] ${active ? "font-semibold" : ""}`,
+                    })}
                   >
-                    <Icon
-                      className={`h-[15px] w-[15px] stroke-[1.75] ${active ? "text-[#7F77DD]" : ""}`}
-                      aria-hidden
-                    />
+                    <Icon className="h-[15px] w-[15px] stroke-[1.75]" aria-hidden />
                     {item.label}
                   </Link>
                 );

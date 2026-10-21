@@ -29,6 +29,7 @@ import {
   readSemesterSubjects,
   type SemesterSubject,
 } from "@/lib/semester-subjects";
+import { nbButtonClass } from "@/lib/nb-button";
 
 interface StatsViewProps {
   user: UserProfile;
@@ -282,7 +283,7 @@ function EmptyUsageState() {
       </p>
       <Link
         href="/"
-        className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
+        className={nbButtonClass({ variant: "primary", className: "mt-5" })}
       >
         დეშბორდზე გადასვლა
       </Link>

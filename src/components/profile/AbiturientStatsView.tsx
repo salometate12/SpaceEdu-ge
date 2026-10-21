@@ -24,6 +24,7 @@ import {
   usageOnDay,
   type ToolUsageEvent,
 } from "@/lib/activity";
+import { nbButtonClass } from "@/lib/nb-button";
 
 interface AbiturientStatsViewProps {
   user: UserProfile;
@@ -262,7 +263,7 @@ function EmptyUsageState() {
       </p>
       <Link
         href="/dashboard-abit"
-        className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
+        className={nbButtonClass({ variant: "primary", className: "mt-5" })}
       >
         დეშბორდზე გადასვლა
       </Link>

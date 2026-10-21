@@ -8,6 +8,7 @@ import { SettingsCard } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 import { AVATAR_ACCEPT, AVATAR_ERRORS, avatarFileProblem } from "@/lib/avatar";
 import { removeAvatar, uploadAvatar } from "@/lib/avatar-upload";
+import { nbButtonClass } from "@/lib/nb-button";
 
 export interface ProfileFormValues {
   firstName: string;
@@ -148,9 +149,9 @@ export function SettingsProfileForm({
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={photoBusy !== null}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] disabled:opacity-60"
+              className={nbButtonClass({ variant: "primary", size: "sm" })}
             >
-              <Upload className="h-3.5 w-3.5" aria-hidden />
+              {photoBusy === "uploading" ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
               {photoBusy === "uploading" ? "იტვირთება…" : "ფოტოს ატვირთვა"}
             </button>
             {ownPhoto ? (
@@ -158,9 +159,9 @@ export function SettingsProfileForm({
                 type="button"
                 onClick={() => setConfirmDelete(true)}
                 disabled={photoBusy !== null}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] disabled:opacity-60"
+                className={nbButtonClass({ variant: "secondary", size: "sm" })}
               >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                <Trash2 aria-hidden />
                 წაშლა
               </button>
             ) : null}
@@ -233,9 +234,9 @@ export function SettingsProfileForm({
           type="button"
           onClick={() => void handleSave()}
           disabled={state === "saving"}
-          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#7F77DD] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7] disabled:opacity-60"
+          className={nbButtonClass({ variant: "primary", block: true, className: "mt-5" })}
         >
-          <Check className="h-3.5 w-3.5" aria-hidden />
+          <Check aria-hidden />
           {state === "saving" ? "ინახება..." : "ცვლილებების შენახვა"}
         </button>
 

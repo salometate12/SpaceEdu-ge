@@ -5,6 +5,7 @@ import { Award, Bell, Brain, Calendar, Flame, Megaphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { SettingsCard, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 // These preferences are stored on the account (user_metadata.notificationPrefs)
 // via updateUser. There is no server-side push/email sender yet, so nothing
@@ -133,7 +134,7 @@ export function SettingsNotifications() {
           type="button"
           onClick={() => void handleSave()}
           disabled={state === "saving"}
-          className="mt-3 inline-flex items-center justify-center rounded-lg bg-[#7F77DD] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7] disabled:opacity-60"
+          className={nbButtonClass({ variant: "primary", className: "mt-4" })}
         >
           {state === "saving" ? "ინახება..." : "შენახვა"}
         </button>

@@ -6,6 +6,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -115,7 +116,7 @@ export function SettingsSecurity() {
           type="button"
           onClick={() => void handleSubmit()}
           disabled={state === "saving"}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[#7F77DD] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7] disabled:opacity-60"
+          className={nbButtonClass({ variant: "primary", block: true, className: "mt-4" })}
         >
           {state === "saving" ? "ნახლდება..." : "პაროლის განახლება"}
         </button>
