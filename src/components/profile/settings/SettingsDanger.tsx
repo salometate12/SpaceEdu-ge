@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Download, Trash2, TriangleAlert } from "lucide-react";
-import { SettingsCard, SoonBadge } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
+import { nbButtonClass } from "@/lib/nb-button";
 
 // Local progress lives entirely in the browser, so clearing it is a real,
 // safe client-side action. Export (needs a server bundle) and account deletion
@@ -30,8 +31,7 @@ export function SettingsDanger() {
     setCleared(true);
   };
 
-  const rowClass =
-    "flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-3.5 last:border-b-0";
+  const rowClass = `${SETTINGS_ROW} justify-between`;
 
   return (
     <SettingsCard
@@ -39,11 +39,11 @@ export function SettingsDanger() {
       title="საშიში ზონა"
       subtitle="ეს მოქმედებები შეუქცევადია"
       danger
-      bodyClassName="pt-3"
+      flush
     >
-      <div className="-mx-5 -mb-5 border-t border-[var(--border)]">
+      <SettingsRows>
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">მონაცემების ექსპორტი</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               ყველა პროგრესი და კონსპექტი ერთ ფაილად
@@ -53,16 +53,16 @@ export function SettingsDanger() {
             type="button"
             disabled
             title="მალე"
-            className="inline-flex shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] opacity-60"
+            className={nbButtonClass({ variant: "secondary", size: "sm", className: "shrink-0" })}
           >
-            <Download className="h-3.5 w-3.5" aria-hidden />
+            <Download aria-hidden />
             ექსპორტი
             <SoonBadge />
           </button>
         </div>
 
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">პროგრესის გასუფთავება</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               Quiz ისტორია, სტრიქი და სტატისტიკა ამ მოწყობილობაზე წაიშლება
@@ -76,16 +76,16 @@ export function SettingsDanger() {
             <button
               type="button"
               onClick={() => setConfirmClear(true)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-400 dark:hover:bg-rose-500/10"
+              className={nbButtonClass({ variant: "danger", size: "sm", className: "shrink-0" })}
             >
-              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              <Trash2 aria-hidden />
               გასუფთავება
             </button>
           )}
         </div>
 
         <div className={rowClass}>
-          <div className="min-w-0">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">ანგარიშის წაშლა</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
               ყველა მონაცემი სამუდამოდ წაიშლება
@@ -95,14 +95,14 @@ export function SettingsDanger() {
             type="button"
             disabled
             title="მალე"
-            className="inline-flex shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] opacity-60"
+            className={nbButtonClass({ variant: "danger", size: "sm", className: "shrink-0" })}
           >
-            <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            <Trash2 aria-hidden />
             ანგარიშის წაშლა
             <SoonBadge />
           </button>
         </div>
-      </div>
+      </SettingsRows>
 
       <ConfirmDialog
         open={confirmClear}

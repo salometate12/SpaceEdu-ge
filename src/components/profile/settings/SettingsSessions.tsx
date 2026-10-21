@@ -4,7 +4,8 @@ import { useState, useSyncExternalStore } from "react";
 import { Laptop, LogOut, MonitorSmartphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 function describeDevice(ua: string): { name: string; mobile: boolean } {
   const mobile = /iPhone|iPad|Android|Mobile/i.test(ua);
@@ -25,12 +26,21 @@ function describeDevice(ua: string): { name: string; mobile: boolean } {
 const DEFAULT_DEVICE = { name: "ეს მოწყობილობა", mobile: false };
 const subscribeNoop = () => () => {};
 
+// useSyncExternalStore needs the same object back for the same input;
+// a fresh one on every call made React loop („Maximum update depth“).
+let deviceCache: { ua: string; device: { name: string; mobile: boolean } } | null = null;
+function currentDevice() {
+  const ua = navigator.userAgent;
+  if (deviceCache?.ua !== ua) deviceCache = { ua, device: describeDevice(ua) };
+  return deviceCache.device;
+}
+
 export function SettingsSessions() {
   // Client-only read of the current device — no state sync needed, so
   // useSyncExternalStore keeps SSR and hydration consistent without an effect.
   const device = useSyncExternalStore(
     subscribeNoop,
-    () => describeDevice(navigator.userAgent),
+    currentDevice,
     () => DEFAULT_DEVICE,
   );
   const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle");
@@ -58,14 +68,14 @@ export function SettingsSessions() {
       icon={MonitorSmartphone}
       title="აქტიური სესიები"
       subtitle="Supabase-ი სესიების სრულ სიას არ აბრუნებს — ჩანს მხოლოდ ეს მოწყობილობა"
-      bodyClassName="pt-3"
+      flush
     >
-      <div className="-mx-5 border-t border-[var(--border)]">
-        <div className="flex items-center gap-3 px-5 py-3">
+      <SettingsRows className="border-b">
+        <div className={SETTINGS_ROW}>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
             <DeviceIcon className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">{device.name}</div>
             <div className="text-[11px] text-[var(--text-secondary)]">მიმდინარე სესია</div>
           </div>
@@ -73,16 +83,16 @@ export function SettingsSessions() {
             მიმდინარე
           </span>
         </div>
-      </div>
+      </SettingsRows>
 
-      <div className="mt-4">
+      <div className="px-4 py-5 sm:px-5">
         <button
           type="button"
           onClick={() => void handleSignOutOthers()}
           disabled={state === "working"}
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--border-danger,rgba(220,38,38,0.4))] px-4 py-2.5 text-[13px] font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-60 dark:text-rose-400 dark:hover:bg-rose-500/10"
+          className={nbButtonClass({ variant: "secondary", block: true })}
         >
-          <LogOut className="h-3.5 w-3.5" aria-hidden />
+          <LogOut aria-hidden />
           {state === "working" ? "მიმდინარეობს..." : "ყველა სხვა სესიიდან გასვლა"}
         </button>
         {state === "done" && (

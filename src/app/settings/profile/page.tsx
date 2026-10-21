@@ -1,4 +1,5 @@
 import { getServerAccountMeta } from "@/lib/auth-server";
+import { customAvatarUrl, providerAvatarUrl } from "@/lib/avatar";
 import {
   SettingsProfileForm,
   type ProfileFormValues,
@@ -30,6 +31,8 @@ export default async function SettingsProfilePage() {
       initial={initial}
       email={account?.email ?? ""}
       initials={initials}
+      customPhotoUrl={customAvatarUrl(meta)}
+      providerPhotoUrl={providerAvatarUrl(meta)}
     />
   );
 }

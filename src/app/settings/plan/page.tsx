@@ -3,6 +3,7 @@ import { Check, Crown } from "lucide-react";
 import { getServerAccountMeta } from "@/lib/auth-server";
 import { getPlanStatus } from "@/lib/subscription";
 import { SettingsCard } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 export default async function SettingsPlanPage() {
   const account = await getServerAccountMeta();
@@ -42,9 +43,9 @@ export default async function SettingsPlanPage() {
       </p>
       <Link
         href="/pricing"
-        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#7F77DD] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7]"
+        className={nbButtonClass({ variant: "primary", block: true, className: "mt-4" })}
       >
-        <Crown className="h-3.5 w-3.5" aria-hidden />
+        <Crown aria-hidden />
         პლანების ნახვა და განახლება
       </Link>
     </SettingsCard>

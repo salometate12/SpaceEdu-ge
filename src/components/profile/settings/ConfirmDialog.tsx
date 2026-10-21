@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { nbButtonClass } from "@/lib/nb-button";
 
 /**
  * A small accessible confirmation dialog (role="dialog", aria-modal). Escape or
@@ -86,11 +87,11 @@ export function ConfirmDialog({
           </label>
         )}
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-5 flex flex-wrap justify-end gap-3">
           <button
             type="button"
             onClick={handleCancel}
-            className="rounded-lg border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)]"
+            className={nbButtonClass({ variant: "secondary", size: "sm" })}
           >
             გაუქმება
           </button>
@@ -99,9 +100,7 @@ export function ConfirmDialog({
             type="button"
             disabled={!ready}
             onClick={handleConfirm}
-            className={`rounded-lg px-4 py-2 text-[13px] font-medium text-white transition-colors disabled:opacity-50 ${
-              danger ? "bg-rose-600 hover:bg-rose-700" : "bg-[#7F77DD] hover:bg-[#534AB7]"
-            }`}
+            className={nbButtonClass({ variant: danger ? "danger" : "primary", size: "sm" })}
           >
             {confirmLabel}
           </button>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Flame, LayoutTemplate, Palette, Sparkles } from "lucide-react";
 import { useTheme, type ThemePreference } from "@/components/ThemeProvider";
-import { SettingsCard, SoonBadge, Toggle, ToggleRow } from "@/components/profile/settings-ui";
+import { SettingsCard, SoonBadge, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
 
 const ANIMATIONS_KEY = "spaceedu-animations";
 
@@ -42,8 +42,8 @@ export function SettingsAppearance() {
   };
 
   return (
-    <SettingsCard icon={Palette} title="თემა" subtitle="ვიზუალური სტილი" bodyClassName="pt-3">
-      <div className="grid grid-cols-3 gap-2">
+    <SettingsCard icon={Palette} title="თემა" subtitle="ვიზუალური სტილი" flush>
+      <div className="grid grid-cols-3 gap-2 px-4 pb-5 sm:px-5">
         {THEME_OPTIONS.map((opt) => {
           const selected = preference === opt.value;
           return (
@@ -70,7 +70,7 @@ export function SettingsAppearance() {
         })}
       </div>
 
-      <div className="-mx-5 mt-4 -mb-5 border-t border-[var(--border)]">
+      <SettingsRows>
         <ToggleRow
           icon={Sparkles}
           tone="purple"
@@ -92,7 +92,7 @@ export function SettingsAppearance() {
           subtitle="სტრიქ-მთვლელზე ეფექტი"
           control={<SoonBadge />}
         />
-      </div>
+      </SettingsRows>
     </SettingsCard>
   );
 }

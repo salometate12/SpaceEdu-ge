@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CreditCard, Plus } from "lucide-react";
 import { SettingsCard, SoonBadge } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 export default function SettingsBillingPage() {
   return (
@@ -23,20 +24,20 @@ export default function SettingsBillingPage() {
 
       <Link
         href="/checkout"
-        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#7F77DD] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7]"
+        className={nbButtonClass({ variant: "primary", block: true })}
       >
-        <Plus className="h-3.5 w-3.5" aria-hidden />
+        <Plus aria-hidden />
         გადახდაზე გადასვლა
       </Link>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <button
           type="button"
           disabled
           title="მალე"
-          className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] px-4 py-2.5 text-[13px] font-medium text-[var(--text-secondary)] opacity-60"
+          className={nbButtonClass({ variant: "secondary", block: true })}
         >
-          <CreditCard className="h-3.5 w-3.5" aria-hidden />
+          <CreditCard aria-hidden />
           BOG Pay
           <SoonBadge />
         </button>
@@ -44,9 +45,9 @@ export default function SettingsBillingPage() {
           type="button"
           disabled
           title="მალე"
-          className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] px-4 py-2.5 text-[13px] font-medium text-[var(--text-secondary)] opacity-60"
+          className={nbButtonClass({ variant: "secondary", block: true })}
         >
-          <CreditCard className="h-3.5 w-3.5" aria-hidden />
+          <CreditCard aria-hidden />
           TBC Pay
           <SoonBadge />
         </button>

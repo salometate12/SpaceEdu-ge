@@ -6,7 +6,25 @@ import type { ReactNode } from "react";
 
 export { Toggle } from "./Toggle";
 
-/** A settings card: thin border, rounded, optional icon title + subtitle. */
+/** Horizontal padding every card part and row shares, so edges line up. */
+export const CARD_X = "px-4 sm:px-5";
+
+/**
+ * One row in a card's list: icon, text and a control on one line, the same
+ * padding as the card. On a phone the control drops under the text instead
+ * of squeezing it.
+ */
+export const SETTINGS_ROW = `flex flex-wrap items-center gap-3 border-b border-[var(--border)] py-4 last:border-b-0 ${CARD_X}`;
+/** The text column of a row: takes the room, wraps (never cut) when narrow. */
+export const SETTINGS_ROW_TEXT = "min-w-[10rem] flex-1";
+
+/**
+ * A settings card: thin border, rounded, optional icon title + subtitle.
+ * The card is as tall as its content — `overflow-hidden` only rounds the
+ * corners. `flush` drops the body padding for cards whose body is a list of
+ * full-width rows (wrap those in <SettingsRows>); anything else inside a
+ * flush card brings its own padding (CARD_X).
+ */
 export function SettingsCard({
   icon: Icon,
   title,
@@ -14,6 +32,7 @@ export function SettingsCard({
   children,
   bodyClassName = "",
   danger = false,
+  flush = false,
 }: {
   icon?: LucideIcon;
   title?: string;
@@ -21,11 +40,12 @@ export function SettingsCard({
   children: ReactNode;
   bodyClassName?: string;
   danger?: boolean;
+  flush?: boolean;
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
       {title && (
-        <div className="px-5 pt-5">
+        <div className={`${CARD_X} pt-5`}>
           <h2
             className={`flex items-center gap-2 text-[15px] font-medium ${
               danger ? "text-rose-600 dark:text-rose-400" : "text-[var(--text-primary)]"
@@ -44,15 +64,20 @@ export function SettingsCard({
           )}
         </div>
       )}
-      <div className={bodyClassName || "p-5"}>{children}</div>
+      <div className={flush ? "pt-4" : bodyClassName || `${CARD_X} py-5`}>{children}</div>
     </section>
   );
+}
+
+/** The full-width list inside a flush card, under a divider. */
+export function SettingsRows({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`border-t border-[var(--border)] ${className}`}>{children}</div>;
 }
 
 /** The small grey "მალე" (coming soon) badge. */
 export function SoonBadge() {
   return (
-    <span className="ml-auto shrink-0 rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]">
+    <span className="nb-soon ml-auto shrink-0 text-[var(--text-secondary)]">
       მალე
     </span>
   );
@@ -80,13 +105,13 @@ export function ToggleRow({
     blue: "bg-[#E6F1FB] text-[#378ADD] dark:bg-[rgba(55,138,221,0.16)] dark:text-[#6cb0f0]",
   };
   return (
-    <div className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0">
+    <div className={SETTINGS_ROW}>
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
       >
         <Icon className="h-4 w-4 stroke-[1.75]" aria-hidden />
       </span>
-      <div className="min-w-0 flex-1">
+      <div className={SETTINGS_ROW_TEXT}>
         <div className="text-[13px] text-[var(--text-primary)]">{title}</div>
         {subtitle && <div className="mt-0.5 text-[11px] text-[var(--text-secondary)]">{subtitle}</div>}
       </div>

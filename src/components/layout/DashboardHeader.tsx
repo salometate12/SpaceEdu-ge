@@ -19,6 +19,7 @@ import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./Header
 import { SpaceChip } from "./SpaceChip";
 import { brandHomeHref, dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { aiTeacherHrefForSpace, profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -34,6 +35,7 @@ export function DashboardHeader({
   const [unreadCount, setUnreadCount] = useState(0);
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
+  const { photoUrl } = useCurrentUserAvatar();
   const pathname = usePathname();
   // The student dashboard carries a side rail with the account links, so
   // the pill leaves the avatar to it. The nav itself stays: see
@@ -137,9 +139,15 @@ export function DashboardHeader({
           <button
             type="button"
             onClick={() => setAvatarOpen((prev) => !prev)}
-            className="h-9 w-9 rounded-full border border-[#d81878] bg-[#2a0a1a] text-sm font-semibold text-[#f5b8d4] transition-colors hover:bg-[#3a0f26]"
+            aria-label="პროფილის მენიუ"
+            className="h-9 w-9 overflow-hidden rounded-full border border-[#d81878] bg-[#2a0a1a] text-sm font-semibold text-[#f5b8d4] transition-colors hover:bg-[#3a0f26]"
           >
-            {avatarInitial}
+            {photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
+              <img src={photoUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              avatarInitial
+            )}
           </button>
           <AvatarDropdown
             open={avatarOpen}

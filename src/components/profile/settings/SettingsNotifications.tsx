@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Award, Bell, Brain, Calendar, Flame, Megaphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SettingsCard, Toggle, ToggleRow } from "@/components/profile/settings-ui";
+import { SettingsCard, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
+import { nbButtonClass } from "@/lib/nb-button";
 
 // These preferences are stored on the account (user_metadata.notificationPrefs)
 // via updateUser. There is no server-side push/email sender yet, so nothing
@@ -77,9 +78,9 @@ export function SettingsNotifications() {
       icon={Bell}
       title="შეტყობინებები"
       subtitle="აირჩიე რა შეგახსენოს SpaceEdu-მ"
-      bodyClassName="pt-3"
+      flush
     >
-      <div className="-mx-5 border-y border-[var(--border)]">
+      <SettingsRows className="border-b">
         <ToggleRow
           icon={Flame}
           tone="amber"
@@ -115,9 +116,9 @@ export function SettingsNotifications() {
           subtitle="ახალი ფუნქციები და განახლებები"
           control={<Toggle checked={prefs.news} onChange={(v) => set("news", v)} label="SpaceEdu სიახლეები" />}
         />
-      </div>
+      </SettingsRows>
 
-      <div className="mt-4">
+      <div className="px-4 py-5 sm:px-5">
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]">
             შეხსენების დრო (თბილისი)
@@ -133,7 +134,7 @@ export function SettingsNotifications() {
           type="button"
           onClick={() => void handleSave()}
           disabled={state === "saving"}
-          className="mt-3 inline-flex items-center justify-center rounded-lg bg-[#7F77DD] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#534AB7] disabled:opacity-60"
+          className={nbButtonClass({ variant: "primary", className: "mt-4" })}
         >
           {state === "saving" ? "ინახება..." : "შენახვა"}
         </button>
