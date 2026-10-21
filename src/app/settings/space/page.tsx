@@ -1,8 +1,8 @@
-import { LayoutGrid } from "lucide-react";
+import { Info, LayoutGrid } from "lucide-react";
 import { getServerAccountSpace } from "@/lib/auth-server";
 import { getSpaceLabel, type UserSpace } from "@/lib/profile";
 import { STUDY_PLAN_SUBJECTS } from "@/lib/study-plan-subjects";
-import { SettingsCard } from "@/components/profile/settings-ui";
+import { ActiveCard, SETTINGS_TONE, SettingsCard } from "@/components/profile/settings-ui";
 
 export default async function SettingsSpacePage() {
   const space = (await getServerAccountSpace()) ?? "abiturient";
@@ -14,15 +14,7 @@ export default async function SettingsSpacePage() {
       title="სასწავლო სივრცე"
       subtitle="შენი მიმდინარე სივრცე და საგნები"
     >
-      <div className="flex items-center gap-3.5 rounded-xl border-2 border-[#7F77DD] bg-[#EEEDFE] p-4 dark:bg-[rgba(127,119,221,0.12)]">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#7F77DD] text-white">
-          <LayoutGrid className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden />
-        </span>
-        <div>
-          <div className="text-[13px] font-medium text-[#3C3489] dark:text-[#c9c4fb]">{label}</div>
-          <div className="text-[11px] text-[#7F77DD] dark:text-[#a99ff5]">აქტიური სივრცე</div>
-        </div>
-      </div>
+      <ActiveCard icon={LayoutGrid} title={label} subtitle="აქტიური სივრცე" />
 
       <div className="mt-4">
         <div className="mb-2 text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]">
@@ -30,10 +22,7 @@ export default async function SettingsSpacePage() {
         </div>
         <div className="flex flex-wrap gap-1.5">
           {STUDY_PLAN_SUBJECTS.map((subject) => (
-            <span
-              key={subject.id}
-              className="rounded-full border border-[#AFA9EC] bg-[#EEEDFE] px-2.5 py-1 text-[11px] text-[#534AB7] dark:border-[rgba(127,119,221,0.3)] dark:bg-[rgba(127,119,221,0.12)] dark:text-[#c9c4fb]"
-            >
+            <span key={subject.id} className={SETTINGS_TONE.chip}>
               {subject.title}
             </span>
           ))}
@@ -43,7 +32,8 @@ export default async function SettingsSpacePage() {
       {/* Space switching is intentionally not offered here: it needs the same
           guarded flow as /select-space (user_metadata.space + space-guard), which
           doesn't exist from this page yet. */}
-      <p className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2.5 text-xs text-[var(--text-secondary)]">
+      <p className="mt-4 flex items-start gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2.5 text-xs text-[var(--text-secondary)]">
+        <Info className="mt-px h-3.5 w-3.5 shrink-0 stroke-[1.75]" aria-hidden />
         სივრცის შესაცვლელად დაგვიკავშირდი — მალე შესაძლებელი იქნება პირდაპირ აქედან.
       </p>
     </SettingsCard>

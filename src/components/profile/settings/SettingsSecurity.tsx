@@ -5,7 +5,7 @@ import { Smartphone, Lock, MessageSquare, ShieldCheck } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
+import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SETTINGS_TONE, SettingsCard, SettingsRows, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
 import { nbButtonClass } from "@/lib/nb-button";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -69,8 +69,7 @@ export function SettingsSecurity() {
   const mismatch = confirm.length > 0 && password !== confirm;
   const fieldWrap = "flex flex-col gap-1.5";
   const labelClass = "text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]";
-  const inputClass =
-    "w-full rounded-lg border bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[#7F77DD]";
+  const inputClass = `w-full rounded-lg border bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`;
 
   return (
     <>
@@ -146,14 +145,12 @@ export function SettingsSecurity() {
         <SettingsRows>
           <ToggleRow
             icon={MessageSquare}
-            tone="purple"
             title="SMS კოდი"
             subtitle="ტელეფონზე კოდის გაგზავნა"
             control={<SoonBadge />}
           />
           <ToggleRow
             icon={Smartphone}
-            tone="teal"
             title="Authenticator App"
             subtitle="Google Authenticator / Authy"
             control={<SoonBadge />}
