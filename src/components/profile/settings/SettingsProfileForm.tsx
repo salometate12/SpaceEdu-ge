@@ -8,6 +8,7 @@ import { SettingsCard } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 import { AVATAR_ACCEPT, AVATAR_ERRORS, avatarFileProblem } from "@/lib/avatar";
 import { removeAvatar, uploadAvatar } from "@/lib/avatar-upload";
+import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
 import { nbButtonClass } from "@/lib/nb-button";
 
 export interface ProfileFormValues {
@@ -37,12 +38,15 @@ export function SettingsProfileForm({
 }) {
   const [values, setValues] = useState<ProfileFormValues>(initial);
   const [state, setState] = useState<SaveState>("idle");
-  const [ownPhoto, setOwnPhoto] = useState<string | null>(customPhotoUrl);
+  // The live account (follows uploads); the server's values until it loads.
+  const liveAvatar = useCurrentUserAvatar();
+  const ownPhoto = liveAvatar.loaded ? liveAvatar.customPhotoUrl : customPhotoUrl;
+  const googlePhoto = liveAvatar.loaded ? liveAvatar.providerPhotoUrl : providerPhotoUrl;
   const [photoBusy, setPhotoBusy] = useState<"uploading" | "deleting" | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const shownPhoto = ownPhoto ?? providerPhotoUrl;
+  const shownPhoto = ownPhoto ?? googlePhoto;
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -58,7 +62,7 @@ export function SettingsProfileForm({
     setPhotoError(null);
     setPhotoBusy("uploading");
     try {
-      setOwnPhoto(await uploadAvatar(createClient(), file));
+      await uploadAvatar(createClient(), file); // announces the change; liveAvatar reloads
     } catch {
       setPhotoError(AVATAR_ERRORS.failed);
     } finally {
@@ -72,7 +76,6 @@ export function SettingsProfileForm({
     setPhotoBusy("deleting");
     try {
       await removeAvatar(createClient());
-      setOwnPhoto(null);
     } catch {
       setPhotoError(AVATAR_ERRORS.deleteFailed);
     } finally {
@@ -177,7 +180,7 @@ export function SettingsProfileForm({
       <ConfirmDialog
         open={confirmDelete}
         title="წავშალოთ პროფილის ფოტო?"
-        message={providerPhotoUrl ? "ატვირთული ფოტო წაიშლება და Google-ის ფოტო დაბრუნდება." : "ატვირთული ფოტო წაიშლება და მის ნაცვლად ინიციალები გამოჩნდება."}
+        message={googlePhoto ? "ატვირთული ფოტო წაიშლება და Google-ის ფოტო დაბრუნდება." : "ატვირთული ფოტო წაიშლება და მის ნაცვლად ინიციალები გამოჩნდება."}
         confirmLabel="წაშლა"
         danger
         onConfirm={() => void handleDelete()}

@@ -26,12 +26,21 @@ function describeDevice(ua: string): { name: string; mobile: boolean } {
 const DEFAULT_DEVICE = { name: "ეს მოწყობილობა", mobile: false };
 const subscribeNoop = () => () => {};
 
+// useSyncExternalStore needs the same object back for the same input;
+// a fresh one on every call made React loop („Maximum update depth“).
+let deviceCache: { ua: string; device: { name: string; mobile: boolean } } | null = null;
+function currentDevice() {
+  const ua = navigator.userAgent;
+  if (deviceCache?.ua !== ua) deviceCache = { ua, device: describeDevice(ua) };
+  return deviceCache.device;
+}
+
 export function SettingsSessions() {
   // Client-only read of the current device — no state sync needed, so
   // useSyncExternalStore keeps SSR and hydration consistent without an effect.
   const device = useSyncExternalStore(
     subscribeNoop,
-    () => describeDevice(navigator.userAgent),
+    currentDevice,
     () => DEFAULT_DEVICE,
   );
   const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle");
