@@ -10,7 +10,7 @@ const BLACK = "#111827";
 export function AtsTemplate({ data, language, sections }: CvTemplateProps) {
   const contacts = [...contactItems(data), ...(sections.includes("links") ? [] : data.links)];
   return (
-    <Sheet style={{ fontFamily: 'Arial, var(--font-noto-georgian), "Noto Sans Georgian", sans-serif' }}>
+    <Sheet>
       <div style={{ padding: CV_MARGIN, color: BLACK }}>
         <Block>
           <h1 style={{ margin: 0, fontSize: CV_TYPE.name - 2, fontWeight: 700, lineHeight: 1.15 }}>{data.fullName}</h1>

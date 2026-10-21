@@ -31,7 +31,7 @@ export function ClassicTemplate({ data, accent, photo, language, sections }: CvT
             {data.fullName}
           </h1>
           {data.headline ? (
-            <Paragraph style={{ marginTop: 6, fontSize: CV_TYPE.headline, color: accent, fontFamily: SERIF, fontStyle: "italic" }}>
+            <Paragraph style={{ marginTop: 6, fontSize: CV_TYPE.headline, color: accent, fontFamily: SERIF }}>
               {data.headline}
             </Paragraph>
           ) : null}

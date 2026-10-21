@@ -149,3 +149,13 @@ export function defaultCvTemplate(saved: unknown, atsFocus: boolean): CvTemplate
   if (saved) return normalizeCvTemplate(saved);
   return atsFocus ? "ats" : "modern";
 }
+
+/** „ნინო ბერიძე“ → „CV_ნინო_ბერიძე.pdf“ (characters a file name can't hold are dropped). */
+export function cvFileName(fullName: string): string {
+  const parts = fullName
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, " ")
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.length ? `CV_${parts.join("_")}.pdf` : "CV.pdf";
+}

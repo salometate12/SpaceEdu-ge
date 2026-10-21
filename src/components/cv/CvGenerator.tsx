@@ -6,7 +6,6 @@ import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import { recordCvUpdate } from "@/lib/dashboard-metrics";
 import type { CvResponse } from "@/lib/ai/cv-schema";
-import { exportCvPdf } from "@/lib/exportCvPdf";
 import { A4_HEIGHT_PX, A4_WIDTH_PX } from "@/lib/cv-sheet";
 import { accentColor, CV_TEMPLATE_INFO, showsPhoto, splitList, visibleSections, type CvData, type CvLanguage, type CvPrefs } from "@/lib/cv-data";
 import { readCvPrefs, resolveCvPrefs, serverCvPrefs, subscribeCvPrefs, writeCvPrefs } from "@/lib/cv-prefs";
@@ -14,6 +13,7 @@ import { pageCount, paginateSheet } from "@/lib/cv-paginate";
 import { CvSheetFrame } from "./CvSheetFrame";
 import { CvTemplatePicker, LanguageSwitch } from "./CvTemplatePicker";
 import { CV_TEMPLATE_COMPONENTS } from "./templates";
+import { downloadCvPdf } from "./pdf/downloadCvPdf";
 
 /** The one plain card steps 1–3 sit on (as on /presentation, PR #139). */
 const SURFACE =
@@ -155,11 +155,10 @@ export function CvGenerator() {
   const [bigView, setBigView] = useState(false);
 
   const exportPdf = async () => {
-    if (!sheetRef.current) return;
     setExporting(true);
     setExportError(false);
     try {
-      await exportCvPdf(sheetRef.current, `CV — ${previewName}`);
+      await downloadCvPdf({ template: prefs.template, ...templateProps });
     } catch (error) {
       console.error("CV PDF export failed", error);
       setExportError(true);
@@ -239,12 +238,11 @@ export function CvGenerator() {
       style={{ width: A4_WIDTH_PX, minHeight: A4_HEIGHT_PX, background: "#ffffff" }}
     >
       <Template {...templateProps} />
-      {/* Page breaks, in the preview only (never in the PDF). */}
+      {/* Page breaks: guides on the preview; the PDF is drawn separately. */}
       {forExport
         ? Array.from({ length: pages - 1 }, (_, index) => (
             <div
               key={index}
-              data-html2canvas-ignore
               aria-hidden
               className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-slate-300"
               style={{ top: (index + 1) * A4_HEIGHT_PX }}
