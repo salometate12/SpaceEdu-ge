@@ -214,8 +214,11 @@ export function buildUserPrompt(
       const focus: string[] = [];
       if (pills?.ats) focus.push("ATS-თან თავსებადი ფორმულირებები");
       if (pills?.internship) focus.push("სტაჟირების/Junior როლისთვის მორგება");
+      const english = profile.language === "en";
       return [
-        "გააუმჯობესე სტუდენტის CV პროფილი ქართულად.",
+        english
+          ? "Improve the student's CV profile. Write the CV texts (professionalSummary, headline, experienceBullets, highlightedSkills) in natural professional English, even if the input is in Georgian; write optimizationTips in Georgian (they are advice for the student, not part of the CV)."
+          : "გააუმჯობესე სტუდენტის CV პროფილი ქართულად.",
         `სახელი: ${asString(profile.fullName)}`,
         `კონტაქტი: ${asString(profile.email)} | ${asString(profile.phone)}`,
         profile.portfolio ? `პორტფოლიო: ${asString(profile.portfolio)}` : "",
@@ -223,9 +226,11 @@ export function buildUserPrompt(
         `გამოცდილება (ნედლი ტექსტი):\n${asString(profile.experienceText)}`,
         `ინსტრუმენტები: ${Array.isArray(profile.tools) ? profile.tools.join(", ") : ""}`,
         `რბილი უნარები: ${asString(profile.softSkills)}`,
-        `ტემპლეიტის სტილი: ${asString(profile.template, "minimal-tech")}`,
+        `ტემპლეიტის სტილი: ${asString(profile.template, "modern")}`,
         focus.length ? `ოპტიმიზაციის ფოკუსი: ${focus.join("; ")}` : "",
-        "დააბრუნე მხოლოდ JSON კონტრაქტის მიხედვით — ყველა ტექსტი ქართულად.",
+        english
+          ? "Return only JSON per the contract — CV texts in English, optimizationTips in Georgian."
+          : "დააბრუნე მხოლოდ JSON კონტრაქტის მიხედვით — ყველა ტექსტი ქართულად.",
       ]
         .filter(Boolean)
         .join("\n");

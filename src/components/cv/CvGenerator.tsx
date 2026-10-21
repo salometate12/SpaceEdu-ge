@@ -1,21 +1,25 @@
 "use client";
 
-import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
-import { ArrowLeft, Check, Download, FileText, Loader2, Maximize2, RotateCcw, X } from "lucide-react";
-import { CvSheetFrame } from "./CvSheetFrame";
-import { exportCvPdf } from "@/lib/exportCvPdf";
-import { A4_HEIGHT_PX, A4_WIDTH_PX } from "@/lib/cv-sheet";
-
-/** The one plain card steps 1–3 sit on (as on /presentation, PR #139). */
-const SURFACE =
-  "rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[0_1px_2px_rgb(15_23_42/0.04)] sm:p-8";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type KeyboardEvent } from "react";
+import { ArrowLeft, Check, Download, FileText, Lightbulb, Loader2, Maximize2, RefreshCw, RotateCcw, X } from "lucide-react";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import { recordCvUpdate } from "@/lib/dashboard-metrics";
 import type { CvResponse } from "@/lib/ai/cv-schema";
+import { exportCvPdf } from "@/lib/exportCvPdf";
+import { A4_HEIGHT_PX, A4_WIDTH_PX } from "@/lib/cv-sheet";
+import { accentColor, CV_TEMPLATE_INFO, showsPhoto, splitList, visibleSections, type CvData, type CvLanguage, type CvPrefs } from "@/lib/cv-data";
+import { readCvPrefs, resolveCvPrefs, serverCvPrefs, subscribeCvPrefs, writeCvPrefs } from "@/lib/cv-prefs";
+import { pageCount, paginateSheet } from "@/lib/cv-paginate";
+import { CvSheetFrame } from "./CvSheetFrame";
+import { CvTemplatePicker, LanguageSwitch } from "./CvTemplatePicker";
+import { CV_TEMPLATE_COMPONENTS } from "./templates";
+
+/** The one plain card steps 1–3 sit on (as on /presentation, PR #139). */
+const SURFACE =
+  "rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[0_1px_2px_rgb(15_23_42/0.04)] sm:p-8";
 
 type WizardStep = 1 | 2 | 3 | 4;
-type CvTemplate = "minimal-tech" | "creative-ui" | "academic-corporate";
 type OptimizationPill = "ats" | "internship";
 
 const STEPS: Array<{ id: WizardStep; label: string }> = [
@@ -23,33 +27,6 @@ const STEPS: Array<{ id: WizardStep; label: string }> = [
   { id: 2, label: "განათლება & გამოცდილება" },
   { id: 3, label: "უნარები & თულები" },
   { id: 4, label: "ტემპლეიტი & შედეგი" },
-];
-
-const TEMPLATES: Array<{
-  id: CvTemplate;
-  title: string;
-  subtitle: string;
-  /** The template's accent, for the dot on its chip. */
-  dot: string;
-}> = [
-  {
-    id: "minimal-tech",
-    title: "Minimal Tech",
-    subtitle: "სუფთა სტილი დეველოპერებისთვის",
-    dot: "#f9a8d4",
-  },
-  {
-    id: "creative-ui",
-    title: "Creative UI/UX",
-    subtitle: "თანამედროვე დიზაინი კრეატიული პროფილებისთვის",
-    dot: "#67e8f9",
-  },
-  {
-    id: "academic-corporate",
-    title: "Academic Corporate",
-    subtitle: "სტაბილური, აკადემიური და პროფესიული ტონი",
-    dot: "#6ee7b7",
-  },
 ];
 
 export function CvGenerator() {
@@ -74,7 +51,8 @@ export function CvGenerator() {
     internship: true,
   });
 
-  const [selectedTemplate, setSelectedTemplate] = useState<CvTemplate>("minimal-tech");
+  // Template, colour, photo and language: remembered in this browser.
+  const storedPrefs = useSyncExternalStore(subscribeCvPrefs, readCvPrefs, serverCvPrefs);
   const [generated, setGenerated] = useState(false);
   const [summary, setSummary] = useState("");
   const [headline, setHeadline] = useState("");
@@ -83,28 +61,11 @@ export function CvGenerator() {
   const [optimizationTips, setOptimizationTips] = useState<string[]>([]);
   const [cvLoading, setCvLoading] = useState(false);
   const [cvError, setCvError] = useState<string | null>(null);
-
-  const templateStyle = useMemo(() => {
-    if (selectedTemplate === "creative-ui") {
-      return {
-        pageBg: "bg-[linear-gradient(135deg,#0d1021_0%,#101a2a_45%,#1e1030_100%)]",
-        accent: "text-cyan-300",
-      };
-    }
-    if (selectedTemplate === "academic-corporate") {
-      return {
-        pageBg: "bg-[linear-gradient(135deg,#101219_0%,#10161f_40%,#1b2018_100%)]",
-        accent: "text-emerald-300",
-      };
-    }
-    return {
-      pageBg: "bg-[linear-gradient(135deg,#121023_0%,#1a102a_40%,#22103a_100%)]",
-      accent: "text-pink-300",
-    };
-  }, [selectedTemplate]);
+  const [generatedLanguage, setGeneratedLanguage] = useState<CvLanguage | null>(null);
+  const prefs = resolveCvPrefs(storedPrefs, optimizationPills.ats);
+  const updatePrefs = (next: Partial<CvPrefs> & { chosen?: boolean }) => writeCvPrefs(next);
 
   const previewName = fullName.trim() || "SpaceEdu Candidate";
-  const previewPosition = degree.trim() || "Entry-level profile";
 
   const onPhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -150,7 +111,8 @@ export function CvGenerator() {
             experienceText,
             tools,
             softSkills,
-            template: selectedTemplate,
+            template: prefs.template,
+            language: prefs.language,
             optimizationPills,
           },
         },
@@ -160,6 +122,7 @@ export function CvGenerator() {
       setExperienceBullets(data.experienceBullets);
       setHighlightedSkills(data.highlightedSkills);
       setOptimizationTips(data.optimizationTips);
+      setGeneratedLanguage(prefs.language);
       setGenerated(true);
       setStep(4);
       recordCvUpdate();
@@ -219,90 +182,80 @@ export function CvGenerator() {
     "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10";
   const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
 
+  // One CvData object; every template draws it.
+  const cvData: CvData = {
+    fullName: previewName,
+    headline: generated && headline ? headline : degree.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    photo: photoPreview,
+    summary: generated ? summary : "",
+    experience: generated ? experienceBullets : [],
+    experienceText: experienceText.trim(),
+    education: university.trim() || degree.trim() ? [{ institution: university.trim(), degree: degree.trim(), year: graduationYear.trim() }] : [],
+    skills: generated && highlightedSkills.length > 0 ? highlightedSkills : tools,
+    softSkills: generated && highlightedSkills.length > 0 ? [] : splitList(softSkills),
+    languages: [],
+    links: portfolio.trim() ? [portfolio.trim()] : [],
+  };
+  const Template = CV_TEMPLATE_COMPONENTS[prefs.template];
+  const templateProps = {
+    data: cvData,
+    accent: prefs.template === "ats" ? "#111827" : accentColor(prefs.accent),
+    photo: showsPhoto(prefs.template, prefs, cvData),
+    language: prefs.language,
+    sections: visibleSections(cvData),
+  };
+  const [pages, setPages] = useState(1);
+  const bigSheetRef = useRef<HTMLDivElement>(null);
+  const paginationKey = JSON.stringify([cvData, prefs]);
+  // Page breaks: re-applied whenever the content or the look changes, and
+  // once the fonts are in. Only the DOM is touched here; the page count
+  // comes back through the ResizeObserver below.
+  useLayoutEffect(() => {
+    const sheets = [sheetRef.current, bigSheetRef.current].filter((sheet): sheet is HTMLDivElement => Boolean(sheet));
+    const run = () => sheets.forEach((sheet) => paginateSheet(sheet));
+    run();
+    let active = true;
+    void document.fonts?.ready.then(() => active && run());
+    return () => {
+      active = false;
+    };
+  }, [paginationKey, bigView, step]);
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    const observer = new ResizeObserver(() => setPages(pageCount(sheet.offsetHeight)));
+    observer.observe(sheet);
+    return () => observer.disconnect();
+  }, [step]);
+
   /** The A4 sheet. Only the copy in the page carries the ref the PDF export captures. */
   const renderSheet = (forExport: boolean) => (
-      <div
-        ref={forExport ? sheetRef : undefined}
-        data-cv-sheet={forExport ? "" : undefined}
-        className={`p-10 ${templateStyle.pageBg}`}
-        style={{ width: A4_WIDTH_PX, minHeight: A4_HEIGHT_PX }}
-      >
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.12] pb-4">
-          <div>
-            <h3 className={`text-2xl font-semibold ${templateStyle.accent}`}>{previewName}</h3>
-            <p className="mt-1 text-sm text-zinc-300">
-              {generated && headline ? headline : previewPosition}
-            </p>
-            <p className="text-xs text-zinc-400">{email || "candidate@spaceedu.ge"}</p>
-            <p className="text-xs text-zinc-500">{phone || "+995 --- -- -- --"}</p>
-            {portfolio && <p className="text-xs text-zinc-400">{portfolio}</p>}
-          </div>
-          {photoPreview && (
-            <img
-              src={photoPreview}
-              alt="Profile"
-              className="h-24 w-24 shrink-0 rounded-xl border border-white/[0.15] object-cover"
-            />
-          )}
-        </div>
-
-        <div className="mt-4 space-y-4">
-          <section>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Education</p>
-            <p className="mt-1 text-sm text-zinc-200">
-              {university || "University Name"} — {degree || "Degree"}
-              {graduationYear ? ` (${graduationYear})` : ""}
-            </p>
-          </section>
-          <section>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Experience</p>
-            {generated && experienceBullets.length > 0 ? (
-              <ul className="mt-1 list-disc space-y-1 pl-4 text-sm leading-6 text-zinc-200">
-                {experienceBullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-1 text-sm leading-6 text-zinc-200">
-                {experienceText || "გამოცდილება გამოჩნდება გენერაციის შემდეგ."}
-              </p>
-            )}
-          </section>
-          <section>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Tools</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(generated && highlightedSkills.length > 0
-                ? highlightedSkills
-                : tools.length > 0
-                  ? tools
-                  : ["Figma", "Next.js", "Tailwind"]
-              ).map((tool) => (
-                <span
-                  key={tool}
-                  className="rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 py-1 text-xs text-zinc-200"
-                >
-                  {tool}
-                </span>
-              ))}
+    <div
+      ref={forExport ? sheetRef : bigSheetRef}
+      data-cv-sheet={forExport ? "" : undefined}
+      className="relative"
+      style={{ width: A4_WIDTH_PX, minHeight: A4_HEIGHT_PX, background: "#ffffff" }}
+    >
+      <Template {...templateProps} />
+      {/* Page breaks, in the preview only (never in the PDF). */}
+      {forExport
+        ? Array.from({ length: pages - 1 }, (_, index) => (
+            <div
+              key={index}
+              data-html2canvas-ignore
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-slate-300"
+              style={{ top: (index + 1) * A4_HEIGHT_PX }}
+            >
+              <span className="absolute right-3 top-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-500">
+                გვერდი {index + 2}
+              </span>
             </div>
-          </section>
-          <section>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">AI Summary</p>
-            <p className="mt-1 text-sm leading-6 text-zinc-200">
-              {generated
-                ? summary
-                : "CV-ს გენერირების შემდეგ აქ გამოჩნდება ოპტიმიზებული ტექსტი."}
-            </p>
-            {generated && optimizationTips.length > 0 && (
-              <ul className="mt-2 space-y-1 text-xs text-zinc-400">
-                {optimizationTips.map((tip) => (
-                  <li key={tip}>• {tip}</li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
-      </div>
+          ))
+        : null}
+    </div>
   );
 
   const stepCircle = (id: WizardStep) =>
@@ -321,7 +274,7 @@ export function CvGenerator() {
     "inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:text-white";
   const primaryBtn =
     "inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-pink-500 dark:hover:bg-pink-400";
-  const activeTemplate = TEMPLATES.find((template) => template.id === selectedTemplate) ?? TEMPLATES[0];
+  const languageMismatch = generated && generatedLanguage !== null && generatedLanguage !== prefs.language;
 
   return (
     <section className="space-y-6">
@@ -524,6 +477,10 @@ export function CvGenerator() {
                   + სტაჟირებისთვის მორგება
                 </button>
               </div>
+              <div className="border-t border-[var(--border)] pt-4">
+                <LanguageSwitch value={prefs.language} onChange={(language) => updatePrefs({ language })} />
+                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">AI ამ ენაზე დაწერს CV-ს ტექსტს და სექციების სათაურებს.</p>
+              </div>
             </div>
           )}
 
@@ -553,7 +510,7 @@ export function CvGenerator() {
               </span>
               <div className="min-w-0">
                 <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">შენი CV</h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">{activeTemplate.title} · A4</p>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">{CV_TEMPLATE_INFO[prefs.template].name} · A4{pages > 1 ? ` · ${pages} გვერდი` : ""}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -577,39 +534,25 @@ export function CvGenerator() {
             </p>
           ) : null}
 
-          <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-            {/* Templates: chips in a row on phones/tablets, a narrow column on desktop. */}
-            <div className="min-w-0">
-              <p className={`mb-2 ${labelClass}`}>ტემპლეიტი</p>
-              <div
-                role="radiogroup"
-                aria-label="ტემპლეიტი"
-                className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden"
-              >
-                {TEMPLATES.map((template) => {
-                  const active = selectedTemplate === template.id;
-                  return (
-                    <button
-                      key={template.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={active}
-                      title={template.subtitle}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`inline-flex shrink-0 items-center gap-2 rounded-full border bg-[var(--bg-card)] px-3.5 py-2 text-left text-sm font-medium transition lg:w-full ${
-                        active
-                          ? "border-pink-400 text-pink-700 dark:border-pink-400/60 dark:text-pink-300"
-                          : "border-[var(--border)] text-slate-700 hover:border-pink-200 dark:text-zinc-300 dark:hover:border-pink-400/30"
-                      }`}
-                    >
-                      <span className="h-3 w-3 shrink-0 rounded-full ring-1 ring-black/10" style={{ backgroundColor: template.dot }} />
-                      <span className="whitespace-nowrap">{template.title}</span>
-                      {active ? <Check className="ml-auto h-4 w-4 shrink-0" strokeWidth={2.5} /> : null}
-                    </button>
-                  );
-                })}
-              </div>
+          {languageMismatch ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200">
+              <span>სექციების სათაურები შეიცვალა, AI-ის ტექსტი კი ჯერ {generatedLanguage === "en" ? "ინგლისურადაა" : "ქართულადაა"}.</span>
+              <button type="button" onClick={() => void buildSummary()} disabled={cvLoading} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline">
+                {cvLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                ხელახლა დაწერა {prefs.language === "en" ? "ინგლისურად" : "ქართულად"}
+              </button>
             </div>
+          ) : null}
+
+          <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+            {/* Templates (thumbnails: a row on phones/tablets, a column on desktop) and the options. */}
+            <CvTemplatePicker
+              prefs={prefs}
+              accent={accentColor(prefs.accent)}
+              atsFocus={optimizationPills.ats}
+              hasPhoto={Boolean(photoPreview)}
+              onChange={updatePrefs}
+            />
 
             <div className="min-w-0">
               <CvSheetFrame>{renderSheet(true)}</CvSheetFrame>
@@ -619,6 +562,19 @@ export function CvGenerator() {
                   დიდი ნახვა
                 </button>
               </div>
+              {generated && optimizationTips.length > 0 ? (
+                <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3">
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-zinc-200">
+                    <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                    AI-ის რჩევები (CV-ში არ ჩანს)
+                  </p>
+                  <ul className="space-y-1 text-xs text-slate-600 dark:text-zinc-400">
+                    {optimizationTips.map((tip) => (
+                      <li key={tip}>• {tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
           </div>
 
