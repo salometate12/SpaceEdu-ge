@@ -27,7 +27,7 @@ describe("classifyLoginError", () => {
     const outcome = classifyLoginError({ code: "invalid_credentials" });
     expect(outcome).toEqual({
       kind: "field",
-      error: { field: "password", message: "პაროლი არასწორია" },
+      error: { field: "password", message: "პაროლი არასწორია. სცადე თავიდან." },
     });
   });
 

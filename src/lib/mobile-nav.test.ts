@@ -49,3 +49,10 @@ describe("mobile dock", () => {
     }
   });
 });
+
+describe("mobileDockHidden — password reset", () => {
+  it("hides the dock on both reset pages, like on /login", () => {
+    expect(mobileDockHidden("/forgot-password")).toBe(true);
+    expect(mobileDockHidden("/reset-password")).toBe(true);
+  });
+});

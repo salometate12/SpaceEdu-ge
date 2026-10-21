@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useId, useLayoutEffect, useMemo, useState, type FormEvent } from "react";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { KeyRound, Loader2, Lock, Mail } from "lucide-react";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
@@ -22,7 +22,13 @@ import {
 } from "@/lib/registration-role";
 import { isAdminEmail, resolvePostLoginHref } from "@/lib/access-control";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { classifyLoginError, validateLoginFields, type LoginFieldError } from "@/lib/login-error";
+import {
+  classifyLoginError,
+  FAILED_ATTEMPTS_BEFORE_RESET_HINT,
+  validateLoginFields,
+  type LoginFieldError,
+} from "@/lib/login-error";
+import { forgotPasswordHref } from "@/lib/password-reset";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 /** The account's registered space, read from Supabase user metadata. */
@@ -39,7 +45,8 @@ export function LoginForm() {
   const devTarget = parseDevPortalTarget(searchParams.get("dev_target"));
   const showDevBypass = devSkipRegistrationAllowed(role);
 
-  const [email, setEmail] = useState("");
+  // Prefilled when coming back from /forgot-password.
+  const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<LoginFieldError | null>(null);
@@ -48,6 +55,9 @@ export function LoginForm() {
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   // Bumped on every submit so the password field hides itself again.
   const [submitCount, setSubmitCount] = useState(0);
+  // Wrong passwords in a row; from FAILED_ATTEMPTS_BEFORE_RESET_HINT on, the
+  // reset link becomes a banner.
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   const emailInvalid = fieldError?.field === "email";
   const passwordInvalid = fieldError?.field === "password";
@@ -198,6 +208,10 @@ export function LoginForm() {
         setUnconfirmed(true);
       } else if (outcome.kind === "field") {
         setFieldError(outcome.error);
+        // Start over on the password, keep the email.
+        setPassword("");
+        setFailedAttempts((count) => count + 1);
+        requestAnimationFrame(() => document.getElementById(passwordId)?.focus());
       } else {
         setError("შესვლა ვერ მოხერხდა. შეამოწმე მონაცემები და სცადე თავიდან.");
       }
@@ -290,9 +304,17 @@ export function LoginForm() {
         </div>
 
         <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor={passwordId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
-            პაროლი
-          </label>
+          <div className="flex items-baseline justify-between gap-3">
+            <label htmlFor={passwordId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
+              პაროლი
+            </label>
+            <Link
+              href={forgotPasswordHref(email)}
+              className="text-xs font-medium text-slate-500 hover:text-pink-600 dark:text-gray-400 dark:hover:text-pink-300"
+            >
+              დაგავიწყდა პაროლი?
+            </Link>
+          </div>
           <PasswordInput
             key={submitCount}
             id={passwordId}
@@ -320,11 +342,31 @@ export function LoginForm() {
             placeholder="პაროლი"
           />
           {passwordInvalid && (
-            <p id={passwordErrorId} className="text-xs font-medium text-rose-500">
-              {fieldError?.message}
-            </p>
+            <div id={passwordErrorId} className="flex flex-wrap items-baseline gap-x-2 text-xs">
+              <p className="font-medium text-rose-500">{fieldError?.message}</p>
+              {failedAttempts > 0 && (
+                <Link
+                  href={forgotPasswordHref(email)}
+                  className="font-medium text-pink-600 underline underline-offset-2 hover:text-pink-500 dark:text-pink-300 dark:hover:text-pink-200"
+                >
+                  დაგავიწყდა პაროლი?
+                </Link>
+              )}
+            </div>
           )}
         </div>
+
+        {failedAttempts >= FAILED_ATTEMPTS_BEFORE_RESET_HINT && (
+          <Link
+            href={forgotPasswordHref(email)}
+            className="flex items-center gap-3 rounded-xl border border-pink-200 bg-pink-50 px-3.5 py-3 text-sm text-pink-800 transition hover:border-pink-300 dark:border-pink-400/25 dark:bg-pink-500/10 dark:text-pink-200"
+          >
+            <KeyRound className="h-4 w-4 shrink-0" />
+            <span>
+              ვერ შედიხარ? <span className="font-semibold underline underline-offset-2">აღადგინე პაროლი ელ-ფოსტით</span>
+            </span>
+          </Link>
+        )}
 
         {error && (
           <div

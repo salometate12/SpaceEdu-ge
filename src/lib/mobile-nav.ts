@@ -14,6 +14,7 @@ import {
   Tag,
   UserRound,
 } from "lucide-react";
+import { isAuthFormPath } from "@/lib/password-reset";
 
 /**
  * Five fixed places, left to right: two tabs, the raised pink button in
@@ -107,7 +108,7 @@ export function mobileDockHidden(pathname: string | null): boolean {
     pathname === "/registration" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
-    pathname.startsWith("/login") ||
+    isAuthFormPath(pathname) ||
     pathname.startsWith("/admin") ||
     isPremiumAssistantPath(pathname)
   ) {

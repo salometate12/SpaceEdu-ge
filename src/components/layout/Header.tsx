@@ -6,6 +6,7 @@ import { isPremiumAssistantPath } from "@/lib/assistant-routes";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { DashboardHeader } from "./DashboardHeader";
 import { LandingHeader } from "./LandingHeader";
+import { isAuthFormPath } from "@/lib/password-reset";
 
 interface HeaderProps {
   variant: "landing" | "dashboard";
@@ -92,7 +93,7 @@ export function HeaderByPath() {
     pathname === "/registration" ||
     pathname === "/privacy" ||
     pathname === "/terms" ||
-    pathname.startsWith("/login") ||
+    isAuthFormPath(pathname) ||
     pathname.startsWith("/admin") ||
     isPremiumAssistantPath(pathname)
   ) {

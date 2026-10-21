@@ -9,6 +9,7 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { isPremiumAssistantPath } from "@/lib/assistant-routes";
+import { isAuthFormPath } from "@/lib/password-reset";
 
 interface AIChatPanelContextValue {
   /** Whether the chat can be used on this route at all (the floating
@@ -34,7 +35,7 @@ function shouldForceClosePanel(pathname: string | null): boolean {
     pathname === "/pricing" ||
     pathname === "/select-space" ||
     pathname === "/registration" ||
-    pathname.startsWith("/login") ||
+    isAuthFormPath(pathname) ||
     pathname.startsWith("/admin") ||
     pathname === "/ai-teacher" ||
     pathname === "/ai-teacher/abit" ||
