@@ -1,30 +1,32 @@
-interface TemplatePreviewProps {
-  bg: string;
-  accent: string;
+import type { UploadedPhoto } from "@/lib/presentation-photos";
+import type { GeneratedSlide, PresentationTemplate } from "@/lib/presentation-types";
+import { SlideCard } from "./SlideCard";
+
+const NO_PHOTOS = new Map<string, UploadedPhoto>();
+
+/** A sample slide, so the preview shows the template's real decoration, fonts and markers. */
+const SAMPLE: GeneratedSlide = {
+  id: 0,
+  type: "content",
+  slideType: "",
+  title: "სლაიდის სათაური",
+  layout: "bullets",
+  points: ["პირველი მთავარი აზრი", "მეორე, მოკლე არგუმენტი", "მაგალითი ან დასკვნა"],
+  images: [],
+};
+
+export function TemplatePreview({ template }: { template: PresentationTemplate }) {
+  return (
+    <div className="pointer-events-none">
+      <SlideCard slide={SAMPLE} index={1} template={template} photos={NO_PHOTOS} />
+    </div>
+  );
 }
 
-export function TemplatePreview({ bg, accent }: TemplatePreviewProps) {
+export function NewBadge() {
   return (
-    <div
-      className="relative h-24 w-full overflow-hidden rounded-lg border border-slate-200 dark:border-white/10"
-      style={{ backgroundColor: bg }}
-    >
-      <div
-        className="absolute left-3 top-3 h-2.5 w-3/5 rounded"
-        style={{ backgroundColor: accent, opacity: 0.9 }}
-      />
-      <div
-        className="absolute left-3 top-8 h-2 w-4/5 rounded"
-        style={{ backgroundColor: accent, opacity: 0.45 }}
-      />
-      <div
-        className="absolute left-3 top-12 h-2 w-3/5 rounded"
-        style={{ backgroundColor: accent, opacity: 0.45 }}
-      />
-      <div
-        className="absolute bottom-3 right-3 h-8 w-10 rounded-md"
-        style={{ backgroundColor: accent, opacity: 0.75 }}
-      />
-    </div>
+    <span className="rounded-full bg-pink-100 px-1.5 py-0.5 text-[10px] font-bold text-pink-700 dark:bg-pink-500/15 dark:text-pink-300">
+      ახალი
+    </span>
   );
 }
