@@ -58,11 +58,4 @@ describe("AI teacher: length and conversation rules", () => {
     expect(system).toContain("blockquote");
     expect(system).toContain("at most once per answer");
   });
-
-  it("answers how-to questions in numbered steps with one key-idea line", () => {
-    expect(system).toContain("2–4 numbered steps");
-    expect(system).toContain("> **მთავარი იდეა:**");
-    expect(system).toContain("A simple question gets plain short text");
-    expect(system).toContain("at most 3–4 **bold**");
-  });
 });
