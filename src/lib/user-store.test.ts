@@ -8,7 +8,7 @@ import {
   type SyncSpec,
   type UserDataRemote,
 } from "./user-store";
-import { mergeNewestById, mergeSemesterSubjects, mergeStudyPlan, SYNCED_KEYS } from "./user-data-keys";
+import { mergeNewestById, mergeNotifications, mergeSemesterSubjects, mergeStudyPlan, SYNCED_KEYS } from "./user-data-keys";
 
 function memoryStorage(initial: Record<string, unknown> = {}): KeyValueStorage & { dump(): Record<string, string> } {
   const map = new Map(Object.entries(initial).map(([key, value]) => [key, JSON.stringify(value)]));
@@ -285,6 +285,49 @@ describe("another account on the same device", () => {
   });
 });
 
+describe("settings (bare-text keys, kept after sign-out)", () => {
+  const settingSpecs: SyncSpec[] = [
+    { key: "theme", raw: true, keepOnSignOut: true },
+    { key: "list", merge: unionById },
+  ];
+  const make = (storage = memoryStorage()) => ({
+    storage,
+    store: createUserStore({ storage, specs: settingSpecs, now: () => Date.parse("2026-10-10T00:00:00Z") }),
+  });
+
+  it("stays bare text locally (the first-paint script reads it) and goes up as a string", async () => {
+    const { store, storage } = make();
+    const remote = fakeRemote();
+    await store.connect("u1", remote);
+    store.set("theme", "light");
+    expect(storage.getItem("theme")).toBe("light");
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(remote.rows.get("theme")!.value).toBe("light");
+  });
+
+  it("an old bare value is uploaded on first sign-in; one from the account is written bare", async () => {
+    const storage = memoryStorage();
+    storage.setItem("theme", "dark");
+    const { store } = make(storage);
+    const remote = fakeRemote();
+    await store.connect("u1", remote);
+    expect(remote.rows.get("theme")!.value).toBe("dark");
+    remote.write("theme", "system");
+    await store.refresh();
+    expect(storage.getItem("theme")).toBe("system");
+  });
+
+  it("signing out keeps the theme on the device but clears the account's data", async () => {
+    const storage = memoryStorage({ list: [{ id: "a" }] });
+    storage.setItem("theme", "light");
+    const { store } = make(storage);
+    await store.connect("u1", fakeRemote());
+    store.disconnect();
+    expect(storage.getItem("theme")).toBe("light");
+    expect(storage.getItem("list")).toBeNull();
+  });
+});
+
 describe("merge rules", () => {
   const context = { localAt: 2, remoteAt: 1 };
 
@@ -345,7 +388,21 @@ describe("merge rules", () => {
     ]);
   });
 
-  it("covers subjects and calendar (PR 1), content (PR 2) and progress (PR 3)", () => {
+  it("notifications: every one from both devices; read on either is read", () => {
+    expect(
+      mergeNotifications(
+        [{ id: "n1", read: true }, { id: "n2", read: false }],
+        [{ id: "n2", read: true }, { id: "n3", read: false }],
+        context,
+      ),
+    ).toEqual([
+      { id: "n1", read: true },
+      { id: "n2", read: true },
+      { id: "n3", read: false },
+    ]);
+  });
+
+  it("covers subjects and calendar (PR 1), content (PR 2), progress (PR 3) and settings", () => {
     expect(SYNCED_KEYS.map((spec) => spec.key)).toEqual([
       "spaceedu-semester-subjects",
       "spaceedu-dashboard-calendar-events",
@@ -371,6 +428,11 @@ describe("merge rules", () => {
       "spaceedu-tool-usage",
       "spaceedu-active-subject",
       "spaceedu-journal-progress",
+      "theme",
+      "spaceedu-language",
+      "spaceedu-animations",
+      "spaceedu-dashboard-goals-enabled",
+      "spaceedu-notifications",
     ]);
   });
 });

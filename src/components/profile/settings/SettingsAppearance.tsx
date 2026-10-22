@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Flame, LayoutTemplate, Palette, Sparkles } from "lucide-react";
 import { useTheme, type ThemePreference } from "@/components/ThemeProvider";
 import { SettingsCard, SoonBadge, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
-
-const ANIMATIONS_KEY = "spaceedu-animations";
+import { userStore } from "@/lib/user-data";
+import { ANIMATIONS_KEY, ANIMATIONS_UPDATED_EVENT } from "@/lib/user-data-keys";
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; preview: string }[] = [
   { value: "dark", label: "მუქი", preview: "bg-[#0D0D12]" },
@@ -32,10 +32,17 @@ export function SettingsAppearance() {
     document.documentElement.classList.toggle("no-animations", !animations);
   }, [animations]);
 
+  // The choice made on another device, arriving from the account.
+  useEffect(() => {
+    const sync = () => setAnimations(readAnimationsPref());
+    window.addEventListener(ANIMATIONS_UPDATED_EVENT, sync);
+    return () => window.removeEventListener(ANIMATIONS_UPDATED_EVENT, sync);
+  }, []);
+
   const toggleAnimations = (next: boolean) => {
     setAnimations(next); // the effect above applies the <html> class
     try {
-      localStorage.setItem(ANIMATIONS_KEY, next ? "on" : "off");
+      userStore.set(ANIMATIONS_KEY, next ? "on" : "off");
     } catch {
       /* ignore */
     }

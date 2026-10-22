@@ -22,6 +22,11 @@ export const DAILY_QUESTS_UPDATED_EVENT = "spaceedu-daily-quests-updated";
 export const STREAK_UPDATED_EVENT = "spaceedu-streak-updated";
 export const CATEGORY_ACCURACY_UPDATED_EVENT = "spaceedu-category-accuracy-updated";
 export const DASHBOARD_METRICS_UPDATED_EVENT = "spaceedu-dashboard-metrics-updated";
+export const THEME_EVENT = "spaceedu-theme-change";
+export const LANGUAGE_UPDATED_EVENT = "spaceedu-language-updated";
+export const ANIMATIONS_UPDATED_EVENT = "spaceedu-animations-updated";
+export const DASHBOARD_GOALS_TOGGLE_EVENT = "spaceedu-dashboard-goals-toggle";
+export const NOTIFICATIONS_UPDATED_EVENT = "spaceedu-notifications-updated";
 /** Fired (detail: { key }) only for values that came from the account —
  * for editors, which mustn't reload on their own saves. */
 export const USER_DATA_REMOTE_EVENT = "spaceedu-user-data-remote";
@@ -55,6 +60,12 @@ export const CV_UPDATED_KEY = "spaceedu-cv-updated-at";
 export const TOOL_USAGE_KEY = "spaceedu-tool-usage";
 export const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
 export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
+/** Read as is by the first-paint script in layout.tsx: "light" | "dark" | "system". */
+export const THEME_KEY = "theme";
+export const LANGUAGE_KEY = "spaceedu-language";
+export const ANIMATIONS_KEY = "spaceedu-animations";
+export const DASHBOARD_GOALS_KEY = "spaceedu-dashboard-goals-enabled";
+export const NOTIFICATIONS_KEY = "spaceedu-notifications";
 
 /** { subjects: [{ id, name }], semesterLabel }: both sides' subjects; the
  * newer label. */
@@ -192,6 +203,16 @@ export const mergeJournalProgress: Merge = (local, remote) => {
   };
 };
 
+/** The notifications list: every notification from both; read on either is read. */
+export const mergeNotifications: Merge = (local, remote) => {
+  const merged = new Map<unknown, Record<string, unknown>>();
+  for (const item of [...asArray(local), ...asArray(remote)]) {
+    const current = merged.get(item.id);
+    merged.set(item.id, current ? { ...current, read: Boolean(current.read) || Boolean(item.read) } : item);
+  }
+  return [...merged.values()];
+};
+
 /** A timestamp (the CV's last update): the later one. */
 const later: Merge = (local, remote) => Math.max(num(local), num(remote));
 
@@ -227,4 +248,11 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: ACTIVE_SUBJECT_KEY, event: SEMESTER_SUBJECTS_UPDATED_EVENT },
   // The dashboard's journal widget shows the XP and re-reads on this event.
   { key: JOURNAL_PROGRESS_KEY, merge: mergeJournalProgress, event: LECTURE_NOTES_UPDATED_EVENT },
+  // Settings: the same on every device; preferences, so they stay on the
+  // device after sign-out. Stored as bare text, as before.
+  { key: THEME_KEY, raw: true, keepOnSignOut: true, event: THEME_EVENT },
+  { key: LANGUAGE_KEY, raw: true, keepOnSignOut: true, event: LANGUAGE_UPDATED_EVENT },
+  { key: ANIMATIONS_KEY, raw: true, keepOnSignOut: true, event: ANIMATIONS_UPDATED_EVENT },
+  { key: DASHBOARD_GOALS_KEY, raw: true, event: DASHBOARD_GOALS_TOGGLE_EVENT },
+  { key: NOTIFICATIONS_KEY, merge: mergeNotifications, event: NOTIFICATIONS_UPDATED_EVENT },
 ];

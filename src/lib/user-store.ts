@@ -40,6 +40,11 @@ export interface SyncSpec {
   merge?: Merge;
   /** Window event that makes the UI re-read this key. */
   event?: string;
+  /** Stored as bare text, not JSON (e.g. `theme` = "dark", read as is by
+   * the first-paint script); synced as a JSON string. */
+  raw?: boolean;
+  /** A preference, not personal data: stays on the device after sign-out. */
+  keepOnSignOut?: boolean;
 }
 
 export interface RemoteRow {
@@ -92,6 +97,17 @@ export const unionById: Merge = (local, remote) => {
 
 export function specFor(specs: SyncSpec[], key: string): SyncSpec | undefined {
   return specs.find((spec) => key === spec.key || (spec.variants && key.startsWith(`${spec.key}:`)));
+}
+
+/** A key's local value: JSON, or the bare text of a `raw` key. */
+function readValue(spec: SyncSpec | undefined, raw: string | null): { ok: true; value: unknown } | { ok: false } {
+  if (spec?.raw) return raw === null ? { ok: false } : { ok: true, value: raw };
+  return parse(raw);
+}
+
+/** How a value is written locally: bare text for `raw` keys, else JSON. */
+function encodeValue(spec: SyncSpec | undefined, value: unknown): string {
+  return spec?.raw && typeof value === "string" ? value : JSON.stringify(value);
 }
 
 function parse(raw: string | null): { ok: true; value: unknown } | { ok: false } {
@@ -175,7 +191,7 @@ export function createUserStore({
 
   /** Writes a server value into the local copy and tells the UI. */
   const applyRemote = (key: string, value: unknown) => {
-    const raw = JSON.stringify(value);
+    const raw = encodeValue(specFor(specs, key), value);
     if (storage.getItem(key) === raw) return;
     storage.setItem(key, raw);
     changed(key);
@@ -211,7 +227,7 @@ export function createUserStore({
         removals.push(key);
         continue;
       }
-      const parsed = parse(raw);
+      const parsed = readValue(specFor(specs, key), raw);
       // Not JSON, or too big for one row: stays on this device only.
       if (parsed.ok && raw.length <= MAX_VALUE_BYTES) upserts.push({ key, value: parsed.value });
     }
@@ -241,7 +257,7 @@ export function createUserStore({
     let meta = readMeta();
     if (meta.owner && meta.owner !== userId) {
       // Someone else's data on this device: never show or upload it.
-      for (const key of localKeys()) removeLocal(key);
+      for (const key of localKeys()) if (!specFor(specs, key)?.keepOnSignOut) removeLocal(key);
       meta = { owner: null, synced: {}, dirty: {} };
     }
     meta.owner = userId;
@@ -268,7 +284,7 @@ export function createUserStore({
       const merge = spec.merge ?? newerWins;
       const row = remoteRows.get(key);
       const raw = storage.getItem(key);
-      const local = parse(raw);
+      const local = readValue(spec, raw);
       const dirty = meta.dirty[key];
       const known = key in meta.synced;
 
@@ -326,11 +342,11 @@ export function createUserStore({
 
   return {
     get<T>(key: string, fallback: T): T {
-      const parsed = parse(storage.getItem(key));
+      const parsed = readValue(specFor(specs, key), storage.getItem(key));
       return parsed.ok ? (parsed.value as T) : fallback;
     },
     set(key: string, value: unknown) {
-      const raw = JSON.stringify(value);
+      const raw = encodeValue(specFor(specs, key), value);
       if (storage.getItem(key) === raw) return;
       storage.setItem(key, raw);
       changed(key);
@@ -372,7 +388,7 @@ export function createUserStore({
       timer = null;
       remote = null;
       if (readMeta().owner) {
-        for (const key of localKeys()) removeLocal(key);
+        for (const key of localKeys()) if (!specFor(specs, key)?.keepOnSignOut) removeLocal(key);
         storage.removeItem(SYNC_META_KEY);
       }
       setStatus("local");
