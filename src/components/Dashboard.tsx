@@ -328,7 +328,10 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           <DashboardLectureStickers />
 
-          <SemesterSubjects />
+          {/* The AI teacher's „დაამატე შენი საგნები“ links here. */}
+          <div id="semester-subjects" className="scroll-mt-[calc(var(--site-header-h)+1rem)]">
+            <SemesterSubjects />
+          </div>
 
           <StudentStudyCalendar />
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -12,7 +13,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUp, PanelLeft, Sparkles, Square, SquarePen } from "lucide-react";
+import { ArrowRight, ArrowUp, BookOpen, ClipboardList, GraduationCap, ListChecks, PanelLeft, Sparkles, Square, SquarePen, type LucideIcon } from "lucide-react";
 import { useIsPhoneLayout, useIsTouchDevice, useMobileChatViewport } from "@/hooks/useMobileChatViewport";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
@@ -30,9 +31,32 @@ import { AI_TEACHER_CONTENT, type AiTeacherSpace } from "@/lib/ai-teacher-conten
 import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
+import { buildSuggestions, type SuggestionKind } from "@/lib/ai-teacher-suggestions";
+import { readSuggestionData, type SuggestionData } from "@/lib/ai-teacher-suggestion-data";
 import { AITeacherSidebar, trapFocus } from "./AITeacherSidebar";
 import { JumpToEndButton } from "./JumpToEndButton";
 import { MessageBubble } from "./MessageBubble";
+import { QuickReplies } from "./QuickReplies";
+
+/** Each kind of starting card: its icon and soft colour. */
+const SUGGESTION_LOOK: Record<SuggestionKind, { icon: LucideIcon; tint: string }> = {
+  lecture: { icon: BookOpen, tint: "bg-[var(--icon-green)] text-[var(--icon-green-text)]" },
+  exam: { icon: GraduationCap, tint: "bg-[var(--icon-yellow)] text-[var(--icon-yellow-text)]" },
+  assignment: { icon: ClipboardList, tint: "bg-[var(--icon-pink)] text-[var(--icon-pink-text)]" },
+  quiz: { icon: ListChecks, tint: "bg-[var(--icon-blue)] text-[var(--icon-blue-text)]" },
+};
+
+/** „რომელ საგანზე ვიმუშაოთ დღეს?“ with its last word marked in pink. */
+function markLastWord(text: string) {
+  const cut = text.lastIndexOf(" ");
+  if (cut === -1) return <span className="chat-mark-pink">{text}</span>;
+  return (
+    <>
+      {text.slice(0, cut + 1)}
+      <span className="chat-mark-pink">{text.slice(cut + 1)}</span>
+    </>
+  );
+}
 
 /** Remembers whether the desktop sidebar is collapsed. */
 const SIDEBAR_KEY = "spaceedu-ai-teacher-sidebar";
@@ -100,6 +124,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const [feedScrolled, setFeedScrolled] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const reduceMotion = useReducedMotion();
+  // The student's subjects, latest entry and upcoming dates, for the starting cards.
+  const [suggestionData, setSuggestionData] = useState<SuggestionData | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -110,6 +136,19 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const isPhone = useIsPhoneLayout();
   const isTouch = useIsTouchDevice();
   const firstName = useCurrentUserFirstName();
+
+  useEffect(() => {
+    void Promise.resolve().then(() => setSuggestionData(readSuggestionData(space)));
+  }, [space]);
+
+  const suggestions = useMemo(
+    () =>
+      suggestionData
+        ? buildSuggestions({ ...suggestionData, space, fallback: copy.suggestions })
+        : [],
+    [suggestionData, space, copy.suggestions],
+  );
+  const needsSubjects = space === "student" && suggestionData !== null && suggestionData.subjects.length === 0;
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
@@ -166,7 +205,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     );
   };
 
-  const sendMessage = async (rawMessage: string) => {
+  /** `context`: reference material sent along (a starting card's subject and dates). */
+  const sendMessage = async (rawMessage: string, context?: string) => {
     const trimmed = rawMessage.trim();
     if (!trimmed || isLoading) return;
 
@@ -197,7 +237,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         {
           pageType: "ai-teacher",
           payload: {
-            material: material.trim() || undefined,
+            material: context ?? (material.trim() || undefined),
             message: trimmed,
             space,
             // This chat's earlier turns (empty after „ახალი ჩატი“).
@@ -385,6 +425,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     onDelete: removeConversation,
   };
 
+  const lastAnswer = messages[messages.length - 1];
+  const showQuickReplies = !isLoading && lastAnswer?.role === "assistant" && lastAnswer.content.trim().length > 0;
+
   const renderMessage = (message: ChatMessage, index: number) => (
     <MessageBubble
       key={message.id}
@@ -393,13 +436,17 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       waitingVariant="full"
       space={space}
       complete={!(isLoading && index === messages.length - 1)}
+      onQuickReply={showQuickReplies && index === messages.length - 1 ? (prompt) => void sendMessage(prompt) : undefined}
     />
   );
 
   const floatingInput = (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/90 to-transparent px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-8 md:pb-5 [.keyboard-open_&]:pb-2">
-      <div className="pointer-events-auto relative w-full max-w-3xl">
+      <div className="pointer-events-auto relative w-full max-w-[760px]">
         {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
+        {showQuickReplies && !input.trim() ? (
+          <QuickReplies onSend={(prompt) => void sendMessage(prompt)} copyText={lastAnswer.content} className="mb-2.5 md:hidden" />
+        ) : null}
         {friendlyError ? (
           <div className="mb-3 rounded-2xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-sm text-rose-700 backdrop-blur dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
             {friendlyError}
@@ -409,9 +456,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         <form onSubmit={handleSubmit}>
           {/* Phone: one 48px capsule that grows to ~5 lines while typing. */}
           <div
-            className="rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)] max-md:rounded-[24px] max-md:shadow-[0_2px_12px_rgb(0_0_0/0.06)]"
+            className="rounded-[29px] border border-[var(--chat-input-border)] bg-[var(--chat-surface)] shadow-[0_8px_28px_-16px_rgba(0,0,0,0.25)] transition-colors duration-200 focus-within:border-[var(--chat-border-hover)] max-md:rounded-[24px] max-md:shadow-[0_2px_12px_rgb(0_0_0/0.06)]"
           >
-            <div className="flex items-end gap-2 px-3 py-2 max-md:gap-1.5 max-md:py-[5px] max-md:pl-2 max-md:pr-[5px]">
+            <div className="flex items-end gap-2 py-1.5 pl-3 pr-1.5 max-md:gap-1.5 max-md:py-[5px] max-md:pl-2 max-md:pr-[5px]">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -421,7 +468,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 placeholder={isPhone ? "დაწერე კითხვა…" : copy.placeholder}
                 aria-label="შენი კითხვა"
                 // 16px on phones: iOS zooms into anything smaller.
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:font-medium max-md:leading-[22px] max-md:placeholder:text-[var(--text-secondary)]"
+                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-[11px] pl-2 text-[15px] leading-[22px] text-[var(--chat-text-strong)] outline-none placeholder:text-[var(--chat-text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:leading-[22px]"
               />
               {isLoading ? (
                 <button
@@ -429,7 +476,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   onClick={stopGenerating}
                   aria-label="შეჩერება"
                   title="შეჩერება"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 max-md:mb-0 max-md:h-9 max-md:w-9"
+                  className="mb-px inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[var(--chat-text-strong)] text-[var(--chat-surface)] transition hover:opacity-85 max-md:mb-0 max-md:h-9 max-md:w-9"
                 >
                   <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
                 </button>
@@ -438,7 +485,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   type="submit"
                   disabled={!canSend}
                   aria-label="გაგზავნა"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100 max-md:mb-0 max-md:h-9 max-md:w-9 max-md:disabled:bg-[var(--text-primary)] max-md:disabled:text-[var(--bg-card)] max-md:disabled:opacity-35"
+                  className="mb-px inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-45 disabled:hover:brightness-100 max-md:mb-0 max-md:h-9 max-md:w-9"
                 >
                   <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -451,11 +498,13 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   );
 
   return (
-    <section className="relative flex h-full w-full overflow-hidden">
+    <section className="ai-chat relative flex h-full w-full overflow-hidden">
       {/* Desktop sidebar: full height under the header, collapses to icons. */}
       <aside
         aria-label="AI მასწავლებლის მენიუ"
-        className={`hidden h-full shrink-0 overflow-hidden border-r border-[var(--border)] bg-[var(--bg-card)] transition-[width] duration-[220ms] ease-out motion-reduce:transition-none md:block ${
+        // From 1024px a floating panel under the header pill: its top and bottom
+        // edges show, and only its list scrolls.
+        className={`hidden h-full shrink-0 overflow-hidden border-r border-[var(--border)] bg-[var(--bg-card)] transition-[width] duration-[220ms] ease-out motion-reduce:transition-none md:block lg:mb-4 lg:ml-6 lg:mt-3 lg:h-auto lg:rounded-[22px] lg:border lg:border-[var(--chat-border)] lg:bg-[var(--chat-panel)] lg:overscroll-contain ${
           collapsed ? "w-14" : "w-[264px]"
         }`}
       >
@@ -547,47 +596,66 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         >
           {!hasMessages ? (
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 text-center">
-              <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] max-md:hidden sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
-              {/* Phone: a small, quiet AI mark instead of the orb. */}
-              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] md:hidden" aria-hidden>
+              {/* Phone: a small, quiet AI mark. */}
+              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--chat-text-muted)] md:hidden" aria-hidden>
                 <Sparkles className="h-5 w-5" strokeWidth={1.75} />
               </span>
-              <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] max-md:font-bold sm:text-[2.5rem]">
+              <h1 className="text-[26px] font-bold leading-[1.25] tracking-tight text-[var(--chat-text-strong)] sm:text-[34px]">
                 {firstName
                   ? copy.greetingWithName.replace("{name}", firstName)
                   : copy.greetingWithoutName}
-                <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent max-md:mt-1.5 max-md:bg-none max-md:font-sans max-md:text-[16px] max-md:font-medium max-md:leading-snug max-md:tracking-normal max-md:text-[var(--text-secondary)]">
-                  {copy.greetingQuestion}
-                </span>
+                <span className="block">{markLastWord(copy.greetingQuestion)}</span>
               </h1>
-              <p className="mt-3 hidden max-w-md text-sm leading-relaxed text-[var(--text-muted)] sm:mt-4 sm:block">
+              <p className="mt-3 hidden max-w-[520px] text-[15.5px] leading-relaxed text-[var(--chat-text-muted)] sm:mt-4 sm:block">
                 {copy.intro}
               </p>
 
-              {/* One column on phones, so no title gets cut off. */}
-              <div className="mt-6 grid w-full grid-cols-1 gap-2.5 pb-2 sm:mt-9 sm:grid-cols-2 sm:gap-3">
-                {copy.suggestions.map((action) => {
-                  const ActionIcon = action.icon;
+              {/* Built from the student's subjects, latest entry and upcoming dates; one column on phones. */}
+              <div className="mt-6 grid w-full grid-cols-1 gap-2.5 pb-2 text-left sm:mt-9 sm:grid-cols-2 sm:gap-3">
+                {suggestions.map((card) => {
+                  const look = SUGGESTION_LOOK[card.kind];
+                  const CardIcon = look.icon;
                   return (
                     <button
-                      key={action.title}
+                      key={`${card.kind}-${card.title}`}
                       type="button"
-                      onClick={() => void sendMessage(action.prompt)}
-                      className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3.5 pr-11 text-left transition-colors duration-200 hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] sm:pr-10"
+                      data-suggestion
+                      onClick={() => void sendMessage(card.prompt, card.context)}
+                      className="flex items-start gap-3 rounded-[18px] border border-[var(--chat-border)] bg-[var(--chat-surface)] px-[18px] py-4 text-left transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-[var(--chat-border-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                     >
-                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7">
-                        <ActionIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
+                      <span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full ${look.tint}`} aria-hidden>
+                        <CardIcon className="h-4 w-4" strokeWidth={2} />
                       </span>
-                      <span className="block text-[15px] font-semibold leading-snug text-[var(--text-primary)] sm:truncate sm:text-[13px]">
-                        {action.title}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[13.5px] font-medium leading-snug text-[var(--text-secondary)] sm:mt-1 sm:line-clamp-2 sm:whitespace-normal sm:text-[11px] sm:font-normal sm:text-[var(--text-muted)]">
-                        {action.prompt}
+                      <span className="min-w-0 flex-1">
+                        <span data-suggestion-title className="block text-[15px] font-bold leading-snug text-[var(--chat-text-strong)]">
+                          {card.title}
+                        </span>
+                        {card.subject ? (
+                          <span
+                            data-suggestion-subject
+                            className="mt-1.5 inline-flex h-[22px] max-w-full items-center gap-1.5 rounded-full bg-[var(--chat-chip-bg)] px-2 text-[12px] font-semibold text-[var(--chat-text)]"
+                          >
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: card.subjectColor ?? "currentColor" }} aria-hidden />
+                            <span className="truncate">{card.subject}</span>
+                          </span>
+                        ) : null}
+                        <span data-suggestion-desc className="mt-1 line-clamp-2 text-[13.5px] leading-snug text-[var(--chat-text-muted)]">
+                          {card.description}
+                        </span>
                       </span>
                     </button>
                   );
                 })}
               </div>
+              {needsSubjects ? (
+                <Link
+                  href="/dashboard-student#semester-subjects"
+                  className="mt-3 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[14px] font-semibold text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                >
+                  დაამატე შენი საგნები
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              ) : null}
             </div>
           ) : (
             <div className="mx-auto w-full max-w-3xl space-y-6">

@@ -5,11 +5,14 @@ import { slugifyHeading } from "@/lib/markdown-headings";
 import { parseInline, parseMarkdownBlocks } from "@/lib/markdown-blocks";
 import { CodeBlock } from "@/components/CodeBlock";
 
-function inlineFormat(text: string): ReactNode[] {
+/** Bold in turn gets these marker colours (`data-mark`), when asked. */
+const MARKS = ["yellow", "pink"] as const;
+
+function formatInline(text: string, nextMark?: () => string): ReactNode[] {
   return parseInline(text).map((segment, index) => {
     if (segment.type === "bold") {
       return (
-        <strong key={index} className="font-semibold text-zinc-900 dark:text-zinc-100">
+        <strong key={index} data-mark={nextMark?.()} className="font-semibold text-zinc-900 dark:text-zinc-100">
           {segment.text}
         </strong>
       );
@@ -33,14 +36,20 @@ interface MarkdownContentProps {
   className?: string;
   /** Adds scroll-target ids to H2/H3 for table of contents */
   withAnchors?: boolean;
+  /** Tags each **bold** with a marker colour in turn (yellow, pink, …). */
+  markBold?: boolean;
 }
 
 export function MarkdownContent({
   content,
   className = "",
   withAnchors = false,
+  markBold = false,
 }: MarkdownContentProps) {
   const usedIds = new Set<string>();
+  let marks = 0;
+  const nextMark = markBold ? () => MARKS[marks++ % MARKS.length] : undefined;
+  const inlineFormat = (text: string) => formatInline(text, nextMark);
   const elements = parseMarkdownBlocks(content).map((block, key): ReactNode => {
     switch (block.type) {
       case "code":
