@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDockItemActive, LANDING_DOCK, MOBILE_DOCK_SLOTS, mobileDockHidden, mobileDockItems } from "./mobile-nav";
+import { isDockItemActive, LANDING_DOCK, MOBILE_DOCK_SLOTS, mobileDockHidden, mobileDockItems, opensKeyboard } from "./mobile-nav";
 
 const labels = (items: ReturnType<typeof mobileDockItems>) => items.map((item) => item.label);
 
@@ -54,5 +54,38 @@ describe("mobileDockHidden — password reset", () => {
   it("hides the dock on both reset pages, like on /login", () => {
     expect(mobileDockHidden("/forgot-password")).toBe(true);
     expect(mobileDockHidden("/reset-password")).toBe(true);
+  });
+});
+
+describe("mobileDockHidden — AI teacher", () => {
+  it("hides the dock on both AI teacher pages: the chat is full screen", () => {
+    expect(mobileDockHidden("/ai-teacher")).toBe(true);
+    expect(mobileDockHidden("/ai-teacher/abit")).toBe(true);
+    expect(mobileDockItems("/ai-teacher", "student")).toEqual([]);
+  });
+
+  it("keeps it everywhere else in the app", () => {
+    expect(mobileDockHidden("/dashboard-student")).toBe(false);
+    expect(mobileDockHidden("/cv")).toBe(false);
+  });
+});
+
+describe("dock while typing", () => {
+  it("steps aside for fields that open the keyboard", () => {
+    expect(opensKeyboard({ tagName: "TEXTAREA" })).toBe(true);
+    expect(opensKeyboard({ tagName: "INPUT", type: "text" })).toBe(true);
+    expect(opensKeyboard({ tagName: "INPUT", type: "email" })).toBe(true);
+    expect(opensKeyboard({ tagName: "INPUT", type: "" })).toBe(true);
+    expect(opensKeyboard({ tagName: "DIV", isContentEditable: true })).toBe(true);
+  });
+
+  it("stays for checkboxes, radios, buttons and fields that can't be typed in", () => {
+    for (const type of ["checkbox", "radio", "button", "submit", "range", "file", "color"]) {
+      expect(opensKeyboard({ tagName: "INPUT", type })).toBe(false);
+    }
+    expect(opensKeyboard({ tagName: "BUTTON" })).toBe(false);
+    expect(opensKeyboard({ tagName: "INPUT", type: "text", readOnly: true })).toBe(false);
+    expect(opensKeyboard({ tagName: "TEXTAREA", disabled: true })).toBe(false);
+    expect(opensKeyboard(null)).toBe(false);
   });
 });

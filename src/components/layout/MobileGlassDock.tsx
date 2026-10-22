@@ -14,8 +14,11 @@ import {
   isDockItemActive,
   mobileDockHidden,
   mobileDockItems,
+  opensKeyboard,
   type MobileDockItem,
 } from "@/lib/mobile-nav";
+
+type KeyboardTarget = Parameters<typeof opensKeyboard>[0];
 
 const SCROLL_DOWN_THRESHOLD = 8;
 const SCROLL_UP_THRESHOLD = 4;
@@ -64,6 +67,8 @@ function TabContent({ item, active, avatar }: { item: MobileDockItem; active: bo
 export function MobileGlassDock() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(true);
+  // A field with the on-screen keyboard is focused: the dock steps aside.
+  const [typing, setTyping] = useState(false);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const { open: openMobileMenu } = useMobileSideMenu();
@@ -109,6 +114,19 @@ export function MobileGlassDock() {
   }, [hidden, chatOpen, handleScroll]);
 
   useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => setTyping(opensKeyboard(event.target as KeyboardTarget));
+    // Focus may be moving straight to another field: look once it lands.
+    const onFocusOut = () =>
+      window.setTimeout(() => setTyping(opensKeyboard(document.activeElement as KeyboardTarget)), 0);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
+
+  useEffect(() => {
     const resetOnNav = () => {
       setVisible(true);
       lastScrollY.current = window.scrollY;
@@ -119,7 +137,8 @@ export function MobileGlassDock() {
   if (hidden) return null;
 
   const activeFor = (item: MobileDockItem) => (pathname ? isDockItemActive(pathname, item) : false);
-  const shown = (visible || chatOpen) && !overlayOpen;
+  
+const shown = (visible || chatOpen) && !overlayOpen && !typing;
 
   const renderTab = (item: MobileDockItem) => {
     const active = activeFor(item);
@@ -168,7 +187,7 @@ export function MobileGlassDock() {
   return (
     <nav
       aria-label="მობილური ნავიგაცია"
-      className={`fixed inset-x-3 bottom-[max(22px,calc(env(safe-area-inset-bottom)+10px))] z-50 md:hidden transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none ${
+      className={`fixed inset-x-3 bottom-[max(22px,calc(env(safe-area-inset-bottom)+10px))] z-50 md:hidden transition-[transform,opacity] ease-out ${typing ? "duration-200" : "duration-300"} motion-reduce:transition-none ${
         shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-[140%] opacity-0"
       }`}
     >

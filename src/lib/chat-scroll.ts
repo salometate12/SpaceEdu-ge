@@ -67,3 +67,12 @@ export function endIsHidden(contentEnd: number, viewport: FeedViewport, slack = 
 export function endScrollTop(contentEnd: number, viewport: FeedViewport, gap = ANCHOR_GAP): number {
   return Math.max(0, Math.round(contentEnd - (viewport.clientHeight - viewport.paddingBottom) + gap));
 }
+
+/**
+ * scrollTop that keeps the same distance from the bottom after the feed
+ * changes height (the phone keyboard opening or closing), so the
+ * conversation doesn't jump.
+ */
+export function keepBottomScrollTop(scrollHeight: number, clientHeight: number, fromBottom: number): number {
+  return Math.max(0, Math.round(scrollHeight - clientHeight - fromBottom));
+}

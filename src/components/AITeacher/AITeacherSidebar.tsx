@@ -9,10 +9,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Pencil,
+  Plus,
   SquarePen,
   Trash2,
   X,
 } from "lucide-react";
+import { nbButtonClass } from "@/lib/nb-button";
 import {
   groupConversationsByDate,
   type AiTeacherConversation,
@@ -212,53 +214,7 @@ export function AITeacherSidebar({
     narrow ? "pointer-events-none opacity-0" : "opacity-100"
   }`;
 
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className={`flex items-center gap-1 px-2.5 pb-1 pt-3 ${narrow ? "flex-col" : ""}`}>
-        {narrow ? (
-          <button type="button" onClick={onToggleCollapse} aria-label="მენიუს გაშლა" aria-expanded={false} title={`გაშლა (${mod()}+B)`} className={iconButton}>
-            <PanelLeftOpen className="h-4 w-4" />
-          </button>
-        ) : null}
-        <button type="button" onClick={onBack} aria-label="უკან" title="უკან" className={iconButton}>
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        {!narrow ? (
-          <div className={`min-w-0 flex-1 px-1 ${fade}`}>
-            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title}</p>
-            <p className="truncate text-xs text-[var(--text-muted)]">{subtitle}</p>
-          </div>
-        ) : null}
-        {variant === "desktop" && !narrow ? (
-          <button type="button" onClick={onToggleCollapse} aria-label="მენიუს ჩაკეცვა" aria-expanded title={`ჩაკეცვა (${mod()}+B)`} className={iconButton}>
-            <PanelLeftClose className="h-4 w-4" />
-          </button>
-        ) : null}
-        {variant === "drawer" ? (
-          <button type="button" onClick={onClose} aria-label="მენიუს დახურვა" className={iconButton}>
-            <X className="h-4 w-4" />
-          </button>
-        ) : null}
-      </div>
-
-      <div className="px-2.5 pt-2">
-        {narrow ? (
-          <button type="button" onClick={onNewChat} aria-label="ახალი ჩატი" title={`ახალი ჩატი (${mod()}+Shift+O)`} className={`${iconButton} mx-auto flex`}>
-            <SquarePen className="h-4 w-4" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onNewChat}
-            title={`ახალი ჩატი (${mod()}+Shift+O)`}
-            className="flex h-10 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] px-3 text-sm font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
-          >
-            <SquarePen className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
-            <span className={`truncate ${fade}`}>ახალი ჩატი</span>
-          </button>
-        )}
-      </div>
-
+  const conversationList = (
       <nav
         aria-label="საუბრები"
         className={`scrollbar-thin mt-3 min-h-0 flex-1 overflow-y-auto px-2.5 pb-4 ${fade}`}
@@ -291,6 +247,80 @@ export function AITeacherSidebar({
           ))
         )}
       </nav>
+  );
+
+  if (variant === "drawer") {
+    // Phone drawer: the way back to the rest of the app first, then a new
+    // chat, then the conversations.
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="flex items-center gap-1 px-2.5 pb-1 pt-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl px-2.5 text-[15px] font-semibold text-[var(--text-primary)] transition hover:bg-[var(--bg-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+          >
+            <ArrowLeft className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate">დეშბორდზე დაბრუნება</span>
+          </button>
+          <button type="button" onClick={onClose} aria-label="მენიუს დახურვა" className={iconButton}>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="px-3 pt-2">
+          <button type="button" onClick={onNewChat} className={nbButtonClass({ variant: "primary", block: true, size: "sm" })}>
+            <Plus aria-hidden />
+            ახალი ჩატი
+          </button>
+        </div>
+        {conversationList}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className={`flex items-center gap-1 px-2.5 pb-1 pt-3 ${narrow ? "flex-col" : ""}`}>
+        {narrow ? (
+          <button type="button" onClick={onToggleCollapse} aria-label="მენიუს გაშლა" aria-expanded={false} title={`გაშლა (${mod()}+B)`} className={iconButton}>
+            <PanelLeftOpen className="h-4 w-4" />
+          </button>
+        ) : null}
+        <button type="button" onClick={onBack} aria-label="უკან" title="უკან" className={iconButton}>
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        {!narrow ? (
+          <div className={`min-w-0 flex-1 px-1 ${fade}`}>
+            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title}</p>
+            <p className="truncate text-xs text-[var(--text-muted)]">{subtitle}</p>
+          </div>
+        ) : null}
+        {variant === "desktop" && !narrow ? (
+          <button type="button" onClick={onToggleCollapse} aria-label="მენიუს ჩაკეცვა" aria-expanded title={`ჩაკეცვა (${mod()}+B)`} className={iconButton}>
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
+
+      <div className="px-2.5 pt-2">
+        {narrow ? (
+          <button type="button" onClick={onNewChat} aria-label="ახალი ჩატი" title={`ახალი ჩატი (${mod()}+Shift+O)`} className={`${iconButton} mx-auto flex`}>
+            <SquarePen className="h-4 w-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onNewChat}
+            title={`ახალი ჩატი (${mod()}+Shift+O)`}
+            className="flex h-10 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] px-3 text-sm font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+          >
+            <SquarePen className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
+            <span className={`truncate ${fade}`}>ახალი ჩატი</span>
+          </button>
+        )}
+      </div>
+
+      {conversationList}
     </div>
   );
 }

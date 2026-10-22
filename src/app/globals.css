@@ -2079,8 +2079,10 @@ html.dark[data-ground="paper"] body {
 /* AI Teacher answers: one colour (the text colour), structure from size and
    weight. Overrides MarkdownContent's own prose colours and list markers. */
 .ai-answer {
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 16px;
+  /* Georgian at 400 reads thin on phones; 500 is loaded (layout.tsx). */
+  font-weight: 500;
+  line-height: 1.7;
   color: var(--text-primary);
 }
 .ai-answer :is(p, li, h1, h2, h3, strong, blockquote) {
@@ -2088,7 +2090,7 @@ html.dark[data-ground="paper"] body {
 }
 .ai-answer p {
   margin: 12px 0;
-  line-height: 1.75;
+  line-height: 1.7;
 }
 .ai-answer > article > :first-child {
   margin-top: 0;
@@ -2114,7 +2116,7 @@ html.dark[data-ground="paper"] body {
   font-size: 15.5px;
 }
 .ai-answer strong {
-  font-weight: 650;
+  font-weight: 700;
 }
 .ai-answer :is(ul, ol) {
   margin: 12px 0;
@@ -2182,14 +2184,9 @@ html.dark[data-ground="paper"] body {
   font-weight: 500;
   line-height: 1.65;
 }
-/* The phone sheet: the same, a size smaller. */
-.ai-answer--compact {
-  font-size: 14px;
-  line-height: 1.65;
-}
+/* The phone sheet: the same text, slightly tighter headings. */
 .ai-answer--compact p {
   margin: 10px 0;
-  line-height: 1.65;
 }
 .ai-answer--compact h2 {
   font-size: 15.5px;
