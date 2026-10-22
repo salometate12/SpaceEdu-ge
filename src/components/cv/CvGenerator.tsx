@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowLeft, Check, Download, FileText, Lightbulb, Loader2, Maximize2, RefreshCw, RotateCcw, X } from "lucide-react";
+import { UploadIconBadge } from "@/components/ui/UploadDropzone";
 import { AiSkeletonLoader } from "@/components/ui/AiSkeletonLoader";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import { recordCvUpdate } from "@/lib/dashboard-metrics";
@@ -326,7 +327,7 @@ export function CvGenerator() {
                     // eslint-disable-next-line @next/next/no-img-element -- local data URL
                     <img src={photoPreview} alt="Profile" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-xs text-slate-400 dark:text-zinc-500">ფოტო</span>
+                    <UploadIconBadge size={40} />
                   )}
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={onPhotoChange} />

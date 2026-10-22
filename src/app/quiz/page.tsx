@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, Upload, X } from "lucide-react";
+import { ArrowRight, FileText, X } from "lucide-react";
 import {
   useEffect,
   useMemo,
@@ -10,6 +10,7 @@ import {
   type DragEvent,
 } from "react";
 import { QuizGenerating } from "@/components/Quiz/QuizGenerating";
+import { UploadIconBadge } from "@/components/ui/UploadDropzone";
 import {
   QUIZ_COLUMN,
   QUIZ_FOCUS_RING,
@@ -339,9 +340,7 @@ export default function QuizPage() {
                   </div>
                 ) : (
                   <label htmlFor="quiz-file" className="flex cursor-pointer flex-col items-center after:absolute after:inset-0 after:rounded-[18px] after:content-['']">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--quiz-accent-soft)] text-[#be185d] dark:text-pink-300" aria-hidden>
-                      <Upload className="h-5 w-5" strokeWidth={1.9} />
-                    </span>
+                    <UploadIconBadge />
                     <span className="mt-3 text-[16px] font-semibold text-[var(--quiz-strong)]">ჩააგდე ფაილი ან დააწკაპუნე ასარჩევად</span>
                     <span className="mt-1 text-[13px] text-[var(--quiz-muted)]">PDF (მაქს. 15 MB) · TXT / MD (მაქს. 2 MB)</span>
                   </label>

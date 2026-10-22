@@ -268,19 +268,23 @@ Return ONLY valid JSON:
 3-8 short topic tags from the lecture notes. Prefer original technical terms or Georgian topic names. No # prefix. No explanations.`;
 
 const RESEARCH_JSON_INSTRUCTIONS = `
-Return ONLY valid JSON (all text in Georgian):
+Return ONLY valid JSON, every key present (all text in Georgian):
 {
-  "summary": "სტრუქტურირებული რეზიუმე",
+  "title": "the document's own title, or a short one for it",
+  "summary": "3–5 წინადადების რეზიუმე",
+  "theses": [{ "text": "ერთი თეზისი, 1–2 წინადადება", "pages": [3] }] or null,
+  "methodology": [{ "text": "…", "pages": [2, 3] }] or null,
+  "literature": [{ "text": "…", "pages": [1] }] or null,
+  "criticalAnalysis": { "strengths": [{ "text": "…", "pages": [5] }], "weaknesses": [{ "text": "…", "pages": null }] } or null,
+  "conclusions": [{ "text": "…", "pages": [9] }] or null,
   "sources": [{ "citation": "წყარო", "relevance": "რატომ მნიშვნელოვანია" }],
-  "quotes": [{ "quote": "ციტატა", "context": "კონტექსტი", "location": "გვერდი/თავი" }],
-  "theses": ["თეზისი 1"],
-  "methodology": "მეთოდოლოგიის ანალიზი",
-  "literatureReview": "ლიტერატურის მიმოხილვა",
-  "criticalAnalysis": "ძლიერი და სუსტი მხარეების კრიტიკული შეფასება",
-  "conclusions": "დასკვნები და პრაქტიკული რეკომენდაციები"
+  "quotes": [{ "quote": "ციტატა", "context": "კონტექსტი", "location": "გვერდი/თავი" }]
 }
-Include theses/methodology/literatureReview/criticalAnalysis/conclusions ONLY when requested in analysis focus.
-Base all content strictly on the document text between markers.`;
+Rules:
+- Fill ONLY the sections asked for in the analysis focus; every other section is null.
+- Each section is a list of 2–6 short points; mark the one key phrase of a point with **bold** (at most one per point).
+- "pages": the page numbers the point rests on, read from the "--- გვერდი N ---" markers in the text. When the text has no such markers (audio, a photo, plain text), pages is null. Never invent a page.
+- Base all content strictly on the document text between markers.`;
 
 const MULTIPART_PAGE_TYPES = ["syllabus", "research-platform-abit"] as const;
 
@@ -288,9 +292,10 @@ async function generateResearchFromText(
   fileName: string,
   textBody: string,
   toggles: z.infer<typeof ResearchTogglesSchema> | undefined,
+  addOnly = false,
 ): Promise<ResearchResponse> {
   const system = getSystemPromptForPageType("research-platform-abit");
-  const payload = ResearchRequestSchema.parse({ fileName, textBody, toggles });
+  const payload = ResearchRequestSchema.parse({ fileName, textBody, toggles, addOnly });
   const prompt = buildUserPrompt("research-platform-abit", payload);
 
   return (await generateGeminiObject({
@@ -486,7 +491,7 @@ async function handleMultipartPost(request: Request) {
     toggles = ResearchTogglesSchema.parse(JSON.parse(togglesRaw));
   }
 
-  const result = await generateResearchFromText(file.name, textBody, toggles);
+  const result = await generateResearchFromText(file.name, textBody, toggles, formData.get("addOnly") === "true");
   return Response.json(result);
 }
 
@@ -825,6 +830,7 @@ export async function POST(request: Request) {
           String(body.payload.fileName ?? "document.txt"),
           String(body.payload.textBody ?? ""),
           toggles,
+          body.payload.addOnly === true,
         );
         return Response.json(result);
       } catch (error) {

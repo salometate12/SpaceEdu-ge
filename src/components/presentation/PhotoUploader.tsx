@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { GripVertical, ImagePlus, Loader2, X } from "lucide-react";
+import { GripVertical, Loader2, X } from "lucide-react";
+import { UploadIconBadge } from "@/components/ui/UploadDropzone";
 import {
   MAX_PHOTOS,
   PHOTO_ACCEPT_ATTR,
@@ -121,7 +122,7 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
         {busy ? (
           <Loader2 className="h-5 w-5 animate-spin text-pink-600 dark:text-pink-400" />
         ) : (
-          <ImagePlus className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+          <UploadIconBadge size={44} />
         )}
         <span className="text-sm font-semibold">
           {full ? `ატვირთულია ${MAX_PHOTOS} ფოტო (მაქსიმუმი)` : "ჩააგდე ფოტოები აქ ან აირჩიე ფაილები"}

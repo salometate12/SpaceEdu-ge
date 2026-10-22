@@ -62,7 +62,8 @@ export function buildUserPrompt(
 
     case "research-platform-abit": {
       const toggles = payload.toggles as Record<string, boolean> | undefined;
-      const focus: string[] = ["რეზიუმე", "წყაროები", "ციტატები"];
+      // Adding sections to an analysis the student has: only those sections.
+      const focus: string[] = payload.addOnly === true ? [] : ["რეზიუმე", "წყაროები", "ციტატები"];
       if (toggles?.theses) focus.push("ძირითადი თეზისები");
       if (toggles?.methodology) focus.push("მეთოდოლოგია");
       if (toggles?.literature) focus.push("ლიტერატურის მიმოხილვა");
@@ -75,6 +76,9 @@ export function buildUserPrompt(
         asString(payload.textBody),
         "--- END DOCUMENT TEXT ---",
         `ანალიზის ფოკუსი: ${focus.join("; ")}`,
+        payload.addOnly === true
+          ? "მხოლოდ ეს სექციები შეავსე; summary დაწერე ერთი წინადადებით, sources და quotes დატოვე ცარიელ სიად."
+          : "",
         "დააბრუნე მხოლოდ JSON კონტრაქტის მიხედვით — ყველა ტექსტი ქართულად.",
       ]
         .filter(Boolean)
