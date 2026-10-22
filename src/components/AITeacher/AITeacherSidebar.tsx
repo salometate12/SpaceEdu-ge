@@ -10,7 +10,6 @@ import {
   PanelLeftOpen,
   Pencil,
   Plus,
-  SquarePen,
   Trash2,
   X,
 } from "lucide-react";
@@ -40,6 +39,10 @@ interface AITeacherSidebarProps {
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
 }
+
+/** „← დეშბორდზე“: a 36px round button at the top of the panel. */
+const backButton =
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--chat-border)] bg-[var(--chat-surface)] text-[var(--chat-text-strong)] transition-colors hover:border-[var(--chat-border-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]";
 
 const iconButton =
   "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]";
@@ -124,8 +127,8 @@ function ConversationRow({
 
   return (
     <div
-      className={`group relative flex items-center rounded-lg transition ${
-        active ? "bg-[var(--bg-secondary)]" : "hover:bg-[var(--bg-secondary)]/70"
+      className={`group relative flex items-center rounded-[10px] transition ${
+        active ? "bg-[var(--chat-active)]" : "hover:bg-[var(--chat-hover)]"
       }`}
     >
       <button
@@ -133,8 +136,8 @@ function ConversationRow({
         onClick={onOpen}
         aria-current={active ? "true" : undefined}
         title={conversation.title}
-        className={`min-w-0 flex-1 truncate rounded-lg px-2.5 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${
-          active ? "font-medium text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
+        className={`min-w-0 flex-1 truncate rounded-[10px] px-2.5 py-2 text-left text-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] ${
+          active ? "font-semibold text-[var(--chat-text-strong)]" : "text-[var(--chat-text)] group-hover:text-[var(--chat-text-strong)]"
         }`}
       >
         {conversation.title}
@@ -286,13 +289,14 @@ export function AITeacherSidebar({
             <PanelLeftOpen className="h-4 w-4" />
           </button>
         ) : null}
-        <button type="button" onClick={onBack} aria-label="უკან" title="უკან" className={iconButton}>
+        {/* Always there, collapsed too: the way back to the dashboard. */}
+        <button type="button" onClick={onBack} aria-label="დეშბორდზე დაბრუნება" title="დეშბორდზე დაბრუნება" className={backButton}>
           <ArrowLeft className="h-4 w-4" />
         </button>
         {!narrow ? (
-          <div className={`min-w-0 flex-1 px-1 ${fade}`}>
-            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title}</p>
-            <p className="truncate text-xs text-[var(--text-muted)]">{subtitle}</p>
+          <div className={`min-w-0 flex-1 px-1.5 ${fade}`}>
+            <p className="truncate text-sm font-semibold text-[var(--chat-text-strong)]">{title}</p>
+            <p className="truncate text-xs text-[var(--chat-text-muted)]">{subtitle}</p>
           </div>
         ) : null}
         {variant === "desktop" && !narrow ? (
@@ -304,17 +308,17 @@ export function AITeacherSidebar({
 
       <div className="px-2.5 pt-2">
         {narrow ? (
-          <button type="button" onClick={onNewChat} aria-label="ახალი ჩატი" title={`ახალი ჩატი (${mod()}+Shift+O)`} className={`${iconButton} mx-auto flex`}>
-            <SquarePen className="h-4 w-4" />
+          <button type="button" onClick={onNewChat} aria-label="ახალი ჩატი" title={`ახალი ჩატი (${mod()}+Shift+O)`} className={`${backButton} mx-auto flex`}>
+            <Plus className="h-4 w-4" strokeWidth={2.2} />
           </button>
         ) : (
           <button
             type="button"
             onClick={onNewChat}
             title={`ახალი ჩატი (${mod()}+Shift+O)`}
-            className="flex h-10 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] px-3 text-sm font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+            className="flex h-11 w-full items-center gap-2.5 rounded-[14px] border border-[var(--chat-border)] bg-[var(--chat-surface)] px-3.5 text-[14.5px] font-semibold text-[var(--chat-text-strong)] transition-colors hover:border-[var(--chat-border-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
           >
-            <SquarePen className="h-4 w-4 shrink-0 text-[var(--text-secondary)]" />
+            <Plus className="h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
             <span className={`truncate ${fade}`}>ახალი ჩატი</span>
           </button>
         )}

@@ -1,0 +1,128 @@
+/*
+ * AI teacher — a light refresh (/ai-teacher and /ai-teacher/abit): softer
+ * answer text, a marker stroke on bold, a floating sidebar panel. The page
+ * keeps the site's own background. `.ai-chat` is the ChatInterface root;
+ * the phone chat sheet (AIChatSidePanel) keeps `.ai-answer` from globals.css.
+ */
+.ai-chat {
+  --chat-text: #2f2c28;
+  --chat-text-strong: #1c1a17;
+  --chat-text-muted: #6f6a64;
+  --chat-border: #e7e5e4;
+  --chat-border-hover: #d6d3d1;
+  --chat-panel: #fafaf9;
+  --chat-surface: #ffffff;
+  --chat-hover: #f3f1ec;
+  --chat-active: #f0eeea;
+  --chat-user-bg: #f4f4f5;
+  --chat-user-text: #27272a;
+  --chat-input-border: #e4e4e7;
+  --chat-chip-bg: #f5f4f0;
+  --mark-yellow: #fde68a;
+  --mark-pink: #fbcfe8;
+  --accent: #e11d74;
+
+  /* Quick replies and suggestion icons: soft tints with a deep text tone. */
+  --tint-green-bg: #f0fdf4;
+  --tint-green-border: #bbf7d0;
+  --tint-green-text: #166534;
+  --tint-yellow-bg: #fefce8;
+  --tint-yellow-border: #fde68a;
+  --tint-yellow-text: #854d0e;
+  --tint-pink-bg: #fdf2f8;
+  --tint-pink-border: #fbcfe8;
+  --tint-pink-text: #9d174d;
+  --icon-green: #dcfce7;
+  --icon-yellow: #fef9c3;
+  --icon-pink: #fce7f3;
+  --icon-blue: #e0f2fe;
+  --icon-green-text: #15803d;
+  --icon-yellow-text: #a16207;
+  --icon-pink-text: #be185d;
+  --icon-blue-text: #0369a1;
+}
+
+html.dark .ai-chat {
+  --chat-text: #e6e3de;
+  --chat-text-strong: #fafaf9;
+  --chat-text-muted: #a29d96;
+  --chat-border: #34332f;
+  --chat-border-hover: #4a4843;
+  --chat-panel: #1a1918;
+  --chat-surface: #1f1e1c;
+  --chat-hover: #262522;
+  --chat-active: #2c2b28;
+  --chat-user-bg: #27272a;
+  --chat-user-text: #f4f4f5;
+  --chat-input-border: #34332f;
+  --chat-chip-bg: #2a2926;
+  --mark-yellow: rgba(250, 204, 21, 0.35);
+  --mark-pink: rgba(236, 72, 153, 0.35);
+
+  --tint-green-bg: rgba(74, 222, 128, 0.12);
+  --tint-green-border: rgba(74, 222, 128, 0.3);
+  --tint-green-text: #86efac;
+  --tint-yellow-bg: rgba(250, 204, 21, 0.12);
+  --tint-yellow-border: rgba(250, 204, 21, 0.3);
+  --tint-yellow-text: #fde047;
+  --tint-pink-bg: rgba(236, 72, 153, 0.12);
+  --tint-pink-border: rgba(236, 72, 153, 0.3);
+  --tint-pink-text: #f9a8d4;
+  --icon-green: rgba(74, 222, 128, 0.14);
+  --icon-yellow: rgba(250, 204, 21, 0.14);
+  --icon-pink: rgba(236, 72, 153, 0.16);
+  --icon-blue: rgba(56, 189, 248, 0.14);
+  --icon-green-text: #86efac;
+  --icon-yellow-text: #fde047;
+  --icon-pink-text: #f9a8d4;
+  --icon-blue-text: #7dd3fc;
+}
+
+/* The answer: regular weight, soft dark text. */
+.ai-chat .ai-answer {
+  max-width: 720px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.72;
+  color: var(--chat-text);
+}
+.ai-chat .ai-answer :is(p, li, blockquote) {
+  color: var(--chat-text);
+  font-weight: 400;
+}
+.ai-chat .ai-answer p {
+  margin: 14px 0;
+  line-height: 1.72;
+}
+.ai-chat .ai-answer :is(ul, ol) > li {
+  line-height: 1.72;
+}
+.ai-chat .ai-answer :is(h1, h2, h3) {
+  color: var(--chat-text-strong);
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.ai-chat .ai-answer ul > li::before {
+  background: var(--chat-text-muted);
+}
+
+/* Bold: a marker stroke across the lower part of the words, yellow and pink in turn. */
+.ai-chat .ai-answer strong {
+  color: var(--chat-text-strong);
+  font-weight: 600;
+  background: linear-gradient(transparent 62%, var(--mark, var(--mark-yellow)) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 1px;
+}
+.ai-chat .ai-answer strong[data-mark="pink"] {
+  --mark: var(--mark-pink);
+}
+
+/* „დღეს?“ in the greeting gets the same pink stroke. */
+.ai-chat .chat-mark-pink {
+  background: linear-gradient(transparent 62%, var(--mark-pink) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 2px;
+}
