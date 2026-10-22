@@ -1,0 +1,67 @@
+/*
+ * Notifications — the light style, on the page and in the header's bell
+ * popover (`.nf` is the root of both): white cards with thin borders, no
+ * gradients, one pink accent, a tinted tile per kind.
+ */
+.nf {
+  --nf-bg: #fafaf9;
+  --nf-card: #ffffff;
+  --nf-card-border: #ece9e4;
+  --nf-line: #e7e5e4;
+  --nf-divider: #f0eeea;
+  --nf-hover: #fafaf9;
+  --nf-text: #2f2c28;
+  --nf-strong: #1c1a17;
+  --nf-read: #44403c;
+  --nf-body: #57534e;
+  --nf-muted: #6f6a64;
+  --nf-soft: #f5f4f0;
+  --nf-ink: #18181b;
+  --nf-ink-text: #ffffff;
+  --nf-accent: #e11d74;
+  --nf-unread-row: #fdf2f8;
+
+  --nf-plan-bg: #fdf2f8;
+  --nf-plan: #be185d;
+  --nf-deadline-bg: #fff7ed;
+  --nf-deadline: #c2410c;
+  --nf-streak-bg: #fefce8;
+  --nf-streak: #a16207;
+  --nf-streak-fill: #facc15;
+  --nf-news-bg: #f0f9ff;
+  --nf-news: #0369a1;
+  --nf-system-bg: #f5f4f0;
+  --nf-system: #57534e;
+
+  color: var(--nf-text);
+}
+
+html.dark .nf {
+  --nf-bg: var(--bg-primary);
+  --nf-card: #1c1b19;
+  --nf-card-border: #2e2c29;
+  --nf-line: #34322e;
+  --nf-divider: #2a2926;
+  --nf-hover: #232220;
+  --nf-text: #e6e3de;
+  --nf-strong: #fafaf9;
+  --nf-read: #c9c4bc;
+  --nf-body: #b3ada5;
+  --nf-muted: #a29d96;
+  --nf-soft: #24231f;
+  --nf-ink: #e6e3de;
+  --nf-ink-text: #18181b;
+  --nf-unread-row: rgba(225, 29, 116, 0.1);
+
+  --nf-plan-bg: rgba(236, 72, 153, 0.14);
+  --nf-plan: #f9a8d4;
+  --nf-deadline-bg: rgba(249, 115, 22, 0.14);
+  --nf-deadline: #fdba74;
+  --nf-streak-bg: rgba(250, 204, 21, 0.12);
+  --nf-streak: #fde047;
+  --nf-streak-fill: rgba(250, 204, 21, 0.5);
+  --nf-news-bg: rgba(56, 189, 248, 0.14);
+  --nf-news: #7dd3fc;
+  --nf-system-bg: #24231f;
+  --nf-system: #d6d3d1;
+}

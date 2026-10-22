@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { StudyPlanPlanner } from "@/components/StudyPlan/StudyPlanPlanner";
 import "./study-plan-theme.css";
 
@@ -5,7 +6,10 @@ import "./study-plan-theme.css";
 export default function StudyPlanPage() {
   return (
     <main>
-      <StudyPlanPlanner />
+      {/* `?day=` (from a notification) opens that day. */}
+      <Suspense fallback={null}>
+        <StudyPlanPlanner />
+      </Suspense>
     </main>
   );
 }

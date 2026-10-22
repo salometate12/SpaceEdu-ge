@@ -82,6 +82,7 @@ export function PlanBoard({
   onToggleDone,
   onToCalendar,
   onCalendar,
+  focusDay = null,
 }: {
   saved: SavedStudyPlan | null;
   loading: boolean;
@@ -90,10 +91,19 @@ export function PlanBoard({
   onToCalendar: () => void;
   /** Already copied to the dashboard calendar. */
   onCalendar: boolean;
+  /** Open this day and bring it into view (`?day=`). */
+  focusDay?: string | null;
 }) {
   // Days opened or closed by hand; today's starts open.
   const [toggled, setToggled] = useState<Set<string>>(() => new Set());
-  const isOpen = (date: string) => (date === today) !== toggled.has(date);
+  const isOpen = (date: string) => (date === today || date === focusDay) !== toggled.has(date);
+  const focused = useRef(false);
+
+  useEffect(() => {
+    if (!focusDay || focused.current || !saved?.plan.some((day) => day.date === focusDay)) return;
+    focused.current = true;
+    window.requestAnimationFrame(() => rows.current.get(focusDay)?.scrollIntoView({ block: "center" }));
+  }, [focusDay, saved]);
   const rows = useRef(new Map<string, HTMLLIElement>());
 
   if (loading) {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
@@ -38,6 +39,8 @@ const BUSY_ERROR = "AI ახლა გადატვირთულია, ს
  * on phones). The plan and its done days stay on this device.
  */
 export function StudyPlanPlanner() {
+  // A notification's „გეგმის გახსნა“ opens its day.
+  const focusDay = useSearchParams().get("day");
   const [today, setToday] = useState("");
   const [subjects, setSubjects] = useState<string[]>([]);
   const [milestones, setMilestones] = useState<SyllabusMilestone[]>([]);
@@ -220,6 +223,7 @@ export function StudyPlanPlanner() {
               onToggleDone={markDone}
               onToCalendar={toCalendar}
               onCalendar={onCalendar}
+              focusDay={focusDay}
             />
           </div>
           <div className="min-w-0 flex-[1_1_260px] max-[901px]:basis-full min-[901px]:max-w-[300px]">

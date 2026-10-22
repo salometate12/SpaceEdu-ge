@@ -402,6 +402,16 @@ describe("merge rules", () => {
     ]);
   });
 
+  it("notifications: read and deleted times on either device are kept (the earlier wins)", () => {
+    expect(
+      mergeNotifications(
+        [{ id: "n1", readAt: "2026-10-22T10:00:00.000Z", deletedAt: null }],
+        [{ id: "n1", readAt: "2026-10-22T09:00:00.000Z", deletedAt: "2026-10-22T11:00:00.000Z" }],
+        context,
+      ),
+    ).toEqual([{ id: "n1", readAt: "2026-10-22T09:00:00.000Z", deletedAt: "2026-10-22T11:00:00.000Z" }]);
+  });
+
   it("covers subjects and calendar (PR 1), content (PR 2), progress (PR 3) and settings", () => {
     expect(SYNCED_KEYS.map((spec) => spec.key)).toEqual([
       "spaceedu-semester-subjects",

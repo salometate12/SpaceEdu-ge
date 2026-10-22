@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Flame } from "lucide-react";
+import { Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
-import {
-  ensureDailyStudyPlanNotification,
-  getUnreadCount,
-  NOTIFICATIONS_UPDATED_EVENT,
-} from "@/lib/notifications";
+import { NotificationsBell } from "@/components/notifications/NotificationsBell";
 import { AvatarDropdown } from "./AvatarDropdown";
 import { FocusModeToggle } from "./FocusModeToggle";
 import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
@@ -32,7 +28,6 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [streak, setStreak] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0);
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
   const { photoUrl } = useCurrentUserAvatar();
@@ -56,18 +51,6 @@ export function DashboardHeader({
     window.addEventListener("storage", sync);
     return () => {
       window.removeEventListener(STREAK_UPDATED_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-
-  useEffect(() => {
-    ensureDailyStudyPlanNotification();
-    const sync = () => setUnreadCount(getUnreadCount());
-    sync();
-    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, sync);
       window.removeEventListener("storage", sync);
     };
   }, []);
@@ -126,15 +109,7 @@ export function DashboardHeader({
         <span className="hidden md:inline-flex">
           <ThemeToggle />
         </span>
-        <Link
-          href="/notifications"
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:border-[var(--border-hover)] hover:text-white"
-        >
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
-          )}
-        </Link>
+        <NotificationsBell />
         <div className={`relative hidden md:block ${hasSideRail ? "md:hidden" : ""}`}>
           <button
             type="button"
