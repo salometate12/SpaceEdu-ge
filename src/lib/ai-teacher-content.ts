@@ -51,6 +51,8 @@ export interface AiTeacherContent {
   placeholder: string;
   emptyHistory: string;
   suggestions: AiTeacherSuggestion[];
+  /** The quick follow-ups above the input, after an answer. */
+  quickReplies: { label: string; prompt: string }[];
   panelTopics: AiTeacherPanelTopic[];
 }
 
@@ -70,6 +72,11 @@ export const AI_TEACHER_CONTENT: Record<AiTeacherSpace, AiTeacherContent> = {
       "მკითხე ლექციის მასალაზე, სემინარის საკითხზე ან გამოცდისთვის მზადებაზე. აგიხსნი ნაბიჯ-ნაბიჯ, მაგალითებით და ზუსტი ტერმინებით.",
     placeholder: "მკითხე ლექციაზე, დავალებაზე ან გამოცდაზე...",
     emptyHistory: "აქ გამოჩნდება შენი ბოლო საუბრები ლექციებსა და დავალებებზე.",
+    quickReplies: [
+      { label: "შემამოწმე", prompt: "შემამოწმე: დამისვი 3 მოკლე კითხვა ამ თემაზე და მერე გამისწორე პასუხები." },
+      { label: "გეგმა", prompt: "ამ თემის სასწავლად მოკლე გეგმა შემიდგინე ნაბიჯებად." },
+      { label: "მაგალითი", prompt: "მაგალითი მომეცი." },
+    ],
     suggestions: [
       {
         title: "ლექციის თემის ახსნა",
@@ -170,6 +177,11 @@ export const AI_TEACHER_CONTENT: Record<AiTeacherSpace, AiTeacherContent> = {
       "აგიხსნი ნებისმიერ თემას ეროვნული გამოცდების პროგრამის მიხედვით: მაგალითებით, ტიპური ხაფანგებით და გამოცდის სტილის ამოცანებით.",
     placeholder: "მკითხე ნებისმიერ საგანზე ან თემაზე...",
     emptyHistory: "აქ გამოჩნდება შენი ბოლო საუბრები გამოცდისთვის მზადებაზე.",
+    quickReplies: [
+      { label: "მაგალითი", prompt: "მაგალითი მომეცი." },
+      { label: "ქვიზი", prompt: "ქვიზი გამიკეთე ამ თემაზე." },
+      { label: "უფრო მოკლედ", prompt: "უფრო მოკლედ." },
+    ],
     suggestions: [
       {
         title: "მათემატიკა",
