@@ -1,5 +1,6 @@
 import type { Viewport } from "next";
 import type { ReactNode } from "react";
+import "./chat-theme.css";
 
 // Android: the keyboard shrinks the layout itself, so the chat's input sits
 // right above it (iOS ignores this; useMobileChatViewport covers it there).

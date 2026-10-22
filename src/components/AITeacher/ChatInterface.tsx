@@ -12,7 +12,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUp, PanelLeft, Sparkles, Square, SquarePen } from "lucide-react";
+import { ArrowUp, PanelLeft, Plus, Sparkles, Square } from "lucide-react";
 import { useIsPhoneLayout, useIsTouchDevice, useMobileChatViewport } from "@/hooks/useMobileChatViewport";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
@@ -68,9 +68,8 @@ function subscribeSidebar(onChange: () => void) {
   };
 }
 
-/** The phone header's two buttons: soft 40px circles. */
-const MOBILE_ROUND_BUTTON =
-  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-transform duration-150 active:scale-[0.94] motion-reduce:transition-none";
+/** The phone header's two buttons: inked 40px circles (chat-theme.css). */
+const MOBILE_ROUND_BUTTON = "chat-ink-button inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full";
 
 interface ChatMessage {
   id: string;
@@ -110,6 +109,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const isPhone = useIsPhoneLayout();
   const isTouch = useIsTouchDevice();
   const firstName = useCurrentUserFirstName();
+
+  const lastMessage = messages[messages.length - 1];
+  const showQuickReplies =
+    !isLoading && !input.trim() && lastMessage?.role === "assistant" && lastMessage.content.trim().length > 0;
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
   const hasMessages = messages.length > 0;
@@ -397,7 +400,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   );
 
   const floatingInput = (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/90 to-transparent px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-8 md:pb-5 [.keyboard-open_&]:pb-2">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-8 md:pb-5 [.keyboard-open_&]:pb-2">
+      {/* The feed fades out under the input. */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-[160px] bg-[linear-gradient(to_top,var(--chat-bg)_62%,transparent)]" />
       <div className="pointer-events-auto relative w-full max-w-3xl">
         {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
         {friendlyError ? (
@@ -406,12 +411,25 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           </div>
         ) : null}
 
+        {showQuickReplies ? (
+          <div data-quick-replies className="mb-2.5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {copy.quickReplies.map((reply) => (
+              <button
+                key={reply.label}
+                type="button"
+                onClick={() => void sendMessage(reply.prompt)}
+                className="chat-ink-button inline-flex h-[34px] shrink-0 items-center rounded-full px-3.5 text-[13px] font-bold"
+              >
+                {reply.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit}>
-          {/* Phone: one 48px capsule that grows to ~5 lines while typing. */}
-          <div
-            className="rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)] max-md:rounded-[24px] max-md:shadow-[0_2px_12px_rgb(0_0_0/0.06)]"
-          >
-            <div className="flex items-end gap-2 px-3 py-2 max-md:gap-1.5 max-md:py-[5px] max-md:pl-2 max-md:pr-[5px]">
+          {/* A 56px inked capsule that grows to ~5 lines while typing. */}
+          <div className="rounded-[28px] border-2 border-[var(--chat-ink)] bg-[var(--chat-surface)] shadow-[3px_3px_0_0_var(--chat-ink)]">
+            <div className="flex items-end gap-2 py-[5px] pl-3 pr-[5px]">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -420,8 +438,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={isPhone ? "დაწერე კითხვა…" : copy.placeholder}
                 aria-label="შენი კითხვა"
-                // 16px on phones: iOS zooms into anything smaller.
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:font-medium max-md:leading-[22px] max-md:placeholder:text-[var(--text-secondary)]"
+                // 16px: iOS zooms into anything smaller.
+                className="max-h-40 min-h-[42px] flex-1 resize-none bg-transparent py-[10px] pl-1 text-[16px] font-normal leading-[22px] text-[var(--chat-text-strong)] outline-none placeholder:text-[var(--chat-text-muted)] max-md:max-h-[140px]"
               />
               {isLoading ? (
                 <button
@@ -429,7 +447,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   onClick={stopGenerating}
                   aria-label="შეჩერება"
                   title="შეჩერება"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 max-md:mb-0 max-md:h-9 max-md:w-9"
+                  className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border-2 border-[var(--chat-ink)] bg-[var(--chat-ink)] text-[var(--chat-surface)] transition hover:opacity-85"
                 >
                   <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
                 </button>
@@ -438,9 +456,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   type="submit"
                   disabled={!canSend}
                   aria-label="გაგზავნა"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100 max-md:mb-0 max-md:h-9 max-md:w-9 max-md:disabled:bg-[var(--text-primary)] max-md:disabled:text-[var(--bg-card)] max-md:disabled:opacity-35"
+                  className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full border-2 border-[var(--chat-ink)] bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-45 disabled:hover:brightness-100"
                 >
-                  <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                  <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.5} />
                 </button>
               )}
             </div>
@@ -451,7 +469,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   );
 
   return (
-    <section className="relative flex h-full w-full overflow-hidden">
+    <section className="ai-chat relative flex h-full w-full overflow-hidden">
       {/* Desktop sidebar: full height under the header, collapses to icons. */}
       <aside
         aria-label="AI მასწავლებლის მენიუ"
@@ -506,8 +524,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       <div className="relative flex min-w-0 flex-1 flex-col">
         {/* Top bar — phone: under the status bar, always on top of the chat. */}
         <div
-          className={`z-10 shrink-0 border-b bg-[var(--bg-primary)]/80 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-colors duration-200 md:hidden ${
-            feedScrolled ? "border-[var(--border)]" : "border-transparent"
+          className={`z-10 shrink-0 border-b bg-[color-mix(in_srgb,var(--chat-bg)_85%,transparent)] pt-[env(safe-area-inset-top)] backdrop-blur-md transition-colors duration-200 md:hidden ${
+            feedScrolled ? "border-[color-mix(in_srgb,var(--chat-ink)_12%,transparent)]" : "border-transparent"
           }`}
         >
           <div className="flex h-[52px] items-center gap-2.5 px-3">
@@ -521,11 +539,17 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
               <PanelLeft className="h-5 w-5" strokeWidth={1.9} />
             </button>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-semibold leading-tight text-[var(--text-primary)]">{copy.headerTitle}</div>
-              <div className="truncate text-[12px] leading-tight text-[var(--text-secondary)]">{copy.headerSubtitle}</div>
+              <div className="truncate text-[15.5px] font-bold leading-tight text-[var(--chat-text-strong)]">{copy.headerTitle}</div>
+              <div className="mt-0.5 truncate text-[12px] font-normal leading-tight text-[var(--chat-text-muted)]">{copy.headerSubtitle}</div>
             </div>
-            <button type="button" onClick={startNewChat} className={MOBILE_ROUND_BUTTON} aria-label="ახალი ჩატი">
-              <SquarePen className="h-[18px] w-[18px]" strokeWidth={1.9} />
+            <button
+              type="button"
+              onClick={startNewChat}
+              className={`${MOBILE_ROUND_BUTTON} chat-ink-button--raised`}
+              aria-label="ახალი ჩატი"
+              title="ახალი ჩატი"
+            >
+              <Plus className="h-5 w-5" strokeWidth={2.2} />
             </button>
           </div>
         </div>
@@ -543,24 +567,24 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             const touch = event.changedTouches[0];
             if (start && touch.clientX - start.x > 70 && Math.abs(touch.clientY - start.y) < 40) setSidebarOpen(true);
           }}
-          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-36 pt-6 sm:px-6 md:pb-44"
+          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-48 pt-6 sm:px-6 md:pb-52"
         >
           {!hasMessages ? (
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 text-center">
               <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] max-md:hidden sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
               {/* Phone: a small, quiet AI mark instead of the orb. */}
-              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] md:hidden" aria-hidden>
+              <span className="chat-ink-button mb-4 flex h-10 w-10 items-center justify-center rounded-full md:hidden" aria-hidden>
                 <Sparkles className="h-5 w-5" strokeWidth={1.75} />
               </span>
-              <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] max-md:font-bold sm:text-[2.5rem]">
+              <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--chat-text-strong)] max-md:font-bold sm:text-[2.5rem]">
                 {firstName
                   ? copy.greetingWithName.replace("{name}", firstName)
                   : copy.greetingWithoutName}
-                <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent max-md:mt-1.5 max-md:bg-none max-md:font-sans max-md:text-[16px] max-md:font-medium max-md:leading-snug max-md:tracking-normal max-md:text-[var(--text-secondary)]">
+                <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent max-md:mt-1.5 max-md:bg-none max-md:font-sans max-md:text-[16px] max-md:font-normal max-md:leading-snug max-md:tracking-normal max-md:text-[var(--chat-text-muted)]">
                   {copy.greetingQuestion}
                 </span>
               </h1>
-              <p className="mt-3 hidden max-w-md text-sm leading-relaxed text-[var(--text-muted)] sm:mt-4 sm:block">
+              <p className="mt-3 hidden max-w-md text-sm leading-relaxed text-[var(--chat-text-muted)] sm:mt-4 sm:block">
                 {copy.intro}
               </p>
 
@@ -573,15 +597,15 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                       key={action.title}
                       type="button"
                       onClick={() => void sendMessage(action.prompt)}
-                      className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3.5 pr-11 text-left transition-colors duration-200 hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] sm:pr-10"
+                      className="relative rounded-2xl border-2 border-[var(--chat-ink)] bg-[var(--chat-surface)] p-3.5 pr-11 text-left shadow-[2px_2px_0_0_var(--chat-ink)] transition-[transform,box-shadow] duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none motion-reduce:transition-none sm:pr-10"
                     >
-                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7">
+                      <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--chat-ink)_8%,transparent)] text-[var(--chat-text-muted)] sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7">
                         <ActionIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
                       </span>
-                      <span className="block text-[15px] font-semibold leading-snug text-[var(--text-primary)] sm:truncate sm:text-[13px]">
+                      <span className="block text-[15px] font-bold leading-snug text-[var(--chat-text-strong)] sm:truncate sm:text-[13px]">
                         {action.title}
                       </span>
-                      <span className="mt-0.5 block truncate text-[13.5px] font-medium leading-snug text-[var(--text-secondary)] sm:mt-1 sm:line-clamp-2 sm:whitespace-normal sm:text-[11px] sm:font-normal sm:text-[var(--text-muted)]">
+                      <span className="mt-0.5 block truncate text-[13.5px] font-normal leading-snug text-[var(--chat-text-muted)] sm:mt-1 sm:line-clamp-2 sm:whitespace-normal sm:text-[11px]">
                         {action.prompt}
                       </span>
                     </button>
@@ -590,12 +614,12 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
               </div>
             </div>
           ) : (
-            <div className="mx-auto w-full max-w-3xl space-y-6">
+            <div className="mx-auto w-full max-w-3xl space-y-4">
               {messages.slice(0, lastQuestion === -1 ? messages.length : lastQuestion).map(renderMessage)}
               {lastQuestion === -1 ? null : (
                 // The current question + answer: tall enough for the question
                 // to reach the top while the answer is still short.
-                <div className="space-y-6" style={turnStyle}>
+                <div className="space-y-4" style={turnStyle}>
                   {messages.slice(lastQuestion).map((message, index) => renderMessage(message, lastQuestion + index))}
                 </div>
               )}

@@ -1,0 +1,240 @@
+/*
+ * AI teacher — the "study notebook" look (/ai-teacher and /ai-teacher/abit).
+ * Every colour the chat uses comes from these tokens; `.ai-chat` is the
+ * ChatInterface root. The phone chat sheet (AIChatSidePanel) keeps
+ * `.ai-answer` from globals.css.
+ */
+.ai-chat {
+  --chat-bg: #fffdf6;
+  --chat-text: #2f2c28;
+  --chat-text-strong: #1c1a17;
+  --chat-text-muted: #6f6a64;
+  --chat-ink: #18181b;
+  --chat-surface: #ffffff;
+  --chat-user-bg: #18181b;
+  --chat-user-text: #ffffff;
+  --mark-yellow: #fde68a;
+  --mark-pink: #fbcfe8;
+  --mark-green: #bbf7d0;
+  --step-1: #86efac;
+  --step-2: #fde047;
+  --step-3: #f9a8d4;
+  --idea-bg: #dcfce7;
+  --idea-label: #166534;
+  --idea-text: #14532d;
+  --accent: #e11d74;
+
+  background: var(--chat-bg);
+  color: var(--chat-text);
+}
+
+html.dark .ai-chat {
+  --chat-bg: #141413;
+  --chat-text: #e6e3de;
+  --chat-text-strong: #fafaf9;
+  --chat-text-muted: #a29d96;
+  --chat-ink: #e6e3de;
+  --chat-surface: #1e1d1b;
+  --chat-user-bg: #f4f4f5;
+  --chat-user-text: #18181b;
+  --mark-yellow: rgba(250, 204, 21, 0.35);
+  --mark-pink: rgba(236, 72, 153, 0.35);
+  --mark-green: rgba(74, 222, 128, 0.3);
+  --idea-bg: rgba(74, 222, 128, 0.12);
+  --idea-label: #86efac;
+  --idea-text: #dcfce7;
+}
+
+/* The answer: soft, regular-weight text. */
+.ai-chat .ai-answer {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.72;
+  letter-spacing: 0.005em;
+  color: var(--chat-text);
+}
+@media (min-width: 768px) {
+  .ai-chat .ai-answer {
+    max-width: 680px;
+    font-size: 15.5px;
+  }
+}
+.ai-chat .ai-answer :is(p, li, blockquote) {
+  color: var(--chat-text);
+}
+.ai-chat .ai-answer p {
+  margin: 14px 0;
+  line-height: 1.72;
+}
+.ai-chat .ai-answer :is(h2, h3, h4) {
+  margin: 20px 0 6px;
+  color: var(--chat-text-strong);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.ai-chat .ai-answer h2 {
+  font-size: 18px;
+}
+.ai-chat .ai-answer h3 {
+  font-size: 17px;
+}
+.ai-chat .ai-answer h4 {
+  font-size: 16px;
+}
+.ai-chat .ai-answer :not(pre) > code {
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--chat-ink) 15%, transparent);
+  border-radius: 6px;
+  background: var(--chat-surface);
+  color: var(--chat-text-strong);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.88em;
+}
+
+/* Bold: a marker stroke across the lower part of the words, not a filled box. */
+.ai-chat .ai-answer strong {
+  color: var(--chat-text-strong);
+  font-weight: 600;
+  background: linear-gradient(transparent 62%, var(--mark, var(--mark-yellow)) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 1px;
+}
+.ai-chat .ai-answer strong[data-mark="pink"] {
+  --mark: var(--mark-pink);
+}
+.ai-chat .ai-answer strong[data-mark="green"] {
+  --mark: var(--mark-green);
+}
+
+/* Numbered steps: a coloured, inked circle beside a title and its text. */
+.ai-chat .ai-answer .ai-steps {
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+.ai-chat .ai-answer .ai-steps > li {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+.ai-chat .ai-answer .ai-steps > li::before {
+  content: none;
+}
+.ai-chat .ai-answer .ai-steps > li + li {
+  margin-top: 12px;
+}
+.ai-chat .ai-step-number {
+  display: flex;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--chat-ink);
+  border-radius: 9999px;
+  background: var(--step-1);
+  color: #18181b;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+.ai-chat [data-step="1"] > .ai-step-number {
+  background: var(--step-2);
+}
+.ai-chat [data-step="2"] > .ai-step-number {
+  background: var(--step-3);
+}
+.ai-chat .ai-answer .ai-step-title {
+  margin: 0 0 2px;
+  color: var(--chat-text-strong);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.ai-chat .ai-answer .ai-steps p:not(.ai-step-title) {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+.ai-chat .ai-answer .ai-steps p + p {
+  margin-top: 8px;
+}
+/* A title already reads as one: no marker on it. */
+.ai-chat .ai-answer .ai-step-title strong {
+  background: none;
+  font-weight: inherit;
+}
+
+/* The key idea: an inked card with a solid shadow. */
+.ai-chat .ai-answer .ai-idea {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 2px solid var(--chat-ink);
+  border-radius: 18px;
+  background: var(--idea-bg);
+  box-shadow: 4px 4px 0 0 var(--chat-ink);
+}
+.ai-chat .ai-answer .ai-idea-label {
+  margin: 0 0 4px;
+  color: var(--idea-label);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.ai-chat .ai-answer .ai-idea-text {
+  margin: 0;
+  color: var(--idea-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.ai-chat .ai-answer .ai-idea strong {
+  color: var(--idea-text);
+}
+
+/* Any other quote: a plain line on the left. */
+.ai-chat .ai-answer blockquote {
+  margin: 14px 0;
+  padding: 2px 0 2px 14px;
+  border: 0;
+  border-left: 2px solid var(--chat-text-muted);
+  border-radius: 0;
+  background: none;
+  color: var(--chat-text-muted);
+  font-weight: 400;
+}
+
+.ai-chat .ai-answer :is(ul, ol:not(.ai-steps)) {
+  margin: 14px 0;
+}
+.ai-chat .ai-answer ul > li::before {
+  background: var(--chat-text-muted);
+}
+.ai-chat .ai-answer > article > :first-child {
+  margin-top: 0;
+}
+.ai-chat .ai-answer > article > :last-child {
+  margin-bottom: 0;
+}
+
+/* The neo-brutalist controls: 2px ink border, solid shadow that presses in. */
+.ai-chat .chat-ink-button {
+  border: 2px solid var(--chat-ink);
+  background: var(--chat-surface);
+  color: var(--chat-text-strong);
+}
+.ai-chat .chat-ink-button--raised {
+  box-shadow: 2px 2px 0 0 var(--chat-ink);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.ai-chat .chat-ink-button--raised:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat .chat-ink-button--raised {
+    transition: none;
+  }
+}
