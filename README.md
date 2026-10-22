@@ -1,4 +1,4 @@
-# flashcards.ge
+# Spaceedu.ge
 
 მინიმალისტური ფლეშბარათების პლატფორმა — **Next.js**, **TypeScript**, **Tailwind CSS**, **Lucide React**, **Vercel AI SDK** (Google Gemini).
 
