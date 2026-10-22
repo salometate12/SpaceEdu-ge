@@ -28,6 +28,7 @@ import {
 import { presentationTemplate } from "@/lib/presentation-templates";
 import type { GeneratedSlide } from "@/lib/presentation-types";
 import { relativeTimeKa } from "@/lib/relative-time-ka";
+import { useUserDataStatus } from "@/hooks/useUserDataStatus";
 import { Menu, MenuItem, useToast } from "./EditorMenus";
 import { SURFACE } from "./surface";
 import { SlideCard } from "./SlideCard";
@@ -60,6 +61,8 @@ const nextPaint = () =>
   new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
 export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyPresentationsProps) {
+  // Signed in: kept on the account; otherwise only on this device.
+  const onAccount = useUserDataStatus() !== "local";
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -372,7 +375,7 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
           </ul>
         )}
         <p className="mt-4 text-center text-xs text-slate-500 dark:text-zinc-500">
-          პრეზენტაციები ინახება ამ მოწყობილობაზე · მაქსიმუმ {MAX_PRESENTATIONS}
+          პრეზენტაციები ინახება {onAccount ? "შენს ანგარიშზე" : "ამ მოწყობილობაზე"} · მაქსიმუმ {MAX_PRESENTATIONS}
         </p>
       </div>
 

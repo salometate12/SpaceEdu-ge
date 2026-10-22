@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createClient as createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { getUserStore, supabaseUserData } from "@/lib/user-data";
+import { connectPresentations, disconnectPresentations, refreshPresentations } from "@/lib/presentation-sync-client";
 
 /**
  * Keeps the user's data in step with their account (lib/user-data): pulls
@@ -28,6 +29,7 @@ export function UserDataSync() {
       if (event === "SIGNED_OUT") {
         userId = null;
         store.disconnect();
+        void disconnectPresentations();
         return;
       }
       if (!next) {
@@ -37,14 +39,21 @@ export function UserDataSync() {
       if (next === userId) return;
       userId = next;
       // Outside the auth callback: Supabase calls made inside it can deadlock.
-      setTimeout(() => void store.connect(next, supabaseUserData(supabase, next)), 0);
+      setTimeout(() => {
+        void store.connect(next, supabaseUserData(supabase, next));
+        void connectPresentations(supabase, next);
+      }, 0);
     });
 
     const refresh = () => {
-      if (userId && document.visibilityState === "visible") void store.refresh();
+      if (!userId || document.visibilityState !== "visible") return;
+      void store.refresh();
+      void refreshPresentations();
     };
     const online = () => {
-      if (userId) void store.refresh();
+      if (!userId) return;
+      void store.refresh();
+      void refreshPresentations();
     };
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener("online", online);

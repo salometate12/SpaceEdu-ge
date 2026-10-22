@@ -1,9 +1,10 @@
 /**
  * „ჩემი პრეზენტაციები“: every presentation is kept on this device in
  * IndexedDB (photos would overflow localStorage). Photos live in their own
- * store, keyed per presentation, so the list loads without them. Plain
- * records with ids and timestamps, so syncing them to a server later is a
- * copy, not a migration.
+ * store, keyed per presentation, so the list loads without them. The
+ * account keeps a copy (lib/presentation-sync): every change here is
+ * reported to it, and photos of a presentation that came from the account
+ * are fetched when it's opened.
  */
 
 import type { UploadedPhoto } from "@/lib/presentation-photos";
@@ -24,7 +25,26 @@ export interface SavedPresentation {
   slides: GeneratedSlide[] | null;
   /** In order; the photos themselves are in the photos store. */
   photoIds: string[];
+  /** Sizes and captions of the photos, kept with the account's copy so a
+   * device that hasn't downloaded them yet still knows them. */
+  photoMeta?: PhotoMeta[];
   thumbnail?: string;
+}
+
+export type PhotoMeta = Omit<UploadedPhoto, "dataUrl">;
+
+/** What the account copy hears about (lib/presentation-sync-client). */
+type ChangeListener = (change: { type: "changed" | "deleted"; id: string }) => void;
+let changeListener: ChangeListener | null = null;
+export function setPresentationChangeListener(listener: ChangeListener | null) {
+  changeListener = listener;
+}
+
+/** Fetches a photo this device doesn't have yet (from the account). */
+type PhotoFetcher = (presentationId: string, entry: PhotoMeta) => Promise<UploadedPhoto | null>;
+let photoFetcher: PhotoFetcher | null = null;
+export function setPhotoFetcher(fetcher: PhotoFetcher | null) {
+  photoFetcher = fetcher;
 }
 
 interface PhotoRecord {
@@ -115,8 +135,43 @@ export async function loadPresentation(
   ]);
   if (!presentation) return null;
   const byId = new Map(records.map((record) => [record.photo.id, record.photo]));
+  // Photos of a presentation that came from the account: fetch and keep them.
+  const missing = presentation.photoIds.filter((photoId) => !byId.has(photoId));
+  if (missing.length && photoFetcher) {
+    const metaById = new Map((presentation.photoMeta ?? []).map((entry) => [entry.id, entry]));
+    const fetcher = photoFetcher;
+    const fetched = await Promise.all(
+      missing.map((photoId) => fetcher(id, metaById.get(photoId) ?? { id: photoId, width: 0, height: 0, name: "", caption: "" })),
+    );
+    const got = fetched.filter((photo): photo is UploadedPhoto => Boolean(photo));
+    if (got.length) {
+      const tx = db.transaction(PHOTOS, "readwrite");
+      for (const photo of got) {
+        tx.objectStore(PHOTOS).put({ key: photoKey(id, photo.id), presentationId: id, photo } satisfies PhotoRecord);
+        byId.set(photo.id, photo);
+      }
+      await done(tx);
+    }
+  }
   const photos = presentation.photoIds.map((photoId) => byId.get(photoId)).filter((p): p is UploadedPhoto => Boolean(p));
   return { presentation, photos };
+}
+
+/** Writes a record from the account (its photos are fetched on open). */
+export async function putPresentationRecord(record: SavedPresentation): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction(PRESENTATIONS, "readwrite");
+  tx.objectStore(PRESENTATIONS).put(record);
+  await done(tx);
+}
+
+/** Removes every presentation from this device (signing out). */
+export async function clearAllPresentations(): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction([PRESENTATIONS, PHOTOS], "readwrite");
+  tx.objectStore(PRESENTATIONS).clear();
+  tx.objectStore(PHOTOS).clear();
+  await done(tx);
 }
 
 /** Photo objects already written, so a save rewrites only new or changed ones. */
@@ -141,9 +196,16 @@ export async function savePresentation(presentation: SavedPresentation, photos: 
   }
   await done(tx);
   for (const photo of photos) writtenPhotos.set(photo, presentation.id);
+  changeListener?.({ type: "changed", id: presentation.id });
 }
 
 export async function deletePresentation(id: string): Promise<void> {
+  await removeLocalPresentation(id);
+  changeListener?.({ type: "deleted", id });
+}
+
+/** Deletes only on this device (another device deleted it from the account). */
+export async function removeLocalPresentation(id: string): Promise<void> {
   const db = await openDb();
   const tx = db.transaction([PRESENTATIONS, PHOTOS], "readwrite");
   tx.objectStore(PRESENTATIONS).delete(id);
@@ -160,6 +222,7 @@ export async function renamePresentation(id: string, title: string): Promise<voi
   const presentation = await result(store.get(id) as IDBRequest<SavedPresentation | undefined>);
   if (presentation) store.put({ ...presentation, title, updatedAt: Date.now() });
   await done(tx);
+  if (presentation) changeListener?.({ type: "changed", id });
 }
 
 /** A full copy (photos too) under a new id; returns it. */

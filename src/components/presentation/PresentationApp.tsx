@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { listPresentations, newPresentationId, type SavedPresentation } from "@/lib/presentation-store";
+import { PRESENTATIONS_UPDATED_EVENT } from "@/lib/presentation-sync-client";
+import { useUserDataStatus } from "@/hooks/useUserDataStatus";
 import { MyPresentations } from "./MyPresentations";
 import { PresentationWizard } from "./PresentationWizard";
 
@@ -37,8 +39,16 @@ export function PresentationApp() {
     refresh();
     // The editor saves as it closes; pick that up too.
     const timer = window.setTimeout(refresh, 600);
-    return () => window.clearTimeout(timer);
+    // …and the account's presentations, arriving from another device.
+    window.addEventListener(PRESENTATIONS_UPDATED_EVENT, refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(PRESENTATIONS_UPDATED_EVENT, refresh);
+    };
   }, [id, refresh]);
+
+  // Signed in: kept on the account; otherwise only on this device.
+  const onAccount = useUserDataStatus() !== "local";
 
   const open = (presentationId: string) => router.push(`${pathname}?id=${encodeURIComponent(presentationId)}`);
   const startNew = () => router.push(`${pathname}?id=${newPresentationId()}`);
@@ -66,7 +76,7 @@ export function PresentationApp() {
     <div className="space-y-3">
       {id || storageFailed ? null : (
         <p className="text-xs text-slate-500 dark:text-zinc-500">
-          ყველაფერი ავტომატურად ინახება ამ მოწყობილობაზე — მერე „ჩემი პრეზენტაციებიდან“ გახსნი.
+          ყველაფერი ავტომატურად ინახება {onAccount ? "შენს ანგარიშზე" : "ამ მოწყობილობაზე"} — მერე „ჩემი პრეზენტაციებიდან“ გახსნი.
         </p>
       )}
       {id ? (

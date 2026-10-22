@@ -4,6 +4,7 @@ import { createClient as createBrowserSupabaseClient } from "@/utils/supabase/cl
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { clearActiveSpaceCookie } from "@/lib/active-space";
 import { getUserStore } from "@/lib/user-data";
+import { flushPresentations } from "@/lib/presentation-sync-client";
 
 export type RegisterSpace = "school" | "abiturient" | "student";
 
@@ -55,7 +56,7 @@ export async function signOutUser() {
   if (!supabase) return;
   // Changes still waiting to be sent go to the account first; signing out
   // then clears them from this device (UserDataSync).
-  await getUserStore().flush();
+  await Promise.all([getUserStore().flush(), flushPresentations()]);
   await supabase.auth.signOut();
 }
 
