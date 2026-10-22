@@ -1,13 +1,16 @@
 /*
- * The quiz while it's being taken (and its results): a calm, cream page.
- * Every colour of that screen comes from these tokens; `.quiz-run` is its
- * root. The ink border and solid shadow are kept for the chosen answer and
- * the main button only. The upload screen doesn't use them.
+ * The quiz page — upload, generating, the run and the results — on one
+ * calm, cream page. Every colour comes from these tokens; `.quiz-run` is
+ * the root. The ink border and solid shadow are kept for the chosen answer
+ * and the main button only.
  */
 .quiz-run {
   --quiz-bg: #fffdf6;
   --quiz-card: #ffffff;
-  --quiz-card-border: #ece8e1;
+  --quiz-card-border: #ece9e4;
+  --quiz-drop-border: #d6d3d1;
+  --quiz-drop-bg: #fafaf9;
+  --quiz-skeleton: #f5f4f0;
   --quiz-text: #2f2c28;
   --quiz-strong: #1c1a17;
   --quiz-muted: #6f6a64;
@@ -40,6 +43,9 @@ html.dark .quiz-run {
   --quiz-bg: #141413;
   --quiz-card: #1c1b19;
   --quiz-card-border: #2e2c29;
+  --quiz-drop-border: #44413c;
+  --quiz-drop-bg: #191816;
+  --quiz-skeleton: #24231f;
   --quiz-text: #e6e3de;
   --quiz-strong: #fafaf9;
   --quiz-muted: #a29d96;
@@ -79,4 +85,30 @@ html.dark .quiz-run {
   background: color-mix(in srgb, var(--quiz-card) 70%, transparent);
   color: var(--quiz-strong);
   font-size: 0.88em;
+}
+
+/* The questions to come, while the quiz is being written. */
+.quiz-run .quiz-skeleton {
+  background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--quiz-card) 65%, transparent) 50%,
+      transparent 100%
+    )
+    var(--quiz-skeleton);
+  background-size: 200% 100%;
+  animation: quiz-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes quiz-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiz-run .quiz-skeleton {
+    animation: none;
+  }
 }
