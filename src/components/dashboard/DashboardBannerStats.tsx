@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Flame, Hourglass } from "lucide-react";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
-import { getExamCountdownDays } from "@/lib/exam-countdown";
+import { EXAM_COUNTDOWN_UPDATED_EVENT, getExamCountdownDays } from "@/lib/exam-countdown";
 
 export type DashboardWorkspace = "abiturient" | "student";
 
@@ -43,6 +43,9 @@ export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
   useEffect(() => {
     const sync = () => setCountdown(getExamCountdownDays());
     sync();
+    // The account's countdown replaces this device's once it arrives.
+    window.addEventListener(EXAM_COUNTDOWN_UPDATED_EVENT, sync);
+    return () => window.removeEventListener(EXAM_COUNTDOWN_UPDATED_EVENT, sync);
   }, []);
 
   const streakActiveToday = streak > 0;

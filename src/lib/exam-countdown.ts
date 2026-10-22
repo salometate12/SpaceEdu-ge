@@ -1,4 +1,7 @@
-const COUNTDOWN_KEY = "spaceedu-exam-countdown-days";
+import { EXAM_COUNTDOWN_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
+
+export { EXAM_COUNTDOWN_UPDATED_EVENT } from "./user-data-keys";
 
 const MIN_DAYS = 25;
 const MAX_DAYS = 160;
@@ -11,13 +14,10 @@ const MAX_DAYS = 160;
 export function getExamCountdownDays(): number {
   if (typeof window === "undefined") return MIN_DAYS;
 
-  const stored = window.localStorage.getItem(COUNTDOWN_KEY);
-  if (stored) {
-    const parsed = Number.parseInt(stored, 10);
-    if (!Number.isNaN(parsed)) return parsed;
-  }
+  const stored = userStore.get<unknown>(EXAM_COUNTDOWN_KEY, null);
+  if (typeof stored === "number" && Number.isFinite(stored)) return stored;
 
   const value = Math.floor(Math.random() * (MAX_DAYS - MIN_DAYS + 1)) + MIN_DAYS;
-  window.localStorage.setItem(COUNTDOWN_KEY, String(value));
+  userStore.set(EXAM_COUNTDOWN_KEY, value);
   return value;
 }
