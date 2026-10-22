@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
@@ -13,6 +13,7 @@ import {
   Video,
 } from "lucide-react";
 import { ka } from "@/lib/i18n";
+import { takeHandoff } from "@/lib/tool-handoff";
 import { createDeckFromGenerated, saveCustomDeck } from "@/lib/custom-decks";
 import type { UploadedData } from "@/lib/generation-input";
 import { buildGenerationFormData } from "@/lib/build-generation-form-data";
@@ -71,6 +72,17 @@ export function CardGenerator() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [streamPreview, setStreamPreview] = useState("");
   const [streamingCards, setStreamingCards] = useState<FlashcardDraft[]>([]);
+
+  // Opened from a journal entry („გადააქციე ბარათებად“): its text, ready to go.
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      const handed = takeHandoff("cards");
+      if (!handed) return;
+      setActiveTab("text");
+      setText(handed.text);
+      if (handed.title) setTopic(handed.title);
+    });
+  }, []);
 
   const handleFile = useCallback((f: File | null) => {
     if (!f) return;

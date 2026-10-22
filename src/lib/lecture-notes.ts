@@ -66,6 +66,11 @@ export function lectureNoteHref(id?: string): string {
   return id ? `/lecture-notes?id=${encodeURIComponent(id)}` : "/lecture-notes";
 }
 
+/** A new entry of this kind, opened in the editor and saved once written in. */
+export function journalNewHref(section: JournalSection): string {
+  return `/journal?new=${section}`;
+}
+
 export function journalHref(id?: string, tab?: JournalSection): string {
   const params = new URLSearchParams();
   if (tab) params.set("tab", tab);
@@ -122,6 +127,8 @@ export interface LectureNote {
    *  journal had two writable pages simply have none. */
   contentRight?: string;
   section: JournalSection;
+  /** A semester subject the entry belongs to, if the student picked one. */
+  subject?: string;
   pinned: boolean;
   aiKeywords: string[];
   createdAt: number;
