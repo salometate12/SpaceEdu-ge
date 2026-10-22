@@ -9,6 +9,7 @@ import { useFocusMode } from "@/contexts/FocusModeContext";
 import { useCurrentUserAvatar, type UserAvatar } from "@/hooks/useCurrentUserAvatar";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
+import { useMobileOverlayOpen } from "@/lib/mobile-overlay";
 import {
   isDockItemActive,
   mobileDockHidden,
@@ -68,6 +69,8 @@ export function MobileGlassDock() {
   const { open: openMobileMenu } = useMobileSideMenu();
   const { available: chatAvailable, isOpen: chatOpen, open: openChat } = useAIChatPanel();
   const avatar = useCurrentUserAvatar();
+  // A full-screen menu is open (e.g. the landing's): the dock steps aside.
+  const overlayOpen = useMobileOverlayOpen();
   // URL → remembered working space → account → this device's last space,
   // the same order as the header (see useWorkingSpace).
   const { space: effectiveSpace, isAdmin } = useWorkingSpace();
@@ -116,7 +119,7 @@ export function MobileGlassDock() {
   if (hidden) return null;
 
   const activeFor = (item: MobileDockItem) => (pathname ? isDockItemActive(pathname, item) : false);
-  const shown = visible || chatOpen;
+  const shown = (visible || chatOpen) && !overlayOpen;
 
   const renderTab = (item: MobileDockItem) => {
     const active = activeFor(item);
