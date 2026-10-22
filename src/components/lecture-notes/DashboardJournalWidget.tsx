@@ -2,35 +2,54 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Plus } from "lucide-react";
+import { DashboardCard, dashboardCardActionClass } from "@/components/dashboard/DashboardCard";
+import { JOURNAL_CATEGORIES, journalCategory } from "@/lib/journal-categories";
 import {
-  JOURNAL_SECTIONS,
   LECTURE_NOTES_UPDATED_EVENT,
   createBlankLectureNote,
   journalHref,
-  latestJournalNote,
-  loadJournalProgress,
   loadLectureNotes,
   previewLectureNote,
   saveLectureNotes,
   type JournalSection,
   type LectureNote,
 } from "@/lib/lecture-notes";
+import { nbButtonClass } from "@/lib/nb-button";
+import { relativeTimeShortKa } from "@/lib/relative-time-ka";
 
+/** Notes with something written in them, newest first. */
+function recentNotes(notes: LectureNote[]): LectureNote[] {
+  return notes
+    .filter((note) => note.title.trim() || note.content.trim() || note.contentRight?.trim())
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+function CategoryDot({ section, className = "" }: { section: JournalSection; className?: string }) {
+  return (
+    <span
+      className={`inline-block h-2 w-2 shrink-0 rounded-full ${className}`}
+      style={{ background: journalCategory(section).color }}
+      aria-hidden
+    />
+  );
+}
+
+/**
+ * The dashboard's journal card: the last three entries (a tap opens one)
+ * and „+ ახალი ჩანაწერი“ with a choice of kind; empty, a short line and
+ * the four kinds as chips. A plain card like the others — the journal's
+ * XP still counts (profile, stats) but isn't shown here.
+ */
 export function DashboardJournalWidget() {
   const router = useRouter();
-  const [note, setNote] = useState<LectureNote | null>(null);
-  const [xp, setXp] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [notes, setNotes] = useState<LectureNote[] | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  const chooserRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const sync = () => {
-      setNote(latestJournalNote(loadLectureNotes()));
-      setXp(loadJournalProgress().xp);
-      setReady(true);
-    };
+    const sync = () => setNotes(recentNotes(loadLectureNotes()));
     sync();
     window.addEventListener(LECTURE_NOTES_UPDATED_EVENT, sync);
     window.addEventListener("storage", sync);
@@ -40,90 +59,123 @@ export function DashboardJournalWidget() {
     };
   }, []);
 
-  const quickAdd = (section: JournalSection) => {
+  // The kind chooser closes on Esc or a tap outside it.
+  useEffect(() => {
+    if (!choosing) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setChoosing(false);
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (!chooserRef.current?.contains(event.target as Node)) setChoosing(false);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onPointer);
+    };
+  }, [choosing]);
+
+  const create = (section: JournalSection) => {
     const blank = createBlankLectureNote(section);
     saveLectureNotes([blank, ...loadLectureNotes()]);
     router.push(journalHref(blank.id, section));
   };
 
-  if (!ready) return null;
+  if (notes === null) return null;
+  const count = notes.length;
 
   return (
-    <section className="overflow-hidden rounded-[32px] bg-[#C2186B] p-5 text-white shadow-[0_18px_40px_rgba(194,24,107,0.28)] sm:p-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
-        <MiniNotebook preview={note ? previewLectureNote(note.content, 48) : "ახალი გვერდი გელოდება."} />
-
-        <div className="flex min-w-0 flex-1 flex-col justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-pink-100/80">Open Notebook</p>
-            <h3 className="mt-1 flex items-center gap-2 text-xl font-black tracking-tight">
-              <BookOpen className="h-5 w-5" />
-              ციფრული ჟურნალი
-            </h3>
-            <p className="mt-1 text-sm text-pink-50/85">
-              {note
-                ? `${note.title.trim() || "უსათაურო ნოტი"} · ${xp} XP`
-                : "გახსენი რვეული, ჩაწერე ლექცია და დააგროვე XP."}
-            </p>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {JOURNAL_SECTIONS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => quickAdd(tab.id)}
-                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-stone-900"
-                style={{ backgroundColor: tab.tabColor }}
+    <DashboardCard
+      icon={BookOpen}
+      tone="pink"
+      title="ჟურნალი"
+      subtitle={`${count} ჩანაწერი`}
+      action={
+        <Link href="/journal" className={dashboardCardActionClass}>
+          ყველა →
+        </Link>
+      }
+    >
+      {count > 0 ? (
+        <ul className="mt-4 border-t border-[var(--border)]">
+          {notes.slice(0, 3).map((note) => (
+            <li key={note.id} className="border-b border-[var(--border)] last:border-b-0">
+              <Link
+                href={journalHref(note.id, note.section)}
+                className="-mx-2 block rounded-xl px-2 py-3 transition-colors hover:bg-[var(--bg-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"
               >
-                <Plus className="h-3 w-3" />
-                {tab.label}
+                <div className="flex items-center gap-2.5">
+                  <CategoryDot section={note.section} />
+                  <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-[var(--text-primary)]">
+                    {note.title.trim() || journalCategory(note.section).label}
+                  </span>
+                  <span className="shrink-0 text-xs font-medium tabular-nums text-[var(--text-secondary)]">
+                    {relativeTimeShortKa(note.updatedAt)}
+                  </span>
+                </div>
+                {note.content.trim() ? (
+                  <p className="mt-0.5 truncate pl-[18px] text-[13.5px] font-medium text-[var(--text-secondary)]">
+                    {previewLectureNote(note.content, 120)}
+                  </p>
+                ) : null}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="mt-4">
+          <p className="text-[14px] font-medium leading-relaxed text-[var(--text-secondary)]">
+            აქ გამოჩნდება შენი ჩანაწერები ლექციებზე, დავალებებსა და იდეებზე.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {JOURNAL_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => create(category.id)}
+                className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-3.5 text-[13px] font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]"
+              >
+                <CategoryDot section={category.id} />
+                {category.label}
               </button>
             ))}
           </div>
-
-          <Link
-            href={journalHref(note?.id, note?.section)}
-            className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-black text-[#C2186B] transition hover:bg-pink-50"
-          >
-            გახსენი სრული ჟურნალი
-          </Link>
         </div>
-      </div>
-    </section>
-  );
-}
+      )}
 
-function MiniNotebook({ preview }: { preview: string }) {
-  return (
-    <motion.div
-      whileHover={{ rotate: -1.5, y: -3 }}
-      transition={{ type: "spring", stiffness: 300, damping: 18 }}
-      className="relative w-full shrink-0 lg:w-[280px]"
-    >
-      <div className="absolute -right-1 top-8 z-0 flex flex-col gap-1">
-        {["#F9A8D4", "#7DD3FC", "#FDE047", "#5EEAD4"].map((color) => (
-          <span key={color} className="h-7 w-3 rounded-r-sm" style={{ backgroundColor: color }} />
-        ))}
-      </div>
-      <div className="relative z-10 flex min-h-[148px] overflow-hidden rounded-l-[22px] rounded-r-[22px] bg-[#FFFDF8] shadow-[0_12px_24px_rgba(80,0,30,0.28)]">
-        <span className="pointer-events-none absolute left-0 top-1/2 z-20 h-8 w-3 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-gradient-to-b from-slate-200 to-slate-500" />
-        <span className="pointer-events-none absolute right-0 top-1/2 z-20 h-8 w-3 translate-x-1/2 -translate-y-1/2 rounded-sm bg-gradient-to-b from-slate-200 to-slate-500" />
-        <div
-          className="w-1/2 border-r border-[#eadfd0] p-3"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(transparent, transparent 11px, rgba(196,80,120,0.18) 12px)",
-          }}
+      <div ref={chooserRef} className="relative mt-4">
+        <button
+          type="button"
+          onClick={() => (count > 0 ? setChoosing((open) => !open) : create("lectures"))}
+          aria-expanded={count > 0 ? choosing : undefined}
+          aria-haspopup={count > 0 ? "menu" : undefined}
+          className={nbButtonClass({ variant: "primary" })}
         >
-          <p className="line-clamp-5 text-[10px] leading-[12px] text-stone-600">{preview}</p>
-        </div>
-        <div className="relative w-1/2 p-3">
-          <span className="absolute left-4 top-4 h-8 w-8 -rotate-6 rounded-full bg-orange-200" />
-          <span className="absolute right-5 top-10 h-6 w-10 rotate-8 rounded-full bg-teal-400" />
-          <span className="absolute bottom-5 left-6 h-7 w-7 -rotate-3 rounded-md bg-pink-500" />
-        </div>
+          <Plus aria-hidden />
+          {count > 0 ? "ახალი ჩანაწერი" : "პირველი ჩანაწერი"}
+        </button>
+        {choosing ? (
+          <div
+            role="menu"
+            aria-label="ჩანაწერის ტიპი"
+            className="absolute left-0 top-full z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-1.5 shadow-[0_12px_32px_-12px_rgb(15_23_42/0.25)]"
+          >
+            {JOURNAL_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                role="menuitem"
+                onClick={() => create(category.id)}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)] focus-visible:bg-[var(--bg-secondary)] focus-visible:outline-none"
+              >
+                <CategoryDot section={category.id} />
+                {category.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
-    </motion.div>
+    </DashboardCard>
   );
 }
