@@ -1,6 +1,6 @@
 import type { DeckProgress } from "./types";
-
-const STORAGE_KEY = "flashcards-progress";
+import { DECK_PROGRESS_KEY as STORAGE_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 function readAll(): DeckProgress[] {
   if (typeof window === "undefined") return [];
@@ -14,7 +14,7 @@ function readAll(): DeckProgress[] {
 }
 
 function writeAll(progress: DeckProgress[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  userStore.set(STORAGE_KEY, progress);
 }
 
 export function getDeckProgress(deckId: string): DeckProgress {

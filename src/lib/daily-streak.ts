@@ -1,6 +1,7 @@
-const STREAK_KEY = "spaceedu-daily-streak";
+import { STREAK_KEY, STREAK_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
 
-export const STREAK_UPDATED_EVENT = "spaceedu-streak-updated";
+export { STREAK_UPDATED_EVENT };
 
 interface StreakState {
   activityDates: string[];
@@ -41,7 +42,7 @@ export function recordDailyActivity(): void {
   if (dates.includes(today)) return;
 
   const next = [...dates, today].sort();
-  window.localStorage.setItem(STREAK_KEY, JSON.stringify({ activityDates: next }));
+  userStore.set(STREAK_KEY, { activityDates: next });
   window.dispatchEvent(new Event(STREAK_UPDATED_EVENT));
 }
 

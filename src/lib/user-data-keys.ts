@@ -17,6 +17,11 @@ export const CUSTOM_DECKS_UPDATED_EVENT = "spaceedu-custom-decks-updated";
 export const AI_TEACHER_HISTORY_UPDATED_EVENT = "spaceedu-ai-teacher-history-updated";
 export const ASSISTANT_HISTORY_UPDATED_EVENT = "spaceedu-assistant-history-updated";
 export const CV_PREFS_UPDATED_EVENT = "spaceedu-cv-prefs-updated";
+export const DAILY_GOALS_UPDATED_EVENT = "spaceedu-daily-goals-updated";
+export const DAILY_QUESTS_UPDATED_EVENT = "spaceedu-daily-quests-updated";
+export const STREAK_UPDATED_EVENT = "spaceedu-streak-updated";
+export const CATEGORY_ACCURACY_UPDATED_EVENT = "spaceedu-category-accuracy-updated";
+export const DASHBOARD_METRICS_UPDATED_EVENT = "spaceedu-dashboard-metrics-updated";
 /** Fired (detail: { key }) only for values that came from the account —
  * for editors, which mustn't reload on their own saves. */
 export const USER_DATA_REMOTE_EVENT = "spaceedu-user-data-remote";
@@ -40,6 +45,16 @@ export const AI_TEACHER_HISTORY_KEYS = {
 /** Per assistant route: `spaceedu-assistant-history:/assistants/…`. */
 export const ASSISTANT_HISTORY_KEY_BASE = "spaceedu-assistant-history";
 export const CV_PREFS_KEY = "spaceedu-cv-prefs";
+export const DAILY_GOALS_KEY = "spaceedu-daily-goals";
+export const DAILY_QUESTS_KEY = "spaceedu-daily-quests";
+export const STREAK_KEY = "spaceedu-daily-streak";
+export const DECK_PROGRESS_KEY = "flashcards-progress";
+export const CATEGORY_ACCURACY_KEY = "spaceedu-category-accuracy";
+export const QUIZ_STATS_KEY = "spaceedu-quiz-stats";
+export const CV_UPDATED_KEY = "spaceedu-cv-updated-at";
+export const TOOL_USAGE_KEY = "spaceedu-tool-usage";
+export const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
+export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
 
 /** { subjects: [{ id, name }], semesterLabel }: both sides' subjects; the
  * newer label. */
@@ -84,6 +99,102 @@ export function mergeNewestById(field: "updatedAt" | "createdAt", limit?: number
   };
 }
 
+// ---- Progress (PR 3): two devices may each have counted, so nothing that
+// was earned on either is lost — dates and items are combined, counters
+// take the larger value.
+
+const asArray = (value: unknown): Record<string, unknown>[] => (Array.isArray(value) ? value : []);
+const asObject = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+
+/** Today's goals ({ id, text, done }): both devices' goals; done on either is done. */
+export const mergeDailyGoals: Merge = (local, remote) => {
+  const merged = new Map<unknown, Record<string, unknown>>();
+  for (const goal of [...asArray(local), ...asArray(remote)]) {
+    const current = merged.get(goal.id);
+    merged.set(goal.id, current ? { ...current, done: Boolean(current.done) || Boolean(goal.done) } : goal);
+  }
+  return [...merged.values()];
+};
+
+/** { date, progress: { quest: n } }: the later day; on the same day, each
+ * quest's larger progress. */
+export const mergeDailyQuests: Merge = (local, remote) => {
+  const l = asObject(local);
+  const r = asObject(remote);
+  if (l.date !== r.date) return String(l.date ?? "") > String(r.date ?? "") ? l : r;
+  const progress: Record<string, number> = {};
+  for (const source of [asObject(l.progress), asObject(r.progress)]) {
+    for (const [quest, value] of Object.entries(source)) progress[quest] = Math.max(progress[quest] ?? 0, num(value));
+  }
+  return { date: l.date, progress };
+};
+
+/** { activityDates }: every day active on either device. */
+export const mergeStreak: Merge = (local, remote) => ({
+  activityDates: [
+    ...new Set([...asArray(asObject(local).activityDates), ...asArray(asObject(remote).activityDates)].map(String)),
+  ].sort(),
+});
+
+/** [{ deckId, learnedCardIds }]: per deck, cards learned on either device. */
+export const mergeDeckProgress: Merge = (local, remote) => {
+  const decks = new Map<unknown, Set<unknown>>();
+  for (const deck of [...asArray(local), ...asArray(remote)]) {
+    const cards = decks.get(deck.deckId) ?? new Set();
+    asArray(deck.learnedCardIds).forEach((card) => cards.add(card));
+    decks.set(deck.deckId, cards);
+  }
+  return [...decks].map(([deckId, cards]) => ({ deckId, learnedCardIds: [...cards] }));
+};
+
+/** { category: { correct, total } }: per category, the tally with more
+ * attempts (counts from two devices can't be told apart to be summed). */
+export const mergeCategoryAccuracy: Merge = (local, remote) => {
+  const merged: Record<string, unknown> = { ...asObject(remote) };
+  for (const [category, tally] of Object.entries(asObject(local))) {
+    if (num(asObject(tally).total) >= num(asObject(merged[category]).total)) merged[category] = tally;
+  }
+  return merged;
+};
+
+/** Quiz results ({ at, correct, total }): both devices' results, oldest
+ * first, the last 200. */
+export const mergeQuizAttempts: Merge = (local, remote) => {
+  const seen = new Map<string, Record<string, unknown>>();
+  for (const attempt of [...asArray(local), ...asArray(remote)]) {
+    seen.set(`${attempt.at}|${attempt.correct}|${attempt.total}`, attempt);
+  }
+  return [...seen.values()].sort((a, b) => num(a.at) - num(b.at)).slice(-200);
+};
+
+/** Tool usage ({ id, timestamp }): both devices' events, oldest first, the last 300. */
+export const mergeToolUsage: Merge = (local, remote) => {
+  const seen = new Map<unknown, Record<string, unknown>>();
+  for (const event of [...asArray(local), ...asArray(remote)]) seen.set(event.id, event);
+  return [...seen.values()].sort((a, b) => num(a.timestamp) - num(b.timestamp)).slice(-300);
+};
+
+/** The journal's { xp, streak, lastSaveDate, unlocked }: the larger XP; the
+ * streak of whichever saved last; anything unlocked on either. */
+export const mergeJournalProgress: Merge = (local, remote) => {
+  const l = asObject(local);
+  const r = asObject(remote);
+  const lDate = String(l.lastSaveDate ?? "");
+  const rDate = String(r.lastSaveDate ?? "");
+  const latest = lDate === rDate ? (num(l.streak) >= num(r.streak) ? l : r) : lDate > rDate ? l : r;
+  return {
+    xp: Math.max(num(l.xp), num(r.xp)),
+    streak: num(latest.streak),
+    lastSaveDate: latest.lastSaveDate ?? null,
+    unlocked: { ...asObject(r.unlocked), ...asObject(l.unlocked) },
+  };
+};
+
+/** A timestamp (the CV's last update): the later one. */
+const later: Merge = (local, remote) => Math.max(num(local), num(remote));
+
 /** The placeholder countdown is random per device; the account's first one stays. */
 const keepRemote: Merge = (_local, remote) => remote;
 
@@ -104,4 +215,16 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: AI_TEACHER_HISTORY_KEYS.abiturient, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },
   { key: ASSISTANT_HISTORY_KEY_BASE, variants: true, merge: mergeNewestById("createdAt", 24), event: ASSISTANT_HISTORY_UPDATED_EVENT },
   { key: CV_PREFS_KEY, event: CV_PREFS_UPDATED_EVENT },
+  // Progress (PR 3).
+  { key: DAILY_GOALS_KEY, merge: mergeDailyGoals, event: DAILY_GOALS_UPDATED_EVENT },
+  { key: DAILY_QUESTS_KEY, merge: mergeDailyQuests, event: DAILY_QUESTS_UPDATED_EVENT },
+  { key: STREAK_KEY, merge: mergeStreak, event: STREAK_UPDATED_EVENT },
+  { key: DECK_PROGRESS_KEY, merge: mergeDeckProgress },
+  { key: CATEGORY_ACCURACY_KEY, merge: mergeCategoryAccuracy, event: CATEGORY_ACCURACY_UPDATED_EVENT },
+  { key: QUIZ_STATS_KEY, merge: mergeQuizAttempts, event: DASHBOARD_METRICS_UPDATED_EVENT },
+  { key: CV_UPDATED_KEY, merge: later, event: DASHBOARD_METRICS_UPDATED_EVENT },
+  { key: TOOL_USAGE_KEY, merge: mergeToolUsage, event: DASHBOARD_METRICS_UPDATED_EVENT },
+  { key: ACTIVE_SUBJECT_KEY, event: SEMESTER_SUBJECTS_UPDATED_EVENT },
+  // The dashboard's journal widget shows the XP and re-reads on this event.
+  { key: JOURNAL_PROGRESS_KEY, merge: mergeJournalProgress, event: LECTURE_NOTES_UPDATED_EVENT },
 ];

@@ -7,10 +7,10 @@
  */
 
 import { recordDailyActivity } from "@/lib/daily-streak";
+import { DAILY_QUESTS_KEY as STORAGE_KEY, DAILY_QUESTS_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { userStore } from "@/lib/user-data";
 
-const STORAGE_KEY = "spaceedu-daily-quests";
-
-export const DAILY_QUESTS_UPDATED_EVENT = "spaceedu-daily-quests-updated";
+export { DAILY_QUESTS_UPDATED_EVENT };
 
 export const DAILY_QUEST_IDS = ["solve-test", "analyze-works", "write-essay"] as const;
 export type DailyQuestId = (typeof DAILY_QUEST_IDS)[number];
@@ -103,7 +103,7 @@ function readStored(): StoredQuests {
 function writeStored(stored: StoredQuests): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    userStore.set(STORAGE_KEY, stored);
     window.dispatchEvent(new Event(DAILY_QUESTS_UPDATED_EVENT));
   } catch {
     /* storage unavailable — quests are best-effort */

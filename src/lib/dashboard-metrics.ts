@@ -1,18 +1,17 @@
 import { getToolUsageEvents } from "./activity";
+import { CV_UPDATED_KEY, DASHBOARD_METRICS_UPDATED_EVENT, QUIZ_STATS_KEY, STREAK_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 /**
  * Derives the student dashboard's headline stat cards from the signals we
  * already track locally (streak activity, tool usage) plus two lightweight
  * trackers this module owns (quiz results, CV updates). Everything is
- * per-user and per-browser — no server round-trip.
+ * per-user, read locally and kept on the account (lib/user-data).
  */
 
-const QUIZ_STATS_KEY = "spaceedu-quiz-stats";
-const CV_UPDATED_KEY = "spaceedu-cv-updated-at";
-const STREAK_KEY = "spaceedu-daily-streak";
 const MAX_QUIZ_ATTEMPTS = 200;
 
-export const DASHBOARD_METRICS_UPDATED_EVENT = "spaceedu-dashboard-metrics-updated";
+export { DASHBOARD_METRICS_UPDATED_EVENT };
 
 export interface QuizAttempt {
   /** epoch ms */
@@ -63,7 +62,7 @@ export function recordQuizResult(
     },
   ].slice(-MAX_QUIZ_ATTEMPTS);
   try {
-    window.localStorage.setItem(QUIZ_STATS_KEY, JSON.stringify(next));
+    userStore.set(QUIZ_STATS_KEY, next);
   } catch {
     /* storage full — metric is best-effort */
   }
@@ -74,7 +73,7 @@ export function recordQuizResult(
 export function recordCvUpdate(): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(CV_UPDATED_KEY, String(Date.now()));
+    userStore.set(CV_UPDATED_KEY, Date.now());
   } catch {
     /* ignore */
   }

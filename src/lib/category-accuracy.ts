@@ -11,10 +11,11 @@ import {
   EXAM_CATEGORY_META,
   type ExamCategory,
 } from "@/lib/exam-categories";
+import { CATEGORY_ACCURACY_KEY as STORAGE_KEY, CATEGORY_ACCURACY_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { userStore } from "@/lib/user-data";
 
-const STORAGE_KEY = "spaceedu-category-accuracy";
+export { CATEGORY_ACCURACY_UPDATED_EVENT };
 
-export const CATEGORY_ACCURACY_UPDATED_EVENT = "spaceedu-category-accuracy-updated";
 
 /** Below this, a category counts as a weak point worth drilling. */
 export const WEAK_THRESHOLD = 70;
@@ -70,7 +71,7 @@ function readStore(): Store {
 function writeStore(store: Store): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    userStore.set(STORAGE_KEY, store);
     window.dispatchEvent(new Event(CATEGORY_ACCURACY_UPDATED_EVENT));
   } catch {
     /* storage unavailable — analytics are best-effort */
