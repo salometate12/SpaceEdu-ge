@@ -7,6 +7,9 @@ import { useSyncExternalStore } from "react";
  * open the dock steps aside and the page underneath doesn't scroll.
  */
 const open = new Set<string>();
+/** Pages that take the bottom edge themselves (e.g. the journal editor's
+ * toolbar): the dock steps aside, but the page still scrolls. */
+const dockHidden = new Set<string>();
 const listeners = new Set<() => void>();
 let locked = false;
 
@@ -46,12 +49,19 @@ export function setMobileOverlay(id: string, isOpen: boolean) {
   notify();
 }
 
+export function setDockHidden(id: string, hidden: boolean) {
+  if (hidden === dockHidden.has(id)) return;
+  if (hidden) dockHidden.add(id);
+  else dockHidden.delete(id);
+  notify();
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
-/** True while any full-screen overlay is open. */
+/** True while a full-screen overlay is open or a page hides the dock. */
 export function useMobileOverlayOpen(): boolean {
-  return useSyncExternalStore(subscribe, () => open.size > 0, () => false);
+  return useSyncExternalStore(subscribe, () => open.size > 0 || dockHidden.size > 0, () => false);
 }

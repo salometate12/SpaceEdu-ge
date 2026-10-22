@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FileText, Upload } from "lucide-react";
 import {
   Suspense,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -16,6 +17,7 @@ import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { getActiveSubject } from "@/lib/activity";
+import { takeHandoff } from "@/lib/tool-handoff";
 
 export interface QuizQuestion {
   id: number;
@@ -42,6 +44,16 @@ const QUESTION_COUNT_OPTIONS = [5, 10, 15, 20];
 export default function QuizPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+
+  // Opened from a journal entry („ქვიზი ამ ჩანაწერიდან“): the entry as a text file.
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      const handed = takeHandoff("quiz");
+      if (!handed) return;
+      const name = `${(handed.title || "ჩანაწერი").replace(/[\\/:*?"<>|]+/g, " ").trim()}.txt`;
+      setFile(new File([handed.text], name, { type: "text/plain" }));
+    });
+  }, []);
   const [isDragActive, setIsDragActive] = useState(false);
   const [questionCount, setQuestionCount] = useState(5);
   const [isCustomCount, setIsCustomCount] = useState(false);

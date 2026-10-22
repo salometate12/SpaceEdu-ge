@@ -8,15 +8,15 @@ import { DashboardCard, dashboardCardActionClass } from "@/components/dashboard/
 import { JOURNAL_CATEGORIES, journalCategory } from "@/lib/journal-categories";
 import {
   LECTURE_NOTES_UPDATED_EVENT,
-  createBlankLectureNote,
   journalHref,
+  journalNewHref,
   loadLectureNotes,
   previewLectureNote,
-  saveLectureNotes,
   type JournalSection,
   type LectureNote,
 } from "@/lib/lecture-notes";
 import { nbButtonClass } from "@/lib/nb-button";
+import { CategoryDot } from "./CategoryDot";
 import { relativeTimeShortKa } from "@/lib/relative-time-ka";
 
 /** Notes with something written in them, newest first. */
@@ -24,16 +24,6 @@ function recentNotes(notes: LectureNote[]): LectureNote[] {
   return notes
     .filter((note) => note.title.trim() || note.content.trim() || note.contentRight?.trim())
     .sort((a, b) => b.updatedAt - a.updatedAt);
-}
-
-function CategoryDot({ section, className = "" }: { section: JournalSection; className?: string }) {
-  return (
-    <span
-      className={`inline-block h-2 w-2 shrink-0 rounded-full ${className}`}
-      style={{ background: journalCategory(section).color }}
-      aria-hidden
-    />
-  );
 }
 
 /**
@@ -76,11 +66,8 @@ export function DashboardJournalWidget() {
     };
   }, [choosing]);
 
-  const create = (section: JournalSection) => {
-    const blank = createBlankLectureNote(section);
-    saveLectureNotes([blank, ...loadLectureNotes()]);
-    router.push(journalHref(blank.id, section));
-  };
+  // Opens a new entry in the editor; it's saved once something is written.
+  const create = (section: JournalSection) => router.push(journalNewHref(section));
 
   if (notes === null) return null;
   const count = notes.length;
