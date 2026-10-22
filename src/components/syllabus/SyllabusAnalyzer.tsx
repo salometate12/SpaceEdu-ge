@@ -16,15 +16,21 @@ import {
   Trophy,
   TriangleAlert,
 } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
 import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
+import { readSemesterSubjects } from "@/lib/semester-subjects";
+import { matchSemesterSubject, unboundMilestones } from "@/lib/syllabus-dates";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import {
   addMilestoneToDashboardCalendar,
   addMilestonesToDashboardCalendar,
+  bindSyllabusToSubject,
   clearLegacySyllabusMockData,
   getDashboardCalendarEvents,
+  getGeneratedMilestones,
   isMilestoneOnDashboard,
-  setGeneratedMilestones,
+  moveSyllabusToSubject,
+  saveSubjectSyllabus,
   type SyllabusMilestone,
   type SyllabusMilestoneType,
 } from "@/lib/syllabus-calendar";
@@ -144,6 +150,14 @@ export function SyllabusAnalyzer() {
   const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [semesterStartDate, setSemesterStartDate] = useState("");
+  // Read from the syllabus (not typed in): shown with a note.
+  const [startFromSyllabus, setStartFromSyllabus] = useState(false);
+  // The semester subject this syllabus belongs to ("" = not chosen yet).
+  const [subject, setSubject] = useState("");
+  const [subjects, setSubjects] = useState<string[]>([]);
+  // An older syllabus saved before subjects: it needs one to show up in the study plan.
+  const [unboundCount, setUnboundCount] = useState(0);
+  const [boundTo, setBoundTo] = useState<string | null>(null);
   const [enabled, setEnabled] = useState<Record<SyllabusOption, boolean>>({
     plan: true,
     midterms: true,
@@ -158,6 +172,13 @@ export function SyllabusAnalyzer() {
   const [error, setError] = useState<string | null>(null);
   // The AI was busy (503): the same file and date can simply be sent again.
   const [canRetry, setCanRetry] = useState(false);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      setSubjects(readSemesterSubjects().subjects.map((item) => item.name.trim()).filter(Boolean));
+      setUnboundCount(unboundMilestones(getGeneratedMilestones()).length);
+    });
+  }, []);
 
   useEffect(() => {
     const resetState = () => {
@@ -229,12 +250,6 @@ export function SyllabusAnalyzer() {
       setCanRetry(false);
       return;
     }
-    if (!semesterStartDate) {
-      setError("გთხოვ, მიუთითე სემესტრის დაწყების თარიღი — ეს სჭირდება AI-ს რეალური თარიღების გამოსათვლელად.");
-      setCanRetry(false);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     setCanRetry(false);
@@ -245,7 +260,8 @@ export function SyllabusAnalyzer() {
       const data = await fetchAiMultipartJson<SyllabusResponse>({
         pageType: "syllabus",
         file: syllabusFile,
-        fields: { semesterStartDate },
+        // Optional: without it the syllabus's own start date (if stated) is used.
+        fields: semesterStartDate ? { semesterStartDate } : {},
       });
 
       // A date the student already filled in for this same event (same
@@ -263,8 +279,11 @@ export function SyllabusAnalyzer() {
           week: item.week ?? undefined,
           topic: item.topic ?? undefined,
           type: item.type,
+          semesterStart: data.semesterStartDate ?? undefined,
         };
       });
+      // The course named in the syllabus picks the semester subject, unless one is chosen.
+      const owner = subject || matchSemesterSubject(data.courseName, subjects) || "";
 
       if (next.length === 0) {
         throw new Error(
@@ -275,7 +294,12 @@ export function SyllabusAnalyzer() {
       setAiInsight(data.insight);
       setWarnings(data.warnings ?? []);
       setMilestones(next);
-      setGeneratedMilestones(next);
+      saveSubjectSyllabus(owner || null, next);
+      setSubject(owner);
+      if (!semesterStartDate && data.semesterStartDate) {
+        setSemesterStartDate(data.semesterStartDate);
+        setStartFromSyllabus(true);
+      }
       setAddedIds(new Set());
       setGenerated(true);
     } catch (err) {
@@ -308,13 +332,22 @@ export function SyllabusAnalyzer() {
         : item,
     );
     setMilestones(next);
-    setGeneratedMilestones(next);
+    saveSubjectSyllabus(subject || null, next);
     const updated = next.find((item) => item.id === id);
     // Already on the calendar: move it to the new day rather than leave it stale.
     if (updated?.date && (addedIds.has(id) || isMilestoneOnDashboard(id))) {
       addMilestoneToDashboardCalendar(updated);
     }
   };
+
+  /** Choosing the subject after the analysis moves its dates there. */
+  const chooseSubject = (next: string) => {
+    setSubject(next);
+    if (generated && milestones.length > 0) moveSyllabusToSubject(new Set(milestones.map((item) => item.id)), next || null);
+  };
+
+  const subjectSelectClass =
+    "w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100";
 
   const pendingMilestones = useMemo(
     () =>
@@ -343,6 +376,36 @@ export function SyllabusAnalyzer() {
     // produced, each one under the last. Side by side squeezed the dates
     // into a third of the screen for no reason.
     <div className="flex w-full flex-col gap-5">
+      {unboundCount > 0 && !boundTo ? (
+        <Alert
+          tone="info"
+          title="ეს სილაბუსი საგანს არ აქვს მიბმული"
+          action={
+            <select
+              aria-label="მიაბი საგანს"
+              defaultValue=""
+              onChange={(event) => {
+                if (!event.target.value) return;
+                bindSyllabusToSubject(event.target.value);
+                setBoundTo(event.target.value);
+              }}
+              className="h-9 rounded-full border border-current/20 bg-white px-3 text-[13px] font-semibold text-slate-900 dark:bg-white/10 dark:text-slate-100"
+            >
+              <option value="">მიაბი საგანს…</option>
+              {subjects.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          }
+        >
+          ადრე ატვირთული სილაბუსის {unboundCount} თარიღი სასწავლო გეგმაში არ ჩანს, სანამ საგანს არ მიაბამ. ხელახლა ატვირთვა არ სჭირდება.
+        </Alert>
+      ) : null}
+      {boundTo ? (
+        <Alert tone="success">სილაბუსი მიება საგანს „{boundTo}“ — თარიღები მის სასწავლო გეგმაში გამოჩნდება.</Alert>
+      ) : null}
       <section className="w-full">
         <div
           className={`grid grid-cols-1 gap-4 rounded-2xl border-2 p-4 sm:p-5 lg:grid-cols-[1.1fr_1fr] ${ACCENT_CARD.violet}`}
@@ -387,18 +450,40 @@ export function SyllabusAnalyzer() {
 
           <label className="mt-3 block space-y-1.5 text-sm">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-              სემესტრის დაწყების თარიღი
+              საგანი
+            </span>
+            <select value={subject} onChange={(event) => chooseSubject(event.target.value)} className={subjectSelectClass}>
+              <option value="">{generated ? "აირჩიე საგანი" : "ავტომატურად სილაბუსიდან"}</option>
+              {subjects.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              {generated && !subject
+                ? "სილაბუსის საგანი სემესტრის საგნებში ვერ ვიპოვე — აირჩიე, რომ თარიღები სასწავლო გეგმაში გამოჩნდეს."
+                : "სილაბუსის თარიღები და თემები ამ საგნის სასწავლო გეგმაში გამოჩნდება."}
+            </p>
+          </label>
+
+          <label className="mt-3 block space-y-1.5 text-sm">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
+              სემესტრის დაწყების თარიღი <span className="font-normal normal-case tracking-normal">(არასავალდებულო)</span>
             </span>
             <input
               type="date"
               value={semesterStartDate}
-              onChange={(event) => setSemesterStartDate(event.target.value)}
-              required
-              className="w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
+              onChange={(event) => {
+                setSemesterStartDate(event.target.value);
+                setStartFromSyllabus(false);
+              }}
+              className={subjectSelectClass}
             />
             <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
-              სილაბუსები ხშირად კვირის ნომრებს იყენებენ თარიღების ნაცვლად — ეს
-              გვჭირდება, რომ კვირები რეალურ თარიღებად გადავთვალოთ.
+              {startFromSyllabus
+                ? "სილაბუსიდან ავიღე — შეგიძლია შეცვალო."
+                : "თუ სილაბუსში წერია, თავად ავიღებ. კვირის ნომრები („მე-8 კვირა“) ამით გადაიყვანება რეალურ თარიღებად."}
             </p>
           </label>
 
@@ -424,7 +509,7 @@ export function SyllabusAnalyzer() {
           <button
             type="button"
             onClick={() => void handleGenerate()}
-            disabled={isLoading || !syllabusFile || !semesterStartDate}
+            disabled={isLoading || !syllabusFile}
             className={`paper-sticker mt-6 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
           >
             {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}

@@ -71,6 +71,10 @@ export type SyllabusExpectedCounts = z.infer<typeof SyllabusExpectedCountsSchema
 /** What the model returns. */
 export const SyllabusAiResponseSchema = z.object({
   insight: z.string(),
+  /** The course's name as the syllabus states it, or null. */
+  courseName: z.string().nullable(),
+  /** YYYY-MM-DD the semester (or the course) begins, if the syllabus states it. */
+  semesterStartDate: z.string().nullable(),
   milestones: z.array(SyllabusAiMilestoneSchema),
   /** How many of each the grading section says there are ("ქვიზი 4 × 5 ქულა" → 4). */
   expectedCounts: SyllabusExpectedCountsSchema,
@@ -100,6 +104,10 @@ export interface SyllabusMilestoneResult {
 /** What the API returns to the page. */
 export interface SyllabusResponse {
   insight: string;
+  /** The course's name read from the syllabus, for matching a semester subject. */
+  courseName: string | null;
+  /** The start the dates were computed from: the student's, else the syllabus's. */
+  semesterStartDate: string | null;
   milestones: SyllabusMilestoneResult[];
   expectedCounts: SyllabusExpectedCounts;
   /** Model warnings plus the count checks below, in Georgian. */

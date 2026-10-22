@@ -32,6 +32,8 @@ function response(
 ): SyllabusAiResponse {
   return {
     insight: "",
+    courseName: null,
+    semesterStartDate: null,
     milestones,
     expectedCounts: { quiz: null, midterm: null, final: null },
     warnings: [],
@@ -168,6 +170,8 @@ describe("SyllabusAiResponseSchema", () => {
     expect(
       SyllabusAiResponseSchema.safeParse({
         insight: "",
+        courseName: null,
+        semesterStartDate: null,
         milestones: [],
         expectedCounts: { quiz: null, midterm: null, final: null },
         warnings: [],

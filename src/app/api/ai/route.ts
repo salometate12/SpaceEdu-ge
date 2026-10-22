@@ -183,6 +183,8 @@ const SYLLABUS_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON (all human-readable text in Georgian):
 {
   "insight": "2-3 წინადადება სილაბუსის სტრუქტურისა და შეფასების შეჯამება",
+  "courseName": "the course's name exactly as the syllabus states it (e.g. \"მიკროეკონომიკა\") — or null",
+  "semesterStartDate": "YYYY-MM-DD only if the syllabus states when the semester or course begins — or null",
   "expectedCounts": { "quiz": 4, "midterm": 1, "final": 1 },
   "warnings": ["გაფრთხილება, თუ რამე ბუნდოვანია"],
   "milestones": [
@@ -372,8 +374,11 @@ async function generateSyllabusFromText(
     keepNulls: true,
   })) as SyllabusAiResponse;
 
+  // The student's start date wins; else the one the syllabus states.
+  const aiStart = raw.semesterStartDate?.trim() ?? "";
+  const semesterStart = payload.semesterStartDate ?? (/^\d{4}-\d{2}-\d{2}$/.test(aiStart) ? aiStart : undefined);
   const normalized = normalizeSyllabusMilestones(raw, {
-    semesterStartDate: payload.semesterStartDate,
+    semesterStartDate: semesterStart,
     sourceText: payload.textBody,
     fileName,
   });
@@ -393,6 +398,8 @@ async function generateSyllabusFromText(
 
   return {
     insight: raw.insight,
+    courseName: raw.courseName?.trim() || null,
+    semesterStartDate: semesterStart ?? null,
     milestones: normalized.milestones,
     expectedCounts: raw.expectedCounts,
     warnings: normalized.warnings,
