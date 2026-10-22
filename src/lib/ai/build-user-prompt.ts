@@ -2,6 +2,7 @@ import type { AiPageType } from "./page-types";
 import { normalizePresentationLevel, type PresentationLevel } from "@/lib/presentation-constants";
 import { aiTeacherSpaceFromPayload } from "./page-prompts";
 import { studyPlanDaysToGenerate } from "./study-plan-days";
+import { ELI5_LEVELS } from "./eli5-schema";
 import { writingTaskRubricText } from "./writing-task-grader-schema";
 import { textEditingRubricText } from "./text-editing-grader-schema";
 import { englishWritingRubricText } from "./english-writing-task-grader-schema";
@@ -190,17 +191,12 @@ export function buildUserPrompt(
 
     case "eli5": {
       const level = asString(payload.level, "kid");
-      const levelHint =
-        level === "kid"
-          ? "როგორც 5 წლის ბავშვს"
-          : level === "school"
-            ? "სკოლის მოსწავლისთვის"
-            : "უნივერსიტეტის პირველკურსელისთვის";
+      const levelHint = ELI5_LEVELS.find((item) => item.id === level)?.hint ?? ELI5_LEVELS[0].hint;
       return [
         `კონცეფცია: ${asString(payload.query)}`,
         `სიმარტივის დონე: ${levelHint}`,
         asString(payload.context) ? `კონტექსტი: ${asString(payload.context)}` : "",
-        "გამოიყენე მეტაფორა, მოკლე წინადადებები და პოზიტიური ტონი.",
+        "მოკლე წინადადებები, თბილი და მშვიდი ტონი.",
       ]
         .filter(Boolean)
         .join("\n");

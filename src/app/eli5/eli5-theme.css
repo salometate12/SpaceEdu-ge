@@ -1,0 +1,94 @@
+/*
+ * ELI5 — the light style (like the AI teacher's refresh): a pale page,
+ * white cards with thin borders, no shadows or gradients, one pink accent.
+ * Every colour of the page comes from these tokens; `.eli5` is its root.
+ */
+.eli5 {
+  --e-bg: #fafaf9;
+  --e-card: #ffffff;
+  --e-card-border: #ece9e4;
+  --e-line: #e7e5e4;
+  --e-text: #2f2c28;
+  --e-strong: #1c1a17;
+  --e-muted: #6f6a64;
+  --e-soft: #f5f4f0;
+  --e-seg-active: #ffffff;
+  --e-accent: #e11d74;
+  --e-accent-soft: #fdf2f8;
+  --e-accent-text: #9d174d;
+  --mark-yellow: #fde68a;
+  --mark-pink: #fbcfe8;
+
+  --e-label-analogy: #854d0e;
+  --e-label-simple: #166534;
+  --e-label-example: #9d174d;
+
+  --e-green-bg: #f0fdf4;
+  --e-green-border: #bbf7d0;
+  --e-green-text: #166534;
+  --e-yellow-bg: #fefce8;
+  --e-yellow-border: #fde68a;
+  --e-yellow-text: #854d0e;
+  --e-pink-bg: #fdf2f8;
+  --e-pink-border: #fbcfe8;
+  --e-pink-text: #9d174d;
+  --e-blue-bg: #f0f9ff;
+  --e-blue-border: #bae6fd;
+  --e-blue-text: #075985;
+
+  background: var(--e-bg);
+  color: var(--e-text);
+}
+
+html.dark .eli5 {
+  --e-bg: var(--bg-primary);
+  --e-card: #1c1b19;
+  --e-card-border: #2e2c29;
+  --e-line: #34322e;
+  --e-text: #e6e3de;
+  --e-strong: #fafaf9;
+  --e-muted: #a29d96;
+  --e-soft: #24231f;
+  --e-seg-active: #34322e;
+  --e-accent-soft: rgba(225, 29, 116, 0.16);
+  --e-accent-text: #f9a8d4;
+  --mark-yellow: rgba(250, 204, 21, 0.35);
+  --mark-pink: rgba(236, 72, 153, 0.35);
+
+  --e-label-analogy: #fde047;
+  --e-label-simple: #86efac;
+  --e-label-example: #f9a8d4;
+
+  --e-green-bg: rgba(74, 222, 128, 0.12);
+  --e-green-border: rgba(74, 222, 128, 0.3);
+  --e-green-text: #86efac;
+  --e-yellow-bg: rgba(250, 204, 21, 0.12);
+  --e-yellow-border: rgba(250, 204, 21, 0.3);
+  --e-yellow-text: #fde047;
+  --e-pink-bg: rgba(236, 72, 153, 0.12);
+  --e-pink-border: rgba(236, 72, 153, 0.3);
+  --e-pink-text: #f9a8d4;
+  --e-blue-bg: rgba(56, 189, 248, 0.12);
+  --e-blue-border: rgba(56, 189, 248, 0.3);
+  --e-blue-text: #7dd3fc;
+}
+
+/* **bold** in an explanation: a marker stroke, yellow then pink. */
+.eli5 .eli5-text strong {
+  color: var(--e-strong);
+  font-weight: 600;
+  background: linear-gradient(transparent 62%, var(--mark, var(--mark-yellow)) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 1px;
+}
+.eli5 .eli5-text strong[data-mark="pink"] {
+  --mark: var(--mark-pink);
+}
+.eli5 .eli5-text code {
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--e-soft);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.88em;
+}
