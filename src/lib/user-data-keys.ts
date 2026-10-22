@@ -203,12 +203,29 @@ export const mergeJournalProgress: Merge = (local, remote) => {
   };
 };
 
-/** The notifications list: every notification from both; read on either is read. */
+/** The earlier of two optional timestamps. */
+const earliest = (a: unknown, b: unknown): string | null => {
+  const values = [a, b].filter((value): value is string => typeof value === "string" && value.length > 0);
+  return values.length === 0 ? null : values.sort()[0];
+};
+
+/**
+ * The notifications list: every notification from both; read on either is
+ * read, deleted on either stays deleted (the earlier time wins).
+ */
 export const mergeNotifications: Merge = (local, remote) => {
   const merged = new Map<unknown, Record<string, unknown>>();
   for (const item of [...asArray(local), ...asArray(remote)]) {
     const current = merged.get(item.id);
-    merged.set(item.id, current ? { ...current, read: Boolean(current.read) || Boolean(item.read) } : item);
+    if (!current) {
+      merged.set(item.id, item);
+      continue;
+    }
+    const next: Record<string, unknown> = { ...current };
+    if ("read" in current || "read" in item) next.read = Boolean(current.read) || Boolean(item.read);
+    if (current.readAt || item.readAt) next.readAt = earliest(current.readAt, item.readAt);
+    if (current.deletedAt || item.deletedAt) next.deletedAt = earliest(current.deletedAt, item.deletedAt);
+    merged.set(item.id, next);
   }
   return [...merged.values()];
 };
