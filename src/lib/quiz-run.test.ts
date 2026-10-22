@@ -1,14 +1,69 @@
 import { describe, expect, it } from "vitest";
-import { looksLikeCode, progressSegments } from "./quiz-run";
+import {
+  answerTurn,
+  createQuizRun,
+  currentTurn,
+  isLastTurn,
+  isQuizOver,
+  looksLikeCode,
+  nextTurn,
+  progressSegments,
+  questionsToRepeat,
+  quizTotals,
+  willComeBack,
+} from "./quiz-run";
 
-describe("quiz: progress segments", () => {
-  it("shows checked answers, the current question and what's left", () => {
-    expect(progressSegments([null, null, null], 0)).toEqual(["current", "pending", "pending"]);
-    expect(progressSegments(["correct", "wrong", null, null], 2)).toEqual(["correct", "wrong", "current", "pending"]);
+/** Answers the current turn and moves on. */
+const step = (run: ReturnType<typeof createQuizRun>, chosen: number, correct: number) => nextTurn(answerTurn(run, chosen, correct));
+
+describe("quiz run: a wrong answer comes back once", () => {
+  it("puts a wrongly answered question at the end, once", () => {
+    let run = createQuizRun(3);
+    run = answerTurn(run, 1, 0); // q0 wrong
+    expect(willComeBack(run)).toBe(true);
+    expect(run.turns.map((turn) => turn.question)).toEqual([0, 1, 2, 0]);
+    run = nextTurn(run);
+    run = step(run, 2, 2); // q1 right
+    run = step(run, 3, 3); // q2 right
+    expect(currentTurn(run)).toEqual({ question: 0, repeat: true });
+    run = answerTurn(run, 2, 0); // wrong again: not added a second time
+    expect(willComeBack(run)).toBe(false);
+    expect(run.turns).toHaveLength(4);
+    expect(isLastTurn(run)).toBe(true);
+    run = nextTurn(run);
+    expect(isQuizOver(run)).toBe(true);
+    expect(quizTotals(run)).toEqual({ correct: 2, toRepeat: 1, firstTry: 2, total: 3 });
+    expect(questionsToRepeat(run)).toEqual([0]);
   });
 
-  it("colours the current question as soon as it's checked", () => {
-    expect(progressSegments(["correct", "wrong"], 1)).toEqual(["correct", "wrong"]);
+  it("counts a question as right once the repeat is answered correctly", () => {
+    let run = createQuizRun(2);
+    run = step(run, 1, 0);
+    expect(quizTotals(run)).toMatchObject({ correct: 0, toRepeat: 1 });
+    run = step(run, 0, 0);
+    run = step(run, 0, 0); // the repeat, now right
+    expect(isQuizOver(run)).toBe(true);
+    expect(quizTotals(run)).toEqual({ correct: 2, toRepeat: 0, firstTry: 1, total: 2 });
+    expect(questionsToRepeat(run)).toEqual([]);
+  });
+
+  it("keeps one progress segment per question", () => {
+    let run = createQuizRun(3);
+    expect(progressSegments(run)).toEqual(["current", "pending", "pending"]);
+    run = answerTurn(run, 1, 0);
+    expect(progressSegments(run, { checked: true })).toEqual(["wrong", "pending", "pending"]);
+    run = nextTurn(run);
+    run = step(run, 0, 0);
+    run = step(run, 0, 0);
+    // The repeat of q0: current again, still three segments.
+    expect(progressSegments(run)).toEqual(["current", "correct", "correct"]);
+  });
+
+  it("repeats only the mistakes; the rest count as right", () => {
+    const run = createQuizRun(4, [1, 3]);
+    expect(run.turns.map((turn) => turn.question)).toEqual([1, 3]);
+    expect(quizTotals(run)).toEqual({ correct: 2, toRepeat: 0, firstTry: 2, total: 4 });
+    expect(progressSegments(run)).toEqual(["correct", "current", "correct", "pending"]);
   });
 });
 

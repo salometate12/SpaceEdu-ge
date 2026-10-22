@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { FileText, Upload } from "lucide-react";
 import {
   Suspense,
@@ -13,13 +12,22 @@ import {
 } from "react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { StickerButton } from "@/components/ui/StickerButton";
-import { QuizRun } from "@/components/Quiz/QuizRun";
+import { QuizResults, QuizRun } from "@/components/Quiz/QuizRun";
 import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { getActiveSubject } from "@/lib/activity";
 import { takeHandoff } from "@/lib/tool-handoff";
-import type { QuestionResult } from "@/lib/quiz-run";
+import {
+  answerTurn,
+  createQuizRun,
+  currentTurn,
+  isQuizOver,
+  nextTurn,
+  questionsToRepeat,
+  quizTotals,
+  type QuizRunState,
+} from "@/lib/quiz-run";
 import "./quiz-theme.css";
 
 export interface QuizQuestion {
@@ -61,25 +69,26 @@ export default function QuizPage() {
   const [questionCount, setQuestionCount] = useState(5);
   const [isCustomCount, setIsCustomCount] = useState(false);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // The order of questions (mistakes come back once), results, choices: quiz-run.ts.
+  const [run, setRun] = useState<QuizRunState>(() => createQuizRun(0));
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(
     null,
   );
-  const [score, setScore] = useState(0);
-  // Per question, once checked: for the progress bar and the totals.
-  const [results, setResults] = useState<QuestionResult[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // A run over only the mistakes: not recorded again in the statistics.
+  const [repeatingMistakes, setRepeatingMistakes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const phase: Phase = useMemo(() => {
     if (isLoading) return "loading";
     if (questions.length === 0) return "input";
-    if (currentQuestionIndex >= questions.length) return "results";
+    if (isQuizOver(run)) return "results";
     return "active";
-  }, [isLoading, questions.length, currentQuestionIndex]);
+  }, [isLoading, questions.length, run]);
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const turn = currentTurn(run);
+  const currentQuestion = turn ? questions[turn.question] : undefined;
 
   const applyFile = (nextFile: File) => {
     const lower = nextFile.name.toLowerCase();
@@ -117,10 +126,8 @@ export default function QuizPage() {
     setIsLoading(true);
     setError(null);
     setQuestions([]);
-    setCurrentQuestionIndex(0);
+    setRun(createQuizRun(0));
     setSelectedOptionIndex(null);
-    setScore(0);
-    setResults([]);
     setIsSubmitted(false);
 
     try {
@@ -149,7 +156,7 @@ export default function QuizPage() {
 
       const generated = (data as QuizApiResponse).questions;
       setQuestions(generated);
-      setResults(generated.map(() => null));
+      setRun(createQuizRun(generated.length));
     } catch (err) {
       setError(
         err instanceof Error
@@ -164,20 +171,25 @@ export default function QuizPage() {
   const checkAnswer = () => {
     if (selectedOptionIndex === null || !currentQuestion || isSubmitted) return;
 
-    const isCorrect = selectedOptionIndex === currentQuestion.correctAnswerIndex;
-    if (isCorrect) {
-      setScore((prev) => prev + 1);
-    }
-    setResults((prev) => prev.map((result, index) => (index === currentQuestionIndex ? (isCorrect ? "correct" : "wrong") : result)));
+    setRun((prev) => answerTurn(prev, selectedOptionIndex, currentQuestion.correctAnswerIndex));
     setIsSubmitted(true);
   };
 
   const goNext = () => {
-    if (currentQuestionIndex + 1 >= questions.length) {
+    const next = nextTurn(run);
+    // The statistics count first tries; repeats are for learning.
+    if (isQuizOver(next) && !repeatingMistakes) {
       recordDailyActivity();
-      recordQuizResult(score, questions.length, getActiveSubject());
+      recordQuizResult(quizTotals(next).firstTry, questions.length, getActiveSubject());
     }
-    setCurrentQuestionIndex((prev) => prev + 1);
+    setRun(next);
+    setSelectedOptionIndex(null);
+    setIsSubmitted(false);
+  };
+
+  const repeatMistakes = () => {
+    setRun(createQuizRun(questions.length, questionsToRepeat(run)));
+    setRepeatingMistakes(true);
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
   };
@@ -185,10 +197,9 @@ export default function QuizPage() {
   const restart = () => {
     setFile(null);
     setQuestions([]);
-    setCurrentQuestionIndex(0);
+    setRun(createQuizRun(0));
+    setRepeatingMistakes(false);
     setSelectedOptionIndex(null);
-    setScore(0);
-    setResults([]);
     setIsSubmitted(false);
     setError(null);
     if (fileInputRef.current) {
@@ -196,18 +207,29 @@ export default function QuizPage() {
     }
   };
 
-  const percentScore =
-    questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
+  const sourceName = file ? file.name.replace(/\.[^.]+$/, "") : "";
+
+  if (phase === "results") {
+    return (
+      <QuizResults
+        questions={questions}
+        run={run}
+        sourceName={sourceName}
+        onRepeatMistakes={repeatMistakes}
+        onNewQuiz={restart}
+        repeatRun={repeatingMistakes}
+      />
+    );
+  }
 
   if (phase === "active" && currentQuestion) {
     return (
       <QuizRun
         question={currentQuestion}
-        index={currentQuestionIndex}
-        results={results}
+        run={run}
         selected={selectedOptionIndex}
         submitted={isSubmitted}
-        sourceName={file ? file.name.replace(/\.[^.]+$/, "") : ""}
+        sourceName={sourceName}
         onSelect={setSelectedOptionIndex}
         onCheck={checkAnswer}
         onNext={goNext}
@@ -217,8 +239,6 @@ export default function QuizPage() {
   }
 
   return (
-    // The results keep the quiz's calm colours (quiz-theme.css).
-    <div className={phase === "results" ? "quiz-run under-site-header min-h-dvh" : undefined}>
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -376,38 +396,6 @@ export default function QuizPage() {
         </div>
       )}
 
-      {phase === "results" && (
-        <section className="rounded-[24px] border border-[var(--quiz-card-border)] bg-[var(--quiz-card)] p-8">
-          <h2 className="headline text-xl font-bold text-[var(--quiz-strong)]">შედეგები</h2>
-          <p className="mono mt-3 text-3xl font-bold text-[var(--quiz-accent)]">
-            {score} / {questions.length}
-          </p>
-          <p className="mt-1 text-sm text-[var(--quiz-muted)]">სიზუსტე: {percentScore}%</p>
-          <p className="mt-4 text-sm leading-relaxed text-[var(--quiz-text)]">
-            {percentScore >= 80
-              ? "ძლიერი შედეგი. გაიმეორე მხოლოდ სუსტ თემებზე."
-              : percentScore >= 50
-                ? "საშუალო შედეგი. რეკომენდებულია მასალის მეორედ გადახედვა."
-                : "საჭიროა დამატებითი განმეორება ამ თემაზე."}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={restart}
-              className="rounded-full border border-[var(--quiz-line)] bg-[var(--quiz-card)] px-4 py-2.5 text-sm font-medium text-[var(--quiz-strong)] transition hover:border-[var(--quiz-muted)]"
-            >
-              ახალი ქვიზი
-            </button>
-            <Link
-              href="/"
-              className="rounded-full border-2 border-[var(--quiz-ink)] bg-[var(--quiz-accent)] px-4 py-2.5 text-sm font-bold text-white shadow-[3px_3px_0_0_var(--quiz-ink)] transition-[transform,box-shadow] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-            >
-              მთავარზე დაბრუნება
-            </Link>
-          </div>
-        </section>
-      )}
     </main>
-    </div>
   );
 }
