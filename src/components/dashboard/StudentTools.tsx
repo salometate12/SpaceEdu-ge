@@ -14,6 +14,7 @@ import {
 import { getToolCardClass, isLivePreviewMode } from "@/lib/dashboard-preview-layout";
 import { STUDENT_TOOLS as TOOLS } from "@/lib/student-tools";
 import { recordToolUsage } from "@/lib/activity";
+import { isWideToolCard } from "@/lib/dashboard-grid";
 
 function ToolIconWrap({
   accent,
@@ -77,7 +78,7 @@ export function StudentTools() {
     <DashboardMorphGrid variant="tools" className="mobile-widget-tools">
       {TOOLS.map((tool, index) => {
         const Icon = tool.icon;
-        const isWide = index % 3 === 0;
+        const isWide = isWideToolCard(index, TOOLS.length);
         return (
           <DashboardMorphItem
             key={tool.id}
