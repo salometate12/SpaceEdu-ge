@@ -1,6 +1,8 @@
 import type { Deck } from "./types";
+import { CUSTOM_DECKS_STORAGE_KEY as STORAGE_KEY, CUSTOM_DECKS_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
 
-const STORAGE_KEY = "flashcards-custom-decks";
+export { CUSTOM_DECKS_UPDATED_EVENT };
 
 export function getCustomDecks(): Deck[] {
   if (typeof window === "undefined") return [];
@@ -16,7 +18,7 @@ export function getCustomDecks(): Deck[] {
 export function saveCustomDeck(deck: Deck): void {
   const existing = getCustomDecks();
   const filtered = existing.filter((d) => d.id !== deck.id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([deck, ...filtered]));
+  userStore.set(STORAGE_KEY, [deck, ...filtered]);
 }
 
 export function getCustomDeckById(id: string): Deck | undefined {

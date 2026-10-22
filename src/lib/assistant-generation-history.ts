@@ -1,7 +1,12 @@
 import type { PremiumAssistantPath } from "./assistant-routes";
 import { getAssistantSidebarConfig } from "./assistant-sidebar-config";
 
-const STORAGE_PREFIX = "spaceedu-assistant-history:";
+import { ASSISTANT_HISTORY_KEY_BASE, ASSISTANT_HISTORY_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
+
+export { ASSISTANT_HISTORY_UPDATED_EVENT };
+
+const STORAGE_PREFIX = `${ASSISTANT_HISTORY_KEY_BASE}:`;
 const MAX_ENTRIES = 24;
 
 export interface AssistantHistoryEntry {
@@ -28,7 +33,7 @@ function readStored(route: PremiumAssistantPath): AssistantHistoryEntry[] {
 
 function writeStored(route: PremiumAssistantPath, entries: AssistantHistoryEntry[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(storageKey(route), JSON.stringify(entries));
+  userStore.set(storageKey(route), entries);
 }
 
 function seedEntries(route: PremiumAssistantPath): AssistantHistoryEntry[] {

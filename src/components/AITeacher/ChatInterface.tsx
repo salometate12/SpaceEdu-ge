@@ -18,6 +18,7 @@ import { useChatScroll } from "@/hooks/useChatScroll";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import {
+  AI_TEACHER_HISTORY_UPDATED_EVENT,
   conversationTitleFrom,
   deleteConversation,
   loadConversations,
@@ -141,12 +142,16 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   }, [messages]);
 
   // Load the recent-conversation list once, and keep it in sync if another
-  // tab changes it.
+  // tab changes it or the account's history arrives from another device.
   useEffect(() => {
     const sync = () => setConversations(loadConversations(space));
     sync();
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    window.addEventListener(AI_TEACHER_HISTORY_UPDATED_EVENT, sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener(AI_TEACHER_HISTORY_UPDATED_EVENT, sync);
+    };
   }, [space]);
 
   const persistCurrentConversation = (finalMessages: ChatMessage[]) => {

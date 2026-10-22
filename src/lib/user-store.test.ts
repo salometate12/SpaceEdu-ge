@@ -8,7 +8,7 @@ import {
   type SyncSpec,
   type UserDataRemote,
 } from "./user-store";
-import { mergeSemesterSubjects, mergeStudyPlan, SYNCED_KEYS } from "./user-data-keys";
+import { mergeNewestById, mergeSemesterSubjects, mergeStudyPlan, SYNCED_KEYS } from "./user-data-keys";
 
 function memoryStorage(initial: Record<string, unknown> = {}): KeyValueStorage & { dump(): Record<string, string> } {
   const map = new Map(Object.entries(initial).map(([key, value]) => [key, JSON.stringify(value)]));
@@ -314,7 +314,38 @@ describe("merge rules", () => {
     expect(mergeStudyPlan(plan, newer, { localAt: 1, remoteAt: 2 })).toBe(newer);
   });
 
-  it("covers every key of the first category", () => {
+  it("notes and chats: items from both devices; for the same one, the later edit", () => {
+    const merge = mergeNewestById("updatedAt");
+    const local = [
+      { id: "a", content: "edited here", updatedAt: 30 },
+      { id: "b", content: "only here", updatedAt: 10 },
+    ];
+    const remote = [
+      { id: "a", content: "older", updatedAt: 20 },
+      { id: "c", content: "only there", updatedAt: 25 },
+    ];
+    expect(merge(local, remote, context)).toEqual([
+      { id: "a", content: "edited here", updatedAt: 30 },
+      { id: "b", content: "only here", updatedAt: 10 },
+      { id: "c", content: "only there", updatedAt: 25 },
+    ]);
+    // The other device edited later: its copy wins.
+    expect((merge(local, [{ id: "a", content: "newer there", updatedAt: 40 }], context) as { content: string }[])[0].content).toBe(
+      "newer there",
+    );
+  });
+
+  it("capped lists keep the newest, newest first (conspectuses: 20, chats: 50)", () => {
+    const merge = mergeNewestById("createdAt", 2);
+    expect(
+      merge([{ id: "x", createdAt: 1 }, { id: "y", createdAt: 3 }], [{ id: "z", createdAt: 2 }], context),
+    ).toEqual([
+      { id: "y", createdAt: 3 },
+      { id: "z", createdAt: 2 },
+    ]);
+  });
+
+  it("covers subjects and calendar (PR 1) and content (PR 2)", () => {
     expect(SYNCED_KEYS.map((spec) => spec.key)).toEqual([
       "spaceedu-semester-subjects",
       "spaceedu-dashboard-calendar-events",
@@ -322,6 +353,14 @@ describe("merge rules", () => {
       "spaceedu-dashboard-study-plan",
       "spaceedu-dashboard-study-plan-student",
       "spaceedu-exam-countdown-days",
+      "spaceedu-lecture-notes",
+      "spaceedu-abit-lecture-notes",
+      "flashcards-conspectus",
+      "flashcards-custom-decks",
+      "spaceedu-ai-teacher-conversations-student",
+      "spaceedu-ai-teacher-conversations-abiturient",
+      "spaceedu-assistant-history",
+      "spaceedu-cv-prefs",
     ]);
   });
 });

@@ -5,7 +5,7 @@
  * localStorage, so the change also reaches the account.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SYNCED_KEYS } from "./user-data-keys";
+import { SYNCED_KEYS, USER_DATA_REMOTE_EVENT } from "./user-data-keys";
 import { createUserStore, type KeyValueStorage, type RemoteRow, type UserDataRemote, type UserStore } from "./user-store";
 
 /** Server rendering (and tests) get a store that keeps nothing. */
@@ -41,8 +41,9 @@ export function getUserStore(): UserStore {
     specs: SYNCED_KEYS,
     isOnline: () => navigator.onLine,
     // Values from the server: the same events the modules fire on a local change.
-    emit: (_key, spec) => {
+    emit: (key, spec) => {
       if (spec?.event) window.dispatchEvent(new Event(spec.event));
+      window.dispatchEvent(new CustomEvent(USER_DATA_REMOTE_EVENT, { detail: { key } }));
     },
   });
   return store;
@@ -77,4 +78,15 @@ export function supabaseUserData(client: SupabaseClient, userId: string): UserDa
       if (error) throw error;
     },
   };
+}
+
+/** Calls `listener` when a value for one of `keys` (or a key starting with a
+ * prefix ending in ":") arrives from the account. */
+export function onRemoteUserData(match: (key: string) => boolean, listener: () => void): () => void {
+  const handler = (event: Event) => {
+    const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+    if (key && match(key)) listener();
+  };
+  window.addEventListener(USER_DATA_REMOTE_EVENT, handler);
+  return () => window.removeEventListener(USER_DATA_REMOTE_EVENT, handler);
 }

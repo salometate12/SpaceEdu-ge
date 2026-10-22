@@ -1,3 +1,8 @@
+import { CONSPECTUS_STORAGE_KEY as STORAGE_KEY, CONSPECTUS_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
+
+export { CONSPECTUS_UPDATED_EVENT };
+
 export interface Conspectus {
   id: string;
   title: string;
@@ -5,8 +10,6 @@ export interface Conspectus {
   createdAt: number;
   sourceLabel?: string;
 }
-
-const STORAGE_KEY = "flashcards-conspectus";
 
 export function getConspectusList(): Conspectus[] {
   if (typeof window === "undefined") return [];
@@ -22,10 +25,7 @@ export function getConspectusList(): Conspectus[] {
 export function saveConspectus(conspectus: Conspectus): void {
   const existing = getConspectusList();
   const filtered = existing.filter((c) => c.id !== conspectus.id);
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify([conspectus, ...filtered].slice(0, 20)),
-  );
+  userStore.set(STORAGE_KEY, [conspectus, ...filtered].slice(0, 20));
 }
 
 export function getConspectusById(id: string): Conspectus | undefined {

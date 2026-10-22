@@ -20,11 +20,14 @@ import {
   createBlankLectureNote,
   extractLocalKeywords,
   formatGeorgianDate,
+  LECTURE_NOTES_STORAGE_KEY,
   loadLectureNotes,
+  withUnsavedBlanks,
   saveLectureNotes,
   upsertLectureNote,
   type LectureNote,
 } from "@/lib/lecture-notes";
+import { onRemoteUserData } from "@/lib/user-data";
 import { recordToolUsage } from "@/lib/activity";
 
 const QUICK_PROMPTS = [
@@ -71,8 +74,9 @@ export function LectureNotesPage() {
     const loaded = loadLectureNotes();
     const idFromUrl = new URLSearchParams(window.location.search).get("id");
     if (loaded.length === 0) {
+      // A blank page to write on — saved (and synced) once written in.
       const blank = createBlankLectureNote();
-      persist([blank]);
+      setNotes([blank]);
       setActiveId(blank.id);
     } else {
       setNotes(loaded);
@@ -80,8 +84,18 @@ export function LectureNotesPage() {
       setActiveId(match?.id ?? loaded[0].id);
     }
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Notes arriving from the account (another device). Only those: this
+  // page's own saves must not reload it mid-typing.
+  useEffect(
+    () =>
+      onRemoteUserData(
+        (key) => key === LECTURE_NOTES_STORAGE_KEY,
+        () => setNotes((current) => withUnsavedBlanks(loadLectureNotes(), current)),
+      ),
+    [],
+  );
 
   useEffect(() => {
     if (!hydrated || !requestedId) return;

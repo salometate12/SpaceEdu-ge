@@ -1,5 +1,7 @@
-export const LECTURE_NOTES_STORAGE_KEY = "spaceedu-lecture-notes";
-export const LECTURE_NOTES_UPDATED_EVENT = "spaceedu-lecture-notes-updated";
+import { LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
+
+export { LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT };
 export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
 export const JOURNAL_XP_PER_SAVE = 50;
 
@@ -208,8 +210,26 @@ export function loadLectureNotes(): LectureNote[] {
 
 export function saveLectureNotes(notes: LectureNote[]): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LECTURE_NOTES_STORAGE_KEY, JSON.stringify(notes));
+  // On this device now, on the account shortly after.
+  userStore.set(LECTURE_NOTES_STORAGE_KEY, notes);
   window.dispatchEvent(new Event(LECTURE_NOTES_UPDATED_EVENT));
+}
+
+function isEmptyNote(note: LectureNote): boolean {
+  return !note.title.trim() && !note.content.trim() && !note.contentRight?.trim();
+}
+
+/**
+ * The notes to show once the account's notes arrive: those, plus a blank
+ * page this screen opened (not saved until written in) — but only where
+ * its section would otherwise be empty, so a new device doesn't upload
+ * blank pages or land on one when there are real notes.
+ */
+export function withUnsavedBlanks<T extends LectureNote>(loaded: T[], current: T[]): T[] {
+  const ids = new Set(loaded.map((note) => note.id));
+  const sections = new Set(loaded.map((note) => note.section));
+  const blanks = current.filter((note) => !ids.has(note.id) && isEmptyNote(note) && !sections.has(note.section));
+  return [...blanks, ...loaded];
 }
 
 /** Generic in the note type so stores that extend `LectureNote` — the

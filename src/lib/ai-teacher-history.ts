@@ -1,4 +1,8 @@
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
+import { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { userStore } from "@/lib/user-data";
+
+export { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_UPDATED_EVENT };
 
 export interface AiTeacherMessage {
   id: string;
@@ -17,12 +21,9 @@ export interface AiTeacherConversation {
   renamed?: boolean;
 }
 
-/** Each AI teacher keeps its own history, so an admin (or anyone who
- * switches space) never sees one space's chats in the other. */
-export const AI_TEACHER_HISTORY_KEYS: Record<AiTeacherSpace, string> = {
-  student: "spaceedu-ai-teacher-conversations-student",
-  abiturient: "spaceedu-ai-teacher-conversations-abiturient",
-};
+// Each AI teacher keeps its own history (AI_TEACHER_HISTORY_KEYS), so an
+// admin (or anyone who switches space) never sees one space's chats in the
+// other.
 /** The single shared key from before the split. /ai-teacher was the
  * student page then, so its chats move to the student key. */
 export const LEGACY_AI_TEACHER_HISTORY_KEY = "spaceedu-ai-teacher-conversations";
@@ -150,7 +151,7 @@ export function saveConversation(
     .slice(0, MAX_CONVERSATIONS);
 
   try {
-    window.localStorage.setItem(AI_TEACHER_HISTORY_KEYS[space], JSON.stringify(next));
+    userStore.set(AI_TEACHER_HISTORY_KEYS[space], next);
   } catch {
     // storage full / unavailable — history is a convenience, not critical.
   }
@@ -164,7 +165,7 @@ export function deleteConversation(
   if (typeof window === "undefined") return [];
   const next = loadConversations(space).filter((entry) => entry.id !== id);
   try {
-    window.localStorage.setItem(AI_TEACHER_HISTORY_KEYS[space], JSON.stringify(next));
+    userStore.set(AI_TEACHER_HISTORY_KEYS[space], next);
   } catch {
     // ignore
   }
@@ -187,7 +188,7 @@ export function renameConversation(
       : entry,
   );
   try {
-    window.localStorage.setItem(AI_TEACHER_HISTORY_KEYS[space], JSON.stringify(next));
+    userStore.set(AI_TEACHER_HISTORY_KEYS[space], next);
   } catch {
     // ignore
   }

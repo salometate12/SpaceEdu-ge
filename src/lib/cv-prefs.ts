@@ -1,13 +1,14 @@
 /**
- * The template, accent, photo and language choices, remembered in this
- * browser (the CV's own content isn't stored anywhere yet). A tiny store
- * for useSyncExternalStore: the snapshot is cached per raw value so React
- * gets the same object back until something changes.
+ * The template, accent, photo and language choices, remembered on the
+ * account (lib/user-data; the CV's own content isn't stored anywhere yet).
+ * A tiny store for useSyncExternalStore: the snapshot is cached per raw
+ * value so React gets the same object back until something changes.
  */
 
 import { CV_ACCENTS, normalizeCvTemplate, type CvAccentId, type CvLanguage, type CvPrefs, type CvTemplateId } from "@/lib/cv-data";
+import { CV_PREFS_KEY as KEY, CV_PREFS_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { userStore } from "@/lib/user-data";
 
-const KEY = "spaceedu-cv-prefs";
 const listeners = new Set<() => void>();
 
 export interface StoredCvPrefs extends Partial<CvPrefs> {
@@ -50,12 +51,17 @@ export const serverCvPrefs = (): StoredCvPrefs => NO_PREFS;
 
 export function subscribeCvPrefs(listener: () => void): () => void {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  // The account's choices arriving from another device.
+  window.addEventListener(CV_PREFS_UPDATED_EVENT, listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener(CV_PREFS_UPDATED_EVENT, listener);
+  };
 }
 
 export function writeCvPrefs(next: StoredCvPrefs) {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify({ ...readCvPrefs(), ...next }));
+    userStore.set(KEY, { ...readCvPrefs(), ...next });
   } catch {
     /* private mode: the choice just isn't remembered */
   }
