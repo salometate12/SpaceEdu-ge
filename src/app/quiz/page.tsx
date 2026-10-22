@@ -13,11 +13,14 @@ import {
 } from "react";
 import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
 import { StickerButton } from "@/components/ui/StickerButton";
+import { QuizRun } from "@/components/Quiz/QuizRun";
 import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { getActiveSubject } from "@/lib/activity";
 import { takeHandoff } from "@/lib/tool-handoff";
+import type { QuestionResult } from "@/lib/quiz-run";
+import "./quiz-theme.css";
 
 export interface QuizQuestion {
   id: number;
@@ -63,6 +66,8 @@ export default function QuizPage() {
     null,
   );
   const [score, setScore] = useState(0);
+  // Per question, once checked: for the progress bar and the totals.
+  const [results, setResults] = useState<QuestionResult[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +80,6 @@ export default function QuizPage() {
   }, [isLoading, questions.length, currentQuestionIndex]);
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progressPercent =
-    questions.length > 0
-      ? ((currentQuestionIndex + 1) / questions.length) * 100
-      : 0;
 
   const applyFile = (nextFile: File) => {
     const lower = nextFile.name.toLowerCase();
@@ -119,6 +120,7 @@ export default function QuizPage() {
     setCurrentQuestionIndex(0);
     setSelectedOptionIndex(null);
     setScore(0);
+    setResults([]);
     setIsSubmitted(false);
 
     try {
@@ -145,7 +147,9 @@ export default function QuizPage() {
         throw new Error(message);
       }
 
-      setQuestions((data as QuizApiResponse).questions);
+      const generated = (data as QuizApiResponse).questions;
+      setQuestions(generated);
+      setResults(generated.map(() => null));
     } catch (err) {
       setError(
         err instanceof Error
@@ -164,6 +168,7 @@ export default function QuizPage() {
     if (isCorrect) {
       setScore((prev) => prev + 1);
     }
+    setResults((prev) => prev.map((result, index) => (index === currentQuestionIndex ? (isCorrect ? "correct" : "wrong") : result)));
     setIsSubmitted(true);
   };
 
@@ -183,6 +188,7 @@ export default function QuizPage() {
     setCurrentQuestionIndex(0);
     setSelectedOptionIndex(null);
     setScore(0);
+    setResults([]);
     setIsSubmitted(false);
     setError(null);
     if (fileInputRef.current) {
@@ -193,7 +199,26 @@ export default function QuizPage() {
   const percentScore =
     questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
 
+  if (phase === "active" && currentQuestion) {
+    return (
+      <QuizRun
+        question={currentQuestion}
+        index={currentQuestionIndex}
+        results={results}
+        selected={selectedOptionIndex}
+        submitted={isSubmitted}
+        sourceName={file ? file.name.replace(/\.[^.]+$/, "") : ""}
+        onSelect={setSelectedOptionIndex}
+        onCheck={checkAnswer}
+        onNext={goNext}
+        onRestart={restart}
+      />
+    );
+  }
+
   return (
+    // The results keep the quiz's calm colours (quiz-theme.css).
+    <div className={phase === "results" ? "quiz-run under-site-header min-h-dvh" : undefined}>
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -351,96 +376,14 @@ export default function QuizPage() {
         </div>
       )}
 
-      {phase === "active" && currentQuestion && (
-        <section className="dashboard-section p-6 backdrop-blur-xl sm:p-8">
-          <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/[0.06]">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-pink-600 dark:text-pink-300/80">
-            კითხვა {currentQuestionIndex + 1} / {questions.length}
-          </p>
-          <h2 className="mb-6 text-lg font-semibold leading-relaxed text-slate-900 dark:text-white">
-            {currentQuestion.questionText}
-          </h2>
-
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, optionIndex) => {
-              const isSelected = selectedOptionIndex === optionIndex;
-              const isCorrectOption =
-                optionIndex === currentQuestion.correctAnswerIndex;
-              let stateClass =
-                "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:bg-pink-50 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-300 dark:hover:bg-white/[0.04] dark:hover:border-pink-500/30";
-
-              if (isSubmitted) {
-                if (isCorrectOption) {
-                  stateClass =
-                    "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/[0.02] dark:text-emerald-400";
-                } else if (isSelected && !isCorrectOption) {
-                  stateClass =
-                    "border-rose-400/50 bg-rose-50 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/[0.02] dark:text-rose-300";
-                } else {
-                  stateClass =
-                    "border-slate-200 bg-slate-50 text-slate-400 opacity-70 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-500";
-                }
-              } else if (isSelected) {
-                stateClass =
-                  "border-pink-400/50 bg-pink-50 text-pink-800 dark:border-pink-500/40 dark:bg-pink-500/[0.06] dark:text-pink-100";
-              }
-
-              return (
-                <button
-                  key={`${currentQuestion.id}-${optionIndex}`}
-                  type="button"
-                  disabled={isSubmitted}
-                  onClick={() => setSelectedOptionIndex(optionIndex)}
-                  className={`w-full rounded-xl border p-4 text-left text-sm transition-all duration-200 ${stateClass}`}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-
-          {!isSubmitted ? (
-            <button
-              type="button"
-              onClick={checkAnswer}
-              disabled={selectedOptionIndex === null}
-              className="mt-6 w-full rounded-xl border border-pink-300/60 bg-pink-50 px-4 py-3 text-sm font-medium text-pink-700 transition hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-500/30 dark:bg-pink-500/10 dark:text-pink-200 dark:hover:bg-pink-500/20"
-            >
-              შემოწმება
-            </button>
-          ) : (
-            <>
-              <div className="animate-fade-in mt-4 rounded-xl border border-pink-200/80 bg-pink-50/50 p-4 text-xs leading-relaxed text-slate-600 dark:border-pink-500/[0.1] dark:bg-pink-500/[0.03] dark:text-gray-400">
-                {currentQuestion.explanation}
-              </div>
-              <button
-                type="button"
-                onClick={goNext}
-                className="mt-4 w-full rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:from-pink-500 hover:to-indigo-500"
-              >
-                {currentQuestionIndex + 1 >= questions.length
-                  ? "შედეგების ნახვა"
-                  : "შემდეგი კითხვა"}
-              </button>
-            </>
-          )}
-        </section>
-      )}
-
       {phase === "results" && (
-        <section className="dashboard-section p-8 backdrop-blur-xl">
-          <h2 className="headline text-xl font-bold text-slate-900 dark:text-white">შედეგები</h2>
-          <p className="mono mt-3 text-3xl font-bold text-pink-600 dark:text-pink-300">
+        <section className="rounded-[24px] border border-[var(--quiz-card-border)] bg-[var(--quiz-card)] p-8">
+          <h2 className="headline text-xl font-bold text-[var(--quiz-strong)]">შედეგები</h2>
+          <p className="mono mt-3 text-3xl font-bold text-[var(--quiz-accent)]">
             {score} / {questions.length}
           </p>
-          <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">სიზუსტე: {percentScore}%</p>
-          <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--quiz-muted)]">სიზუსტე: {percentScore}%</p>
+          <p className="mt-4 text-sm leading-relaxed text-[var(--quiz-text)]">
             {percentScore >= 80
               ? "ძლიერი შედეგი. გაიმეორე მხოლოდ სუსტ თემებზე."
               : percentScore >= 50
@@ -451,13 +394,13 @@ export default function QuizPage() {
             <button
               type="button"
               onClick={restart}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-700 transition hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:text-zinc-300 dark:hover:border-pink-500/30 dark:hover:text-white"
+              className="rounded-full border border-[var(--quiz-line)] bg-[var(--quiz-card)] px-4 py-2.5 text-sm font-medium text-[var(--quiz-strong)] transition hover:border-[var(--quiz-muted)]"
             >
               ახალი ქვიზი
             </button>
             <Link
               href="/"
-              className="rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:from-pink-500 hover:to-indigo-500"
+              className="rounded-full border-2 border-[var(--quiz-ink)] bg-[var(--quiz-accent)] px-4 py-2.5 text-sm font-bold text-white shadow-[3px_3px_0_0_var(--quiz-ink)] transition-[transform,box-shadow] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               მთავარზე დაბრუნება
             </Link>
@@ -465,5 +408,6 @@ export default function QuizPage() {
         </section>
       )}
     </main>
+    </div>
   );
 }

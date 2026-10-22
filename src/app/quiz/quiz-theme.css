@@ -1,0 +1,82 @@
+/*
+ * The quiz while it's being taken (and its results): a calm, cream page.
+ * Every colour of that screen comes from these tokens; `.quiz-run` is its
+ * root. The ink border and solid shadow are kept for the chosen answer and
+ * the main button only. The upload screen doesn't use them.
+ */
+.quiz-run {
+  --quiz-bg: #fffdf6;
+  --quiz-card: #ffffff;
+  --quiz-card-border: #ece8e1;
+  --quiz-text: #2f2c28;
+  --quiz-strong: #1c1a17;
+  --quiz-muted: #6f6a64;
+  --quiz-ink: #18181b;
+  --quiz-line: #e7e4df;
+  --quiz-accent: #e11d74;
+  --quiz-accent-soft: #fdf2f8;
+  --quiz-chip: #fde047;
+  --quiz-ok-bg: #dcfce7;
+  --quiz-ok: #16a34a;
+  --quiz-ok-text: #14532d;
+  --quiz-bad-bg: #fee2e2;
+  --quiz-bad: #dc2626;
+  --quiz-bad-text: #7f1d1d;
+  --quiz-why-bg: #fef9c3;
+  --quiz-why-border: #fde68a;
+  --quiz-why-label: #854d0e;
+  --quiz-mark: #fde68a;
+  --quiz-seg-ok: #86efac;
+  --quiz-seg-bad: #fca5a5;
+  --quiz-seg-current: #e11d74;
+  --quiz-seg-todo: #ffffff;
+  --quiz-seg-border: #d6d3d1;
+
+  background: var(--quiz-bg);
+  color: var(--quiz-text);
+}
+
+html.dark .quiz-run {
+  --quiz-bg: #141413;
+  --quiz-card: #1c1b19;
+  --quiz-card-border: #2e2c29;
+  --quiz-text: #e6e3de;
+  --quiz-strong: #fafaf9;
+  --quiz-muted: #a29d96;
+  --quiz-ink: #e6e3de;
+  --quiz-line: #34322e;
+  --quiz-accent-soft: rgba(225, 29, 116, 0.16);
+  --quiz-ok-bg: rgba(74, 222, 128, 0.14);
+  --quiz-ok-text: #bbf7d0;
+  --quiz-bad-bg: rgba(248, 113, 113, 0.14);
+  --quiz-bad-text: #fecaca;
+  --quiz-why-bg: rgba(250, 204, 21, 0.1);
+  --quiz-why-border: rgba(250, 204, 21, 0.28);
+  --quiz-why-label: #fde047;
+  --quiz-mark: rgba(250, 204, 21, 0.35);
+  --quiz-seg-todo: #1c1b19;
+  --quiz-seg-border: #3a3835;
+}
+
+/* „რატომ?“: the key phrase gets a marker stroke, code stays code. */
+.quiz-run .quiz-why strong {
+  color: var(--quiz-strong);
+  font-weight: 600;
+  background: linear-gradient(transparent 62%, var(--quiz-mark) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 1px;
+}
+.quiz-run .quiz-why code,
+.quiz-run .quiz-code {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+}
+.quiz-run .quiz-why code {
+  padding: 1px 5px;
+  border: 1px solid var(--quiz-why-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--quiz-card) 70%, transparent);
+  color: var(--quiz-strong);
+  font-size: 0.88em;
+}
