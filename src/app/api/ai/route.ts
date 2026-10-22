@@ -242,15 +242,21 @@ The first slide is type "cover" (layout "section", body = subtitle); the last is
 Every key is required; use null for fields the slide's layout doesn't use.`;
 
 const ELI5_JSON_INSTRUCTIONS = `
-Return ONLY valid JSON (all text in Georgian):
+Return ONLY valid JSON, every key present (all text in Georgian):
 {
-  "title": "მოკლე სათაური",
-  "explanation": "მთავარი ახსნა მარტივი ენით",
-  "analogy": "მეტაფორა ან რეალური მაგალითი",
-  "rememberThis": "ერთი წინადადება, რაც უნდა დაიმახსოვროს",
-  "followUpQuestion": "ოპციონალური შემოწმების კითხვა"
+  "title": "the topic's short name",
+  "analogy": "an analogy from everyday life",
+  "simple": "the explanation in plain words",
+  "example": "a real example, or null",
+  "oneLiner": "the whole idea in one sentence"
 }
-Adapt vocabulary strictly to the requested simplicity level.`;
+Rules:
+- Georgian only. The simplicity level sets the vocabulary and the depth.
+- "analogy": one everyday-life comparison (home, school, the street, shopping), 2–3 sentences.
+- "simple": at most 3–4 sentences; mark the one or two key phrases with **bold**.
+- "example": a real case, with numbers where possible; null when the topic has no fitting real example.
+- "oneLiner": at most 15 words.
+- No bullet points, no lists, no headings, no emoji.`;
 
 const LECTURE_NOTES_KEYWORDS_INSTRUCTIONS = `
 Return ONLY valid JSON:

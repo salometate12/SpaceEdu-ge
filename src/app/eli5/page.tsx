@@ -1,8 +1,9 @@
 import { Eli5Explainer } from "@/components/eli5/Eli5Explainer";
+import "./eli5-theme.css";
 
 export default function Eli5Page() {
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+    <main>
       <Eli5Explainer />
     </main>
   );
