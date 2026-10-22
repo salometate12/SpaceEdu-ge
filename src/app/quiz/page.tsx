@@ -1,8 +1,7 @@
 "use client";
 
-import { FileText, Upload } from "lucide-react";
+import { ArrowRight, FileText, Upload, X } from "lucide-react";
 import {
-  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -10,10 +9,16 @@ import {
   type ChangeEvent,
   type DragEvent,
 } from "react";
-import { SpaceBackLink } from "@/components/layout/SpaceBackLink";
-import { StickerButton } from "@/components/ui/StickerButton";
-import { QuizResults, QuizRun } from "@/components/Quiz/QuizRun";
-import { QuizThinkingLoader } from "@/components/Quiz/QuizThinkingLoader";
+import { QuizGenerating } from "@/components/Quiz/QuizGenerating";
+import {
+  QUIZ_COLUMN,
+  QUIZ_FOCUS_RING,
+  QUIZ_PRIMARY_BUTTON,
+  QuizBackLink,
+  QuizResults,
+  QuizRun,
+} from "@/components/Quiz/QuizRun";
+import { setDockHidden } from "@/lib/mobile-overlay";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { getActiveSubject } from "@/lib/activity";
@@ -42,7 +47,7 @@ interface QuizApiResponse {
   questions: QuizQuestion[];
 }
 
-type Phase = "input" | "loading" | "active" | "results";
+type Phase = "input" | "loading" | "failed" | "active" | "results";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -51,6 +56,10 @@ function formatFileSize(bytes: number): string {
 }
 
 const QUESTION_COUNT_OPTIONS = [5, 10, 15, 20];
+// What /api/quiz accepts.
+const MIN_QUESTIONS = 3;
+const MAX_QUESTIONS = 25;
+const GENERATION_ERROR = "AI ახლა გადატვირთულია, სცადე ცოტა ხანში.";
 
 export default function QuizPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,13 +88,24 @@ export default function QuizPage() {
   const [repeatingMistakes, setRepeatingMistakes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Generation failed: shown in the generating card with „ხელახლა ცდა“.
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const phase: Phase = useMemo(() => {
     if (isLoading) return "loading";
+    if (generationError) return "failed";
     if (questions.length === 0) return "input";
     if (isQuizOver(run)) return "results";
     return "active";
-  }, [isLoading, questions.length, run]);
+  }, [isLoading, generationError, questions.length, run]);
+
+  // Phones: the main button is pinned to the bottom on the upload and
+  // generating screens too (the run hides the dock itself).
+  const pinnedBottom = phase === "input" || phase === "loading" || phase === "failed";
+  useEffect(() => {
+    setDockHidden("quiz-upload", pinnedBottom);
+    return () => setDockHidden("quiz-upload", false);
+  }, [pinnedBottom]);
 
   const turn = currentTurn(run);
   const currentQuestion = turn ? questions[turn.question] : undefined;
@@ -110,7 +130,7 @@ export default function QuizPage() {
     if (nextFile) applyFile(nextFile);
   };
 
-  const onDrop = (event: DragEvent<HTMLLabelElement>) => {
+  const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragActive(false);
     const dropped = event.dataTransfer.files?.[0];
@@ -125,6 +145,7 @@ export default function QuizPage() {
 
     setIsLoading(true);
     setError(null);
+    setGenerationError(null);
     setQuestions([]);
     setRun(createQuizRun(0));
     setSelectedOptionIndex(null);
@@ -145,12 +166,13 @@ export default function QuizPage() {
         | { error?: string | boolean; message?: string };
 
       if (!response.ok) {
+        // Only a real message: some errors come back as `{ error: true }`.
         const message =
-          "message" in data && data.message
-            ? String(data.message)
-            : "error" in data && data.error
-              ? String(data.error)
-              : "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.";
+          "message" in data && typeof data.message === "string" && data.message
+            ? data.message
+            : "error" in data && typeof data.error === "string" && data.error
+              ? data.error
+              : GENERATION_ERROR;
         throw new Error(message);
       }
 
@@ -158,11 +180,7 @@ export default function QuizPage() {
       setQuestions(generated);
       setRun(createQuizRun(generated.length));
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.",
-      );
+      setGenerationError(err instanceof Error && err.message ? err.message : GENERATION_ERROR);
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +220,7 @@ export default function QuizPage() {
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
     setError(null);
+    setGenerationError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -238,164 +257,178 @@ export default function QuizPage() {
     );
   }
 
+  const removeFile = () => {
+    setFile(null);
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const countPill = (active: boolean) =>
+    `inline-flex h-10 min-w-[3.25rem] items-center justify-center rounded-full border px-4 text-[14px] font-semibold transition-colors ${QUIZ_FOCUS_RING} ${
+      active
+        ? "border-[var(--quiz-ink)] bg-[var(--quiz-ink)] text-[var(--quiz-bg)]"
+        : "border-[var(--quiz-line)] bg-[var(--quiz-card)] text-[var(--quiz-strong)] hover:border-[var(--quiz-muted)]"
+    }`;
+
+  // Upload, generating and its failure share the run's column and card.
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <Suspense fallback={null}>
-            <SpaceBackLink />
-          </Suspense>
-          <h1 className="headline mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
-            Active Recall Quiz
-          </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-gray-400">
-            ატვირთე PDF ან ტექსტი და მიიღე ღრმა გაგებაზე ორიენტირებული ქვიზი
-          </p>
-        </div>
-        {questions.length > 0 && phase !== "loading" && (
-          <button
-            type="button"
-            onClick={restart}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 transition hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-white/[0.15] dark:hover:text-white"
-          >
-            თავიდან
-          </button>
-        )}
-      </div>
+    <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)] max-sm:pb-[calc(96px+env(safe-area-inset-bottom))]">
+      <main className={`${QUIZ_COLUMN} pb-10 pt-[calc(var(--safe-top)+12px)]`}>
+        <QuizBackLink />
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-xl border border-rose-300/50 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
-        >
-          {error}
-        </div>
-      )}
-
-      {phase === "input" && (
-        <section className="mx-auto flex w-full max-w-xl flex-col gap-4">
-          <label
-            onDrop={onDrop}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setIsDragActive(true);
-            }}
-            onDragLeave={() => setIsDragActive(false)}
-            className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-300 ${
-              isDragActive
-                ? "border-pink-400/60 bg-pink-50 dark:border-pink-500/40 dark:bg-none dark:bg-pink-500/[0.06]"
-                : "border-slate-200 bg-gradient-to-br from-white to-pink-50/40 hover:border-pink-400/60 dark:border-white/[0.08] dark:bg-none dark:bg-[#121214]/20 dark:hover:border-pink-500/40"
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,application/pdf,.txt,.md,text/plain,text/markdown"
-              className="hidden"
-              onChange={onFileInputChange}
-            />
-
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 transition group-hover:border-pink-300 group-hover:from-pink-50 group-hover:to-indigo-50 dark:border-white/[0.08] dark:bg-none dark:bg-white/[0.03] dark:group-hover:border-pink-500/30 dark:group-hover:bg-pink-500/10">
-              <Upload className="h-6 w-6 text-pink-600 dark:text-pink-300" strokeWidth={1.5} />
+        {phase === "input" ? (
+          <>
+            <div className="mt-5 sm:mt-6">
+              <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[var(--quiz-strong)] sm:text-[32px]">
+                Active Recall Quiz
+              </h1>
+              <p className="mt-2 text-[15.5px] leading-relaxed text-[var(--quiz-muted)]">
+                ატვირთე PDF ან ტექსტი — მიიღებ ქვიზს, რომელიც გაგების შესამოწმებლადაა აწყობილი.
+              </p>
             </div>
 
-            <p className="text-sm font-medium text-slate-800 dark:text-zinc-200">
-              ჩააგდე ფაილი ან დააწკაპუნე ასარჩევად
-            </p>
-            <p className="mt-2 text-xs text-slate-500 dark:text-zinc-500">
-              მხარდაჭერილი ფორმატი: PDF (მაქს. 15 MB) · TXT / MD (მაქს. 2 MB)
-            </p>
+            <section
+              aria-label="ქვიზის მასალა"
+              className="mt-7 flex flex-col gap-6 rounded-[24px] border border-[var(--quiz-card-border)] bg-[var(--quiz-card)] p-5 sm:p-7"
+            >
+              {error ? (
+                <p role="alert" className="rounded-[14px] border border-[var(--quiz-bad)] bg-[var(--quiz-bad-bg)] px-4 py-3 text-[14px] text-[var(--quiz-bad-text)]">
+                  {error}
+                </p>
+              ) : null}
 
-            {file && (
-              <div className="mt-5 flex items-center gap-2 rounded-xl border border-pink-300/50 bg-pink-50 px-3 py-2 text-xs text-pink-700 dark:border-pink-500/25 dark:bg-none dark:bg-pink-500/10 dark:text-pink-200">
-                <FileText className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-                <span className="truncate">
-                  {file.name} ({formatFileSize(file.size)})
-                </span>
-              </div>
-            )}
-          </label>
-
-          <div className="space-y-2">
-            <p className="text-sm text-slate-600 dark:text-zinc-400">კითხვების რაოდენობა</p>
-            <div className="flex flex-wrap gap-2">
-              {QUESTION_COUNT_OPTIONS.map((count) => {
-                const isActive = !isCustomCount && questionCount === count;
-                return (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => {
-                      setIsCustomCount(false);
-                      setQuestionCount(count);
-                    }}
-                    aria-pressed={isActive}
-                    className={`min-w-[3.25rem] rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
-                      isActive
-                        ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-pink-300 hover:text-pink-700 dark:border-white/[0.08] dark:bg-[#161619] dark:text-zinc-300 dark:hover:border-pink-500/20 dark:hover:text-white"
-                    }`}
-                  >
-                    {count}
-                  </button>
-                );
-              })}
-
-              <label
-                className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
-                  isCustomCount
-                    ? "border-pink-400/60 bg-pink-50 text-pink-700 dark:border-pink-400/50 dark:bg-pink-500/15 dark:text-pink-200"
-                    : "border-dashed border-slate-300 bg-white text-slate-500 hover:border-pink-300 hover:text-pink-700 dark:border-white/15 dark:bg-[#161619] dark:text-zinc-400 dark:hover:border-pink-500/20 dark:hover:text-white"
+              <input
+                ref={fileInputRef}
+                id="quiz-file"
+                type="file"
+                accept=".pdf,application/pdf,.txt,.md,text/plain,text/markdown"
+                className="sr-only"
+                onChange={onFileInputChange}
+              />
+              <div
+                data-quiz-drop
+                onDrop={onDrop}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDragActive(true);
+                }}
+                onDragLeave={() => setIsDragActive(false)}
+                className={`relative flex min-h-[140px] flex-col items-center justify-center rounded-[18px] border-[1.5px] border-dashed p-6 text-center transition-colors sm:min-h-[168px] ${
+                  isDragActive
+                    ? "border-[var(--quiz-accent)] bg-[var(--quiz-accent-soft)]"
+                    : "border-[var(--quiz-drop-border)] bg-[var(--quiz-drop-bg)]"
                 }`}
               >
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={3}
-                  max={25}
-                  placeholder="სხვა"
-                  value={isCustomCount ? questionCount : ""}
-                  onChange={(event) => {
-                    const raw = event.target.value;
-                    if (!raw) {
-                      setIsCustomCount(false);
-                      return;
-                    }
-                    const value = Number(raw);
-                    if (Number.isNaN(value)) return;
-                    setIsCustomCount(true);
-                    setQuestionCount(Math.min(25, Math.max(3, Math.round(value))));
-                  }}
-                  className="w-12 bg-transparent text-center outline-none [appearance:textfield] placeholder:text-slate-400 dark:placeholder:text-zinc-600 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-              </label>
+                {file ? (
+                  <div className="flex w-full max-w-md items-center gap-3 rounded-[14px] border border-[var(--quiz-line)] bg-[var(--quiz-card)] px-4 py-3 text-left">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--quiz-accent-soft)] text-[#be185d] dark:text-pink-300" aria-hidden>
+                      <FileText className="h-5 w-5" strokeWidth={1.75} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold text-[var(--quiz-strong)]">{file.name}</span>
+                      <span className="block text-[13px] text-[var(--quiz-muted)]">{formatFileSize(file.size)}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      aria-label="ფაილის წაშლა"
+                      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--quiz-muted)] transition-colors hover:bg-[var(--quiz-drop-bg)] hover:text-[var(--quiz-strong)] ${QUIZ_FOCUS_RING}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label htmlFor="quiz-file" className="flex cursor-pointer flex-col items-center after:absolute after:inset-0 after:rounded-[18px] after:content-['']">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--quiz-accent-soft)] text-[#be185d] dark:text-pink-300" aria-hidden>
+                      <Upload className="h-5 w-5" strokeWidth={1.9} />
+                    </span>
+                    <span className="mt-3 text-[16px] font-semibold text-[var(--quiz-strong)]">ჩააგდე ფაილი ან დააწკაპუნე ასარჩევად</span>
+                    <span className="mt-1 text-[13px] text-[var(--quiz-muted)]">PDF (მაქს. 15 MB) · TXT / MD (მაქს. 2 MB)</span>
+                  </label>
+                )}
+              </div>
+
+              <div>
+                <p id="quiz-count-label" className="text-[14px] font-semibold text-[var(--quiz-strong)]">
+                  კითხვების რაოდენობა
+                </p>
+                <div role="group" aria-labelledby="quiz-count-label" className="mt-3 flex flex-wrap gap-2">
+                  {QUESTION_COUNT_OPTIONS.map((count) => {
+                    const active = !isCustomCount && questionCount === count;
+                    return (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCount(false);
+                          setQuestionCount(count);
+                        }}
+                        aria-pressed={active}
+                        className={countPill(active)}
+                      >
+                        {count}
+                      </button>
+                    );
+                  })}
+                  {isCustomCount ? (
+                    <label className={`${countPill(true)} gap-1.5`}>
+                      <span className="sr-only">კითხვების რაოდენობა ({MIN_QUESTIONS}–{MAX_QUESTIONS})</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        autoFocus
+                        min={MIN_QUESTIONS}
+                        max={MAX_QUESTIONS}
+                        value={questionCount}
+                        onChange={(event) => {
+                          const value = Number(event.target.value);
+                          if (Number.isNaN(value)) return;
+                          setQuestionCount(Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, Math.round(value))));
+                        }}
+                        className="w-10 bg-transparent text-center outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </label>
+                  ) : (
+                    <button type="button" onClick={() => setIsCustomCount(true)} aria-pressed={false} className={countPill(false)}>
+                      სხვა
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Desktop: the main button closes the card. */}
+              <div className="hidden justify-end sm:flex">
+                <button type="button" data-quiz-primary onClick={handleQuizGeneration} disabled={!file} className={QUIZ_PRIMARY_BUTTON}>
+                  ქვიზის შექმნა
+                  <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+                </button>
+              </div>
+            </section>
+
+            {/* Phone: pinned to the bottom, like „შემოწმება“ in the run. */}
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--quiz-line)] bg-[var(--quiz-bg)] px-4 pb-[calc(16px+env(safe-area-inset-bottom))] pt-3 sm:hidden">
+              <button type="button" data-quiz-primary onClick={handleQuizGeneration} disabled={!file} className={QUIZ_PRIMARY_BUTTON}>
+                ქვიზის შექმნა
+                <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+              </button>
             </div>
+          </>
+        ) : (
+          <div className="mt-5 sm:mt-6">
+            <QuizGenerating
+              key={phase}
+              fileName={sourceName || "მასალა"}
+              count={questionCount}
+              error={phase === "failed" ? generationError : null}
+              onRetry={handleQuizGeneration}
+              onOtherFile={() => {
+                setGenerationError(null);
+                removeFile();
+              }}
+            />
           </div>
-
-          <StickerButton
-            onClick={handleQuizGeneration}
-            disabled={isLoading || !file}
-            loading={isLoading}
-            fullWidth
-          >
-            ქვიზის გენერირება
-          </StickerButton>
-        </section>
-      )}
-
-      {phase === "loading" && (
-        <div className="dashboard-section p-6 backdrop-blur-xl sm:p-8">
-          <QuizThinkingLoader
-            questionCount={questionCount}
-            hint={
-              file && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))
-                ? "PDF-ის დამუშავება მიმდინარეობს..."
-                : "მასალის დამუშავება მიმდინარეობს..."
-            }
-          />
-        </div>
-      )}
-
-    </main>
+        )}
+      </main>
+    </div>
   );
 }

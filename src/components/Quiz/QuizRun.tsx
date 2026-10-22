@@ -27,8 +27,15 @@ export interface QuizRunQuestion {
 
 const LETTERS = ["A", "B", "C", "D"];
 
-const FOCUS_RING =
+export const QUIZ_FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--quiz-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--quiz-bg)]";
+const FOCUS_RING = QUIZ_FOCUS_RING;
+
+/** The quiz's one main button: pink, inked, with a solid shadow; full width on phones. */
+export const QUIZ_PRIMARY_BUTTON = `inline-flex h-[52px] items-center justify-center gap-2 rounded-full border-2 border-[var(--quiz-ink)] bg-[var(--quiz-accent)] px-8 text-[15px] font-bold text-white shadow-[4px_4px_0_0_var(--quiz-ink)] transition-[transform,box-shadow,opacity] duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_0_var(--quiz-ink)] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none max-sm:w-full ${QUIZ_FOCUS_RING}`;
+
+/** Every quiz screen sits in the same column, so nothing jumps between them. */
+export const QUIZ_COLUMN = "mx-auto w-full max-w-[720px] px-4 sm:px-6 sm:pb-14 sm:pt-10";
 
 /** The page's quiet round buttons (back, ⋯). */
 const ROUND_BUTTON = `inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--quiz-line)] bg-[var(--quiz-card)] text-[var(--quiz-strong)] transition-colors hover:border-[var(--quiz-muted)] ${FOCUS_RING}`;
@@ -54,12 +61,26 @@ function inline(text: string): ReactNode[] {
 }
 
 /** Where „← დეშბორდზე“ goes: this space's dashboard. */
-function useBackHref(): string {
+export function useBackHref(): string {
   const [href, setHref] = useState("/dashboard-student");
   useEffect(() => {
     void Promise.resolve().then(() => setHref(getSpaceBackTarget({ from: null, space: readSpaceeduSpace() }).href));
   }, []);
   return href;
+}
+
+/** „← დეშბორდზე დაბრუნება“, the same on every quiz screen. */
+export function QuizBackLink({ className = "" }: { className?: string }) {
+  const href = useBackHref();
+  return (
+    <Link
+      href={href}
+      className={`inline-flex h-10 items-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--quiz-muted)] transition-colors hover:text-[var(--quiz-strong)] ${QUIZ_FOCUS_RING} ${className}`}
+    >
+      <ArrowLeft className="h-4 w-4" aria-hidden />
+      დეშბორდზე დაბრუნება
+    </Link>
+  );
 }
 
 function Progress({ segments, number }: { segments: SegmentState[]; number: number }) {
@@ -253,7 +274,7 @@ export function QuizRun({
       data-quiz-primary
       onClick={onCheck}
       disabled={selected === null}
-      className={`inline-flex h-[52px] items-center justify-center rounded-full border-2 border-[var(--quiz-ink)] bg-[var(--quiz-accent)] px-8 text-[15px] font-bold text-white shadow-[4px_4px_0_0_var(--quiz-ink)] transition-[transform,box-shadow,opacity] duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_0_var(--quiz-ink)] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none max-sm:w-full ${FOCUS_RING}`}
+      className={QUIZ_PRIMARY_BUTTON}
     >
       შემოწმება
     </button>
@@ -264,19 +285,13 @@ export function QuizRun({
 
   return (
     <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)] max-sm:pb-[calc(96px+env(safe-area-inset-bottom))]">
-      <div className="mx-auto w-full max-w-[760px] px-4 pb-10 sm:px-6 sm:pt-10">
+      <div className={`${QUIZ_COLUMN} pb-10`}>
         {/* Top: back to the dashboard, and ⋯ with „თავიდან“. On phones the progress sits between them. */}
         <header className="sticky top-0 z-30 -mx-4 flex items-center gap-3 bg-[var(--quiz-bg)] px-4 pb-3 pt-[calc(var(--safe-top)+12px)] sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pt-0">
           <Link href={backHref} aria-label="დეშბორდზე დაბრუნება" className={`${ROUND_BUTTON} sm:hidden`}>
             <ArrowLeft className="h-[18px] w-[18px]" />
           </Link>
-          <Link
-            href={backHref}
-            className={`hidden items-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--quiz-muted)] transition-colors hover:text-[var(--quiz-strong)] sm:inline-flex ${FOCUS_RING}`}
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-            დეშბორდზე დაბრუნება
-          </Link>
+          <QuizBackLink className="max-sm:hidden" />
           <div className="min-w-0 flex-1 sm:hidden">
             <Progress segments={segments} number={index + 1} />
           </div>
@@ -470,14 +485,8 @@ export function QuizResults({
 
   return (
     <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)]">
-      <div className="mx-auto w-full max-w-[760px] px-4 pb-16 pt-[calc(var(--safe-top)+12px)] sm:px-6 sm:pt-10">
-        <Link
-          href={backHref}
-          className={`inline-flex items-center gap-1.5 rounded-full py-2 text-[14px] font-medium text-[var(--quiz-muted)] transition-colors hover:text-[var(--quiz-strong)] ${FOCUS_RING}`}
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          დეშბორდზე დაბრუნება
-        </Link>
+      <div className={`${QUIZ_COLUMN} pb-16 pt-[calc(var(--safe-top)+12px)]`}>
+        <QuizBackLink />
 
         <section
           aria-label="შედეგები"
