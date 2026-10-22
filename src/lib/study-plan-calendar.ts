@@ -1,4 +1,6 @@
 import { recordDailyActivity } from "./daily-streak";
+import { STUDY_PLAN_CALENDAR_UPDATED_EVENT, STUDY_PLAN_KEYS } from "./user-data-keys";
+import { userStore } from "./user-data";
 import type { SyllabusMilestone } from "@/lib/syllabus-calendar";
 
 export type StudyPlanSpace = "student" | "abiturient";
@@ -21,12 +23,10 @@ export interface SavedStudyPlan {
 }
 
 function storageKey(space: StudyPlanSpace): string {
-  return space === "abiturient"
-    ? "spaceedu-dashboard-study-plan"
-    : "spaceedu-dashboard-study-plan-student";
+  return STUDY_PLAN_KEYS[space];
 }
 
-export const STUDY_PLAN_CALENDAR_UPDATED_EVENT = "spaceedu-study-plan-calendar-updated";
+export { STUDY_PLAN_CALENDAR_UPDATED_EVENT };
 
 function notifyStudyPlanCalendarUpdated() {
   if (typeof window === "undefined") return;
@@ -35,14 +35,9 @@ function notifyStudyPlanCalendarUpdated() {
 
 export function getSavedStudyPlan(space: StudyPlanSpace): SavedStudyPlan | null {
   if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(storageKey(space));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SavedStudyPlan;
-    return { ...parsed, doneDates: parsed.doneDates ?? [] };
-  } catch {
-    return null;
-  }
+  const parsed = userStore.get<SavedStudyPlan | null>(storageKey(space), null);
+  if (!parsed || typeof parsed !== "object") return null;
+  return { ...parsed, doneDates: parsed.doneDates ?? [] };
 }
 
 export function saveStudyPlanToDashboard(
@@ -59,7 +54,7 @@ export function saveStudyPlanToDashboard(
     days,
     doneDates: [],
   };
-  window.localStorage.setItem(storageKey(space), JSON.stringify(record));
+  userStore.set(storageKey(space), record);
   notifyStudyPlanCalendarUpdated();
 }
 
@@ -71,7 +66,7 @@ export function toggleStudyPlanDayDone(space: StudyPlanSpace, date: string): voi
     ? current.doneDates.filter((item) => item !== date)
     : [...current.doneDates, date];
   const next: SavedStudyPlan = { ...current, doneDates: nextDoneDates };
-  window.localStorage.setItem(storageKey(space), JSON.stringify(next));
+  userStore.set(storageKey(space), next);
   notifyStudyPlanCalendarUpdated();
   if (!isDone) {
     recordDailyActivity();
@@ -80,7 +75,7 @@ export function toggleStudyPlanDayDone(space: StudyPlanSpace, date: string): voi
 
 export function clearSavedStudyPlan(space: StudyPlanSpace): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(storageKey(space));
+  userStore.remove(storageKey(space));
   notifyStudyPlanCalendarUpdated();
 }
 

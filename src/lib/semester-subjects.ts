@@ -1,9 +1,12 @@
+import { SEMESTER_SUBJECTS_STORAGE_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
+
+export { SEMESTER_SUBJECTS_STORAGE_KEY, SEMESTER_SUBJECTS_UPDATED_EVENT } from "./user-data-keys";
+
 export interface SemesterSubject {
   id: string;
   name: string;
 }
-
-export const SEMESTER_SUBJECTS_STORAGE_KEY = "spaceedu-semester-subjects";
 
 export const DEFAULT_SEMESTER_SUBJECTS: SemesterSubject[] = [
   { id: "default-1", name: "მონაცემთა სტრუქტურები" },
@@ -27,20 +30,15 @@ export interface SemesterSubjectsData {
 }
 
 export function readSemesterSubjects(): SemesterSubjectsData {
-  if (typeof window === "undefined") {
-    return { subjects: DEFAULT_SEMESTER_SUBJECTS, semesterLabel: "" };
-  }
-  try {
-    const raw = window.localStorage.getItem(SEMESTER_SUBJECTS_STORAGE_KEY);
-    if (!raw) {
-      return { subjects: DEFAULT_SEMESTER_SUBJECTS, semesterLabel: "" };
-    }
-    const parsed = JSON.parse(raw) as Partial<SemesterSubjectsData>;
-    return {
-      subjects: Array.isArray(parsed.subjects) ? parsed.subjects : DEFAULT_SEMESTER_SUBJECTS,
-      semesterLabel: parsed.semesterLabel ?? "",
-    };
-  } catch {
-    return { subjects: DEFAULT_SEMESTER_SUBJECTS, semesterLabel: "" };
-  }
+  const parsed = userStore.get<Partial<SemesterSubjectsData> | null>(SEMESTER_SUBJECTS_STORAGE_KEY, null);
+  if (!parsed) return { subjects: DEFAULT_SEMESTER_SUBJECTS, semesterLabel: "" };
+  return {
+    subjects: Array.isArray(parsed.subjects) ? parsed.subjects : DEFAULT_SEMESTER_SUBJECTS,
+    semesterLabel: parsed.semesterLabel ?? "",
+  };
+}
+
+/** Saves on this device and on the account. */
+export function saveSemesterSubjects(data: SemesterSubjectsData) {
+  userStore.set(SEMESTER_SUBJECTS_STORAGE_KEY, data);
 }

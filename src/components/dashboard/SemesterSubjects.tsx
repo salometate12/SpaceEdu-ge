@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { Check, Layers, Plus, X } from "lucide-react";
 import {
   DEFAULT_SEMESTER_SUBJECTS,
-  SEMESTER_SUBJECTS_STORAGE_KEY,
+  SEMESTER_SUBJECTS_UPDATED_EVENT,
   readSemesterSubjects,
+  saveSemesterSubjects,
   type SemesterSubject,
 } from "@/lib/semester-subjects";
 import { getActiveSubject, setActiveSubject } from "@/lib/activity";
@@ -15,35 +16,39 @@ export function SemesterSubjects() {
   const [subjects, setSubjects] = useState<SemesterSubject[]>(DEFAULT_SEMESTER_SUBJECTS);
   const [semesterLabel, setSemesterLabel] = useState("2026 შემოდგომის სემესტრი");
   const [newSubject, setNewSubject] = useState("");
-  const [hydrated, setHydrated] = useState(false);
   const [activeSubject, setActiveSubjectState] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
+  // Read on mount, and again when the account's copy arrives (UserDataSync).
   useEffect(() => {
-    const saved = readSemesterSubjects();
-    setSubjects(saved.subjects);
-    if (saved.semesterLabel) setSemesterLabel(saved.semesterLabel);
+    const load = () => {
+      const saved = readSemesterSubjects();
+      setSubjects(saved.subjects);
+      if (saved.semesterLabel) setSemesterLabel(saved.semesterLabel);
+    };
+    load();
     setActiveSubjectState(getActiveSubject());
-    setHydrated(true);
+    window.addEventListener(SEMESTER_SUBJECTS_UPDATED_EVENT, load);
+    return () => window.removeEventListener(SEMESTER_SUBJECTS_UPDATED_EVENT, load);
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(
-      SEMESTER_SUBJECTS_STORAGE_KEY,
-      JSON.stringify({ subjects, semesterLabel }),
-    );
-  }, [subjects, semesterLabel, hydrated]);
+  // Saved only on the student's own edits, so opening the page never
+  // counts as a change to send to the account.
+  const save = (nextSubjects: SemesterSubject[], nextLabel: string) => {
+    setSubjects(nextSubjects);
+    setSemesterLabel(nextLabel);
+    saveSemesterSubjects({ subjects: nextSubjects, semesterLabel: nextLabel });
+  };
 
   const addSubject = () => {
     const name = newSubject.trim();
     if (!name) return;
-    setSubjects((prev) => [...prev, { id: crypto.randomUUID(), name }]);
+    save([...subjects, { id: crypto.randomUUID(), name }], semesterLabel);
     setNewSubject("");
   };
 
   const removeSubject = (id: string, name: string) => {
-    setSubjects((prev) => prev.filter((subject) => subject.id !== id));
+    save(subjects.filter((subject) => subject.id !== id), semesterLabel);
     if (activeSubject === name) {
       setActiveSubject(null);
       setActiveSubjectState(null);
@@ -68,7 +73,7 @@ export function SemesterSubjects() {
       subtitle={
         <input
           value={semesterLabel}
-          onChange={(e) => setSemesterLabel(e.target.value)}
+          onChange={(e) => save(subjects, e.target.value)}
           placeholder="სემესტრის დასახელება..."
           aria-label="სემესტრის დასახელება"
           className="-mx-1 w-full max-w-xs rounded-md bg-transparent px-1 text-sm text-[var(--text-secondary)] outline-none transition-colors placeholder:text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] focus:bg-[var(--bg-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/40"

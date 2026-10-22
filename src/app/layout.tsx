@@ -23,6 +23,7 @@ import { MobileSideMenuProvider } from "@/contexts/MobileSideMenuContext";
 import { MobileSideMenuDrawer } from "@/components/dashboard/MobileSideMenuDrawer";
 import { ka } from "@/lib/i18n";
 import { PwaRegister } from "@/components/pwa/PwaRegister";
+import { UserDataSync } from "@/components/UserDataSync";
 import "./globals.css";
 
 const notoGeorgian = Noto_Sans_Georgian({
@@ -171,6 +172,7 @@ export default function RootLayout({
                     <MobileGlassDockByPath />
                     <FocusModeExitPill />
                     <PwaRegister />
+                    <UserDataSync />
                   </div>
                   <SiteThemeAccess />
                 </FocusModeProvider>

@@ -1,3 +1,6 @@
+import { CALENDAR_UPDATED_EVENT, DASHBOARD_CALENDAR_KEY_BASE, SYLLABUS_MILESTONES_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
+
 /** What a dated entry on the dashboard calendar is.
  *  `study` covers the days of a saved study plan, which are neither an
  *  exam nor something due — just work planned for that date. */
@@ -37,8 +40,6 @@ export interface DashboardCalendarEvent {
   source: "syllabus" | "manual";
 }
 
-const SYLLABUS_MILESTONES_KEY = "spaceedu-syllabus-generated-milestones";
-const DASHBOARD_CALENDAR_KEY_BASE = "spaceedu-dashboard-calendar-events";
 
 /** The dashboard calendar is per-space so the abiturient dashboard doesn't
  * inherit the student dashboard's saved dates (and vice-versa). Student /
@@ -53,29 +54,19 @@ function dashboardCalendarKey(): string {
 
 export function getGeneratedMilestones(): SyllabusMilestone[] {
   if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(SYLLABUS_MILESTONES_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as SyllabusMilestone[];
-  } catch {
-    return [];
-  }
+  const stored = userStore.get<unknown>(SYLLABUS_MILESTONES_KEY, []);
+  return Array.isArray(stored) ? (stored as SyllabusMilestone[]) : [];
 }
 
 export function setGeneratedMilestones(milestones: SyllabusMilestone[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(SYLLABUS_MILESTONES_KEY, JSON.stringify(milestones));
+  userStore.set(SYLLABUS_MILESTONES_KEY, milestones);
 }
 
 export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {
   if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(dashboardCalendarKey());
-    if (!raw) return [];
-    return JSON.parse(raw) as DashboardCalendarEvent[];
-  } catch {
-    return [];
-  }
+  const stored = userStore.get<unknown>(dashboardCalendarKey(), []);
+  return Array.isArray(stored) ? (stored as DashboardCalendarEvent[]) : [];
 }
 
 /** Folds week/topic into a human-readable description, since DashboardCalendarEvent
@@ -102,7 +93,7 @@ export function addMilestoneToDashboardCalendar(
   };
   const next = [...existing.filter((item) => item.id !== milestone.id), event];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
+    userStore.set(dashboardCalendarKey(), next);
     notifyCalendarUpdated();
   }
   return next;
@@ -129,7 +120,7 @@ export function addMilestonesToDashboardCalendar(
     ...events,
   ];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
+    userStore.set(dashboardCalendarKey(), next);
     notifyCalendarUpdated();
   }
   return next;
@@ -162,7 +153,7 @@ export function addManualCalendarEvent(
   };
   const next = [...existing, event];
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
+    userStore.set(dashboardCalendarKey(), next);
     notifyCalendarUpdated();
   }
   return next;
@@ -185,7 +176,7 @@ export function updateDashboardCalendarEvent(
       : event,
   );
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
+    userStore.set(dashboardCalendarKey(), next);
     notifyCalendarUpdated();
   }
   return next;
@@ -194,13 +185,13 @@ export function updateDashboardCalendarEvent(
 export function removeDashboardCalendarEvent(id: string): DashboardCalendarEvent[] {
   const next = getDashboardCalendarEvents().filter((event) => event.id !== id);
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(dashboardCalendarKey(), JSON.stringify(next));
+    userStore.set(dashboardCalendarKey(), next);
     notifyCalendarUpdated();
   }
   return next;
 }
 
-export const CALENDAR_UPDATED_EVENT = "spaceedu-calendar-updated";
+export { CALENDAR_UPDATED_EVENT };
 
 /** sessionStorage handoff: the dashboard calendar writes a ready-made prompt
  * here, then routes to /ai-teacher, which consumes it once and auto-sends. */
@@ -250,7 +241,7 @@ export function clearLegacySyllabusMockData(): void {
   const cleaned = stored.filter((item) => !LEGACY_MOCK_MILESTONE_IDS.has(item.id));
   if (cleaned.length !== stored.length) {
     if (cleaned.length === 0) {
-      window.localStorage.removeItem(SYLLABUS_MILESTONES_KEY);
+      userStore.remove(SYLLABUS_MILESTONES_KEY);
     } else {
       setGeneratedMilestones(cleaned);
     }
@@ -262,12 +253,9 @@ export function clearLegacySyllabusMockData(): void {
   );
   if (cleanedEvents.length !== events.length) {
     if (cleanedEvents.length === 0) {
-      window.localStorage.removeItem(dashboardCalendarKey());
+      userStore.remove(dashboardCalendarKey());
     } else {
-      window.localStorage.setItem(
-        dashboardCalendarKey(),
-        JSON.stringify(cleanedEvents),
-      );
+      userStore.set(dashboardCalendarKey(), cleanedEvents);
     }
     notifyCalendarUpdated();
   }
