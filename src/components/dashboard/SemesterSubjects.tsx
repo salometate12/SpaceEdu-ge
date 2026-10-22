@@ -25,9 +25,9 @@ export function SemesterSubjects() {
       const saved = readSemesterSubjects();
       setSubjects(saved.subjects);
       if (saved.semesterLabel) setSemesterLabel(saved.semesterLabel);
+      setActiveSubjectState(getActiveSubject());
     };
     load();
-    setActiveSubjectState(getActiveSubject());
     window.addEventListener(SEMESTER_SUBJECTS_UPDATED_EVENT, load);
     return () => window.removeEventListener(SEMESTER_SUBJECTS_UPDATED_EVENT, load);
   }, []);

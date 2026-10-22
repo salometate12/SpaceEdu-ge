@@ -1,3 +1,6 @@
+import { ACTIVE_SUBJECT_KEY, TOOL_USAGE_KEY as USAGE_STORAGE_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
+
 export interface ToolUsageEvent {
   id: string;
   toolId: string;
@@ -6,25 +9,34 @@ export interface ToolUsageEvent {
   timestamp: number;
 }
 
-const USAGE_STORAGE_KEY = "spaceedu-tool-usage";
-const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
 const MAX_EVENTS = 300;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+/** Stored as JSON so it can follow the account; older browsers kept the
+ * bare name, which is read as is (and rewritten as JSON once). */
 export function getActiveSubject(): string | null {
   if (!isBrowser()) return null;
-  return window.localStorage.getItem(ACTIVE_SUBJECT_KEY);
+  const raw = window.localStorage.getItem(ACTIVE_SUBJECT_KEY);
+  if (raw === null) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed === "string") return parsed;
+  } catch {
+    // the old bare-text format
+  }
+  window.localStorage.setItem(ACTIVE_SUBJECT_KEY, JSON.stringify(raw));
+  return raw;
 }
 
 export function setActiveSubject(subject: string | null): void {
   if (!isBrowser()) return;
   if (subject) {
-    window.localStorage.setItem(ACTIVE_SUBJECT_KEY, subject);
+    userStore.set(ACTIVE_SUBJECT_KEY, subject);
   } else {
-    window.localStorage.removeItem(ACTIVE_SUBJECT_KEY);
+    userStore.remove(ACTIVE_SUBJECT_KEY);
   }
 }
 
@@ -51,7 +63,7 @@ export function recordToolUsage(toolId: string, toolTitle: string): void {
     timestamp: Date.now(),
   };
   const next = [...events, event].slice(-MAX_EVENTS);
-  window.localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(next));
+  userStore.set(USAGE_STORAGE_KEY, next);
 }
 
 export function usageByTool(events: ToolUsageEvent[]): Record<string, number> {

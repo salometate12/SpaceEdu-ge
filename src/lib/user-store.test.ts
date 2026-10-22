@@ -345,7 +345,7 @@ describe("merge rules", () => {
     ]);
   });
 
-  it("covers subjects and calendar (PR 1) and content (PR 2)", () => {
+  it("covers subjects and calendar (PR 1), content (PR 2) and progress (PR 3)", () => {
     expect(SYNCED_KEYS.map((spec) => spec.key)).toEqual([
       "spaceedu-semester-subjects",
       "spaceedu-dashboard-calendar-events",
@@ -361,6 +361,16 @@ describe("merge rules", () => {
       "spaceedu-ai-teacher-conversations-abiturient",
       "spaceedu-assistant-history",
       "spaceedu-cv-prefs",
+      "spaceedu-daily-goals",
+      "spaceedu-daily-quests",
+      "spaceedu-daily-streak",
+      "flashcards-progress",
+      "spaceedu-category-accuracy",
+      "spaceedu-quiz-stats",
+      "spaceedu-cv-updated-at",
+      "spaceedu-tool-usage",
+      "spaceedu-active-subject",
+      "spaceedu-journal-progress",
     ]);
   });
 });

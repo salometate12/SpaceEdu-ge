@@ -5,16 +5,31 @@ import { Download, Trash2, TriangleAlert } from "lucide-react";
 import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 import { nbButtonClass } from "@/lib/nb-button";
+import { userStore } from "@/lib/user-data";
+import {
+  CATEGORY_ACCURACY_KEY,
+  DAILY_GOALS_KEY,
+  DAILY_QUESTS_KEY,
+  DECK_PROGRESS_KEY,
+  JOURNAL_PROGRESS_KEY,
+  QUIZ_STATS_KEY,
+  STREAK_KEY,
+  TOOL_USAGE_KEY,
+} from "@/lib/user-data-keys";
 
-// Local progress lives entirely in the browser, so clearing it is a real,
-// safe client-side action. Export (needs a server bundle) and account deletion
-// (needs the Supabase admin API server-side) have no route yet → "მალე".
+// Progress lives on the account (lib/user-data): removing it through the
+// store clears it here and on the account, so no device brings it back.
+// Export (needs a server bundle) and account deletion (needs the Supabase
+// admin API server-side) have no route yet → "მალე".
 const PROGRESS_KEYS = [
-  "spaceedu-tool-usage",
-  "spaceedu-daily-streak",
-  "spaceedu-daily-goals",
-  "spaceedu-journal-progress",
-  "flashcards-progress",
+  TOOL_USAGE_KEY,
+  STREAK_KEY,
+  DAILY_GOALS_KEY,
+  DAILY_QUESTS_KEY,
+  JOURNAL_PROGRESS_KEY,
+  DECK_PROGRESS_KEY,
+  QUIZ_STATS_KEY,
+  CATEGORY_ACCURACY_KEY,
 ];
 
 export function SettingsDanger() {
@@ -23,7 +38,7 @@ export function SettingsDanger() {
 
   const handleClear = () => {
     try {
-      for (const key of PROGRESS_KEYS) window.localStorage.removeItem(key);
+      for (const key of PROGRESS_KEYS) userStore.remove(key);
     } catch {
       /* ignore */
     }
@@ -65,7 +80,7 @@ export function SettingsDanger() {
           <div className={SETTINGS_ROW_TEXT}>
             <div className="text-[13px] text-[var(--text-primary)]">პროგრესის გასუფთავება</div>
             <div className="text-[11px] text-[var(--text-secondary)]">
-              Quiz ისტორია, სტრიქი და სტატისტიკა ამ მოწყობილობაზე წაიშლება
+              Quiz ისტორია, სტრიქი და სტატისტიკა ყველა მოწყობილობაზე წაიშლება
             </div>
           </div>
           {cleared ? (
@@ -107,7 +122,7 @@ export function SettingsDanger() {
       <ConfirmDialog
         open={confirmClear}
         title="პროგრესის გასუფთავება"
-        message="ამ მოწყობილობაზე შენახული Quiz ისტორია, სტრიქი, დღის მიზნები და პროგრესი წაიშლება. ეს შეუქცევადია."
+        message="Quiz ისტორია, სტრიქი, დღის მიზნები და პროგრესი წაიშლება შენი ანგარიშიდან — ყველა მოწყობილობაზე. ეს შეუქცევადია."
         confirmLabel="გასუფთავება"
         onConfirm={handleClear}
         onCancel={() => setConfirmClear(false)}

@@ -1,8 +1,7 @@
-import { LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT } from "./user-data-keys";
+import { JOURNAL_PROGRESS_KEY, LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT } from "./user-data-keys";
 import { userStore } from "./user-data";
 
-export { LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT };
-export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
+export { JOURNAL_PROGRESS_KEY, LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT };
 export const JOURNAL_XP_PER_SAVE = 50;
 
 export const JOURNAL_SECTION_IDS = ["lectures", "assignments", "ai-notes", "ideas"] as const;
@@ -283,7 +282,7 @@ export function loadJournalProgress(): JournalProgress {
 
 export function saveJournalProgress(progress: JournalProgress): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(JOURNAL_PROGRESS_KEY, JSON.stringify(progress));
+  userStore.set(JOURNAL_PROGRESS_KEY, progress);
 }
 
 function yesterdayIsoDate(): string {
