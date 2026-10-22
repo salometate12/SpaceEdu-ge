@@ -30,3 +30,36 @@ export async function exportToPdf(elementId: string, filename: string) {
   }
   pdf.save(`${filename}.pdf`);
 }
+
+/** A4 in points. */
+const A4_W = 595.28;
+const A4_H = 841.89;
+const A4_MARGIN = 32;
+
+/**
+ * A tall element (an analysis, a document) as A4 pages: captured once and
+ * cut into page-high slices. Elements marked `data-html2canvas-ignore`
+ * (buttons, sticky navigation) are left out.
+ */
+export async function exportElementToA4Pdf(element: HTMLElement, filename: string, background = "#ffffff") {
+  const canvas = await html2canvas(element, { scale: 2, backgroundColor: background, useCORS: true });
+  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+  const contentW = A4_W - A4_MARGIN * 2;
+  const contentH = A4_H - A4_MARGIN * 2;
+  // Canvas pixels that fit on one page at the page's width.
+  const sliceH = Math.floor((contentH / contentW) * canvas.width);
+  for (let top = 0, page = 0; top < canvas.height; top += sliceH, page += 1) {
+    const height = Math.min(sliceH, canvas.height - top);
+    const slice = document.createElement("canvas");
+    slice.width = canvas.width;
+    slice.height = height;
+    const context = slice.getContext("2d");
+    if (!context) break;
+    context.fillStyle = background;
+    context.fillRect(0, 0, slice.width, slice.height);
+    context.drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
+    if (page > 0) pdf.addPage("a4", "portrait");
+    pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", A4_MARGIN, A4_MARGIN, contentW, (height / canvas.width) * contentW);
+  }
+  pdf.save(`${filename}.pdf`);
+}

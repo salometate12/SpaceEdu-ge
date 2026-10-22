@@ -9,7 +9,6 @@ import {
   CalendarDays,
   CalendarPlus,
   Check,
-  CloudUpload,
   GraduationCap,
   Plus,
   NotebookPen,
@@ -17,6 +16,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
+import { UploadIconBadge } from "@/components/ui/UploadDropzone";
 import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import { readSemesterSubjects } from "@/lib/semester-subjects";
 import { matchSemesterSubject, unboundMilestones } from "@/lib/syllabus-dates";
@@ -429,12 +429,7 @@ export function SyllabusAnalyzer() {
               className="hidden"
               onChange={onFileChange}
             />
-            <span
-              className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-bold ${ACCENT_PILL.violet}`}
-            >
-              <CloudUpload className="h-3.5 w-3.5 stroke-[2.5]" />
-              PDF
-            </span>
+            <UploadIconBadge />
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
               ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად
             </p>

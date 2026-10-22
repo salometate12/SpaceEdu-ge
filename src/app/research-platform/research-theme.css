@@ -1,0 +1,142 @@
+/*
+ * „მასალა → ანალიზი“ — the light style: a pale page, white cards with thin
+ * borders, no shadows or gradients, one pink accent. Every colour of the
+ * page comes from these tokens; `.rp` is its root.
+ */
+.rp {
+  --rp-bg: #fafaf9;
+  --rp-card: #ffffff;
+  --rp-card-border: #ece9e4;
+  --rp-line: #e7e5e4;
+  --rp-line-strong: #d6d3d1;
+  --rp-text: #2f2c28;
+  --rp-strong: #1c1a17;
+  --rp-muted: #6f6a64;
+  --rp-soft: #f5f4f0;
+  --rp-ink: #18181b;
+  --rp-ink-text: #ffffff;
+  --rp-accent: #e11d74;
+  --rp-ok: #16a34a;
+  --rp-bad-border: #fca5a5;
+  --rp-bad-bg: #fff7f7;
+  --rp-bad-text: #b91c1c;
+
+  /* Sections: dot and marker. */
+  --rp-theses: #ec4899;
+  --rp-theses-mark: #fbcfe8;
+  --rp-methodology: #38bdf8;
+  --rp-methodology-mark: #bae6fd;
+  --rp-literature: #facc15;
+  --rp-literature-mark: #fde68a;
+  --rp-criticalAnalysis: #f97316;
+  --rp-criticalAnalysis-mark: #fed7aa;
+  --rp-conclusions: #4ade80;
+  --rp-conclusions-mark: #bbf7d0;
+  --rp-number: #be185d;
+  --rp-strong-bg: #f0fdf4;
+  --rp-strong-text: #166534;
+  --rp-weak-bg: #fff7ed;
+  --rp-weak-text: #9a3412;
+
+  /* „როგორ მუშაობს“ cards. */
+  --rp-how1-bg: #fdf2f8;
+  --rp-how1-icon: #e11d74;
+  --rp-how1-title: #831843;
+  --rp-how1-text: #9d174d;
+  --rp-how2-bg: #f0f9ff;
+  --rp-how2-icon: #0284c7;
+  --rp-how2-title: #0c4a6e;
+  --rp-how2-text: #075985;
+  --rp-how3-bg: #fefce8;
+  --rp-how3-icon: #ca8a04;
+  --rp-how3-title: #713f12;
+  --rp-how3-text: #854d0e;
+
+  /* History tiles by file kind. */
+  --rp-pdf-bg: #fef2f2;
+  --rp-pdf: #dc2626;
+  --rp-audio-bg: #f0fdf4;
+  --rp-audio: #16a34a;
+  --rp-image-bg: #f0f9ff;
+  --rp-image: #0284c7;
+  --rp-text-bg: #f5f4f0;
+  --rp-text-icon: #44403c;
+
+  background: var(--rp-bg);
+  color: var(--rp-text);
+}
+
+html.dark .rp {
+  --rp-bg: var(--bg-primary);
+  --rp-card: #1c1b19;
+  --rp-card-border: #2e2c29;
+  --rp-line: #34322e;
+  --rp-line-strong: #44413c;
+  --rp-text: #e6e3de;
+  --rp-strong: #fafaf9;
+  --rp-muted: #a29d96;
+  --rp-soft: #24231f;
+  --rp-ink: #e6e3de;
+  --rp-ink-text: #18181b;
+  --rp-bad-border: rgba(248, 113, 113, 0.5);
+  --rp-bad-bg: rgba(248, 113, 113, 0.08);
+  --rp-bad-text: #fca5a5;
+
+  --rp-theses-mark: rgba(236, 72, 153, 0.35);
+  --rp-methodology-mark: rgba(56, 189, 248, 0.32);
+  --rp-literature-mark: rgba(250, 204, 21, 0.32);
+  --rp-criticalAnalysis-mark: rgba(249, 115, 22, 0.32);
+  --rp-conclusions-mark: rgba(74, 222, 128, 0.3);
+  --rp-number: #f9a8d4;
+  --rp-strong-bg: rgba(74, 222, 128, 0.1);
+  --rp-strong-text: #86efac;
+  --rp-weak-bg: rgba(249, 115, 22, 0.1);
+  --rp-weak-text: #fdba74;
+
+  --rp-how1-bg: rgba(236, 72, 153, 0.12);
+  --rp-how1-icon: #f9a8d4;
+  --rp-how1-title: #fbcfe8;
+  --rp-how1-text: #f9a8d4;
+  --rp-how2-bg: rgba(56, 189, 248, 0.12);
+  --rp-how2-icon: #7dd3fc;
+  --rp-how2-title: #bae6fd;
+  --rp-how2-text: #7dd3fc;
+  --rp-how3-bg: rgba(250, 204, 21, 0.1);
+  --rp-how3-icon: #fde047;
+  --rp-how3-title: #fef08a;
+  --rp-how3-text: #fde047;
+
+  --rp-pdf-bg: rgba(220, 38, 38, 0.14);
+  --rp-pdf: #fca5a5;
+  --rp-audio-bg: rgba(22, 163, 74, 0.14);
+  --rp-audio: #86efac;
+  --rp-image-bg: rgba(2, 132, 199, 0.16);
+  --rp-image: #7dd3fc;
+  --rp-text-bg: #24231f;
+  --rp-text-icon: #d6d3d1;
+}
+
+/* **bold** in a section: a marker stroke in that section's light tone. */
+.rp [data-section] strong {
+  color: var(--rp-strong);
+  font-weight: 600;
+  background: linear-gradient(transparent 62%, var(--rp-mark) 62%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 1px;
+}
+.rp [data-section="theses"] {
+  --rp-mark: var(--rp-theses-mark);
+}
+.rp [data-section="methodology"] {
+  --rp-mark: var(--rp-methodology-mark);
+}
+.rp [data-section="literature"] {
+  --rp-mark: var(--rp-literature-mark);
+}
+.rp [data-section="criticalAnalysis"] {
+  --rp-mark: var(--rp-criticalAnalysis-mark);
+}
+.rp [data-section="conclusions"] {
+  --rp-mark: var(--rp-conclusions-mark);
+}
