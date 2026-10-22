@@ -12,7 +12,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUp, PanelLeft, Square, SquarePen } from "lucide-react";
+import { ArrowUp, PanelLeft, Sparkles, Square, SquarePen } from "lucide-react";
+import { useIsPhoneLayout, useIsTouchDevice, useMobileChatViewport } from "@/hooks/useMobileChatViewport";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
@@ -66,6 +67,10 @@ function subscribeSidebar(onChange: () => void) {
   };
 }
 
+/** The phone header's two buttons: soft 40px circles. */
+const MOBILE_ROUND_BUTTON =
+  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-transform duration-150 active:scale-[0.94] motion-reduce:transition-none";
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -90,6 +95,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false);
   // Bumped when a saved conversation is opened, so it opens at its last question.
   const [openCount, setOpenCount] = useState(0);
+  // Phone header: a hairline appears once the conversation scrolls under it.
+  const [feedScrolled, setFeedScrolled] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const reduceMotion = useReducedMotion();
 
@@ -98,6 +105,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const initialPromptConsumed = useRef(false);
 
   const router = useRouter();
+  useMobileChatViewport();
+  const isPhone = useIsPhoneLayout();
+  const isTouch = useIsTouchDevice();
   const firstName = useCurrentUserFirstName();
 
   const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
@@ -110,9 +120,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     element.style.height = `${Math.min(element.scrollHeight, 160)}px`;
   }, []);
 
+  // Also when the placeholder switches to the phone's short one.
   useEffect(() => {
     adjustTextareaHeight();
-  }, [input, adjustTextareaHeight]);
+  }, [input, isPhone, adjustTextareaHeight]);
 
   // The last question and its answer; the question scrolls to the top when
   // it's sent, and the answer is read from its start (no following the stream).
@@ -267,6 +278,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    // On a phone Enter is a new line; sending is the button's job.
+    if (isTouch) return;
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       if (canSend) void sendMessage(input);
@@ -351,6 +364,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
 
   // Swipe left on the drawer closes it.
   const swipeStart = useRef<number | null>(null);
+  // Swipe right across the chat opens it — not from the very edge, which
+  // iOS keeps for "back".
+  const feedSwipe = useRef<{ x: number; y: number } | null>(null);
 
   const sidebarProps = {
     title: copy.headerTitle,
@@ -376,7 +392,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   );
 
   const floatingInput = (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/90 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+4.75rem)] pt-8 md:pb-5">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/90 to-transparent px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-8 md:pb-5 [.keyboard-open_&]:pb-2">
       <div className="pointer-events-auto relative w-full max-w-3xl">
         {showJump ? <JumpToEndButton onClick={jumpToEnd} /> : null}
         {friendlyError ? (
@@ -386,18 +402,21 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         ) : null}
 
         <form onSubmit={handleSubmit}>
+          {/* Phone: one 48px capsule that grows to ~5 lines while typing. */}
           <div
-            className="rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)]"
+            className="rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)] max-md:rounded-[24px] max-md:shadow-[0_2px_12px_rgb(0_0_0/0.06)]"
           >
-            <div className="flex items-end gap-2 px-3 py-2">
+            <div className="flex items-end gap-2 px-3 py-2 max-md:gap-1.5 max-md:py-[5px] max-md:pl-2 max-md:pr-[5px]">
               <textarea
                 ref={textareaRef}
                 value={input}
                 rows={1}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={copy.placeholder}
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                placeholder={isPhone ? "დაწერე კითხვა…" : copy.placeholder}
+                aria-label="შენი კითხვა"
+                // 16px on phones: iOS zooms into anything smaller.
+                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-2.5 pl-2 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:font-medium max-md:leading-[22px] max-md:placeholder:text-[var(--text-secondary)]"
               />
               {isLoading ? (
                 <button
@@ -405,7 +424,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   onClick={stopGenerating}
                   aria-label="შეჩერება"
                   title="შეჩერება"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85"
+                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 max-md:mb-0 max-md:h-9 max-md:w-9"
                 >
                   <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
                 </button>
@@ -414,7 +433,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                   type="submit"
                   disabled={!canSend}
                   aria-label="გაგზავნა"
-                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100"
+                  className="mb-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] transition hover:opacity-85 disabled:bg-[var(--bg-secondary)] disabled:text-[var(--text-muted)] disabled:hover:opacity-100 max-md:mb-0 max-md:h-9 max-md:w-9 max-md:disabled:bg-[var(--text-primary)] max-md:disabled:text-[var(--bg-card)] max-md:disabled:opacity-35"
                 >
                   <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -447,7 +466,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
             <motion.button
               type="button"
               aria-label="მენიუს დახურვა"
-              className="absolute inset-0 bg-black/50"
+              className="absolute inset-0 bg-black/35"
               onClick={() => setSidebarOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -467,11 +486,11 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 if (swipeStart.current !== null && event.clientX - swipeStart.current < -60) setSidebarOpen(false);
                 swipeStart.current = null;
               }}
-              className="absolute inset-y-0 left-0 w-[min(300px,86vw)] border-r border-[var(--border)] bg-[var(--bg-card)] pt-[env(safe-area-inset-top)] shadow-2xl"
+              className="absolute inset-y-0 left-0 w-[min(86vw,320px)] border-r border-[var(--border)] bg-[var(--bg-card)] pt-[env(safe-area-inset-top)] shadow-2xl"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeOut" }}
+              transition={{ duration: reduceMotion ? 0 : 0.26, ease: "easeOut" }}
             >
               <AITeacherSidebar {...sidebarProps} variant="drawer" onClose={() => setSidebarOpen(false)} />
             </motion.div>
@@ -480,43 +499,59 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       </AnimatePresence>
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        {/* Top bar — mobile */}
-        <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2.5 backdrop-blur-sm md:hidden">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
-            aria-label="საუბრების მენიუ"
-            aria-expanded={sidebarOpen}
-          >
-            <PanelLeft className="h-5 w-5" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-[var(--text-primary)]">{copy.headerTitle}</div>
-            <div className="truncate text-xs text-[var(--text-muted)]">{copy.headerSubtitle}</div>
+        {/* Top bar — phone: under the status bar, always on top of the chat. */}
+        <div
+          className={`z-10 shrink-0 border-b bg-[var(--bg-primary)]/80 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-colors duration-200 md:hidden ${
+            feedScrolled ? "border-[var(--border)]" : "border-transparent"
+          }`}
+        >
+          <div className="flex h-[52px] items-center gap-2.5 px-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className={MOBILE_ROUND_BUTTON}
+              aria-label="საუბრები"
+              aria-expanded={sidebarOpen}
+            >
+              <PanelLeft className="h-5 w-5" strokeWidth={1.9} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[15px] font-semibold leading-tight text-[var(--text-primary)]">{copy.headerTitle}</div>
+              <div className="truncate text-[12px] leading-tight text-[var(--text-secondary)]">{copy.headerSubtitle}</div>
+            </div>
+            <button type="button" onClick={startNewChat} className={MOBILE_ROUND_BUTTON} aria-label="ახალი ჩატი">
+              <SquarePen className="h-[18px] w-[18px]" strokeWidth={1.9} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={startNewChat}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
-            aria-label="ახალი ჩატი"
-          >
-            <SquarePen className="h-5 w-5" />
-          </button>
         </div>
 
         <div
           ref={attachFeed}
-          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-52 pt-6 sm:px-6 md:pb-44"
+          onScroll={(event) => setFeedScrolled(event.currentTarget.scrollTop > 2)}
+          onTouchStart={(event) => {
+            const touch = event.touches[0];
+            feedSwipe.current = touch.clientX > 24 ? { x: touch.clientX, y: touch.clientY } : null;
+          }}
+          onTouchEnd={(event) => {
+            const start = feedSwipe.current;
+            feedSwipe.current = null;
+            const touch = event.changedTouches[0];
+            if (start && touch.clientX - start.x > 70 && Math.abs(touch.clientY - start.y) < 40) setSidebarOpen(true);
+          }}
+          className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-36 pt-6 sm:px-6 md:pb-44"
         >
           {!hasMessages ? (
-            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-start px-2 pt-1 text-center sm:justify-center sm:pt-0">
-              <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
-              <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-[2.5rem]">
+            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center px-2 text-center">
+              <div className="ai-orb mb-4 h-[4.5rem] w-[4.5rem] max-md:hidden sm:mb-8 sm:h-44 sm:w-44" aria-hidden />
+              {/* Phone: a small, quiet AI mark instead of the orb. */}
+              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] md:hidden" aria-hidden>
+                <Sparkles className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <h1 className="headline text-2xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] max-md:font-bold sm:text-[2.5rem]">
                 {firstName
                   ? copy.greetingWithName.replace("{name}", firstName)
                   : copy.greetingWithoutName}
-                <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent max-md:mt-1.5 max-md:bg-none max-md:font-sans max-md:text-[16px] max-md:font-medium max-md:leading-snug max-md:tracking-normal max-md:text-[var(--text-secondary)]">
                   {copy.greetingQuestion}
                 </span>
               </h1>
@@ -524,7 +559,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                 {copy.intro}
               </p>
 
-              <div className="mt-5 grid w-full grid-cols-2 gap-2.5 pb-2 sm:mt-9 sm:gap-3">
+              {/* One column on phones, so no title gets cut off. */}
+              <div className="mt-6 grid w-full grid-cols-1 gap-2.5 pb-2 sm:mt-9 sm:grid-cols-2 sm:gap-3">
                 {copy.suggestions.map((action) => {
                   const ActionIcon = action.icon;
                   return (
@@ -532,15 +568,15 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
                       key={action.title}
                       type="button"
                       onClick={() => void sendMessage(action.prompt)}
-                      className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3 pr-9 text-left transition-colors duration-200 hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] sm:p-3.5 sm:pr-10"
+                      className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-3.5 pr-11 text-left transition-colors duration-200 hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] sm:pr-10"
                     >
                       <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] sm:right-2.5 sm:top-2.5 sm:h-7 sm:w-7">
                         <ActionIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
                       </span>
-                      <span className="block truncate text-[13px] font-semibold text-[var(--text-primary)]">
+                      <span className="block text-[15px] font-semibold leading-snug text-[var(--text-primary)] sm:truncate sm:text-[13px]">
                         {action.title}
                       </span>
-                      <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[var(--text-muted)] sm:mt-1">
+                      <span className="mt-0.5 block truncate text-[13.5px] font-medium leading-snug text-[var(--text-secondary)] sm:mt-1 sm:line-clamp-2 sm:whitespace-normal sm:text-[11px] sm:font-normal sm:text-[var(--text-muted)]">
                         {action.prompt}
                       </span>
                     </button>

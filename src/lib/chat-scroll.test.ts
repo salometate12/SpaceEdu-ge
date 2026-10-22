@@ -4,6 +4,7 @@ import {
   anchorScrollTop,
   endIsHidden,
   endScrollTop,
+  keepBottomScrollTop,
   scrollBehaviorFor,
   turnMinHeight,
   visibleEnd,
@@ -55,5 +56,15 @@ describe("the ↓ button", () => {
     const target = endScrollTop(2400, top);
     expect(visibleEnd({ ...top, scrollTop: target })).toBe(2400 + ANCHOR_GAP);
     expect(endIsHidden(2400, { ...top, scrollTop: target })).toBe(false);
+  });
+});
+
+describe("when the keyboard resizes the feed", () => {
+  it("keeps the same distance from the bottom, so the conversation doesn't jump", () => {
+    // 800px feed scrolled 120px above the end; the keyboard takes 300px.
+    const fromBottom = 2000 - 1080 - 800;
+    const top = keepBottomScrollTop(2000, 500, fromBottom);
+    expect(2000 - top - 500).toBe(fromBottom);
+    expect(keepBottomScrollTop(400, 500, 0)).toBe(0);
   });
 });

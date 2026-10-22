@@ -110,10 +110,32 @@ export function mobileDockHidden(pathname: string | null): boolean {
     pathname === "/terms" ||
     isAuthFormPath(pathname) ||
     pathname.startsWith("/admin") ||
-    isPremiumAssistantPath(pathname)
+    isPremiumAssistantPath(pathname) ||
+    // The AI teacher is a full-screen chat on phones: its input owns the
+    // bottom edge, and the header menu leads back to the rest of the app.
+    isAiTeacherPath(pathname)
   ) {
     return true;
   }
+  return false;
+}
+
+/** Input types that bring up the on-screen keyboard. */
+const KEYBOARD_INPUT_TYPES = new Set(["", "text", "search", "email", "url", "tel", "password", "number"]);
+
+/**
+ * Whether focusing this element opens the on-screen keyboard — then the
+ * dock steps aside so it doesn't collide with the field. Checkboxes,
+ * radios, buttons and the like don't.
+ */
+export function opensKeyboard(
+  element: { tagName?: string; type?: string; isContentEditable?: boolean; readOnly?: boolean; disabled?: boolean } | null,
+): boolean {
+  if (!element || element.disabled || element.readOnly) return false;
+  if (element.isContentEditable) return true;
+  const tag = element.tagName?.toUpperCase();
+  if (tag === "TEXTAREA") return true;
+  if (tag === "INPUT") return KEYBOARD_INPUT_TYPES.has((element.type ?? "").toLowerCase());
   return false;
 }
 

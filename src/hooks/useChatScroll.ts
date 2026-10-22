@@ -5,6 +5,7 @@ import {
   anchorScrollTop,
   endIsHidden,
   endScrollTop,
+  keepBottomScrollTop,
   scrollBehaviorFor,
   turnMinHeight,
   type FeedViewport,
@@ -77,7 +78,24 @@ export function useChatScroll({ questionKey, openKey }: { questionKey: string | 
   useEffect(() => {
     if (!feed) return;
     let frame = 0;
+    // The feed's height and how far its view is from the end, so a height
+    // change (the phone keyboard) can keep the view where it was.
+    let height = feed.clientHeight;
+    let fromBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+    const remember = () => {
+      fromBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+    };
+    const resized = () => {
+      if (feed.clientHeight !== height) {
+        height = feed.clientHeight;
+        sizeTurn(feed);
+        feed.scrollTop = keepBottomScrollTop(feed.scrollHeight, feed.clientHeight, fromBottom);
+      }
+      check();
+    };
     const check = () => {
+      // Text streaming in moves the end without a scroll event.
+      if (feed.clientHeight === height) remember();
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         sizeTurn(feed);
@@ -86,13 +104,15 @@ export function useChatScroll({ questionKey, openKey }: { questionKey: string | 
       });
     };
     check();
+    feed.addEventListener("scroll", remember, { passive: true });
     feed.addEventListener("scroll", check, { passive: true });
-    const resize = new ResizeObserver(check);
+    const resize = new ResizeObserver(resized);
     resize.observe(feed);
     const mutations = new MutationObserver(check);
     mutations.observe(feed, { childList: true, subtree: true, characterData: true });
     return () => {
       cancelAnimationFrame(frame);
+      feed.removeEventListener("scroll", remember);
       feed.removeEventListener("scroll", check);
       resize.disconnect();
       mutations.disconnect();

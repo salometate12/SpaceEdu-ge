@@ -42,7 +42,7 @@ export function MessageBubble({
         {/* Neutral, fully rounded: a pill for one line, a soft box for more. */}
         <div
           className={`max-w-[75%] rounded-[24px] bg-[#f4f4f5] text-[#18181b] dark:bg-[#1f1f22] dark:text-[#f4f4f5] ${
-            sheet ? "px-4 py-2.5 text-[14px] leading-[1.55]" : "px-5 py-3 text-[15px] leading-[1.55]"
+            sheet ? "px-4 py-2.5 text-[16px] font-medium leading-[1.5]" : "px-5 py-3 text-[16px] font-medium leading-[1.55]"
           }`}
         >
           <p className="whitespace-pre-wrap">{content}</p>
