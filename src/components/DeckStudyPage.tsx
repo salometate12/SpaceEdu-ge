@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCustomDeckById } from "@/lib/custom-decks";
+import { CUSTOM_DECKS_UPDATED_EVENT, getCustomDeckById } from "@/lib/custom-decks";
 import { ka } from "@/lib/i18n";
 import { getDeckById } from "@/lib/mockData";
 import type { Deck } from "@/lib/types";
@@ -23,6 +23,10 @@ export function DeckStudyPage({ deckId }: DeckStudyPageProps) {
     }
     const custom = getCustomDeckById(deckId);
     setDeck(custom ?? null);
+    // Opened on a new device before the account's decks arrived.
+    const sync = () => setDeck(getCustomDeckById(deckId) ?? null);
+    window.addEventListener(CUSTOM_DECKS_UPDATED_EVENT, sync);
+    return () => window.removeEventListener(CUSTOM_DECKS_UPDATED_EVENT, sync);
   }, [deckId]);
 
   if (deck === undefined) {

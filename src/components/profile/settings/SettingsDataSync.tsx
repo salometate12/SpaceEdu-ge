@@ -19,7 +19,7 @@ export function SettingsDataSync() {
   const status = useUserDataStatus();
   const { icon: Icon, text, spin } = STATUS[status];
   return (
-    <SettingsCard icon={Cloud} title="მონაცემები" subtitle="საგნები, კალენდარი და სასწავლო გეგმა შენს ანგარიშზე" flush>
+    <SettingsCard icon={Cloud} title="მონაცემები" subtitle="საგნები, კალენდარი, ნოტები, კონსპექტები და ჩატები შენს ანგარიშზე" flush>
       <SettingsRows>
         <div className={SETTINGS_ROW} role="status" aria-live="polite">
           <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${SETTINGS_TONE.rowIcon}`}>

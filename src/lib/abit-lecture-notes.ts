@@ -14,10 +14,10 @@ import {
   type LectureNote,
 } from "@/lib/lecture-notes";
 import { DEFAULT_NOTE_COLOR, NOTE_COLORS, type NoteColor } from "@/lib/note-colors";
+import { ABIT_LECTURE_NOTES_STORAGE_KEY, ABIT_LECTURE_NOTES_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { userStore } from "@/lib/user-data";
 
-export const ABIT_LECTURE_NOTES_STORAGE_KEY = "spaceedu-abit-lecture-notes";
-export const ABIT_LECTURE_NOTES_UPDATED_EVENT =
-  "spaceedu-abit-lecture-notes-updated";
+export { ABIT_LECTURE_NOTES_STORAGE_KEY, ABIT_LECTURE_NOTES_UPDATED_EVENT };
 
 export {
   createBlankLectureNote,
@@ -89,10 +89,7 @@ export function loadAbitLectureNotes(): AbitLectureNote[] {
 export function saveAbitLectureNotes(notes: AbitLectureNote[]): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(
-      ABIT_LECTURE_NOTES_STORAGE_KEY,
-      JSON.stringify(notes),
-    );
+    userStore.set(ABIT_LECTURE_NOTES_STORAGE_KEY, notes);
     window.dispatchEvent(new Event(ABIT_LECTURE_NOTES_UPDATED_EVENT));
   } catch {
     /* storage unavailable */

@@ -28,7 +28,9 @@ import {
   journalHref,
   journalSectionMeta,
   loadJournalProgress,
+  LECTURE_NOTES_STORAGE_KEY,
   loadLectureNotes,
+  withUnsavedBlanks,
   notesInSection,
   saveJournalProgress,
   saveLectureNotes,
@@ -37,6 +39,7 @@ import {
   type JournalSection,
   type LectureNote,
 } from "@/lib/lecture-notes";
+import { onRemoteUserData } from "@/lib/user-data";
 import { OpenNotebook } from "./OpenNotebook";
 
 const QUICK_PROMPTS = [
@@ -144,21 +147,30 @@ export function JournalPage() {
     let nextNotes = loaded;
     let startNotes = notesInSection(nextNotes, startSection);
     if (startNotes.length === 0) {
+      // A blank page to write on — saved (and synced) once written in.
       const blank = createBlankLectureNote(startSection);
       nextNotes = [blank, ...nextNotes];
-      persist(nextNotes);
       startNotes = [blank];
-    } else {
-      setNotes(nextNotes);
     }
+    setNotes(nextNotes);
     const match = idFromUrl ? nextNotes.find((note) => note.id === idFromUrl) : null;
     const initial = match ?? startNotes[0];
     setSection(match?.section ?? startSection);
     setActiveId(initial.id);
     setProgress(loadJournalProgress());
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Notes arriving from the account (another device). Only those: this
+  // page's own saves must not reload it mid-typing.
+  useEffect(
+    () =>
+      onRemoteUserData(
+        (key) => key === LECTURE_NOTES_STORAGE_KEY,
+        () => setNotes((current) => withUnsavedBlanks(loadLectureNotes(), current)),
+      ),
+    [],
+  );
 
   useEffect(() => {
     if (!hydrated || !requestedId) return;
