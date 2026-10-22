@@ -8,10 +8,10 @@ import {
   useMemo,
   useSyncExternalStore,
 } from "react";
+import { userStore } from "@/lib/user-data";
+import { LANGUAGE_KEY as STORAGE_KEY, LANGUAGE_UPDATED_EVENT } from "@/lib/user-data-keys";
 
 export type Language = "ka" | "en";
-
-const STORAGE_KEY = "spaceedu-language";
 
 /**
  * Site-wide language state, mirroring `ThemeProvider`: a context on top of
@@ -53,15 +53,22 @@ function getServerSnapshot(): Language {
 
 function subscribe(onChange: () => void) {
   listeners.add(onChange);
+  // The language chosen on another device, arriving from the account.
+  const fromAccount = () => {
+    cached = null;
+    onChange();
+  };
+  window.addEventListener(LANGUAGE_UPDATED_EVENT, fromAccount);
   return () => {
     listeners.delete(onChange);
+    window.removeEventListener(LANGUAGE_UPDATED_EVENT, fromAccount);
   };
 }
 
 function writeLanguage(next: Language) {
   cached = next;
   try {
-    window.localStorage.setItem(STORAGE_KEY, next);
+    userStore.set(STORAGE_KEY, next);
   } catch {
     // A blocked storage (private window, disabled cookies) shouldn't stop
     // the switch from working for the rest of the session.

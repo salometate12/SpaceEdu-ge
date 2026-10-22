@@ -36,6 +36,7 @@ import { isLivePreviewMode } from "@/lib/dashboard-preview-layout";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 import type { ActivityEntry, DashboardMetrics } from "@/lib/dashboard-metrics";
+import { DASHBOARD_GOALS_TOGGLE_EVENT } from "@/lib/user-data-keys";
 
 interface DashboardProps {
   initialSpace?: SmartSpace;
@@ -232,6 +233,9 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
       setGoalsOnDashboard(window.localStorage.getItem(DASHBOARD_GOALS_STORAGE_KEY) === "1");
     };
     readGoalsPref();
+    // Switched on or off on another device.
+    window.addEventListener(DASHBOARD_GOALS_TOGGLE_EVENT, readGoalsPref);
+    return () => window.removeEventListener(DASHBOARD_GOALS_TOGGLE_EVENT, readGoalsPref);
   }, []);
 
   // A warm off-white ground so the white cards stand off the page. Scoped

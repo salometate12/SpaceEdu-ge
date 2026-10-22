@@ -26,6 +26,8 @@ import {
   saveDailyGoals,
 } from "@/lib/daily-goals";
 import { readSemesterSubjects } from "@/lib/semester-subjects";
+import { userStore } from "@/lib/user-data";
+import { DASHBOARD_GOALS_TOGGLE_EVENT } from "@/lib/user-data-keys";
 
 interface DailyGoalsProps {
   title?: string;
@@ -93,10 +95,16 @@ export function DailyGoals({
       }
     };
     init();
+    // The toggle changed on another device.
+    const syncToggle = () => {
+      if (showDashboardToggle) setOnDashboard(window.localStorage.getItem(DASHBOARD_GOALS_STORAGE_KEY) === "1");
+    };
     window.addEventListener(DAILY_GOALS_UPDATED_EVENT, sync);
+    window.addEventListener(DASHBOARD_GOALS_TOGGLE_EVENT, syncToggle);
     window.addEventListener("storage", sync);
     return () => {
       window.removeEventListener(DAILY_GOALS_UPDATED_EVENT, sync);
+      window.removeEventListener(DASHBOARD_GOALS_TOGGLE_EVENT, syncToggle);
       window.removeEventListener("storage", sync);
     };
   }, [showDashboardToggle]);
@@ -109,7 +117,7 @@ export function DailyGoals({
   const toggleDashboard = () => {
     const next = !onDashboard;
     setOnDashboard(next);
-    window.localStorage.setItem(DASHBOARD_GOALS_STORAGE_KEY, next ? "1" : "0");
+    userStore.set(DASHBOARD_GOALS_STORAGE_KEY, next ? "1" : "0");
   };
 
   const doneCount = goals.filter((goal) => goal.done).length;

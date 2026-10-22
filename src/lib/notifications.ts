@@ -1,4 +1,6 @@
 import { getSavedStudyPlan } from "./study-plan-calendar";
+import { NOTIFICATIONS_KEY, NOTIFICATIONS_UPDATED_EVENT } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 export type NotificationType = "update" | "study-plan";
 
@@ -13,9 +15,7 @@ export interface SiteNotification {
   read: boolean;
 }
 
-const NOTIFICATIONS_KEY = "spaceedu-notifications";
-
-export const NOTIFICATIONS_UPDATED_EVENT = "spaceedu-notifications-updated";
+export { NOTIFICATIONS_UPDATED_EVENT };
 
 function notifyUpdated() {
   if (typeof window === "undefined") return;
@@ -79,7 +79,7 @@ function readAll(): SiteNotification[] {
 
 function writeAll(list: SiteNotification[]): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(list));
+  userStore.set(NOTIFICATIONS_KEY, list);
   notifyUpdated();
 }
 
