@@ -1,5 +1,6 @@
 import { CALENDAR_UPDATED_EVENT, DASHBOARD_CALENDAR_KEY_BASE, SYLLABUS_MILESTONES_KEY } from "./user-data-keys";
 import { userStore } from "./user-data";
+import { bindUnbound, replaceSubjectMilestones, retagMilestones } from "./syllabus-dates";
 
 /** What a dated entry on the dashboard calendar is.
  *  `study` covers the days of a saved study plan, which are neither an
@@ -22,6 +23,10 @@ export interface SyllabusMilestone {
   /** Short topic/chapter this milestone covers, if the syllabus states one. */
   topic?: string;
   type: SyllabusMilestoneType;
+  /** The semester subject this syllabus belongs to; missing on ones saved before that. */
+  subject?: string;
+  /** The semester start its weeks count from, when known. */
+  semesterStart?: string;
 }
 
 type DatedMilestone = SyllabusMilestone & { date: string };
@@ -61,6 +66,21 @@ export function getGeneratedMilestones(): SyllabusMilestone[] {
 export function setGeneratedMilestones(milestones: SyllabusMilestone[]) {
   if (typeof window === "undefined") return;
   userStore.set(SYLLABUS_MILESTONES_KEY, milestones);
+}
+
+/** Saves a new analysis for `subject` (null: not bound yet), keeping the other subjects' syllabi. */
+export function saveSubjectSyllabus(subject: string | null, milestones: SyllabusMilestone[]) {
+  setGeneratedMilestones(replaceSubjectMilestones(getGeneratedMilestones(), subject, milestones));
+}
+
+/** The analysis on screen now belongs to another subject (or none). */
+export function moveSyllabusToSubject(ids: Set<string>, subject: string | null) {
+  setGeneratedMilestones(retagMilestones(getGeneratedMilestones(), ids, subject));
+}
+
+/** „მიაბი საგანს“: an older syllabus saved without a subject now belongs to one. */
+export function bindSyllabusToSubject(subject: string) {
+  setGeneratedMilestones(bindUnbound(getGeneratedMilestones(), subject));
 }
 
 export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {

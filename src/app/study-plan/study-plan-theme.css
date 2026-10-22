@@ -1,0 +1,72 @@
+/*
+ * The study plan (student) — the light style: a pale page, white cards
+ * with thin borders, no shadows or gradients, one pink accent. Every colour
+ * of the page comes from these tokens; `.sp` is its root.
+ */
+.sp {
+  --sp-bg: #fafaf9;
+  --sp-card: #ffffff;
+  --sp-card-border: #ece9e4;
+  --sp-line: #e7e5e4;
+  --sp-text: #2f2c28;
+  --sp-strong: #1c1a17;
+  --sp-muted: #6f6a64;
+  --sp-soft: #f5f4f0;
+  --sp-seg-active: #ffffff;
+  --sp-ink: #18181b;
+  --sp-ink-text: #ffffff;
+  --sp-accent: #e11d74;
+  --sp-ok: #16a34a;
+  --sp-ok-text: #166534;
+  --sp-ok-soft: #f0fdf4;
+  --sp-tip-bg: #fefce8;
+  --sp-tip-text: #713f12;
+
+  /* Day intensity: dot and text. */
+  --sp-high: #ec4899;
+  --sp-high-text: #be185d;
+  --sp-medium: #facc15;
+  --sp-medium-text: #a16207;
+  --sp-review: #4ade80;
+  --sp-review-text: #15803d;
+
+  /* Syllabus date badges. */
+  --sp-exam-bg: #fdf2f8;
+  --sp-exam-text: #9d174d;
+  --sp-due-bg: #f0f9ff;
+  --sp-due-text: #075985;
+  --sp-quiz-bg: #fefce8;
+  --sp-quiz-text: #854d0e;
+
+  background: var(--sp-bg);
+  color: var(--sp-text);
+}
+
+html.dark .sp {
+  --sp-bg: var(--bg-primary);
+  --sp-card: #1c1b19;
+  --sp-card-border: #2e2c29;
+  --sp-line: #34322e;
+  --sp-text: #e6e3de;
+  --sp-strong: #fafaf9;
+  --sp-muted: #a29d96;
+  --sp-soft: #24231f;
+  --sp-seg-active: #34322e;
+  --sp-ink: #e6e3de;
+  --sp-ink-text: #18181b;
+  --sp-ok-text: #86efac;
+  --sp-ok-soft: rgba(74, 222, 128, 0.12);
+  --sp-tip-bg: rgba(250, 204, 21, 0.1);
+  --sp-tip-text: #fde68a;
+
+  --sp-high-text: #f9a8d4;
+  --sp-medium-text: #fde047;
+  --sp-review-text: #86efac;
+
+  --sp-exam-bg: rgba(236, 72, 153, 0.14);
+  --sp-exam-text: #f9a8d4;
+  --sp-due-bg: rgba(56, 189, 248, 0.14);
+  --sp-due-text: #7dd3fc;
+  --sp-quiz-bg: rgba(250, 204, 21, 0.14);
+  --sp-quiz-text: #fde047;
+}

@@ -4,7 +4,8 @@ import { MAX_STUDY_PLAN_DAYS, studyPlanDaysToGenerate } from "./study-plan-days"
 export const StudyPlanRequestSchema = z
   .object({
     subject: z.string().min(1),
-    topics: z.string().min(1),
+    /** Optional: without topics the plan is built from the subject itself. */
+    topics: z.string().default(""),
     examDate: z.string().min(1),
     hoursPerDay: z.number().min(1).max(8),
     preparationLevel: z.string().optional(),

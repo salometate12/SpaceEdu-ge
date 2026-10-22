@@ -84,9 +84,12 @@ export function buildUserPrompt(
     case "study-plan": {
       const examDate = asString(payload.examDate);
       const planDays = studyPlanDaysToGenerate(examDate);
+      const topics = asString(payload.topics).trim();
       return [
         `საგანი: ${asString(payload.subject)}`,
-        `თემები: ${asString(payload.topics)}`,
+        topics
+          ? `თემები: ${topics}`
+          : "თემები: არ არის მითითებული — თავად შეადგინე ამ საგნის ტიპური საუნივერსიტეტო კურსის მთავარი თემები და მათზე ააწყვე გეგმა.",
         `გამოცდის თარიღი: ${examDate}`,
         `დღეში სასწავლო დრო (საათი): ${asNumber(payload.hoursPerDay, 2)}`,
         `მომზადების დონე: ${asString(payload.preparationLevel, "საშუალო")}`,
