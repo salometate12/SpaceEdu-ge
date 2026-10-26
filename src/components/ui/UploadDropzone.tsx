@@ -8,7 +8,7 @@ export function UploadIconBadge({ size = 52, className = "" }: { size?: number; 
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 items-center justify-center rounded-full border border-[#e7e5e4] bg-white text-[#e11d74] dark:border-white/15 dark:bg-white/[0.06] dark:text-pink-300 ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full border border-[#e7e5e4] bg-white text-[#e11d74] dark:border-white/15 dark:bg-white/[0.06] dark:text-pink-400 ${className}`}
       style={{ width: size, height: size }}
     >
       <CloudUpload style={{ width: size * 0.46, height: size * 0.46 }} strokeWidth={1.9} />
@@ -60,7 +60,7 @@ export function UploadDropzone({
       className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[16px] border-[1.5px] border-dashed px-4 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-[#e11d74]/40 ${
         dragging
           ? "border-[#e11d74] bg-[#fdf2f8] dark:bg-pink-500/10"
-          : "border-[#d6d3d1] bg-[#fafaf9] hover:border-[#a8a29e] dark:border-white/15 dark:bg-white/[0.03] dark:hover:border-white/30"
+          : "border-[#d6d3d1] bg-[#fafaf9] hover:border-[#a8a29e] dark:border-[#3f3f46] dark:bg-white/[0.03] dark:hover:border-white/30"
       } ${disabled ? "pointer-events-none opacity-60" : ""} ${className}`}
     >
       <input

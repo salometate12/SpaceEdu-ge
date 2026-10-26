@@ -1,0 +1,66 @@
+/*
+ * The syllabus analyzer — the light style, in both themes: a plain page,
+ * cards with thin borders, no gradients or decorations, one pink accent,
+ * a tint per kind of date. `.syllabus-page` is the root.
+ */
+.syllabus-page {
+  --sy-bg: #fafaf9;
+  --sy-card: #ffffff;
+  --sy-card-border: #ece9e4;
+  --sy-field: #ffffff;
+  --sy-field-border: #e7e5e4;
+  --sy-list: #fafaf9;
+  --sy-divider: #f0eeea;
+  --sy-text: #2f2c28;
+  --sy-strong: #1c1a17;
+  --sy-muted: #6f6a64;
+  --sy-chip-on: #18181b;
+  --sy-chip-on-text: #ffffff;
+  --sy-accent: #e11d74;
+  --sy-ok: #16a34a;
+  --sy-soon: #dc2626;
+  --sy-soft: #f5f4f0;
+
+  --sy-exam-bg: #fdf2f8;
+  --sy-exam: #9d174d;
+  --sy-due-bg: #f0f9ff;
+  --sy-due: #075985;
+  --sy-quiz-bg: #fefce8;
+  --sy-quiz: #854d0e;
+  --sy-plan-bg: #f0fdf4;
+  --sy-plan: #166534;
+
+  --sy-dot-exam: #ec4899;
+  --sy-dot-due: #38bdf8;
+  --sy-dot-quiz: #facc15;
+  --sy-dot-plan: #4ade80;
+
+  background: var(--sy-bg);
+  color: var(--sy-text);
+}
+
+html.dark .syllabus-page {
+  --sy-bg: #0c0c10;
+  --sy-card: #15151b;
+  --sy-card-border: #26262e;
+  --sy-field: #0f0f14;
+  --sy-field-border: #2e2e38;
+  --sy-list: #1b1b22;
+  --sy-divider: #26262e;
+  --sy-text: #e6e3de;
+  --sy-strong: #fafaf9;
+  --sy-muted: #a1a1aa;
+  --sy-chip-on: #f4f4f5;
+  --sy-chip-on-text: #0c0c10;
+  --sy-soon: #f87171;
+  --sy-soft: #1b1b22;
+
+  --sy-exam-bg: rgba(236, 72, 153, 0.16);
+  --sy-exam: #f9a8d4;
+  --sy-due-bg: rgba(56, 189, 248, 0.14);
+  --sy-due: #7dd3fc;
+  --sy-quiz-bg: rgba(250, 204, 21, 0.12);
+  --sy-quiz: #fde68a;
+  --sy-plan-bg: rgba(74, 222, 128, 0.12);
+  --sy-plan: #86efac;
+}
