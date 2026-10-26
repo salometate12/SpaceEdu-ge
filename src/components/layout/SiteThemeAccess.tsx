@@ -18,7 +18,8 @@ function isHeaderlessPath(pathname: string | null): boolean {
 /** Fixed toggle on routes without the main site header. */
 export function SiteThemeAccess() {
   const pathname = usePathname();
-  if (!isHeaderlessPath(pathname)) return null;
+  // /select-space has its own toggle in the top bar.
+  if (!isHeaderlessPath(pathname) || pathname === "/select-space") return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-[70]">

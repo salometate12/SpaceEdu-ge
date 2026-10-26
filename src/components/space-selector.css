@@ -1,0 +1,60 @@
+/*
+ * „აირჩიე შენი სივრცე“ — the light style, in both themes: a plain page,
+ * white cards with a thin border, no gradients, shadows or doodles. A small
+ * colour bar names each space. `.space-select` is the root.
+ */
+.space-select {
+  --ss-bg: #fafaf9;
+  --ss-card: #ffffff;
+  --ss-card-border: #ece9e4;
+  --ss-card-hover: #d6d3d1;
+  --ss-off: #f5f4f0;
+  --ss-off-border: #d6d3d1;
+  --ss-button-border: #e7e5e4;
+  --ss-title: #1c1a17;
+  --ss-text: #57534e;
+  --ss-muted: #6f6a64;
+  --ss-sep: #a8a29e;
+  --ss-ink: #18181b;
+  --ss-ink-text: #ffffff;
+  --ss-link: #be185d;
+  --ss-mark: #fbcfe8;
+  --ss-focus: #e11d74;
+
+  --ss-abit-bg: #fefce8;
+  --ss-abit: #854d0e;
+  --ss-student-bg: #fdf2f8;
+  --ss-student: #9d174d;
+
+  background: var(--ss-bg);
+  color: var(--ss-text);
+}
+
+html.dark .space-select {
+  --ss-bg: #0c0c10;
+  --ss-card: #15151b;
+  --ss-card-border: #26262e;
+  --ss-card-hover: #3f3f46;
+  --ss-off: #111116;
+  --ss-off-border: #2e2e38;
+  --ss-button-border: #2e2e38;
+  --ss-title: #fafaf9;
+  --ss-text: #d4d4d8;
+  --ss-muted: #a1a1aa;
+  --ss-sep: #52525b;
+  --ss-ink: #f4f4f5;
+  --ss-ink-text: #18181b;
+  --ss-link: #f9a8d4;
+  --ss-mark: rgba(236, 72, 153, 0.35);
+
+  --ss-abit-bg: rgba(250, 204, 21, 0.12);
+  --ss-abit: #fde68a;
+  --ss-student-bg: rgba(236, 72, 153, 0.14);
+  --ss-student: #f9a8d4;
+}
+
+/* The highlighter stroke under „სივრცე“. */
+.space-select .ss-mark {
+  background: linear-gradient(transparent 62%, var(--ss-mark) 62%);
+  padding: 0 2px;
+}
