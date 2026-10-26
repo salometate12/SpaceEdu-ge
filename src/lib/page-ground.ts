@@ -14,7 +14,6 @@ export function pageGround(pathname: string | null | undefined): PageGround {
   if (
     pathname === "/about" ||
     pathname === "/contact" ||
-    pathname === "/select-space" ||
     pathname === "/checkout" ||
     pathname.startsWith("/checkout/")
   ) {

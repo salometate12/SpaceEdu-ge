@@ -97,8 +97,8 @@ export default function SelectSpacePage() {
 
   if (status === "checking") {
     return (
-      <main className="flex min-h-dvh items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-pink-400" aria-hidden />
+      <main className="flex min-h-dvh items-center justify-center bg-[#fafaf9] dark:bg-[#0c0c10]">
+        <Loader2 className="h-6 w-6 animate-spin text-[#a8a29e] dark:text-[#52525b]" aria-hidden />
       </main>
     );
   }
