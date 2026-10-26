@@ -1,0 +1,67 @@
+/*
+ * „ჩემი მიზნები“ — the light style, in both themes: a plain card with a
+ * thin border, a progress ring, rows on a soft ground, no gradients.
+ * `.goals-card` is the root.
+ */
+.goals-card {
+  --goals-bg: #ffffff;
+  --goals-border: #ece9e4;
+  --goals-divider: #f0eeea;
+  --goals-row: #fafaf9;
+  --goals-text: #1c1a17;
+  --goals-muted: #6f6a64;
+  --goals-done-text: #a8a29e;
+  --goals-field: #ffffff;
+  --goals-field-border: #e7e5e4;
+  --goals-hover: #d6d3d1;
+  --goals-chip-on: #18181b;
+  --goals-chip-on-text: #ffffff;
+  --goals-link: #be185d;
+  --goals-ok: #16a34a;
+  --goals-focus: #e11d74;
+  --ring-track: #f0eeea;
+  --ring-fill: #e11d74;
+  --suggest-border: #d6d3d1;
+  --streak-text: #a16207;
+
+  background: var(--goals-bg);
+  color: var(--goals-text);
+}
+
+html.dark .goals-card {
+  --goals-bg: #15151b;
+  --goals-border: #26262e;
+  --goals-divider: #22222a;
+  --goals-row: #1b1b22;
+  --goals-text: #f4f4f5;
+  --goals-muted: #a1a1aa;
+  --goals-done-text: #71717a;
+  --goals-field: #0f0f14;
+  --goals-field-border: #2e2e38;
+  --goals-hover: #3f3f46;
+  --goals-chip-on: #f4f4f5;
+  --goals-chip-on-text: #18181b;
+  --goals-link: #f9a8d4;
+  --goals-ok: #86efac;
+  --ring-track: #27272f;
+  --suggest-border: #3f3f46;
+  --streak-text: #fde68a;
+}
+
+.goals-card .goals-ring-fill {
+  transition: stroke-dashoffset 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goals-card .goals-ring-fill {
+    transition: none;
+  }
+}
+
+/* Chip rows that scroll sideways on phones, without a scrollbar. */
+.goals-card .goals-scroll {
+  scrollbar-width: none;
+}
+.goals-card .goals-scroll::-webkit-scrollbar {
+  display: none;
+}

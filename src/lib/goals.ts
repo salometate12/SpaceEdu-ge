@@ -1,4 +1,6 @@
+import { goalCategory } from "./goals-card";
 import type { DailyGoal } from "./profile";
+import { localToday } from "./study-plan-board";
 
 export async function generateDailyGoals({
   studyPlan,
@@ -45,10 +47,12 @@ ${studyPlan}
     throw new Error("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
   }
 
-  return data.goals.map((goal, idx) => ({
-    id: `ai-goal-${idx + 1}`,
+  const day = localToday();
+  return data.goals.map((goal) => ({
+    id: crypto.randomUUID(),
     text: goal.text,
-    type: goal.type,
+    type: goalCategory(goal.type),
     done: false,
+    date: day,
   }));
 }
