@@ -1,0 +1,92 @@
+/*
+ * The dashboard's tool cards. Background, border, shadow and radius live on
+ * the card (the link) alone — its grid cell stays transparent — so iOS
+ * Safari has no square layer behind the rounded corners to show. No
+ * backdrop-filter: it was what painted the square on phones.
+ */
+.student-tool-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgb(226 232 240 / 0.9);
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 60%, #ffffff 100%);
+  box-shadow: 0 4px 16px rgb(148 163 184 / 0.15);
+  transition:
+    transform 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    border-color 0.3s ease-in-out;
+}
+
+/* Opaque (the old glass card blurred the dotted page behind it). */
+html.dark .student-tool-card {
+  border-color: rgb(255 255 255 / 0.1);
+  background: color-mix(in srgb, #ffffff 3%, var(--bg-primary, #0a0a0f));
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .student-tool-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    border-color: color-mix(in srgb, var(--tool-fg) 40%, transparent);
+    box-shadow: 0 12px 28px rgb(124 58 237 / 0.15);
+  }
+
+  html.dark .student-tool-card:hover {
+    border-color: color-mix(in srgb, var(--tool-fg) 50%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--tool-fg) 35%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-tool-card,
+  .student-tool-card:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+.student-tool-card:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* The icon tile: a light tint, no border, gradient or shadow. */
+.student-tool-tile {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--tool-bg);
+  color: var(--tool-fg);
+}
+
+html.dark .student-tool-tile {
+  background: var(--tool-dark-bg);
+  color: var(--tool-dark-fg);
+}
+
+/* Phones: plain white cards, no shadow. */
+@media (max-width: 639px) {
+  .student-tool-card {
+    border-radius: 20px;
+    border-color: #ece9e4;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  html.dark .student-tool-card {
+    border-color: #26262e;
+    background: #15151b;
+  }
+
+  .student-tool-arrow {
+    background: #f5f4f0;
+  }
+
+  html.dark .student-tool-arrow {
+    background: #1b1b22;
+  }
+}
