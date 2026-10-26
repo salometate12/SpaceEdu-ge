@@ -30,7 +30,6 @@ import type { GeneratedSlide } from "@/lib/presentation-types";
 import { relativeTimeKa } from "@/lib/relative-time-ka";
 import { useUserDataStatus } from "@/hooks/useUserDataStatus";
 import { Menu, MenuItem, useToast } from "./EditorMenus";
-import { SURFACE } from "./surface";
 import { SlideCard } from "./SlideCard";
 
 const NO_PHOTOS = new Map<string, UploadedPhoto>();
@@ -183,20 +182,26 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
         </button>
       ) : null}
 
-      <div className={SURFACE}>
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+      {/* One card around the list on wider screens; phones put the cards straight on the page. */}
+      <div className="min-w-0 md:rounded-2xl md:border md:border-[var(--border)] md:bg-[var(--bg-card)] md:p-8 md:shadow-[0_1px_2px_rgb(15_23_42/0.04)]">
+        {/* Phones: the main action first, full width, then search. */}
+        <div className="mb-4 flex flex-col gap-3 md:hidden">
+          <button
+            type="button"
+            onClick={onNew}
+            className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-full bg-[#e11d74] text-[15px] font-semibold text-white transition hover:bg-[#cf1769] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/40 focus-visible:ring-offset-2"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.4} />
+            ახალი პრეზენტაცია
+          </button>
+          <SearchField value={query} onChange={setQuery} className="h-11" />
+          <h2 className="mt-1 text-[13px] font-semibold text-slate-500 dark:text-zinc-400">
+            ჩემი პრეზენტაციები · {visible.length}
+          </h2>
+        </div>
+        <div className="mb-4 hidden flex-wrap items-center gap-3 md:flex">
           <h2 className="headline mr-auto text-xl font-semibold text-slate-900 dark:text-zinc-100">ჩემი პრეზენტაციები</h2>
-          <label className="relative w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="ძებნა სათაურით"
-              aria-label="ძებნა სათაურით"
-              className="w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:focus:ring-pink-500/10"
-            />
-          </label>
+          <SearchField value={query} onChange={setQuery} className="py-2" />
           <button
             type="button"
             onClick={onNew}
@@ -215,14 +220,14 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
             </p>
           </div>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {visible.map((presentation) => {
               const template = presentationTemplate(presentation.templateId);
               const ready = presentation.status === "generated" && Boolean(presentation.slides?.length);
               return (
                 <li
                   key={presentation.id}
-                  className="group relative rounded-2xl border border-slate-200 bg-white p-2.5 transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-lg dark:border-white/[0.08] dark:bg-white/[0.02] dark:hover:border-pink-400/30"
+                  className="group relative min-w-0 rounded-[20px] border border-[#ece9e4] bg-white p-2.5 transition dark:border-[#26262e] dark:bg-[#15151b] md:rounded-2xl md:border-slate-200 md:hover:-translate-y-0.5 md:hover:border-pink-200 md:hover:shadow-lg md:dark:border-white/[0.08] md:dark:bg-white/[0.02] md:dark:hover:border-pink-400/30"
                 >
                   <button
                     type="button"
@@ -230,11 +235,12 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
                     className="block w-full text-left"
                     aria-label={`გახსნა: ${presentation.title}`}
                   >
-                    <div className="pointer-events-none">
+                    {/* The slide scales with the card (its sizes are in container units). */}
+                    <div className="pointer-events-none overflow-hidden rounded-[13px] border border-[#f1efeb] dark:border-white/[0.06] md:rounded-none md:border-0">
                       <SlideCard slide={coverOf(presentation)} index={-1} template={template} photos={NO_PHOTOS} />
                     </div>
                   </button>
-                  <div className="mt-2.5 flex items-start gap-2 px-1">
+                  <div className="mt-2.5 flex items-center gap-2 px-1 md:items-start">
                     <div className="min-w-0 flex-1">
                       {renaming === presentation.id ? (
                         <input
@@ -252,23 +258,24 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
                         <button
                           type="button"
                           onClick={() => onOpen(presentation.id)}
-                          className="block w-full truncate text-left text-sm font-semibold text-slate-900 hover:text-pink-700 dark:text-zinc-100 dark:hover:text-pink-300"
+                          id={`presentation-title-${presentation.id}`}
+                          className="block w-full truncate text-left text-[15px] font-semibold text-slate-900 hover:text-pink-700 md:text-sm dark:text-zinc-100 dark:hover:text-pink-300"
                         >
                           {presentation.title}
                         </button>
                       )}
-                      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-500 dark:text-zinc-500">
+                      <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-slate-500 md:text-xs dark:text-zinc-500">
                         <span
                           className={`rounded-full px-1.5 py-0.5 font-semibold ${
                             ready
                               ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                              : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+                              : "bg-[#fefce8] text-[#854d0e] dark:bg-amber-500/10 dark:text-amber-300"
                           }`}
                         >
                           {ready ? "მზადაა" : "მონახაზი"}
                         </span>
                         <span>{presentation.form.level}</span>
-                        {ready ? <span>· {presentation.slides?.length} სლაიდი</span> : null}
+                        {ready ? <span className="max-md:hidden">· {presentation.slides?.length} სლაიდი</span> : null}
                         <span>· {relativeTimeKa(presentation.updatedAt, now)}</span>
                       </p>
                     </div>
@@ -285,8 +292,9 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
                               toggle();
                             }}
                             aria-expanded={open}
-                            aria-label={`${presentation.title}: მენიუ`}
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            aria-label="მეტი მოქმედება"
+                            aria-describedby={`presentation-title-${presentation.id}`}
+                            className="flex h-10 w-10 shrink-0 md:h-7 md:w-7 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
@@ -374,8 +382,8 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
             })}
           </ul>
         )}
-        <p className="mt-4 text-center text-xs text-slate-500 dark:text-zinc-500">
-          პრეზენტაციები ინახება {onAccount ? "შენს ანგარიშზე" : "ამ მოწყობილობაზე"} · მაქსიმუმ {MAX_PRESENTATIONS}
+        <p className="mt-5 text-center text-xs text-slate-500 md:mt-4 dark:text-zinc-500">
+          ინახება {onAccount ? "შენს ანგარიშზე" : "ამ მოწყობილობაზე"} · მაქსიმუმ {MAX_PRESENTATIONS}
         </p>
       </div>
 
@@ -394,5 +402,21 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
       ) : null}
       {toast.element}
     </section>
+  );
+}
+
+function SearchField({ value, onChange, className = "" }: { value: string; onChange: (value: string) => void; className?: string }) {
+  return (
+    <label className="relative block w-full md:w-64">
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="ძებნა სათაურით"
+        aria-label="ძებნა სათაურით"
+        className={`w-full rounded-full border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:focus:ring-pink-500/10 ${className}`}
+      />
+    </label>
   );
 }
