@@ -27,6 +27,8 @@ export interface SyllabusMilestone {
   subject?: string;
   /** The semester start its weeks count from, when known. */
   semesterStart?: string;
+  /** Share of the final grade, in percent, when the syllabus states it. */
+  weight?: number;
 }
 
 type DatedMilestone = SyllabusMilestone & { date: string };

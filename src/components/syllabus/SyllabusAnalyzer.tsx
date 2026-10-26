@@ -1,275 +1,211 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  AlertCircle,
-  Bell,
-  Brain,
+  ArrowLeft,
   CalendarDays,
   CalendarPlus,
   Check,
-  GraduationCap,
-  Plus,
-  NotebookPen,
-  Trophy,
-  TriangleAlert,
+  Clock,
+  Download,
+  FileText,
+  Info,
+  ListChecks,
+  Loader2,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
-import { UploadIconBadge } from "@/components/ui/UploadDropzone";
+import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
-import { readSemesterSubjects } from "@/lib/semester-subjects";
-import { matchSemesterSubject, unboundMilestones } from "@/lib/syllabus-dates";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
+import { buildIcs, downloadIcs } from "@/lib/ics";
+import { formatBytes } from "@/lib/research-files";
+import { readSemesterSubjects } from "@/lib/semester-subjects";
 import {
-  addMilestoneToDashboardCalendar,
   addMilestonesToDashboardCalendar,
+  addMilestoneToDashboardCalendar,
   bindSyllabusToSubject,
   clearLegacySyllabusMockData,
   getDashboardCalendarEvents,
   getGeneratedMilestones,
   isMilestoneOnDashboard,
   moveSyllabusToSubject,
+  removeDashboardCalendarEvent,
   saveSubjectSyllabus,
+  setGeneratedMilestones,
   type SyllabusMilestone,
-  type SyllabusMilestoneType,
 } from "@/lib/syllabus-calendar";
-import { Pencil, Ruler, Sparkle } from "@/components/landing/notebook/Doodles";
 import {
-  ACCENT_CARD,
-  ACCENT_PILL,
-  ACCENT_SOLID,
-  ACCENT_TEXT,
-  PLAIN_CARD,
-} from "@/components/landing/notebook/accents";
-import { SyllabusThinkingLoader } from "./SyllabusThinkingLoader";
+  matchSemesterSubject,
+  milestonesForSubject,
+  normalizeSyllabusDate,
+  savedSyllabi,
+  semesterRangeLabel,
+  unboundMilestones,
+  type SavedSyllabus,
+} from "@/lib/syllabus-dates";
+import { PICKS, SY_FOCUS, SyllabusResult, type SyllabusPick } from "./SyllabusResult";
 
-const MONTH_NAMES = [
-  "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
-  "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი",
+const MAX_BYTES = 15 * 1024 * 1024;
+const CARD = "rounded-[22px] border border-[var(--sy-card-border)] bg-[var(--sy-card)]";
+const FIELD =
+  "h-[46px] w-full rounded-[14px] border border-[var(--sy-field-border)] bg-[var(--sy-field)] px-3.5 text-[16px] text-[var(--sy-strong)] outline-none transition-colors focus:border-[var(--sy-strong)] sm:text-[14.5px]";
+const SECONDARY = `inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[var(--sy-field-border)] bg-[var(--sy-field)] text-[14px] font-semibold text-[var(--sy-strong)] transition-colors hover:border-[var(--sy-muted)] disabled:opacity-50 ${SY_FOCUS}`;
+const PRIMARY = `inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--sy-accent)] text-[15px] font-bold text-white transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-45 ${SY_FOCUS}`;
+const BUSY_ERROR = "AI ახლა გადატვირთულია, სცადე ცოტა ხანში.";
+
+const STEPS = ["ვკითხულობ სილაბუსს", "ვპოულობ თარიღებს", "ვაწყობ კალენდარს"];
+const STEP_AT_MS = [3000, 9000];
+
+function localToday(): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+function Analyzing() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const timers = STEP_AT_MS.map((ms, index) => window.setTimeout(() => setStep(index + 1), ms));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, []);
+  return (
+    <div aria-busy>
+      <p className="text-[18px] font-bold text-[var(--sy-strong)]">ვაანალიზებ სილაბუსს</p>
+      <ol className="mt-4 space-y-3" aria-live="polite">
+        {STEPS.map((label, index) => {
+          const state = index < step ? "done" : index === step ? "current" : "next";
+          return (
+            <li key={label} aria-current={state === "current" ? "step" : undefined} className={`flex items-center gap-3 ${state === "next" ? "opacity-50" : ""}`}>
+              <span
+                aria-hidden
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                  state === "done" ? "bg-[var(--sy-ok)] text-white" : state === "current" ? "border-2 border-[var(--sy-strong)]" : "border-2 border-[var(--sy-field-border)]"
+                }`}
+              >
+                {state === "done" ? (
+                  <Check className="h-4 w-4" strokeWidth={3} />
+                ) : state === "current" ? (
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--sy-accent)] motion-reduce:animate-none" />
+                ) : null}
+              </span>
+              <span className={`text-[15px] ${state === "current" ? "font-semibold text-[var(--sy-strong)]" : "text-[var(--sy-text)]"}`}>
+                {label}
+                {state === "done" ? <span className="sr-only"> — მზადაა</span> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4" aria-hidden>
+        {[0, 1, 2, 3].map((tile) => (
+          <div key={tile} className="h-[68px] animate-pulse rounded-[14px] bg-[var(--sy-soft)] motion-reduce:animate-none" />
+        ))}
+      </div>
+      <div className="mt-4 space-y-2" aria-hidden>
+        {[0, 1, 2].map((rowIndex) => (
+          <div key={rowIndex} className="h-[68px] animate-pulse rounded-[14px] bg-[var(--sy-list)] motion-reduce:animate-none" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const GAINS = [
+  { icon: CalendarDays, title: "სემესტრის კალენდარი", text: "ყველა კვირა თემებით", tone: "bg-[var(--sy-due-bg)] text-[var(--sy-due)]" },
+  { icon: Clock, title: "გამოცდები და ვადები", text: "შეხსენებები 3 და 1 დღით ადრე", tone: "bg-[var(--sy-exam-bg)] text-[var(--sy-exam)]" },
+  { icon: ListChecks, title: "სასწავლო გეგმა", text: "თემები ავტომატურად გეგმაში", tone: "bg-[var(--sy-quiz-bg)] text-[var(--sy-quiz)]" },
 ];
 
-function formatIsoDateGeorgian(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
+const SUBJECT_DOTS = ["#8b5cf6", "#3b82f6", "#f59e0b", "#10b981", "#ec4899", "#06b6d4"];
+
+/** What's on screen: an analysis just made, or one reopened from the saved ones. */
+interface Shown {
+  subject: string | null;
+  ids: Set<string>;
+  fileName: string | null;
+  insight: string;
+  warnings: string[];
 }
 
-type SyllabusOption = "plan" | "midterms" | "quiz-weeks";
-
-const OPTIONS: Array<{ id: SyllabusOption; label: string }> = [
-  { id: "plan", label: "სემესტრული გეგმა" },
-  { id: "midterms", label: "შუალედური და ფინალური" },
-  { id: "quiz-weeks", label: "Quiz კვირები" },
-];
-
-/** Which checkbox shows which type. The checkboxes only filter what's on
- * screen — the analysis itself always extracts every type. */
-const OPTION_FOR_TYPE: Partial<Record<SyllabusMilestoneType, SyllabusOption>> = {
-  quiz: "quiz-weeks",
-  midterm: "midterms",
-  final: "midterms",
-  deadline: "plan",
-};
-
-const HIDDEN_NOUN: Record<SyllabusOption, string> = {
-  "quiz-weeks": "ქვიზი",
-  midterms: "გამოცდა",
-  plan: "დედლაინი",
-};
-
-const TYPE_META: Record<
-  SyllabusMilestoneType,
-  { label: string; icon: typeof GraduationCap; dot: string; badge: string }
-> = {
-  midterm: {
-    label: "შუალედური",
-    icon: GraduationCap,
-    dot: "border-pink-400 dark:border-pink-400/60",
-    badge:
-      "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
-  },
-  quiz: {
-    label: "ქვიზი",
-    icon: Brain,
-    dot: "border-sky-400 dark:border-sky-400/60",
-    badge:
-      "border-sky-200 bg-sky-50 text-sky-600 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300",
-  },
-  final: {
-    label: "ფინალური",
-    icon: Trophy,
-    dot: "border-amber-400 dark:border-amber-400/60",
-    badge:
-      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300",
-  },
-  deadline: {
-    label: "დედლაინი",
-    icon: AlertCircle,
-    dot: "border-pink-400 dark:border-pink-400/60",
-    badge:
-      "border-pink-200 bg-pink-50 text-pink-600 dark:border-pink-400/20 dark:bg-pink-400/10 dark:text-pink-300",
-  },
-  study: {
-    label: "სასწავლო დღე",
-    icon: NotebookPen,
-    dot: "border-emerald-400 dark:border-emerald-400/60",
-    badge:
-      "border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300",
-  },
-};
-
-function filterMilestonesByOptions(
-  milestones: SyllabusMilestone[],
-  enabled: Record<SyllabusOption, boolean>,
-): SyllabusMilestone[] {
-  return milestones.filter((item) => {
-    const option = OPTION_FOR_TYPE[item.type];
-    return option ? enabled[option] : true;
-  });
-}
-
-/** How many results each unticked checkbox is currently hiding. */
-function countHiddenByOption(
-  milestones: SyllabusMilestone[],
-  enabled: Record<SyllabusOption, boolean>,
-): Array<{ option: SyllabusOption; count: number }> {
-  const counts = new Map<SyllabusOption, number>();
-  for (const item of milestones) {
-    const option = OPTION_FOR_TYPE[item.type];
-    if (option && !enabled[option]) counts.set(option, (counts.get(option) ?? 0) + 1);
-  }
-  return OPTIONS.flatMap(({ id }) => {
-    const count = counts.get(id) ?? 0;
-    return count > 0 ? [{ option: id, count }] : [];
-  });
-}
-
+/**
+ * The syllabus analyzer: the PDF, its subject, the semester start and what
+ * to pull out on the left; on the right what you get and your saved
+ * syllabi, then the analysis — count tiles, dates by month, the week plan.
+ * Dates can be fixed or removed; everything stays bound to the subject.
+ */
 export function SyllabusAnalyzer() {
-  const [fileName, setFileName] = useState("");
-  const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [semesterStartDate, setSemesterStartDate] = useState("");
-  // Read from the syllabus (not typed in): shown with a note.
+  const [today, setToday] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [semesterStart, setSemesterStart] = useState("");
   const [startFromSyllabus, setStartFromSyllabus] = useState(false);
-  // The semester subject this syllabus belongs to ("" = not chosen yet).
   const [subject, setSubject] = useState("");
   const [subjects, setSubjects] = useState<string[]>([]);
-  // An older syllabus saved before subjects: it needs one to show up in the study plan.
-  const [unboundCount, setUnboundCount] = useState(0);
-  const [boundTo, setBoundTo] = useState<string | null>(null);
-  const [enabled, setEnabled] = useState<Record<SyllabusOption, boolean>>({
-    plan: true,
-    midterms: true,
-    "quiz-weeks": true,
-  });
-  const [generated, setGenerated] = useState(false);
-  const [milestones, setMilestones] = useState<SyllabusMilestone[]>([]);
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
-  const [aiInsight, setAiInsight] = useState("");
-  const [warnings, setWarnings] = useState<string[]>([]);
+  const [picks, setPicks] = useState<Set<SyllabusPick>>(new Set(["plan", "exams", "quizzes"]));
+  const [stored, setStored] = useState<SyllabusMilestone[]>([]);
+  const [shown, setShown] = useState<Shown | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // The AI was busy (503): the same file and date can simply be sent again.
   const [canRetry, setCanRetry] = useState(false);
+  const [boundTo, setBoundTo] = useState<string | null>(null);
+  const [onDashboard, setOnDashboard] = useState(false);
+  const rightRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     void Promise.resolve().then(() => {
+      clearLegacySyllabusMockData();
+      setToday(localToday());
       setSubjects(readSemesterSubjects().subjects.map((item) => item.name.trim()).filter(Boolean));
-      setUnboundCount(unboundMilestones(getGeneratedMilestones()).length);
+      setStored(getGeneratedMilestones());
     });
   }, []);
 
-  useEffect(() => {
-    const resetState = () => {
-      clearLegacySyllabusMockData();
-      setGenerated(false);
-      setMilestones([]);
-      setAiInsight("");
-      setWarnings([]);
-      setAddedIds(new Set());
-    };
-    resetState();
-  }, []);
+  const shownMilestones = shown ? stored.filter((item) => shown.ids.has(item.id)) : [];
+  const unbound = unboundMilestones(stored);
+  const saved = today ? savedSyllabi(stored, today) : [];
 
-  useEffect(() => {
-    if (!generated) return;
-    const syncAddedIds = () => {
-      const synced = new Set(getDashboardCalendarEvents().map((event) => event.id));
-      setAddedIds(synced);
-    };
-    syncAddedIds();
-  }, [generated]);
-
-  const visibleMilestones = useMemo(
-    () => filterMilestonesByOptions(milestones, enabled),
-    [milestones, enabled],
-  );
-
-  const hiddenByOption = useMemo(
-    () => countHiddenByOption(milestones, enabled),
-    [milestones, enabled],
-  );
-
-  const handleFile = (file: File) => {
-    const isPdf =
-      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-
+  const pickFile = (next: File) => {
+    const isPdf = next.type === "application/pdf" || next.name.toLowerCase().endsWith(".pdf");
     if (!isPdf) {
-      setError("მხოლოდ PDF ფორმატის ფაილია დაშვებული.");
-      setCanRetry(false);
+      setFileError("მხოლოდ PDF ფაილი მიიღება.");
       return;
     }
-
-    setError(null);
-    setCanRetry(false);
-    setFileName(file.name);
-    setSyllabusFile(file);
-    setGenerated(false);
-    setMilestones([]);
-    setAddedIds(new Set());
-    setAiInsight("");
-    setWarnings([]);
-  };
-
-  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) handleFile(file);
-  };
-
-  const onDrop = (event: DragEvent<HTMLLabelElement>) => {
-    event.preventDefault();
-    setDragActive(false);
-    const file = event.dataTransfer.files?.[0];
-    if (file) handleFile(file);
-  };
-
-  const handleGenerate = async () => {
-    if (!syllabusFile) {
-      setError("გთხოვ, ჯერ ატვირთე სილაბუსის PDF.");
-      setCanRetry(false);
+    if (next.size > MAX_BYTES) {
+      setFileError(`ფაილი ძალიან დიდია: ${formatBytes(next.size)} · მაქს. ${formatBytes(MAX_BYTES)}. შეკუმშე PDF ან ატვირთე მხოლოდ საჭირო გვერდები.`);
       return;
     }
-    setIsLoading(true);
+    setFileError(null);
+    setError(null);
+    setFile(next);
+  };
+
+  /** One column: the analysis is below, so bring it into view. */
+  const revealRight = () => {
+    if (!window.matchMedia("(max-width: 900px)").matches) return;
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => rightRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" }));
+  };
+
+  const analyze = async () => {
+    if (!file || loading) return;
+    setLoading(true);
     setError(null);
     setCanRetry(false);
-    setAiInsight("");
-    setWarnings([]);
-
+    setOnDashboard(false);
+    revealRight();
     try {
       const data = await fetchAiMultipartJson<SyllabusResponse>({
         pageType: "syllabus",
-        file: syllabusFile,
+        file,
         // Optional: without it the syllabus's own start date (if stated) is used.
-        fields: semesterStartDate ? { semesterStartDate } : {},
+        fields: semesterStart ? { semesterStartDate: semesterStart } : {},
       });
-
-      // A date the student already filled in for this same event (same
-      // file, same id) survives re-analysing the syllabus.
-      const onCalendar = new Map(
-        getDashboardCalendarEvents().map((event) => [event.id, event.date]),
-      );
+      const onCalendar = new Map(getDashboardCalendarEvents().map((event) => [event.id, event.date]));
       const next: SyllabusMilestone[] = data.milestones.map((item) => {
+        // A date the student already set for this same event survives a re-analysis.
         const manualDate = item.date === null ? onCalendar.get(item.id) : undefined;
         return {
           id: item.id,
@@ -280,447 +216,405 @@ export function SyllabusAnalyzer() {
           topic: item.topic ?? undefined,
           type: item.type,
           semesterStart: data.semesterStartDate ?? undefined,
+          weight: item.weight ?? undefined,
         };
       });
+      if (next.length === 0) throw new Error("სილაბუსიდან თარიღები ვერ მოიძებნა. სცადე სხვა PDF ან უფრო ტექსტური ფაილი.");
       // The course named in the syllabus picks the semester subject, unless one is chosen.
       const owner = subject || matchSemesterSubject(data.courseName, subjects) || "";
-
-      if (next.length === 0) {
-        throw new Error(
-          "სილაბუსიდან თარიღები ვერ მოიძებნა. სცადე სხვა PDF ან უფრო ტექსტური ფაილი.",
-        );
-      }
-
-      setAiInsight(data.insight);
-      setWarnings(data.warnings ?? []);
-      setMilestones(next);
       saveSubjectSyllabus(owner || null, next);
+      setStored(getGeneratedMilestones());
       setSubject(owner);
-      if (!semesterStartDate && data.semesterStartDate) {
-        setSemesterStartDate(data.semesterStartDate);
+      if (!semesterStart && data.semesterStartDate) {
+        setSemesterStart(data.semesterStartDate);
         setStartFromSyllabus(true);
       }
-      setAddedIds(new Set());
-      setGenerated(true);
+      setShown({ subject: owner || null, ids: new Set(next.map((item) => item.id)), fileName: file.name, insight: data.insight, warnings: data.warnings ?? [] });
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.",
-      );
+      const message = err instanceof Error ? err.message : "";
+      setError(/[ა-ჿ]/.test(message) ? message : BUSY_ERROR);
       setCanRetry(err instanceof FetchAiError && err.retryable);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleAddToCalendar = (milestone: SyllabusMilestone) => {
-    if (!milestone.date) return;
-    addMilestoneToDashboardCalendar(milestone);
-    setAddedIds((prev) => new Set(prev).add(milestone.id));
+  /** From „შენი სილაბუსები“: the saved analysis, no AI call. */
+  const reopen = (row: SavedSyllabus) => {
+    const items = row.subject ? milestonesForSubject(stored, row.subject) : unboundMilestones(stored);
+    setShown({ subject: row.subject, ids: new Set(items.map((item) => item.id)), fileName: null, insight: "", warnings: [] });
+    setSubject(row.subject ?? "");
+    const start = items.map((item) => item.semesterStart).find(Boolean);
+    setSemesterStart(start ?? "");
+    setStartFromSyllabus(Boolean(start));
+    setFile(null);
+    setOnDashboard(items.filter((item) => item.date).every((item) => isMilestoneOnDashboard(item.id)));
+    revealRight();
   };
 
-  /** The student fills in a date the syllabus didn't state. */
-  const handleManualDate = (id: string, value: string) => {
-    const next = milestones.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            date: value || null,
-            dateStatus: value ? ("manual" as const) : ("unknown" as const),
-          }
-        : item,
-    );
-    setMilestones(next);
-    saveSubjectSyllabus(subject || null, next);
-    const updated = next.find((item) => item.id === id);
-    // Already on the calendar: move it to the new day rather than leave it stale.
-    if (updated?.date && (addedIds.has(id) || isMilestoneOnDashboard(id))) {
-      addMilestoneToDashboardCalendar(updated);
-    }
+  const reset = () => {
+    setShown(null);
+    setFile(null);
+    setSubject("");
+    setSemesterStart("");
+    setStartFromSyllabus(false);
+    setError(null);
+    setOnDashboard(false);
   };
 
   /** Choosing the subject after the analysis moves its dates there. */
   const chooseSubject = (next: string) => {
     setSubject(next);
-    if (generated && milestones.length > 0) moveSyllabusToSubject(new Set(milestones.map((item) => item.id)), next || null);
+    if (shown) {
+      moveSyllabusToSubject(shown.ids, next || null);
+      setStored(getGeneratedMilestones());
+      setShown({ ...shown, subject: next || null });
+    }
   };
 
-  const subjectSelectClass =
-    "w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100";
+  const changeDate = (id: string, date: string) => {
+    const next = stored.map((item) => (item.id === id ? { ...item, date, dateStatus: "manual" as const } : item));
+    setGeneratedMilestones(next);
+    setStored(next);
+    const updated = next.find((item) => item.id === id);
+    if (updated && isMilestoneOnDashboard(id)) addMilestoneToDashboardCalendar(updated);
+  };
 
-  const pendingMilestones = useMemo(
-    () =>
-      visibleMilestones.filter(
-        (item) =>
-          item.date !== null && !addedIds.has(item.id) && !isMilestoneOnDashboard(item.id),
-      ),
-    [visibleMilestones, addedIds],
-  );
+  const removeDate = (id: string) => {
+    const next = stored.filter((item) => item.id !== id);
+    setGeneratedMilestones(next);
+    setStored(next);
+    if (isMilestoneOnDashboard(id)) removeDashboardCalendarEvent(id);
+  };
 
-  const datedVisibleCount = visibleMilestones.filter((item) => item.date !== null).length;
-  const allMilestonesAdded = datedVisibleCount > 0 && pendingMilestones.length === 0;
+  const exportIcs = () => {
+    const events = shownMilestones.flatMap((item) => {
+      const date = normalizeSyllabusDate(item).date;
+      return date ? [{ id: item.id, title: item.title, date, description: [shown?.subject, item.topic].filter(Boolean).join(" · ") || undefined }] : [];
+    });
+    // DTSTAMP: when the file was made, as 20261026T150000Z.
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    downloadIcs(buildIcs(events, { name: shown?.subject ?? "სილაბუსი", stamp }), `${shown?.subject ?? "syllabus"}-spaceedu`);
+  };
 
-  const handleAddAllToCalendar = () => {
-    if (pendingMilestones.length === 0) return;
-    addMilestonesToDashboardCalendar(pendingMilestones);
-    setAddedIds((prev) => {
-      const next = new Set(prev);
-      for (const item of pendingMilestones) next.add(item.id);
+  const addToDashboard = () => {
+    addMilestonesToDashboardCalendar(shownMilestones.map((item) => ({ ...item, date: normalizeSyllabusDate(item).date })));
+    setOnDashboard(true);
+  };
+
+  const togglePick = (pick: SyllabusPick) =>
+    setPicks((current) => {
+      const next = new Set(current);
+      if (next.has(pick)) {
+        if (next.size > 1) next.delete(pick);
+      } else next.add(pick);
       return next;
     });
-  };
+
+  const range = shown ? semesterRangeLabel(shownMilestones) : null;
 
   return (
-    // The page reads top to bottom: drop the syllabus, then the dates it
-    // produced, each one under the last. Side by side squeezed the dates
-    // into a third of the screen for no reason.
-    <div className="flex w-full flex-col gap-5">
-      {unboundCount > 0 && !boundTo ? (
-        <Alert
-          tone="info"
-          title="ეს სილაბუსი საგანს არ აქვს მიბმული"
-          action={
-            <select
-              aria-label="მიაბი საგანს"
-              defaultValue=""
-              onChange={(event) => {
-                if (!event.target.value) return;
-                bindSyllabusToSubject(event.target.value);
-                setBoundTo(event.target.value);
-              }}
-              className="h-9 rounded-full border border-current/20 bg-white px-3 text-[13px] font-semibold text-slate-900 dark:bg-white/10 dark:text-slate-100"
-            >
-              <option value="">მიაბი საგანს…</option>
-              {subjects.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          }
-        >
-          ადრე ატვირთული სილაბუსის {unboundCount} თარიღი სასწავლო გეგმაში არ ჩანს, სანამ საგანს არ მიაბამ. ხელახლა ატვირთვა არ სჭირდება.
-        </Alert>
-      ) : null}
-      {boundTo ? (
-        <Alert tone="success">სილაბუსი მიება საგანს „{boundTo}“ — თარიღები მის სასწავლო გეგმაში გამოჩნდება.</Alert>
-      ) : null}
-      <section className="w-full">
-        <div
-          className={`grid grid-cols-1 gap-4 rounded-2xl border-2 p-4 sm:p-5 lg:grid-cols-[1.1fr_1fr] ${ACCENT_CARD.violet}`}
-        >
-          <label
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={() => setDragActive(false)}
-            onDrop={onDrop}
-            className={`exam-paper-plain flex h-full cursor-pointer flex-col items-center justify-center gap-2.5 border-2 border-dashed p-6 text-center transition-all ${
-              dragActive
-                ? "border-pink-400 dark:border-pink-400/50"
-                : "border-slate-300 hover:border-pink-400 dark:border-white/15 dark:hover:border-pink-400/40"
-            }`}
+    // Phones: the page colour also runs under the shell's dock padding.
+    <div className="syllabus-page under-site-header min-h-dvh max-md:-mt-[var(--safe-top)] max-md:-mb-36 max-md:pb-36">
+      <div className="mx-auto w-full max-w-[1120px] px-4 pb-16 pt-[calc(var(--safe-top)+16px)] sm:px-6 md:pt-10">
+        <header className="flex items-center gap-3">
+          <Link
+            href="/dashboard-student"
+            aria-label="დეშბორდზე დაბრუნება"
+            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--sy-field-border)] bg-[var(--sy-card)] text-[var(--sy-strong)] transition-colors hover:border-[var(--sy-muted)] ${SY_FOCUS}`}
           >
-            <input
-              type="file"
-              accept=".pdf"
-              className="hidden"
-              onChange={onFileChange}
-            />
-            <UploadIconBadge />
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              ჩააგდე სილაბუსის PDF ან დააწკაპუნე ასარჩევად
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">მხარდაჭერა: მხოლოდ PDF</p>
-          </label>
+            <ArrowLeft className="h-[18px] w-[18px]" />
+          </Link>
+          <div className="min-w-0">
+            <h1 className="text-[24px] font-bold leading-tight text-[var(--sy-strong)] sm:text-[26px]">სილაბუსის ანალიზატორი</h1>
+            <p className="text-[14px] text-[var(--sy-muted)]">ატვირთე სილაბუსი — თარიღები, გამოცდები და თემები სემესტრის კალენდარში</p>
+          </div>
+        </header>
 
-          <div className="flex flex-col">
-          {fileName && (
-            <div className={`rounded-xl border-2 px-3 py-2 text-xs font-semibold ${ACCENT_PILL.green}`}>
-              ატვირთული ფაილი: {fileName}
-            </div>
-          )}
-
-          <label className="mt-3 block space-y-1.5 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-              საგანი
-            </span>
-            <select value={subject} onChange={(event) => chooseSubject(event.target.value)} className={subjectSelectClass}>
-              <option value="">{generated ? "აირჩიე საგანი" : "ავტომატურად სილაბუსიდან"}</option>
-              {subjects.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
-              {generated && !subject
-                ? "სილაბუსის საგანი სემესტრის საგნებში ვერ ვიპოვე — აირჩიე, რომ თარიღები სასწავლო გეგმაში გამოჩნდეს."
-                : "სილაბუსის თარიღები და თემები ამ საგნის სასწავლო გეგმაში გამოჩნდება."}
-            </p>
-          </label>
-
-          <label className="mt-3 block space-y-1.5 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-              სემესტრის დაწყების თარიღი <span className="font-normal normal-case tracking-normal">(არასავალდებულო)</span>
-            </span>
-            <input
-              type="date"
-              value={semesterStartDate}
-              onChange={(event) => {
-                setSemesterStartDate(event.target.value);
-                setStartFromSyllabus(false);
-              }}
-              className={subjectSelectClass}
-            />
-            <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400">
-              {startFromSyllabus
-                ? "სილაბუსიდან ავიღე — შეგიძლია შეცვალო."
-                : "თუ სილაბუსში წერია, თავად ავიღებ. კვირის ნომრები („მე-8 კვირა“) ამით გადაიყვანება რეალურ თარიღებად."}
-            </p>
-          </label>
-
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-1">
-            {OPTIONS.map((item) => (
-              <label
-                key={item.id}
-                className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm font-semibold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
+        <div className="mt-6 flex flex-wrap items-start gap-5 sm:mt-8">
+          {/* Left: the syllabus. */}
+          <section
+            aria-label="სილაბუსი"
+            className={`${CARD} min-w-0 flex-[1_1_340px] p-5 max-[901px]:basis-full min-[901px]:sticky min-[901px]:top-[calc(var(--site-header-h)+16px)] min-[901px]:max-w-[400px]`}
+          >
+            {unbound.length > 0 && !boundTo && !shown ? (
+              <Alert
+                tone="info"
+                className="mb-4"
+                title="ეს სილაბუსი საგანს არ აქვს მიბმული"
+                action={
+                  <select
+                    aria-label="მიაბი საგანს"
+                    defaultValue=""
+                    onChange={(event) => {
+                      if (!event.target.value) return;
+                      bindSyllabusToSubject(event.target.value);
+                      setStored(getGeneratedMilestones());
+                      setBoundTo(event.target.value);
+                    }}
+                    className="h-9 max-w-full rounded-full border border-current/20 bg-white px-3 text-[13px] font-semibold text-slate-900 dark:bg-white/10 dark:text-slate-100"
+                  >
+                    <option value="">მიაბი საგანს…</option>
+                    {subjects.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                }
               >
-                <input
-                  type="checkbox"
-                  checked={enabled[item.id]}
-                  onChange={(event) =>
-                    setEnabled((prev) => ({ ...prev, [item.id]: event.target.checked }))
-                  }
-                  className="h-4 w-4 accent-pink-600"
-                />
-                {item.label}
-              </label>
-            ))}
-          </div>
+                {unbound.length} თარიღი სასწავლო გეგმაში არ ჩანს, სანამ საგანს არ მიაბამ. ხელახლა ატვირთვა არ სჭირდება.
+              </Alert>
+            ) : null}
+            {boundTo && !shown ? (
+              <Alert tone="success" className="mb-4">
+                სილაბუსი მიება საგანს „{boundTo}“.
+              </Alert>
+            ) : null}
 
-          <button
-            type="button"
-            onClick={() => void handleGenerate()}
-            disabled={isLoading || !syllabusFile}
-            className={`paper-sticker mt-6 w-full rounded-full border-2 px-5 py-2.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_SOLID.violet}`}
-          >
-            {isLoading ? "სილაბუსს ვამუშავებ..." : "კალენდრის გენერაცია"}
-          </button>
-          {error && (
-            <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
-              {error}
-            </p>
-          )}
-          {error && canRetry && !isLoading && (
-            <button
-              type="button"
-              onClick={() => void handleGenerate()}
-              className="mt-2 inline-flex items-center self-start rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 dark:border-rose-400/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
-            >
-              ხელახლა ცდა
-            </button>
-          )}
-          </div>
-        </div>
-      </section>
-
-      <div className="notebook-sheet relative min-h-[420px] w-full min-w-0 overflow-hidden rounded-[26px] bg-[#faf6ec] p-5 dark:bg-[#161a24] sm:p-6">
-        <Sparkle
-          className={`pointer-events-none absolute right-5 top-5 hidden h-4 w-4 -rotate-12 opacity-70 lg:block ${ACCENT_TEXT.violet}`}
-        />
-        <Ruler className="pointer-events-none absolute bottom-6 right-8 hidden w-20 rotate-12 text-slate-400 opacity-50 xl:block dark:text-slate-500" />
-        {isLoading ? (
-          <SyllabusThinkingLoader />
-        ) : !generated ? (
-          <div className="flex h-full min-h-[380px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center dark:border-white/15">
-            <Pencil className="mb-3 h-10 w-10 -rotate-12 text-amber-600/50 dark:text-amber-400/40" />
-            <p className="max-w-sm text-sm text-slate-600 dark:text-slate-300">
-              ატვირთე სილაბუსი სემესტრული კალენდრის დასაგენერირებლად.
-            </p>
-          </div>
-        ) : (
-          <div className="fade-in flex h-full flex-col">
-            <div className="mb-5 flex flex-wrap items-start gap-3">
-              <div className="flex min-w-0 flex-1 items-start gap-3">
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD.violet} ${ACCENT_TEXT.violet}`}
-                >
-                  <CalendarDays className="h-5 w-5 stroke-[2]" aria-hidden />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="headline text-lg font-bold text-slate-900 dark:text-slate-50">
-                    სილაბუსიდან გენერირებული თარიღები
-                  </h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    მონიშნე მნიშვნელოვანი დღეები დეშბორდის კალენდარში დასამატებლად.
-                  </p>
+            {shown ? (
+              <div className="space-y-4">
+                {shown.fileName ? (
+                  <div className="flex items-center gap-3 rounded-[14px] border border-[var(--sy-field-border)] bg-[var(--sy-field)] px-3.5 py-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" aria-hidden>
+                      <FileText className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14.5px] font-semibold text-[var(--sy-strong)]">{shown.fileName}</span>
+                      <span className="flex items-center gap-1 text-[12.5px] font-medium text-[var(--sy-ok)]">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+                        დამუშავდა
+                      </span>
+                    </span>
+                  </div>
+                ) : null}
+                <div>
+                  <label htmlFor="sy-subject" className="flex items-center gap-2 text-[13px] font-semibold text-[var(--sy-muted)]">
+                    საგანი
+                    {shown.subject ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sy-plan-bg)] px-2 py-0.5 text-[11.5px] font-bold text-[var(--sy-plan)]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--sy-dot-plan)]" aria-hidden />
+                        ნაპოვნია
+                      </span>
+                    ) : null}
+                  </label>
+                  <select id="sy-subject" value={subject} onChange={(event) => chooseSubject(event.target.value)} className={`${FIELD} mt-1.5`}>
+                    <option value="">აირჩიე საგანი</option>
+                    {subjects.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  {range ? <p className="mt-1.5 text-[12.5px] text-[var(--sy-muted)]">სემესტრი: {range}</p> : null}
+                  {!shown.subject ? (
+                    <p className="mt-1.5 text-[12.5px] text-[var(--sy-muted)]">აირჩიე საგანი, რომ თარიღები სასწავლო გეგმაში გამოჩნდეს.</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2.5 pt-1">
+                  <Link
+                    href={shown.subject ? `/study-plan?subject=${encodeURIComponent(shown.subject)}` : "/study-plan"}
+                    className={PRIMARY}
+                  >
+                    სასწავლო გეგმის შექმნა
+                  </Link>
+                  <button type="button" onClick={exportIcs} className={SECONDARY}>
+                    <Download className="h-4 w-4" aria-hidden />
+                    კალენდარში გადატანა (.ics)
+                  </button>
+                  <button type="button" onClick={addToDashboard} disabled={onDashboard} className={SECONDARY}>
+                    {onDashboard ? <Check className="h-4 w-4" aria-hidden /> : <CalendarPlus className="h-4 w-4" aria-hidden />}
+                    {onDashboard ? "დეშბორდის კალენდარშია" : "დეშბორდის კალენდარში"}
+                  </button>
+                  <button type="button" onClick={reset} className={`inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-[13.5px] font-semibold text-[var(--sy-muted)] hover:text-[var(--sy-strong)] ${SY_FOCUS}`}>
+                    <RotateCcw className="h-4 w-4" aria-hidden />
+                    სხვა სილაბუსი
+                  </button>
                 </div>
               </div>
-              {datedVisibleCount > 0 && (
-                allMilestonesAdded ? (
-                  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold ${ACCENT_PILL.green}`}>
-                    <Check className="h-3.5 w-3.5 shrink-0" />
-                    ყველა დამატებულია
-                  </span>
+            ) : (
+              <div className="space-y-4">
+                {file ? (
+                  <div className="flex items-center gap-3 rounded-[14px] border border-[var(--sy-field-border)] bg-[var(--sy-field)] px-3.5 py-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300" aria-hidden>
+                      <FileText className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14.5px] font-semibold text-[var(--sy-strong)]">{file.name}</span>
+                      <span className="block text-[12.5px] text-[var(--sy-muted)]">{formatBytes(file.size)}</span>
+                    </span>
+                    <button type="button" onClick={() => setFile(null)} aria-label="ფაილის მოშორება" className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--sy-muted)] hover:bg-[var(--sy-soft)] ${SY_FOCUS}`}>
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={handleAddAllToCalendar}
-                    className={`paper-sticker inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-xs font-bold ${ACCENT_SOLID.violet}`}
-                  >
-                    <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
-                    ყველას დამატება ({pendingMilestones.length})
-                  </button>
-                )
-              )}
-            </div>
+                  <UploadDropzone
+                    accept=".pdf,application/pdf"
+                    onFiles={(files) => pickFile(files[0])}
+                    label="ჩააგდე სილაბუსის PDF"
+                    hint={`ან დააწკაპუნე · მხოლოდ PDF · მაქს. ${formatBytes(MAX_BYTES)}`}
+                    className="min-h-[150px]"
+                  />
+                )}
+                {fileError ? <Alert tone="error">{fileError}</Alert> : null}
 
-            {aiInsight && (
-              <div className={`mb-5 rounded-2xl border-2 p-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 ${ACCENT_CARD.amber}`}>
-                {aiInsight}
-              </div>
-            )}
+                <div>
+                  <label htmlFor="sy-subject" className="text-[13px] font-semibold text-[var(--sy-muted)]">
+                    საგანი
+                  </label>
+                  <select id="sy-subject" value={subject} onChange={(event) => setSubject(event.target.value)} className={`${FIELD} mt-1.5`}>
+                    <option value="">ავტომატურად სილაბუსიდან</option>
+                    {subjects.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {warnings.length > 0 && (
-              <div
-                role="status"
-                className="mb-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200"
-              >
-                <p className="mb-1.5 flex items-center gap-1.5 font-bold">
-                  <TriangleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  შეამოწმე ორიგინალ სილაბუსთან
-                </p>
-                <ul className="list-disc space-y-1 pl-5">
-                  {warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {hiddenByOption.length > 0 && (
-              <div className="mb-5 flex flex-wrap gap-2">
-                {hiddenByOption.map(({ option, count }) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setEnabled((prev) => ({ ...prev, [option]: true }))}
-                    className={`rounded-full border-2 px-3 py-1.5 text-left text-xs font-semibold text-slate-600 transition hover:border-pink-400 dark:text-slate-300 ${PLAIN_CARD}`}
-                  >
-                    დამალულია {count} {HIDDEN_NOUN[option]} — ჩართე „
-                    {OPTIONS.find((item) => item.id === option)?.label}“
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* A bento of landscape cards rather than one long column: a
-                semester is a dozen dates, and the point is to take them in
-                at a glance instead of scrolling past them one at a time.
-                The nearest date takes the wide tile. */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {visibleMilestones.map((item, index) => {
-                const added =
-                  addedIds.has(item.id) || isMilestoneOnDashboard(item.id);
-                const meta = TYPE_META[item.type];
-                const Icon = meta.icon;
-                return (
-                  <article
-                    key={item.id}
-                    className={`stagger-in flex flex-col justify-between gap-3 rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1 dark:border-white/[0.1] dark:bg-[#1c2130] ${
-                      index === 0 ? "sm:col-span-2" : ""
-                    }`}
-                    style={{ animationDelay: `${index * 70}ms` }}
-                  >
-                    <div className="min-w-0">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold ${meta.badge}`}
-                        >
-                          <Icon className="h-3 w-3 stroke-[2.5]" aria-hidden />
-                          {meta.label}
-                        </span>
-                        {item.week && (
-                          <span
-                            className={`inline-flex items-center rounded-full border-2 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 ${PLAIN_CARD}`}
-                          >
-                            კვირა {item.week}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm font-bold leading-snug text-slate-900 dark:text-slate-50">
-                        {item.title}
-                      </p>
-                      {item.date && item.dateStatus !== "manual" ? (
-                        <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                          {formatIsoDateGeorgian(item.date)}
-                          {item.dateStatus === "computed-from-week" && (
-                            <span className="ml-1.5 font-normal text-slate-500 dark:text-slate-400">
-                              · კვირის მიხედვით გამოთვლილი
-                            </span>
-                          )}
-                        </p>
-                      ) : (
-                        <div className="mt-2 space-y-1.5">
-                          {!item.date && (
-                            <span className="inline-flex items-center gap-1 rounded-full border-2 border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
-                              <TriangleAlert className="h-3 w-3" aria-hidden />
-                              თარიღი დასაზუსტებელია
-                            </span>
-                          )}
-                          <label className="block text-[11px] text-slate-500 dark:text-slate-400">
-                            <span className="sr-only">{item.title} — </span>
-                            მიუთითე თარიღი
-                            <input
-                              type="date"
-                              value={item.date ?? ""}
-                              onChange={(event) => handleManualDate(item.id, event.target.value)}
-                              className="mt-1 block w-full rounded-xl border-2 border-slate-300/80 bg-white/70 px-3 py-1.5 text-xs text-slate-900 outline-none transition focus:border-pink-500/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-slate-100"
-                            />
-                          </label>
-                        </div>
-                      )}
-                      {item.topic && (
-                        <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
-                          {item.topic}
-                        </p>
-                      )}
-                    </div>
-
-                    {!item.date ? null : added ? (
+                <div>
+                  <label htmlFor="sy-start" className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--sy-muted)]">
+                    სემესტრის დაწყება · <span className="font-normal">არასავალდებულო</span>
+                    <span className="group relative inline-flex" tabIndex={0} aria-label="რისთვის სჭირდება?">
+                      <Info className="h-3.5 w-3.5" aria-hidden />
                       <span
-                        className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold ${ACCENT_PILL.green}`}
+                        role="tooltip"
+                        className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-[10px] bg-[var(--sy-chip-on)] px-3 py-2 text-[12px] font-medium leading-snug text-[var(--sy-chip-on-text)] opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
                       >
-                        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-                        დამატებულია
+                        კვირის ნომრები („მე-8 კვირა“) ამით რეალურ თარიღებად გადაიყვანება.
                       </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCalendar(item)}
-                        className={`inline-flex w-fit items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:text-slate-200 ${PLAIN_CARD}`}
-                      >
-                        <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                        დაამატე კალენდარში
-                      </button>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
+                    </span>
+                  </label>
+                  <input
+                    id="sy-start"
+                    type="date"
+                    value={semesterStart}
+                    onChange={(event) => {
+                      setSemesterStart(event.target.value);
+                      setStartFromSyllabus(false);
+                    }}
+                    placeholder="სილაბუსიდან ავიღებ"
+                    className={`${FIELD} mt-1.5`}
+                  />
+                  {startFromSyllabus ? <p className="mt-1.5 text-[12.5px] text-[var(--sy-muted)]">სილაბუსიდან ავიღე — შეგიძლია შეცვალო.</p> : null}
+                </div>
 
-            <Link
-              href="/study-plan"
-              className={`mt-5 inline-flex items-center gap-2 text-xs font-bold ${ACCENT_TEXT.violet}`}
-            >
-              <Bell className="h-3.5 w-3.5" />
-              გახსენი სრული კალენდარი სასწავლო გეგმაში
-            </Link>
-          </div>
-        )}
+                <div>
+                  <p id="sy-picks" className="text-[13px] font-semibold text-[var(--sy-muted)]">
+                    რა ამოვიღოთ?
+                  </p>
+                  <div role="group" aria-labelledby="sy-picks" className="mt-2 flex flex-wrap gap-2">
+                    {PICKS.map((pick) => {
+                      const active = picks.has(pick.id);
+                      return (
+                        <button
+                          key={pick.id}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => togglePick(pick.id)}
+                          className={`inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-[13.5px] font-semibold transition-colors ${SY_FOCUS} ${
+                            active
+                              ? "bg-[var(--sy-chip-on)] text-[var(--sy-chip-on-text)]"
+                              : "border border-[var(--sy-field-border)] bg-[var(--sy-field)] text-[var(--sy-strong)] hover:border-[var(--sy-muted)]"
+                          }`}
+                        >
+                          <span className="h-2 w-2 rounded-full" style={{ background: pick.dot }} aria-hidden />
+                          {pick.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <button type="button" onClick={() => void analyze()} disabled={!file || loading} className={PRIMARY}>
+                  {loading ? <Loader2 className="h-[18px] w-[18px] animate-spin motion-reduce:animate-none" aria-hidden /> : null}
+                  {loading ? "ვაანალიზებ…" : "კალენდრის შექმნა"}
+                </button>
+              </div>
+            )}
+
+            {error ? (
+              <Alert
+                tone="error"
+                className="mt-4"
+                title="სილაბუსი ვერ დავამუშავე"
+                action={
+                  canRetry && file ? (
+                    <button type="button" onClick={() => void analyze()} className={`inline-flex h-9 items-center rounded-full border border-current/25 px-3.5 text-[13px] font-semibold ${SY_FOCUS}`}>
+                      ხელახლა ცდა
+                    </button>
+                  ) : undefined
+                }
+              >
+                {error}
+              </Alert>
+            ) : null}
+          </section>
+
+          {/* Right: what you get and your syllabi, or the analysis. */}
+          <section ref={rightRef} aria-label="შედეგი" aria-busy={loading} className={`${CARD} min-w-0 flex-[999_1_480px] scroll-mt-4 p-5 max-[901px]:basis-full sm:p-7`}>
+            {loading ? (
+              <Analyzing />
+            ) : shown && today ? (
+              <div>
+                <h2 className="text-[20px] font-bold text-[var(--sy-strong)]">{shown.subject ?? "სილაბუსი"}</h2>
+                {shown.insight ? <p className="mt-1 text-[14px] leading-relaxed text-[var(--sy-muted)]">{shown.insight}</p> : null}
+                {shown.warnings.length > 0 ? (
+                  <Alert tone="warning" className="mt-4" title="შეამოწმე ორიგინალ სილაბუსთან">
+                    <ul className="list-disc space-y-1 pl-4">
+                      {shown.warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  </Alert>
+                ) : null}
+                <div className="mt-5">
+                  <SyllabusResult milestones={shownMilestones} picks={picks} today={today} onChangeDate={changeDate} onDelete={removeDate} />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-[18px] font-bold text-[var(--sy-strong)]">რას მიიღებ</h2>
+                <ul className="mt-4 grid gap-2.5 sm:grid-cols-3">
+                  {GAINS.map((gain) => {
+                    const Icon = gain.icon;
+                    return (
+                      <li key={gain.title} className={`rounded-[16px] px-4 py-3.5 ${gain.tone}`}>
+                        <Icon className="h-5 w-5" strokeWidth={1.9} aria-hidden />
+                        <p className="mt-2 text-[14.5px] font-bold">{gain.title}</p>
+                        <p className="text-[13px] opacity-90">{gain.text}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {saved.length > 0 ? (
+                  <div className="mt-6 border-t border-[var(--sy-divider)] pt-5">
+                    <h3 className="text-[13px] font-semibold text-[var(--sy-muted)]">შენი სილაბუსები</h3>
+                    <ul className="mt-2 space-y-0.5">
+                      {saved.map((row, index) => (
+                        <li key={row.subject ?? "unbound"}>
+                          <button
+                            type="button"
+                            onClick={() => reopen(row)}
+                            className={`flex w-full items-center gap-3 rounded-[12px] px-2 py-2.5 text-left transition-colors hover:bg-[var(--sy-soft)] ${SY_FOCUS}`}
+                          >
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: row.subject ? SUBJECT_DOTS[index % SUBJECT_DOTS.length] : "var(--sy-muted)" }} aria-hidden />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[14.5px] font-semibold text-[var(--sy-strong)]">{row.subject ?? "საგნის გარეშე"}</span>
+                              <span className="block text-[12.5px] text-[var(--sy-muted)]">
+                                {row.count} თარიღი{row.next ? ` · შემდეგი: ${row.next.label}` : ""}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

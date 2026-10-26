@@ -39,8 +39,11 @@ const BUSY_ERROR = "AI ახლა გადატვირთულია, ს
  * on phones). The plan and its done days stay on this device.
  */
 export function StudyPlanPlanner() {
-  // A notification's „გეგმის გახსნა“ opens its day.
-  const focusDay = useSearchParams().get("day");
+  // A notification's „გეგმის გახსნა“ opens its day; the syllabus analyzer
+  // sends its subject (`?subject=`), with the syllabus topics.
+  const searchParams = useSearchParams();
+  const focusDay = searchParams.get("day");
+  const subjectParam = searchParams.get("subject")?.trim() || null;
   const [today, setToday] = useState("");
   const [subjects, setSubjects] = useState<string[]>([]);
   const [milestones, setMilestones] = useState<SyllabusMilestone[]>([]);
@@ -66,8 +69,13 @@ export function StudyPlanPlanner() {
         const fromSyllabus = syllabusTopics(milestonesForSubject(stored, last.subject));
         setTopicsFromSyllabus(last.topics.length > 0 && last.topics.join("|") === fromSyllabus.join("|"));
       }
+      if (subjectParam && subjectParam !== last?.subject) {
+        const topics = syllabusTopics(milestonesForSubject(stored, subjectParam));
+        setValues({ subject: subjectParam, examDate: "", hoursPerDay: last?.hoursPerDay ?? 2, topics });
+        setTopicsFromSyllabus(topics.length > 0);
+      }
     });
-  }, []);
+  }, [subjectParam]);
 
   const subjectMilestones = useMemo(() => milestonesForSubject(milestones, values.subject), [milestones, values.subject]);
   const dates = useMemo(

@@ -9,6 +9,10 @@ import {
   normalizeSyllabusDate,
   parseWeek,
   replaceSubjectMilestones,
+  savedSyllabi,
+  semesterRangeLabel,
+  syllabusCounts,
+  weekPlan,
   sortSyllabusDates,
   syllabusTopics,
   unboundMilestones,
@@ -103,5 +107,41 @@ describe("syllabus: which subject", () => {
       "ელასტიურობა",
       "ბაზრის წონასწორობა",
     ]);
+  });
+});
+
+describe("syllabus analyzer views", () => {
+  const ms = [
+    m({ id: "q", week: "2", topic: "მოთხოვნა", subject: "მიკრო", semesterStart: "2026-09-14" }),
+    m({ id: "mid", type: "midterm", date: "2026-11-02", subject: "მიკრო", semesterStart: "2026-09-14", weight: 30 }),
+    m({ id: "fin", type: "final", date: "2027-01-25", subject: "მიკრო", semesterStart: "2026-09-14" }),
+    m({ id: "due", type: "deadline", date: "2026-10-20", subject: "სტატ" }),
+    m({ id: "old", date: "2026-10-30" }),
+  ];
+
+  it("counts the kinds", () => {
+    expect(syllabusCounts(ms)).toEqual({ total: 5, exams: 2, quizzes: 2, deadlines: 1 });
+  });
+
+  it("lays out the weeks from the week or the date", () => {
+    const weeks = weekPlan(ms.filter((item) => item.subject === "მიკრო"));
+    expect(weeks.map((row) => [row.week, row.monday, row.items.map((item) => item.id)])).toEqual([
+      [2, "2026-09-21", ["q"]],
+      [8, "2026-11-02", ["mid"]],
+      [20, "2027-01-25", ["fin"]],
+    ]);
+  });
+
+  it("lists saved syllabi by subject with the next date; unbound last", () => {
+    expect(savedSyllabi(ms, "2026-10-26").map((row) => [row.subject, row.count, row.next?.id ?? null])).toEqual([
+      ["მიკრო", 3, "mid"],
+      ["სტატ", 1, null],
+      [null, 1, "old"],
+    ]);
+  });
+
+  it("labels the semester's span and keeps the weight", () => {
+    expect(semesterRangeLabel(ms.filter((item) => item.subject === "მიკრო"))).toBe("14 სექ 2026 — 25 იან 2027");
+    expect(normalizeSyllabusDate(ms[1]).weight).toBe(30);
   });
 });
