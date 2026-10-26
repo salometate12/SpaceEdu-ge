@@ -43,22 +43,22 @@ export interface DiaryEntry {
   color: string;
 }
 
+export type GoalCategory = "study" | "read" | "task" | "other";
+
 export interface DailyGoal {
   id: string;
   text: string;
   done: boolean;
-  type: "quiz" | "study" | "read" | "chat";
+  type: GoalCategory;
+  /** The day it's for (YYYY-MM-DD, local). */
+  date: string;
+  /** Optional time it takes, in minutes. */
+  minutes?: number;
+  /** The suggestion it came from („plan:…“, „deadline:…“), so it isn't offered again. */
+  source?: string;
 }
 
 export { DASHBOARD_GOALS_KEY as DASHBOARD_GOALS_STORAGE_KEY } from "@/lib/user-data-keys";
-
-export const INITIAL_DAILY_GOALS: DailyGoal[] = [
-  { id: "goal-1", text: "ბიოლოგიის 1 quiz", done: true, type: "quiz" },
-  { id: "goal-2", text: "ქიმიის კონსპექტის გამეორება", done: false, type: "read" },
-  { id: "goal-3", text: "AI ჩატი — რთული თემა", done: true, type: "chat" },
-  { id: "goal-4", text: "Study plan task #4", done: false, type: "study" },
-  { id: "goal-5", text: "ისტორიის მოკლე ტესტი", done: false, type: "quiz" },
-];
 
 const SPACE_LABEL: Record<UserSpace, string> = {
   school: "სკოლა",

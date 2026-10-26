@@ -46,6 +46,11 @@ export function recordDailyActivity(): void {
   window.dispatchEvent(new Event(STREAK_UPDATED_EVENT));
 }
 
+/** Whether today already counts for the streak. */
+export function hasActivityToday(): boolean {
+  return readActivityDates().includes(todayIso());
+}
+
 /**
  * Current streak length in days. Counts consecutive calendar days with
  * recorded activity, anchored at today (if already active) or yesterday

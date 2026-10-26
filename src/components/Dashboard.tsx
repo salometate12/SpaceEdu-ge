@@ -335,8 +335,7 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           <StudentStudyCalendar />
 
-          {/* The page's one highlighted card (DashboardCard allows one). */}
-          {goalsOnDashboard && <DailyGoals title="ჩემი მიზნები" highlight />}
+          {goalsOnDashboard && <DailyGoals title="ჩემი მიზნები" />}
 
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <article className="relative overflow-hidden rounded-[32px] border border-pink-200 bg-pink-100 p-6 transition-all duration-300 hover:-translate-y-1 dark:border-transparent dark:bg-pink-500 sm:p-8">
