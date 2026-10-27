@@ -1,6 +1,5 @@
 "use client";
 
-import { GraduationCap } from "lucide-react";
 import { AbiturientSubjects } from "./AbiturientSubjects";
 import { AbiturientTools } from "./AbiturientTools";
 import { AbiturientStudyCalendar } from "./AbiturientStudyCalendar";
@@ -25,14 +24,7 @@ export function AbiturientDashboard() {
         <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-5 pt-10 max-[639px]:pt-0 sm:pt-12">
           <DashboardGreetingBanner
             workspace="abiturient"
-            badge={
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-cyan-300 bg-cyan-100 px-3 py-1.5 text-xs font-bold text-cyan-700 dark:border-[#22d3ee] dark:bg-[#042f3d] dark:text-[#67e8f9]">
-                <GraduationCap className="h-3.5 w-3.5" />
-                აბიტურიენტი
-              </span>
-            }
             title={firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა, აბიტურიენტო!"}
-            subtitle="საგნები, სასწავლო ინსტრუმენტები და ბიბლიოთეკა ერთ სივრცეში."
           />
 
           <section className="dashboard-panel p-5 sm:p-6">
