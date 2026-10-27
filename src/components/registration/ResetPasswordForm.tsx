@@ -19,7 +19,7 @@ import {
 } from "@/lib/password-reset";
 import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { AuthCard, authBackClass, authInputClass, authPrimaryButtonClass } from "./AuthCard";
+import { AuthCard, authBackClass, authIconClass, authInputClass, authLabelClass, authLinkClass, authPrimaryButtonClass } from "./AuthCard";
 
 type Phase = "checking" | "form" | "invalid" | "success";
 
@@ -163,7 +163,7 @@ export function ResetPasswordForm() {
           <KeyRound className="h-4 w-4" />
           ახალი ბმულის მოთხოვნა
         </Link>
-        <p className="text-center text-xs text-slate-500 dark:text-gray-500">
+        <p className="text-center text-[14px] text-[var(--au-muted)]">
           ბმული უნდა გაიხსნას იმავე ბრაუზერში, სადაც მოითხოვე, და 1 საათის განმავლობაში.
         </p>
       </AuthCard>
@@ -173,15 +173,15 @@ export function ResetPasswordForm() {
   if (phase === "success") {
     return (
       <AuthCard title="პაროლი შეიცვალა ✓" subtitle="ახალი პაროლი შენახულია. უკვე შესული ხარ." back={back}>
-        <div role="status" className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-200">
+        <div role="status" className="flex items-center gap-3 rounded-[14px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[14px] text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-200">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <p>{countdown > 0 ? `${countdown} წამში გადაგიყვანთ შენს სივრცეში.` : "გადაგიყვანთ…"}</p>
         </div>
         <button type="button" onClick={goToDashboard} className={authPrimaryButtonClass}>
           შესვლა
         </button>
-        <p className="text-center text-xs">
-          <button type="button" onClick={() => void backToLogin()} className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400 dark:hover:text-pink-300">
+        <p className="text-center text-[14px]">
+          <button type="button" onClick={() => void backToLogin()} className={authLinkClass}>
             ← შესვლის გვერდზე დაბრუნება
           </button>
         </p>
@@ -198,8 +198,8 @@ export function ResetPasswordForm() {
     onChange: (value: string) => void,
     message: string | null,
   ) => (
-    <div className="flex flex-col space-y-1.5">
-      <label htmlFor={`${id}-${key}`} className="text-xs font-medium text-slate-600 dark:text-gray-400">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={`${id}-${key}`} className={authLabelClass}>
         {label}
       </label>
       <PasswordInput
@@ -216,14 +216,14 @@ export function ResetPasswordForm() {
         aria-describedby={message ? `${id}-${key}-error` : undefined}
         icon={
           <Lock
-            className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${message ? "text-rose-500" : "text-slate-400 dark:text-gray-500"}`}
+            className={authIconClass(Boolean(message))}
           />
         }
         className={authInputClass(Boolean(message))}
         placeholder="მინიმუმ 6 სიმბოლო"
       />
       {message ? (
-        <p id={`${id}-${key}-error`} className="text-xs font-medium text-rose-500">
+        <p id={`${id}-${key}-error`} className="mt-1.5 text-[13px] font-medium text-rose-600 dark:text-rose-400">
           {message}
         </p>
       ) : null}
@@ -238,7 +238,7 @@ export function ResetPasswordForm() {
         {field("password", "ახალი პაროლი", password, setPassword, passwordError)}
         {field("confirm", "გაიმეორე პაროლი", confirm, setConfirm, confirmError)}
         {error ? (
-          <p role="alert" className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <p role="alert" className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-3 text-[14px] text-rose-900 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-100">
             {error}
           </p>
         ) : null}

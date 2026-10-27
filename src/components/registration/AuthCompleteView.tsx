@@ -9,6 +9,7 @@ import {
   resolveAuthRedirectHref,
 } from "@/lib/dev-portal-bypass";
 import { parseRegistrationRole } from "@/lib/registration-role";
+import { AuthShell } from "./AuthCard";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { isAdminEmail, resolvePostLoginHref } from "@/lib/access-control";
@@ -72,8 +73,10 @@ export function AuthCompleteView() {
   }, [role, router]);
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[#09090b]">
-      <Loader2 className="h-6 w-6 animate-spin stroke-[1.5] text-pink-400" aria-hidden />
-    </main>
+    <AuthShell>
+      <div className="flex flex-1 items-start justify-center pt-16" role="status" aria-label="შესვლა მიმდინარეობს">
+        <Loader2 className="h-6 w-6 animate-spin stroke-[1.5] text-[var(--au-primary)]" aria-hidden />
+      </div>
+    </AuthShell>
   );
 }

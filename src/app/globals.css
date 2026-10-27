@@ -1314,31 +1314,6 @@ html {
   scroll-padding-top: calc(var(--site-header-h) + 1rem);
 }
 
-/* The dotted ground behind /login and /registration.
- *
- * It used to be an inline style — a hardcoded #09090b with a white dot —
- * which meant those two pages stayed night-black while the app was in day
- * mode, with a light card floating on top of them. As a class it can carry
- * both themes. */
-.auth-ground {
-  background-color: #f8fafc;
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgba(15, 23, 42, 0.07) 1px,
-    transparent 0
-  );
-  background-size: 32px 32px;
-}
-
-html.dark .auth-ground {
-  background-color: #09090b;
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgba(255, 255, 255, 0.04) 1px,
-    transparent 0
-  );
-}
-
 /* The document's own ground.
  *
  * The scrollbar gutter is outside the layout viewport, so nothing inside

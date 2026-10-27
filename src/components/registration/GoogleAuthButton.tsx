@@ -4,10 +4,11 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { signInWithOAuthProvider } from "@/lib/auth";
 import type { RegistrationRoleParam } from "@/lib/registration-role";
+import { authSecondaryButtonClass } from "./AuthCard";
 
 function GoogleGlyph() {
   return (
-    <svg viewBox="0 0 48 48" className="h-4 w-4 shrink-0" aria-hidden>
+    <svg viewBox="0 0 48 48" className="h-[18px] w-[18px] shrink-0" aria-hidden>
       <path
         fill="#FFC107"
         d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
@@ -50,7 +51,7 @@ export function GoogleAuthButton({ role, label }: GoogleAuthButtonProps) {
       type="button"
       onClick={() => void handleClick()}
       disabled={isLoading}
-      className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/[0.1] bg-white/[0.03] py-3 text-sm font-medium text-white transition-all hover:border-white/[0.18] hover:bg-white/[0.06] disabled:opacity-50"
+      className={authSecondaryButtonClass}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin stroke-[1.5]" aria-hidden />
