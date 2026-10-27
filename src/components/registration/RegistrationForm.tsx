@@ -15,6 +15,18 @@ import { Loader2, Lock, Mail, MailCheck, User } from "lucide-react";
 import { signUpWithEmail } from "@/lib/auth";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Alert, FieldError } from "@/components/ui/Alert";
+import {
+  AuthCard,
+  AuthDivider,
+  AuthSpaceChip,
+  authIconClass,
+  authInputClass,
+  authLabelClass,
+  authLinkClass,
+  authPrimaryButtonClass,
+  authSecondaryButtonClass,
+} from "@/components/registration/AuthCard";
 import {
   devSkipRegistrationAllowed,
   isDevPortalBypass,
@@ -34,12 +46,6 @@ import {
   type RegistrationErrors,
   type RegistrationField,
 } from "@/lib/registration-validation";
-const ERROR_LINE_CLASS = "min-h-[1.125rem] text-[11px] leading-snug text-rose-400/90";
-
-function FieldError({ message }: { message?: string }) {
-  return <p className={ERROR_LINE_CLASS}>{message ?? "\u00a0"}</p>;
-}
-
 interface FormFieldProps {
   id: string;
   label: string;
@@ -50,18 +56,15 @@ interface FormFieldProps {
 
 function FormField({ id, label, icon: Icon, error, children }: FormFieldProps) {
   return (
-    <div className="relative flex flex-col space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium text-slate-600 dark:text-gray-400">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className={authLabelClass}>
         {label}
       </label>
       <div className="relative">
-        <Icon
-          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-[1.5] text-slate-400 dark:text-gray-500"
-          aria-hidden
-        />
+        <Icon className={authIconClass(Boolean(error))} aria-hidden />
         {children}
       </div>
-      <FieldError message={error} />
+      <FieldError id={`${id}-error`}>{error}</FieldError>
     </div>
   );
 }
@@ -182,90 +185,64 @@ export function RegistrationForm() {
 
   if (!role) {
     return (
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-8 text-center backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
-        <p className="text-sm text-slate-600 dark:text-gray-400">
-          რეგისტრაციისთვის ჯერ აირჩიე სასწავლო სივრცე.
-        </p>
-        <Link
-          href="/select-space"
-          className="inline-flex text-sm font-medium text-pink-400 transition-colors hover:text-pink-300"
-        >
+      <AuthCard title="შექმენი ანგარიში" subtitle="რეგისტრაციისთვის ჯერ აირჩიე სასწავლო სივრცე.">
+        <Link href="/select-space" className={authPrimaryButtonClass}>
           სივრცის არჩევაზე გადასვლა
         </Link>
-      </div>
+      </AuthCard>
     );
   }
 
   if (awaitingConfirmation) {
     return (
-      <div className="w-full max-w-md space-y-5 rounded-2xl border border-slate-200 bg-white/90 p-8 text-center shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-600/15">
-          <MailCheck className="h-6 w-6 stroke-[1.5] text-emerald-300" />
-        </div>
-        <div>
-          <h1 className="headline text-xl font-bold text-slate-900 dark:text-white">დაადასტურე ელ-ფოსტა</h1>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-gray-400">
+      <AuthCard
+        title="დაადასტურე ელ-ფოსტა"
+        chip={<AuthSpaceChip role={role} />}
+        subtitle={
+          <>
             გამოგიგზავნეთ დადასტურების ბმული მისამართზე{" "}
-            <span className="font-medium text-slate-900 dark:text-white">{email.trim()}</span>. გახსენი ის და
-            დააჭირე ბმულს, რომ შესვლა შესაძლებელი გახდეს.
-          </p>
+            <span className="font-semibold text-[var(--au-title)]">{email.trim()}</span>. გახსენი ის და დააჭირე ბმულს, რომ
+            შესვლა შესაძლებელი გახდეს.
+          </>
+        }
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
+          <MailCheck className="h-6 w-6" strokeWidth={1.6} aria-hidden />
         </div>
-        <Link
-          href={`/login?role=${role}`}
-          className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-800 transition-all hover:border-pink-500/40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:hover:border-pink-500/30 dark:hover:bg-white/[0.06]"
-        >
+        <Link href={`/login?role=${role}`} className={authSecondaryButtonClass}>
           შესვლის გვერდზე გადასვლა
         </Link>
-      </div>
+      </AuthCard>
     );
   }
 
   return (
-    <div
-      className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40"
-      style={{
-        backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(216,24,120,0.12), transparent)",
-      }}
+    <AuthCard
+      title="შექმენი ანგარიში"
+      subtitle={roleSubtext}
+      eyebrow="ნაბიჯი 2 / 2"
+      chip={<AuthSpaceChip role={role} />}
+      footer={
+        <>
+          უკვე გაქვს ანგარიში?{" "}
+          <Link href={`/login?role=${role}`} className={authLinkClass}>
+            შესვლა
+          </Link>
+        </>
+      }
     >
-      <header className="space-y-3 text-center">
-        {/* The books on either ground: the light file's dark-green top book
-            is lost on the dark card, so dark mode gets the -dark artwork. */}
-        <img
-          src="/spaceedu-mark.svg"
-          alt="SpaceEdu"
-          width={48}
-          height={48}
-          className="mx-auto h-12 w-12 dark:hidden"
-        />
-        <img
-          src="/spaceedu-mark-dark.svg"
-          alt="SpaceEdu"
-          width={48}
-          height={48}
-          className="mx-auto h-12 w-12 hidden dark:block"
-        />
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-pink-400/90">
-            SpaceEdu
-          </p>
-          <h1 className="headline mt-2 text-2xl font-bold text-slate-900 dark:text-white">შექმენი ანგარიში</h1>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-gray-400">{roleSubtext}</p>
-        </div>
-      </header>
-
       {showDevBypass && role && (
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-200/90">
-          <p className="font-medium text-amber-100/95">Dev რეჟიმი (მხოლოდ localhost)</p>
-          <p className="mt-1 text-amber-200/80">
+        <div className="rounded-[14px] border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-800 dark:text-amber-200/90">
+          <p className="font-medium">Dev რეჟიმი (მხოლოდ localhost)</p>
+          <p className="mt-1 opacity-80">
             გადახედვისთვის Supabase-ის გარეშე გადადი პორტალზე. სტუდენტი:{" "}
-            <code className="text-[10px] text-amber-100/90">/dashboard-student</code>
+            <code className="text-[10px]">/dashboard-student</code>
             {devTarget === "georgian-space" ? " ან georgian space." : "."}
           </p>
           <button
             type="button"
             onClick={handleDevSkip}
-            className="mt-3 w-full rounded-lg border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-medium text-amber-100 transition-colors hover:bg-amber-500/20"
+            className="mt-3 w-full rounded-lg border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-medium transition-colors hover:bg-amber-500/20"
           >
             Dev: პორტალის გადახედვა (ვალიდაციის გარეშე)
           </button>
@@ -273,14 +250,9 @@ export function RegistrationForm() {
       )}
 
       <GoogleAuthButton role={role} label="გააგრძელე Google-ით" />
+      <AuthDivider />
 
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">ან</span>
-        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <FormField id={nameId} label="სახელი და გვარი" icon={User} error={errors.name}>
           <input
             id={nameId}
@@ -291,8 +263,10 @@ export function RegistrationForm() {
               setName(e.target.value);
               clearFieldError("name");
             }}
+            aria-invalid={Boolean(errors.name) || undefined}
+            aria-describedby={errors.name ? `${nameId}-error` : undefined}
             placeholder="მაგ: ნინო ბერიძე"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className={authInputClass(Boolean(errors.name))}
           />
         </FormField>
 
@@ -306,8 +280,10 @@ export function RegistrationForm() {
               setEmail(e.target.value);
               clearFieldError("email");
             }}
+            aria-invalid={Boolean(errors.email) || undefined}
+            aria-describedby={errors.email ? `${emailId}-error` : undefined}
             placeholder="name@example.com"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className={authInputClass(Boolean(errors.email))}
           />
         </FormField>
 
@@ -321,12 +297,15 @@ export function RegistrationForm() {
               setPassword(e.target.value);
               clearFieldError("password");
             }}
+            invalid={Boolean(errors.password)}
+            aria-invalid={Boolean(errors.password) || undefined}
+            aria-describedby={errors.password ? `${passwordId}-error` : undefined}
             placeholder="მინიმუმ 6 სიმბოლო"
-            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500"
+            className={authInputClass(Boolean(errors.password))}
           />
         </FormField>
 
-        <div className="space-y-1.5">
+        <div>
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -335,52 +314,33 @@ export function RegistrationForm() {
                 setTermsAccepted(e.target.checked);
                 clearFieldError("terms");
               }}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 bg-white text-pink-600 checked:border-pink-500 checked:bg-pink-600 focus:ring-0 focus:ring-offset-0 dark:border-white/[0.1] dark:bg-white/[0.02]"
+              aria-invalid={Boolean(errors.terms) || undefined}
+              aria-describedby={errors.terms ? `${fieldId}-terms-error` : undefined}
+              className="auth-focus mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#e11d74]"
             />
-            <span className="text-xs leading-relaxed text-slate-600 dark:text-gray-400">
+            <span className="text-[14px] leading-relaxed text-[var(--au-text)]">
               ვეთანხმები SpaceEdu-ს{" "}
-              <Link href="/privacy" className="text-pink-400/90 hover:text-pink-300">
+              <Link href="/privacy" className={authLinkClass}>
                 წესებსა და პირობებს
               </Link>
             </span>
           </label>
-          <FieldError message={errors.terms} />
+          <FieldError id={`${fieldId}-terms-error`}>{errors.terms}</FieldError>
         </div>
 
-        {submitError && (
-          <p
-            role="alert"
-            className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
-          >
-            {submitError}
-          </p>
-        )}
+        {submitError ? <Alert tone="error">{submitError}</Alert> : null}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex w-full items-center justify-center space-x-2 rounded-xl bg-pink-600 py-3 text-sm font-medium text-white shadow-lg shadow-pink-600/20 transition-all duration-200 hover:bg-pink-500 disabled:opacity-50"
-        >
+        <button type="submit" disabled={isLoading} className={authPrimaryButtonClass}>
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin stroke-[1.5]" aria-hidden />
-              <span>იქმნება ანგარიში...</span>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              იქმნება ანგარიში…
             </>
           ) : (
-            <span>ანგარიშის შექმნა</span>
+            "ანგარიშის შექმნა"
           )}
         </button>
       </form>
-
-      <p className="text-center text-xs text-slate-500 dark:text-gray-500">
-        უკვე გაქვს ანგარიში?{" "}
-        <Link
-          href={`/login?role=${role}`}
-          className="font-medium text-pink-400 transition-colors hover:text-pink-300"
-        >
-          შესვლა
-        </Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }

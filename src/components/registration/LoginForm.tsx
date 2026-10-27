@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useLayoutEffect, useMemo, useState, type FormEvent } from "react";
+import { useId, useLayoutEffect, useState, type FormEvent } from "react";
 import { KeyRound, Loader2, Lock, Mail } from "lucide-react";
 import { createClient as createSupabaseBrowserClient } from "@/utils/supabase/client";
 import { GoogleAuthButton } from "@/components/registration/GoogleAuthButton";
@@ -15,13 +15,20 @@ import {
   readPersistedSpace,
   resolveAuthRedirectHref,
 } from "@/lib/dev-portal-bypass";
-import {
-  parseRegistrationRole,
-  registrationRoleSubtext,
-  type RegistrationRoleParam,
-} from "@/lib/registration-role";
+import { parseRegistrationRole, type RegistrationRoleParam } from "@/lib/registration-role";
 import { isAdminEmail, resolvePostLoginHref } from "@/lib/access-control";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Alert, FieldError } from "@/components/ui/Alert";
+import {
+  AuthCard,
+  AuthDivider,
+  AuthSpaceChip,
+  authIconClass,
+  authInputClass,
+  authLabelClass,
+  authLinkClass,
+  authPrimaryButtonClass,
+} from "@/components/registration/AuthCard";
 import {
   classifyLoginError,
   FAILED_ATTEMPTS_BEFORE_RESET_HINT,
@@ -83,11 +90,6 @@ export function LoginForm() {
       setUnconfirmed(false);
     };
   }, []);
-
-  const roleSubtext = useMemo(() => {
-    if (role) return registrationRoleSubtext(role);
-    return "შედი შენს სასწავლო სივრცეში";
-  }, [role]);
 
   const finishAuthRedirect = (activeRole: RegistrationRoleParam) => {
     persistSpaceForRole(activeRole);
@@ -221,35 +223,26 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#121214]/40">
-      <header className="space-y-3 text-center">
-        {/* The books on either ground: the light file's dark-green top book
-            is lost on the dark card, so dark mode gets the -dark artwork. */}
-        <img
-          src="/spaceedu-mark.svg"
-          alt="SpaceEdu"
-          width={48}
-          height={48}
-          className="mx-auto h-12 w-12 dark:hidden"
-        />
-        <img
-          src="/spaceedu-mark-dark.svg"
-          alt="SpaceEdu"
-          width={48}
-          height={48}
-          className="mx-auto h-12 w-12 hidden dark:block"
-        />
-        <h1 className="headline text-2xl font-bold text-slate-900 dark:text-white">შესვლა</h1>
-        <p className="text-sm text-slate-600 dark:text-gray-400">{roleSubtext}</p>
-      </header>
-
+    <AuthCard
+      title="შესვლა"
+      subtitle="კარგია, რომ დაბრუნდი"
+      chip={role ? <AuthSpaceChip role={role} /> : undefined}
+      footer={
+        <>
+          ანგარიში არ გაქვს?{" "}
+          <Link href={role ? `/registration?role=${role}` : "/select-space"} className={authLinkClass}>
+            რეგისტრაცია
+          </Link>
+        </>
+      }
+    >
       {showDevBypass && role && (
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-200/90">
-          <p className="font-medium text-amber-100/95">Dev რეჟიმი (მხოლოდ localhost)</p>
+        <div className="rounded-[14px] border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-xs leading-relaxed text-amber-800 dark:text-amber-200/90">
+          <p className="font-medium">Dev რეჟიმი (მხოლოდ localhost)</p>
           <button
             type="button"
             onClick={handleDevSkip}
-            className="mt-2 w-full rounded-lg border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-medium text-amber-100 transition-colors hover:bg-amber-500/20"
+            className="mt-2 w-full rounded-lg border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-medium transition-colors hover:bg-amber-500/20"
           >
             Dev: პორტალის გადახედვა
           </button>
@@ -259,28 +252,19 @@ export function LoginForm() {
       {/* Google works without a pre-chosen space — the account's space is read
           at /auth/complete, so a returning user isn't asked to choose again. */}
       <GoogleAuthButton role={role ?? "abiturient"} label="შესვლა Google-ით" />
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-gray-500">
-          ან
-        </span>
-        <div className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-      </div>
+      <AuthDivider />
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <div className="relative flex flex-col space-y-1.5">
-          <label htmlFor={emailId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={emailId} className={authLabelClass}>
             ელ-ფოსტა
           </label>
           <div className="relative">
-            <Mail
-              className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
-                emailInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
-              }`}
-            />
+            <Mail className={authIconClass(emailInvalid)} aria-hidden />
             <input
               id={emailId}
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -288,31 +272,20 @@ export function LoginForm() {
               }}
               aria-invalid={emailInvalid || undefined}
               aria-describedby={emailInvalid ? emailErrorId : undefined}
-              className={`w-full rounded-xl border bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
-                emailInvalid
-                  ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
-                  : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
-              }`}
+              className={authInputClass(emailInvalid)}
               placeholder="name@example.com"
             />
           </div>
-          {emailInvalid && (
-            <p id={emailErrorId} className="text-xs font-medium text-rose-500">
-              {fieldError?.message}
-            </p>
-          )}
+          {emailInvalid ? <FieldError id={emailErrorId}>{fieldError?.message}</FieldError> : null}
         </div>
 
-        <div className="relative flex flex-col space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-3">
-            <label htmlFor={passwordId} className="text-xs font-medium text-slate-600 dark:text-gray-400">
+            <label htmlFor={passwordId} className={authLabelClass}>
               პაროლი
             </label>
-            <Link
-              href={forgotPasswordHref(email)}
-              className="text-xs font-medium text-slate-500 hover:text-pink-600 dark:text-gray-400 dark:hover:text-pink-300"
-            >
-              დაგავიწყდა პაროლი?
+            <Link href={forgotPasswordHref(email)} className={`text-[13px] ${authLinkClass}`}>
+              დაგავიწყდა?
             </Link>
           </div>
           <PasswordInput
@@ -327,28 +300,15 @@ export function LoginForm() {
             invalid={passwordInvalid}
             aria-invalid={passwordInvalid || undefined}
             aria-describedby={passwordInvalid ? passwordErrorId : undefined}
-            icon={
-              <Lock
-                className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
-                  passwordInvalid ? "text-rose-500" : "text-slate-400 dark:text-gray-500"
-                }`}
-              />
-            }
-            className={`w-full rounded-xl border bg-white py-3 pl-10 text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:bg-white/[0.03] dark:text-white dark:placeholder-gray-500 ${
-              passwordInvalid
-                ? "border-rose-500 ring-1 ring-rose-500/40 focus:border-rose-500 focus:ring-rose-500/40 dark:border-rose-500"
-                : "border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 dark:border-white/[0.08]"
-            }`}
-            placeholder="პაროლი"
+            icon={<Lock className={authIconClass(passwordInvalid)} aria-hidden />}
+            className={authInputClass(passwordInvalid)}
+            placeholder="შენი პაროლი"
           />
           {passwordInvalid && (
-            <div id={passwordErrorId} className="flex flex-wrap items-baseline gap-x-2 text-xs">
-              <p className="font-medium text-rose-500">{fieldError?.message}</p>
+            <div id={passwordErrorId} className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-[13px]">
+              <p className="font-medium text-rose-600 dark:text-rose-400">{fieldError?.message}</p>
               {failedAttempts > 0 && (
-                <Link
-                  href={forgotPasswordHref(email)}
-                  className="font-medium text-pink-600 underline underline-offset-2 hover:text-pink-500 dark:text-pink-300 dark:hover:text-pink-200"
-                >
+                <Link href={forgotPasswordHref(email)} className={authLinkClass}>
                   დაგავიწყდა პაროლი?
                 </Link>
               )}
@@ -359,9 +319,9 @@ export function LoginForm() {
         {failedAttempts >= FAILED_ATTEMPTS_BEFORE_RESET_HINT && (
           <Link
             href={forgotPasswordHref(email)}
-            className="flex items-center gap-3 rounded-xl border border-pink-200 bg-pink-50 px-3.5 py-3 text-sm text-pink-800 transition hover:border-pink-300 dark:border-pink-400/25 dark:bg-pink-500/10 dark:text-pink-200"
+            className="auth-focus flex items-center gap-3 rounded-[14px] border border-pink-200 bg-pink-50 px-3.5 py-3 text-sm text-pink-800 transition hover:border-pink-300 dark:border-pink-400/25 dark:bg-pink-500/10 dark:text-pink-200"
           >
-            <KeyRound className="h-4 w-4 shrink-0" />
+            <KeyRound className="h-4 w-4 shrink-0" aria-hidden />
             <span>
               ვერ შედიხარ? <span className="font-semibold underline underline-offset-2">აღადგინე პაროლი ელ-ფოსტით</span>
             </span>
@@ -369,14 +329,11 @@ export function LoginForm() {
         )}
 
         {error && (
-          <div
-            role="alert"
-            className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"
-          >
-            <p>{error}</p>
-            {unconfirmed && (
-              <div className="mt-2">
-                {resendState === "sent" ? (
+          <Alert
+            tone="error"
+            action={
+              unconfirmed ? (
+                resendState === "sent" ? (
                   <span className="text-emerald-700 dark:text-emerald-300/90">
                     ახალი დადასტურების ბმული გამოგზავნილია — შეამოწმე ინბოქსი.
                   </span>
@@ -385,7 +342,7 @@ export function LoginForm() {
                     type="button"
                     onClick={() => void handleResend()}
                     disabled={resendState === "sending"}
-                    className="font-medium text-pink-700 underline underline-offset-2 hover:text-pink-600 disabled:opacity-50 dark:text-pink-300 dark:hover:text-pink-200"
+                    className="font-semibold underline underline-offset-2 disabled:opacity-50"
                   >
                     {resendState === "sending"
                       ? "იგზავნება..."
@@ -393,31 +350,25 @@ export function LoginForm() {
                         ? "ვერ გაიგზავნა, სცადე თავიდან"
                         : "ხელახლა გამოგზავნა"}
                   </button>
-                )}
-              </div>
-            )}
-          </div>
+                )
+              ) : undefined
+            }
+          >
+            {error}
+          </Alert>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-pink-600 py-3 text-sm font-medium text-white shadow-lg shadow-pink-600/20 hover:bg-pink-500 disabled:opacity-50"
-        >
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-          შესვლა
+        <button type="submit" disabled={isLoading} className={authPrimaryButtonClass}>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              შესვლა…
+            </>
+          ) : (
+            "შესვლა"
+          )}
         </button>
       </form>
-
-      <p className="text-center text-xs text-slate-500 dark:text-gray-500">
-        ანგარიში არ გაქვს?{" "}
-        <Link
-          href={role ? `/registration?role=${role}` : "/select-space"}
-          className="font-medium text-pink-400 hover:text-pink-300"
-        >
-          რეგისტრაცია
-        </Link>
-      </p>
-    </div>
+    </AuthCard>
   );
 }

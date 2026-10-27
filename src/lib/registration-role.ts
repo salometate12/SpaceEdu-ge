@@ -15,11 +15,12 @@ export function roleToRegisterSpace(role: RegistrationRoleParam): RegisterSpace 
   return role;
 }
 
+/** The line under „შექმენი ანგარიში“ for each space. */
 export function registrationRoleSubtext(role: RegistrationRoleParam): string {
   if (role === "abiturient") {
-    return "შენ უერთდები აბიტურიენტების სივრცეს";
+    return "ეროვნული გამოცდებისთვის მზადება აქედან იწყება";
   }
-  return "შენ უერთდები სტუდენტების სივრცეს";
+  return "უნივერსიტეტის სწავლა ერთ სივრცეში";
 }
 
 export function registrationHref(role: RegistrationRoleParam): string {

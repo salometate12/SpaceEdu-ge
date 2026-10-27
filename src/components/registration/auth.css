@@ -1,0 +1,93 @@
+/*
+ * The auth pages (/login, /registration, /forgot-password, /reset-password,
+ * /auth/complete) in the light style, both themes: a plain page, one plain
+ * card (none on phones), quiet fields, a pink primary. `.auth-page` is the
+ * root.
+ */
+.auth-page {
+  --au-bg: #fafaf9;
+  --au-card: #ffffff;
+  --au-card-border: #ece9e4;
+  --au-field: #fafaf9;
+  --au-field-border: #e7e5e4;
+  --au-title: #1c1a17;
+  --au-text: #57534e;
+  --au-muted: #6f6a64;
+  --au-link: #be185d;
+  --au-primary: #e11d74;
+  --au-primary-hover: #cf1769;
+  --au-divider: #ece9e4;
+  --au-google: #ffffff;
+  --au-button-border: #e7e5e4;
+
+  --au-student-bg: #fdf2f8;
+  --au-student: #9d174d;
+  --au-abit-bg: #fefce8;
+  --au-abit: #854d0e;
+
+  background: var(--au-bg);
+  color: var(--au-text);
+}
+
+html.dark .auth-page {
+  --au-bg: #0c0c10;
+  --au-card: #15151b;
+  --au-card-border: #26262e;
+  --au-field: #0f0f14;
+  --au-field-border: #2e2e38;
+  --au-title: #fafaf9;
+  --au-text: #d4d4d8;
+  --au-muted: #a1a1aa;
+  --au-link: #f9a8d4;
+  --au-divider: #26262e;
+  --au-google: #15151b;
+  --au-button-border: #2e2e38;
+
+  --au-student-bg: rgba(236, 72, 153, 0.14);
+  --au-student: #f9a8d4;
+  --au-abit-bg: rgba(250, 204, 21, 0.12);
+  --au-abit: #fde68a;
+}
+
+/* Phones put the field on the page itself, so it keeps the page's tone. */
+@media (max-width: 639px) {
+  html.dark .auth-page {
+    --au-field: #15151b;
+  }
+}
+
+.auth-page .auth-input {
+  height: 48px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--au-field-border);
+  background: var(--au-field);
+  padding-left: 2.75rem;
+  padding-right: 1rem;
+  font-size: 15px;
+  color: var(--au-title);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.auth-page .auth-input::placeholder {
+  color: var(--au-muted);
+}
+.auth-page .auth-input:focus {
+  border-color: var(--au-primary);
+  box-shadow: 0 0 0 3px rgba(225, 29, 116, 0.15);
+}
+.auth-page .auth-input[aria-invalid="true"] {
+  border-color: #e11d48;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+}
+/* No iOS zoom on focus. */
+@media (max-width: 639px) {
+  .auth-page .auth-input {
+    font-size: 16px;
+  }
+}
+
+.auth-page .auth-focus:focus-visible {
+  outline: 2px solid var(--au-primary);
+  outline-offset: 2px;
+}
