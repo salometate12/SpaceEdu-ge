@@ -10,15 +10,14 @@ import {
 } from "./notebook/accents";
 
 const SUBTITLE_TEXT =
-  "SpaceEdu — შენი პერსონალური სასწავლო სივრცე სკოლის, გამოცდებისა და უნივერსიტეტისთვის. AI გეგმავს, ხსნის და ამოწმებს — შენ მხოლოდ სწავლობ.";
+  "SpaceEdu შენი სასწავლო სივრცეა სკოლიდან უნივერსიტეტამდე. AI დაგიგეგმავს, აგიხსნის და შეგამოწმებს, შენ კი მხოლოდ სწავლობ.";
 
 const PILLS: { label: string; accent: NotebookAccent }[] = [
   { label: "სასწავლო გეგმა", accent: "blue" },
-  { label: "Active Recall Quiz", accent: "green" },
   { label: "AI მასწავლებელი", accent: "pink" },
   { label: "კონსპექტი", accent: "amber" },
-  { label: "ELI5", accent: "blue" },
-  { label: "ფლეშქარდები", accent: "green" },
+  { label: "ქვიზი", accent: "green" },
+  { label: "ფლეშქარდები", accent: "blue" },
 ];
 
 const HERO_CARDS: {
@@ -29,22 +28,22 @@ const HERO_CARDS: {
   tilt: string;
 }[] = [
   {
-    title: "3 ინსტრუმენტი",
-    desc: "გეგმა, კონსპექტი და ქვიზები ერთ სივრცეში",
+    title: "ყველაფერი ერთად",
+    desc: "გეგმა, ქვიზი, კონსპექტი და AI მასწავლებელი ერთ სივრცეში",
     icon: Lock,
     accent: "blue",
     tilt: "hover:-rotate-1",
   },
   {
-    title: "AI Tutor",
-    desc: "გიხსნის ყველაფერს ნაბიჯ-ნაბიჯ, 24/7",
+    title: "AI მასწავლებელი",
+    desc: "ყველაფერს ეტაპობრივად გიხსნის, ნებისმიერ დროს",
     icon: Bot,
     accent: "green",
     tilt: "hover:rotate-1",
   },
   {
     title: "24/7",
-    desc: "ხელმისაწვდომია ნებისმიერ დროს, ნებისმიერი მოწყობილობიდან",
+    desc: "ხელმისაწვდომია ნებისმიერი მოწყობილობიდან",
     icon: Clock,
     accent: "pink",
     tilt: "hover:-rotate-1",
@@ -102,7 +101,7 @@ export function Hero() {
               className={`headline-word-in ${ACCENT_TEXT.green}`}
               style={{ animationDelay: "750ms" }}
             >
-              Space-ი
+              სივრცე
             </span>
           </span>
         </h1>

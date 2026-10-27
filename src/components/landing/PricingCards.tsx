@@ -127,13 +127,13 @@ export function PricingCards() {
         <p
           className={`text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
         >
-          ფასების პაკეტები
+          ფასები
         </p>
         <h2 className="headline mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          აირჩიე შენს სივრცეს შესაფერისი გეგმა
+          აირჩიე შენი სივრცის პაკეტი
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-          აბიტურიენტი თუ სტუდენტი — ყოველი მიმართულებისთვის ცალკე, გამჭვირვალე ფასები.
+          აბიტურიენტისა და სტუდენტისთვის ცალკე პაკეტები, დამალული გადასახადების გარეშე.
         </p>
       </div>
 

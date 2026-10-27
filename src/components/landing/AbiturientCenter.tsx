@@ -1,4 +1,4 @@
-import { BookOpen, PenLine, RotateCcw, Timer, TrendingUp } from "lucide-react";
+import { BookOpen, Calculator, ClipboardCheck, PenLine, Timer } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import { Mountains, Sparkle } from "./notebook/Doodles";
 import {
@@ -15,27 +15,27 @@ const SECONDARY_CARDS: {
   accent: NotebookAccent;
 }[] = [
   {
-    title: "თემის წერის დახვეწა",
-    body: "AI ანალიზებს არგუმენტაციას, სტრუქტურასა და სტილს და გთავაზობს კონკრეტულ შესწორებებს.",
+    title: "თემის შეფასება",
+    body: "AI შეაფასებს არგუმენტაციას, სტრუქტურასა და სტილს და კონკრეტულ შესწორებებს შემოგთავაზებს.",
     icon: PenLine,
     accent: "amber",
   },
   {
-    title: "სისტემური გამეორება",
-    body: "სუსტი თემები ბრუნდება ზუსტად მაშინ, სანამ დაგავიწყდება — Spaced Repetition ალგორითმით.",
-    icon: RotateCcw,
+    title: "ღია დავალებების შემოწმება",
+    body: "ისტორიაში, მათემატიკაში, ქიმიაში და სხვა საგნებში AI შენს პასუხს შეფასების სქემით ამოწმებს.",
+    icon: ClipboardCheck,
     accent: "blue",
   },
   {
-    title: "ბიბლიოთეკა და მასალები",
-    body: "წარსული წლების ტესტები, სახელმძღვანელოები და თემატური მასალა საგნების მიხედვით.",
+    title: "წინა წლების ტესტები",
+    body: "წარსული წლების საგამოცდო ტესტები საგნების მიხედვით, ერთ ადგილას.",
     icon: BookOpen,
     accent: "pink",
   },
   {
-    title: "პროგრესის თრექინგი",
-    body: "ხედავ ზუსტად რომელ საგანსა თუ თემაში გჭირდება საჯირო, გამოცდამდე.",
-    icon: TrendingUp,
+    title: "ქულის კალკულატორი",
+    body: "გამოთვალე მოსალოდნელი ქულა და ნახე, რომელ პროგრამაზე გაქვს ჩარიცხვის შანსი.",
+    icon: Calculator,
     accent: "green",
   },
 ];
@@ -59,7 +59,7 @@ export function AbiturientCenter() {
           აბიტურიენტის ცენტრი
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-          ყველაფერი, რაც დაგჭირდება ერთიან ეროვნულებზე მოსამზადებლად — ერთ სივრცეში
+          ყველაფერი, რაც ეროვნულებისთვის მოსამზადებლად დაგჭირდება, ერთ სივრცეში.
         </p>
       </div>
 
@@ -75,14 +75,14 @@ export function AbiturientCenter() {
           <p
             className={`mono text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.amber}`}
           >
-            MOCK EXAM
+            საცდელი გამოცდა
           </p>
           <h3 className="mt-1.5 text-xl font-bold text-slate-900 sm:text-2xl dark:text-slate-50">
-            გამოცდის სრული იმიტირება
+            გამოცდის სიმულაცია
           </h3>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-            გაიარე რეალური ფორმატისა და დროის მიმდევრობის საცდელი გამოცდები საგნების
-            მიხედვით — შეაფასე შენი მზადყოფნა ზუსტად ისეთ პირობებში, როგორშიც ჩააბარებ.
+            გაიარე საცდელი გამოცდა საგნების მიხედვით, რეალური ფორმატითა და დროით, და ნახე,
+            რამდენად მზად ხარ.
           </p>
         </article>
       </RevealOnScroll>

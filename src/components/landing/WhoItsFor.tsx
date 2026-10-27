@@ -17,31 +17,34 @@ interface AudienceCard {
   tag: string;
   accent: NotebookAccent;
   tilt: string;
+  /** Not open yet: a small „მალე“ by the title. */
+  soon?: boolean;
 }
 
 const AUDIENCES: AudienceCard[] = [
   {
     id: "school",
     title: "სკოლა",
-    body: "დაეხმარე თავს ყოველდღიურ საშინაო დავალებებსა და გაკვეთილების მომზადებაში.",
+    body: "საშინაო დავალებები და გაკვეთილებისთვის მომზადება ერთ ადგილას.",
     icon: GraduationCap,
-    tag: "I–XII კლასი",
+    tag: "უფროსკლასელებისთვის",
+    soon: true,
     accent: "violet",
     tilt: "hover:-rotate-1",
   },
   {
     id: "exams",
     title: "გამოცდები",
-    body: "მოემზადე ეროვნული და საერთაშორისო გამოცდებისთვის სტრუქტურირებული გეგმით.",
+    body: "მოემზადე ეროვნული გამოცდებისთვის მოწესრიგებული გეგმით.",
     icon: Target,
-    tag: "ეროვნული გამოცდები, SAT, IELTS",
+    tag: "ეროვნული გამოცდები",
     accent: "green",
     tilt: "hover:rotate-1",
   },
   {
     id: "university",
     title: "უნივერსიტეტი",
-    body: "გართულებულ საგნებში სწრაფად გაერკვე AI ასისტენტითა და კონსპექტებით.",
+    body: "რთულ საგნებში სწრაფად გაერკვევი AI მასწავლებლითა და კონსპექტებით.",
     icon: GraduationCap,
     tag: "ბაკალავრიატი, მაგისტრატურა",
     accent: "pink",
@@ -59,10 +62,10 @@ export function WhoItsFor() {
 
       <div className="mx-auto mb-10 max-w-2xl text-center">
         <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          ვისთვის არის SpaceEdu
+          ვისთვისაა SpaceEdu
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-          ერთი პლატფორმა — სწავლის ყველა საფეხურისთვის
+          ერთი პლატფორმა სწავლის ყველა ეტაპისთვის
         </p>
       </div>
 
@@ -83,8 +86,13 @@ export function WhoItsFor() {
                     aria-hidden
                   />
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-slate-50">
+                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-slate-50">
                   {audience.title}
+                  {audience.soon ? (
+                    <span className="inline-flex h-6 items-center rounded-full border-2 border-slate-300 px-2.5 text-xs font-semibold text-slate-600 dark:border-white/20 dark:text-slate-300">
+                      მალე
+                    </span>
+                  ) : null}
                 </h3>
                 <p className="mb-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                   {audience.body}

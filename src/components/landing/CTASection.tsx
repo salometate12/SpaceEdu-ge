@@ -13,10 +13,10 @@ export function CTASection() {
         >
           <RainbowArc className="pointer-events-none absolute -left-6 -top-4 hidden w-28 -rotate-12 opacity-80 sm:block" />
           <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-            მზად ხარ, დაიწყო შენი სასწავლო Space?
+            მზად ხარ, რომ შექმნა შენი სასწავლო სივრცე?
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-            შემოგვიერთდი დღესვე — უფასოდ, ბარათის გარეშე.
+            დაიწყე დღესვე, უფასოდ და ბარათის გარეშე.
           </p>
           <Link
             href="/select-space"
