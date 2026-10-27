@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import {
   DM_Sans,
-  JetBrains_Mono,
   Noto_Sans_Georgian,
   Sora,
 } from "next/font/google";
+import localFont from "next/font/local";
 import { HeaderByPath } from "@/components/layout/Header";
 import { DocumentGround } from "@/components/layout/DocumentGround";
 import { TrialNotice } from "@/components/layout/TrialNotice";
@@ -44,10 +44,17 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+// Self-hosted (latin, from @fontsource/jetbrains-mono 5.2.8; OFL in the
+// folder): Turbopack's next/font/google fetch kept failing on Vercel for it.
+const jetbrainsMono = localFont({
+  src: [
+    { path: "../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/jetbrains-mono/JetBrainsMono-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
 });
 
 const SITE_URL = "https://www.spaceedu.ge";
