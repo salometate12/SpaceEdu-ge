@@ -385,6 +385,12 @@ html[data-surface="student-dashboard"]:not(.dark) body {
   background-color: var(--dashboard-surface);
 }
 
+/* …and the same on <html> (the overscroll and status-bar ground). */
+html[data-surface="student-dashboard"]:not(.dark) {
+  --ground-color: var(--dashboard-surface);
+  background-color: var(--dashboard-surface);
+}
+
 html.dark[data-surface="student-dashboard"] {
   --dashboard-card-border: var(--border);
 }
@@ -1352,7 +1358,20 @@ html.dark {
   color-scheme: dark;
 }
 
+/* The ground's colour as a variable too: the status-bar band below paints
+   with it. App pages put it on <html> as well — before, only <body> had a
+   colour (and the dotted grid), so a rubber-band pull on iOS showed the
+   dots, and a different shade, past the page's edge. */
+html {
+  --ground-color: var(--bg-primary);
+}
+
+html[data-ground="app"] {
+  background-color: var(--bg-primary);
+}
+
 html[data-ground="landing"] {
+  --ground-color: #09090f;
   color-scheme: dark;
   background-color: #09090f;
 }
@@ -1363,12 +1382,45 @@ html[data-ground="landing"] body {
 
 html[data-ground="paper"],
 html[data-ground="paper"] body {
+  --ground-color: #faf6ec;
   background-color: #faf6ec;
 }
 
 html.dark[data-ground="paper"],
 html.dark[data-ground="paper"] body {
+  --ground-color: #161a24;
   background-color: #161a24;
+}
+
+/* No rubber-band past the page's ends: the header, the dock and the page
+   no longer come apart when a phone is pulled beyond the top or bottom.
+   (Older iOS ignores this; the matching <html> colour above covers it.) */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Scrolling panels keep their scroll to themselves. */
+[role="dialog"],
+[aria-modal="true"],
+[role="dialog"] .overflow-y-auto,
+[aria-modal="true"] .overflow-y-auto {
+  overscroll-behavior: contain;
+}
+
+/* Phones: a band in the page's colour under the clock and the battery, so
+   content scrolling up doesn't show through the status bar. Below the
+   header strip (z-40), above the page. */
+@media (max-width: 767.98px) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--ground-color);
+    z-index: 39;
+    pointer-events: none;
+  }
 }
 
 /* Mobile assistant — lg+ desktop unchanged */

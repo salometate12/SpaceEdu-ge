@@ -53,7 +53,7 @@ const HERO_CARDS: {
 
 export function Hero() {
   return (
-    <section className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:py-20">
+    <section className="relative mx-auto w-full max-w-7xl px-4 pb-14 pt-8 sm:px-6 sm:py-14 lg:py-20">
       {/* Margin doodles, as on /about. Hidden where the column already fills
           the sheet. */}
       <RainbowArc className="pointer-events-none absolute right-4 top-8 hidden w-24 -rotate-6 opacity-90 lg:block lg:w-32" />
@@ -63,14 +63,14 @@ export function Hero() {
 
       <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
         <span
-          className="stagger-in mb-6 inline-flex items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100"
+          className="stagger-in mb-4 inline-flex sm:mb-6 items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100"
           style={{ animationDelay: "0ms" }}
         >
           <Bulb className="h-4 w-4 text-amber-500 dark:text-amber-300" />
           სასწავლო პლატფორმა შენთვის
         </span>
 
-        <h1 className="headline responsive-display mx-auto max-w-4xl text-center font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+        <h1 className="headline responsive-display mx-auto max-sm:text-[28px] max-w-4xl text-center font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
           <span className="block">
             <span className="headline-word-in" style={{ animationDelay: "120ms" }}>
               ისწავლე
@@ -108,26 +108,26 @@ export function Hero() {
         </h1>
 
         <p
-          className="stagger-in mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-slate-700 sm:text-base md:text-lg dark:text-slate-300"
+          className="stagger-in mx-auto mt-4 max-w-2xl sm:mt-6 text-center text-sm leading-relaxed text-slate-700 sm:text-base md:text-lg dark:text-slate-300"
           style={{ animationDelay: "950ms" }}
         >
           {SUBTITLE_TEXT}
         </p>
 
         <div
-          className="stagger-in mt-8 flex flex-wrap items-center justify-center gap-3.5"
+          className="stagger-in mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-8 sm:gap-3.5"
           style={{ animationDelay: "1050ms" }}
         >
           <Link
             href="/select-space"
-            className={`paper-sticker group inline-flex items-center gap-2 rounded-full border-2 px-7 py-3.5 text-base font-bold ${ACCENT_SOLID.violet}`}
+            className={`paper-sticker group inline-flex items-center gap-2 rounded-full border-2 px-7 py-3 sm:py-3.5 text-base font-bold ${ACCENT_SOLID.violet}`}
           >
             უფასოდ დაიწყე
             <ArrowUpRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
           <Link
             href="#how-it-works"
-            className="inline-flex items-center rounded-full border-2 border-slate-400 bg-white/60 px-7 py-3.5 text-base font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
+            className="inline-flex items-center rounded-full border-2 border-slate-400 bg-white/60 px-7 py-3 sm:py-3.5 text-base font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
           >
             როგორ მუშაობს
           </Link>
