@@ -62,11 +62,11 @@ const SITE_URL = "https://www.spaceedu.ge";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "SpaceEdu — AI სასწავლო პლატფორმა აბიტურიენტებისთვის და სტუდენტებისთვის",
+    default: "SpaceEdu | AI სასწავლო პლატფორმა აბიტურიენტებისა და სტუდენტებისთვის",
     template: "%s | SpaceEdu",
   },
   description:
-    "SpaceEdu — ქართული AI სასწავლო პლატფორმა: მოემზადე ეროვნული გამოცდებისთვის, ისწავლე უნივერსიტეტში და მიიღე პერსონალური სასწავლო გეგმა, AI მასწავლებელი, ქვიზები და კონსპექტები ერთ სივრცეში.",
+    "SpaceEdu ქართული AI სასწავლო პლატფორმაა. მოემზადე ეროვნული გამოცდებისთვის, ისწავლე უნივერსიტეტში და მიიღე სასწავლო გეგმა, AI მასწავლებელი, ქვიზები და კონსპექტები ერთ სივრცეში.",
   keywords: [
     "SpaceEdu",
     "სასწავლო პლატფორმა",
@@ -100,13 +100,13 @@ export const metadata: Metadata = {
     locale: "ka_GE",
     url: SITE_URL,
     siteName: "SpaceEdu",
-    title: "SpaceEdu — AI სასწავლო პლატფორმა აბიტურიენტებისთვის და სტუდენტებისთვის",
+    title: "SpaceEdu | AI სასწავლო პლატფორმა აბიტურიენტებისა და სტუდენტებისთვის",
     description:
       "მოემზადე ეროვნული გამოცდებისთვის და ისწავლე უნივერსიტეტში AI-ით მართული სასწავლო გეგმით, ქვიზებით და AI მასწავლებელთან ერთად.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SpaceEdu — AI სასწავლო პლატფორმა",
+    title: "SpaceEdu | AI სასწავლო პლატფორმა",
     description: ka.metaDescription,
   },
   robots: {

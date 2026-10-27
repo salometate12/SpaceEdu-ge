@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const PRODUCT_LINKS = [
   { href: "/#audience", label: "სკოლა" },
-  { href: "/#features", label: "ინსტრუმენტები" },
-  { href: "/#pricing", label: "ფასი" },
+  { href: "/#features", label: "ხელსაწყოები" },
+  { href: "/#pricing", label: "ფასები" },
 ];
 
 const COMPANY_LINKS = [
@@ -96,7 +96,7 @@ export function LandingFooter({ forceDark = false }: { forceDark?: boolean }) {
               </>
             )}
             <p className={`mt-3 max-w-xs text-sm leading-relaxed ${taglineCls}`}>
-              შენი პერსონალური სასწავლო სივრცე — სკოლიდან უნივერსიტეტამდე.
+              შენი სასწავლო სივრცე სკოლიდან უნივერსიტეტამდე.
             </p>
           </div>
 

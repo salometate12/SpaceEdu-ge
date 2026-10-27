@@ -18,35 +18,8 @@ interface TestimonialItem {
   rating: number;
 }
 
-const TESTIMONIALS: TestimonialItem[] = [
-  {
-    id: "t1",
-    text: "სასწავლო გეგმამ ყველაფერი მოაწესრიგა. ეროვნულებისთვის მომზადება ნათელი და სტრუქტურირებული გახდა.",
-    author: "გიორგი მ.",
-    role: "ეროვნულები",
-    initials: "გმ",
-    accent: "violet",
-    rating: 5,
-  },
-  {
-    id: "t2",
-    text: "Quiz რეჟიმმა და კონსპექტების გენერატორმა სემესტრის განმავლობაში ყველაზე სასარგებლო ინსტრუმენტი გამოდგა.",
-    author: "მარიამ კ.",
-    role: "სტუდენტი",
-    initials: "მკ",
-    accent: "green",
-    rating: 5,
-  },
-  {
-    id: "t3",
-    text: "ELI5 ახსნები და AI მასწავლებელი რთულ თემებზე ყოველთვის სასარგებლო აღმოჩნდა გამოცდის წინ.",
-    author: "ანა გ.",
-    role: "აბიტურიენტი",
-    initials: "აგ",
-    accent: "pink",
-    rating: 4,
-  },
-];
+/** Empty until real reviews are collected; the section draws nothing then. */
+const TESTIMONIALS: TestimonialItem[] = [];
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -67,6 +40,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export function Testimonials() {
+  if (TESTIMONIALS.length === 0) return null;
   return (
     <section
       id="testimonials"

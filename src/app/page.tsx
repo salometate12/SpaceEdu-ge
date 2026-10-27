@@ -8,8 +8,8 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 import { NotebookSheet } from "@/components/landing/notebook/NotebookSheet";
 import { PricingCards } from "@/components/landing/PricingCards";
 import { Starfield } from "@/components/landing/Starfield";
-import { Testimonials } from "@/components/landing/Testimonials";
 import { WhoItsFor } from "@/components/landing/WhoItsFor";
+import { WhySpaceEdu } from "@/components/landing/WhySpaceEdu";
 
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
@@ -21,7 +21,7 @@ const STRUCTURED_DATA = {
       url: "https://www.spaceedu.ge",
       logo: "https://www.spaceedu.ge/icons/icon-512x512.png",
       description:
-        "SpaceEdu — ქართული AI სასწავლო პლატფორმა აბიტურიენტებისთვის, სტუდენტებისთვის და მოსწავლეებისთვის.",
+        "SpaceEdu ქართული AI სასწავლო პლატფორმაა აბიტურიენტებისთვის, სტუდენტებისთვის და მოსწავლეებისთვის.",
       sameAs: [],
     },
     {
@@ -37,7 +37,7 @@ const STRUCTURED_DATA = {
       name: "SpaceEdu",
       url: "https://www.spaceedu.ge",
       description:
-        "AI-ით მართული სასწავლო გეგმა, ქვიზები, კონსპექტები და AI მასწავლებელი — ეროვნული გამოცდებისა და უნივერსიტეტის საგნებისთვის.",
+        "სასწავლო გეგმა, ქვიზები, კონსპექტები და AI მასწავლებელი ეროვნული გამოცდებისა და უნივერსიტეტის საგნებისთვის.",
       areaServed: {
         "@type": "Country",
         name: "Georgia",
@@ -72,7 +72,7 @@ export default function LandingPage() {
           </NotebookSheet>
           <NotebookSheet>
             <WhoItsFor />
-            <Testimonials />
+            <WhySpaceEdu />
           </NotebookSheet>
           <NotebookSheet>
             <PricingCards />

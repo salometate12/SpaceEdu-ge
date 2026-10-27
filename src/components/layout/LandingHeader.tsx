@@ -25,7 +25,7 @@ const NAV_LINKS = [
   { href: "/#exam", label: "გამოცდები" },
   { href: "/#university", label: "უნივერსიტეტი" },
   { href: "/#how-it-works", label: "როგორ მუშაობს" },
-  { href: "/#pricing", label: "ფასი" },
+  { href: "/#pricing", label: "ფასები" },
   { href: "/about", label: "ჩვენს შესახებ" },
 ];
 

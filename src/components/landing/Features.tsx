@@ -3,7 +3,6 @@ import {
   Calculator,
   Calendar,
   Copy,
-  FileCheck2,
   FileText,
   GraduationCap,
   Lightbulb,
@@ -30,15 +29,15 @@ interface ToolCard {
 const SIDE_TOOLS: ToolCard[] = [
   {
     id: "quiz",
-    title: "Active Recall Quiz",
-    body: "ქვიზები, რომლებიც გახსოვნებას ამყარებენ და სუსტ ადგილებს გაჩვენებენ.",
+    title: "ქვიზი",
+    body: "ატვირთე PDF ან ფაილი და მიიღე ქვიზი, რომელიც სუსტ ადგილებს გაჩვენებს.",
     icon: RotateCw,
     accent: "blue",
   },
   {
     id: "ai-teacher",
     title: "AI მასწავლებელი",
-    body: "პასუხობს კითხვებს ბუნებრივ ენაზე, ნებისმიერ საათზე.",
+    body: "ვერ გაიგე თემა? ჰკითხე და აგიხსნის, ნებისმიერ დროს.",
     icon: MessageSquare,
     accent: "green",
   },
@@ -48,21 +47,21 @@ const MID_TOOLS: ToolCard[] = [
   {
     id: "conspectus",
     title: "კონსპექტი",
-    body: "გრძელი მასალიდან მოკლე, სტრუქტურირებული კონსპექტი წამებში.",
+    body: "გრძელი მასალიდან მოკლე და მოწესრიგებული კონსპექტი წამებში.",
     icon: FileText,
     accent: "amber",
   },
   {
     id: "eli5",
-    title: "ELI5",
-    body: "რთული თემები ახსნილი უმარტივესად, გასაგები ენით.",
+    title: "ELI5 ახსნა",
+    body: "რთული თემა ისე, რომ ბავშვსაც გაეგება.",
     icon: Lightbulb,
     accent: "pink",
   },
   {
     id: "flashcards",
     title: "ფლეშქარდები",
-    body: "ავტომატურად გენერირებული ბარათები გამეორებისთვის.",
+    body: "დაიმახსოვრე მთავარი ცნებები ბარათებით.",
     icon: Copy,
     accent: "green",
   },
@@ -70,30 +69,23 @@ const MID_TOOLS: ToolCard[] = [
 
 const SMALL_TOOLS: ToolCard[] = [
   {
-    id: "pdf-to-test",
-    title: "PDF → ტესტი",
-    body: "ატვირთე PDF და AI ავტომატურად შეადგენს ტესტურ კითხვებს მისი შინაარსიდან.",
-    icon: FileCheck2,
-    accent: "violet",
-  },
-  {
     id: "flashcards-any-source",
     title: "ფლეშქარდები ნებისმიერი წყაროდან",
-    body: "დაამატე PDF, ბმული ან YouTube ვიდეო — AI გამოყოფს საკვანძო საკითხებს ბარათებად.",
+    body: "დაამატე PDF, ტექსტი ან YouTube ვიდეო და AI მთავარ საკითხებს ბარათებად გამოყოფს.",
     icon: Video,
     accent: "pink",
   },
   {
     id: "score-calculator",
-    title: "გამოცდის ქულის კალკულატორი",
-    body: "გამოთვალე მოსალოდნელი ჯამური ქულა საგნების მიხედვით და თარგმნე ის ჩარიცხვის შანსში.",
+    title: "ქულის კალკულატორი",
+    body: "გამოთვალე მოსალოდნელი ქულა საგნების მიხედვით.",
     icon: Calculator,
     accent: "green",
   },
   {
     id: "program-picker",
     title: "პროგრამის შესარჩევი",
-    body: "შენი ქულების მიხედვით ხედავ, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის საშუალება.",
+    body: "ნახე, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის შანსი შენი ქულებით.",
     icon: GraduationCap,
     accent: "amber",
   },
@@ -142,10 +134,10 @@ export function Features() {
 
       <div className="mx-auto mb-10 max-w-2xl px-4 text-center sm:px-6">
         <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          შენი სასწავლო არსენალი
+          შენი სასწავლო ხელსაწყოები
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-          ყველა ინსტრუმენტი, რომელიც დაგჭირდება — ერთ სივრცეში
+          ყველაფერი, რაც სწავლისთვის დაგჭირდება, ერთ სივრცეში
         </p>
       </div>
 
@@ -155,9 +147,9 @@ export function Features() {
             <ToolTile
               tool={{
                 id: "study-plan",
-                kicker: "მთავარი ინსტრუმენტი",
+                kicker: "მთავარი ხელსაწყო",
                 title: "სასწავლო გეგმა",
-                body: "კვირეული გეგმა შენი მიზნების მიხედვით, ავტომატურად განახლებადი — ხედავ ზუსტად რა გელოდება დღეს, კვირაში და გამოცდამდე.",
+                body: "დაგეგმე სწავლა საგნების მიხედვით და მიჰყევი დღიდან დღემდე. ყოველთვის ხედავ, რა გელოდება დღეს, ამ კვირაში და გამოცდამდე.",
                 icon: Calendar,
                 accent: "violet",
                 featured: true,
@@ -181,7 +173,7 @@ export function Features() {
         </RevealOnScroll>
 
         <RevealOnScroll delayMs={140}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {SMALL_TOOLS.map((tool) => (
               <ToolTile key={tool.id} tool={tool} />
             ))}
@@ -194,7 +186,7 @@ export function Features() {
           href="/select-space"
           className="group flex items-center gap-2 rounded-full border-2 border-slate-400 bg-white/60 px-8 py-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
         >
-          ყველა ფუნქციის ნახვა
+          ყველა ხელსაწყო
           <MoveRight
             className="h-4 w-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1"
             aria-hidden
