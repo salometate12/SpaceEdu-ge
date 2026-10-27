@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { LogOut, MessageSquareText, Moon, Search, Sun, X } from "lucide-react";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
@@ -12,8 +12,9 @@ import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useMobileSideMenu } from "@/contexts/MobileSideMenuContext";
 import { aiTeacherHrefForSpace, spaceFromPathname } from "@/lib/access-control";
 import { setMobileOverlay } from "@/lib/mobile-overlay";
-import { buildToolTiles, filterTools, softHyphenate, type ToolTile } from "@/lib/mobile-tools";
+import { buildToolTiles, filterTools, type ToolTile } from "@/lib/mobile-tools";
 import { buildRailGroups } from "./DashboardSideRail";
+import "./tools-menu.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 /** Dragged this far down from the top of the menu, it closes. */
@@ -41,25 +42,56 @@ function trapFocus(event: ReactKeyboardEvent<HTMLElement>) {
 const dockToolsButton = () =>
   document.querySelector<HTMLElement>("nav[aria-label='მობილური ნავიგაცია'] button[aria-label='ხელსაწყოები']");
 
+const LABEL_SIZE = 14;
+const MIN_LABEL_SIZE = 12;
+
+/**
+ * A tile's name is never broken inside a word, so on a narrow phone a long
+ * one („მასწავლებელი“) can be wider than the tile. This steps its size down
+ * (to 12px at most) until the longest word fits.
+ */
+function useFittedLabel(text: string) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const fit = () => {
+      let size = LABEL_SIZE;
+      element.style.fontSize = "";
+      while (element.scrollWidth > element.clientWidth + 0.5 && size > MIN_LABEL_SIZE) {
+        size -= 0.5;
+        element.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    if (element.parentElement) observer.observe(element.parentElement);
+    return () => observer.disconnect();
+  }, [text]);
+  return ref;
+}
+
 function Tile({ tile, onPick }: { tile: ToolTile; onPick: () => void }) {
   const Icon = tile.icon;
-  const className = `flex min-h-[96px] flex-col items-start justify-between gap-2 rounded-[18px] p-3 text-left transition-[transform,background-color] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+  const labelRef = useFittedLabel(tile.label);
+  // Below 400px the icon and spacing are a little tighter, for the words' sake.
+  const className = `tm-focus flex h-[58px] min-w-0 items-center gap-2 rounded-[16px] bg-[var(--tm-surface)] px-2 text-left min-[400px]:gap-2.5 min-[400px]:px-2.5 transition-transform duration-150 active:scale-[0.97] ${
     tile.active
-      ? // The current page: the neo-brutalist pink mark.
-        "border-2 border-[#e11d74] bg-[#16161f] shadow-[3px_3px_0_0_#e11d74]"
-      : "border border-white/[0.08] bg-[#16161f] active:bg-[#1e1e2a]"
+      ? // The current page: a pink outline.
+        "border-2 border-[#e11d74]"
+      : "border border-[var(--tm-border)]"
   }`;
   const content = (
     <>
       <span
-        className="flex h-9 w-9 items-center justify-center rounded-xl"
-        style={{ background: `color-mix(in srgb, ${tile.color} 15%, transparent)`, color: tile.color }}
+        className="tm-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] min-[400px]:h-9 min-[400px]:w-9 min-[400px]:rounded-[11px]"
+        style={{ "--tile": tile.color } as CSSProperties}
       >
         <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
       </span>
-      {/* Long Georgian words break at a syllable, with a hyphen, inside the tile. */}
-      <span className="line-clamp-2 text-[13.5px] font-semibold leading-[1.3] text-white [overflow-wrap:anywhere]">
-        {softHyphenate(tile.label)}
+      {/* Whole words: two lines at most, never broken inside a word. */}
+      <span ref={labelRef} className="tm-label line-clamp-2 min-w-0 flex-1 text-[14px] font-semibold leading-[1.25] text-[var(--tm-title)]">
+        {tile.label}
       </span>
     </>
   );
@@ -87,7 +119,7 @@ function Tile({ tile, onPick }: { tile: ToolTile; onPick: () => void }) {
 
 /**
  * The phone's tools menu (opened from the dock's „ხელსაწყოები“): a full
- * black sheet rising from the bottom with a search field and one grid of
+ * sheet (light or dark with the theme) rising from the bottom with a search field and one grid of
  * tiles — the current space's tools, without the dock's dashboard and
  * profile. Closes with ✕, Esc, a pick, or a swipe down from the top.
  * The desktop rail (DashboardSideRail) is separate and unchanged.
@@ -192,8 +224,8 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       aria-label="ხელსაწყოები"
       onKeyDown={trapFocus}
-      // Solid black in both themes: nothing of the page shows through.
-      className="flex h-full flex-col overflow-y-auto overscroll-contain bg-[#0b0b0f] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] text-white"
+      // Solid in both themes: nothing of the page shows through.
+      className="tools-menu flex h-full flex-col overflow-y-auto overscroll-contain px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))]"
       style={drag ? { transform: `translateY(${drag}px)` } : undefined}
       onTouchStart={(event) => {
         // Only from the top: otherwise a swipe down is just scrolling.
@@ -214,20 +246,20 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
       }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-[25px] font-bold leading-tight">ხელსაწყოები</h2>
+        <h2 className="text-[26px] font-bold leading-tight text-[var(--tm-title)]">ხელსაწყოები</h2>
         <button
           ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label="მენიუს დახურვა"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-white/80 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          className="tm-focus flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tm-control-border)] bg-[var(--tm-surface)] text-[var(--tm-icon)] transition-colors hover:text-[var(--tm-title)]"
         >
           <X className="h-5 w-5" strokeWidth={2} />
         </button>
       </div>
 
       <div className="relative mt-4">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#a1a1aa]" aria-hidden />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--tm-placeholder)]" aria-hidden />
         <input
           type="search"
           value={query}
@@ -236,14 +268,14 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
           aria-label="მოძებნე ხელსაწყო"
           enterKeyHint="search"
           // 16px: iOS zooms into smaller fields.
-          className="h-12 w-full rounded-full border border-white/[0.08] bg-white/[0.06] pl-11 pr-11 text-[16px] font-medium text-white outline-none placeholder:text-[#a1a1aa] focus:border-white/25 [&::-webkit-search-cancel-button]:hidden"
+          className="h-12 w-full rounded-full border border-[var(--tm-control-border)] bg-[var(--tm-surface)] pl-11 pr-11 text-[16px] font-medium text-[var(--tm-title)] outline-none placeholder:text-[var(--tm-placeholder)] focus:border-[#e11d74] [&::-webkit-search-cancel-button]:hidden"
         />
         {query ? (
           <button
             type="button"
             onClick={() => setQuery("")}
             aria-label="ძებნის გასუფთავება"
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#a1a1aa] hover:text-white"
+            className="tm-focus absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[var(--tm-placeholder)] hover:text-[var(--tm-title)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -251,18 +283,18 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
       </div>
 
       {shown.length > 0 ? (
-        <div className="mt-4 grid grid-cols-3 gap-[10px]">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           {shown.map((tile) => (
             <Tile key={tile.id} tile={tile} onPick={onClose} />
           ))}
         </div>
       ) : (
         <div className="mt-8 flex flex-col items-center gap-4 text-center">
-          <p className="text-[15px] font-medium text-white/70">ვერაფერი მოიძებნა</p>
+          <p className="text-[15px] font-medium text-[var(--tm-label)]">ვერაფერი მოიძებნა</p>
           <button
             type="button"
             onClick={askTeacher}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-white/[0.08] px-5 text-[14px] font-semibold text-white transition hover:bg-white/[0.12]"
+            className="tm-focus inline-flex h-11 items-center gap-2 rounded-full border border-[var(--tm-control-border)] bg-[var(--tm-surface)] px-5 text-[14px] font-semibold text-[var(--tm-title)] transition-colors hover:border-[var(--tm-placeholder)]"
           >
             <MessageSquareText className="h-4 w-4" aria-hidden />
             AI მასწავლებელს ჰკითხე
@@ -272,20 +304,22 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
 
       <div className="mt-auto space-y-3 pt-6">
         <div
-          className="flex items-center justify-between rounded-[18px] border border-white/[0.08] bg-[#16161f] px-4 py-3"
+          className="flex items-center justify-between rounded-[18px] border border-[var(--tm-border)] bg-[var(--tm-surface)] px-4 py-3"
           role="group"
           aria-label="თემა"
         >
-          <span className="text-[14px] font-semibold text-white/80">თემა</span>
-          <div className="flex rounded-full bg-white/[0.06] p-0.5">
+          <span className="text-[14px] font-semibold text-[var(--tm-label)]">თემა</span>
+          <div className="flex rounded-full bg-[var(--tm-switch)] p-0.5">
             {(["light", "dark"] as const).map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setTheme(option)}
                 aria-pressed={theme === option}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  theme === option ? "bg-white text-[#0b0b0f]" : "text-white/60 hover:text-white"
+                className={`tm-focus inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  theme === option
+                    ? "bg-[var(--tm-switch-on)] text-[var(--tm-switch-on-text)] shadow-[var(--tm-switch-on-shadow)]"
+                    : "text-[var(--tm-switch-off)] hover:text-[var(--tm-title)]"
                 }`}
               >
                 {option === "light" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -298,7 +332,7 @@ function ToolsSheet({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-[rgba(251,113,133,0.45)] text-[15px] font-semibold text-[#fb7185] transition hover:bg-rose-500/10 disabled:opacity-50"
+          className="tm-focus flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--tm-out-border)] bg-[var(--tm-out-bg)] text-[15px] font-semibold text-[var(--tm-out-text)] transition-colors hover:bg-rose-500/10 disabled:opacity-50"
         >
           <LogOut className="h-[18px] w-[18px]" strokeWidth={1.9} />
           {signingOut ? "გასვლა..." : "გასვლა"}

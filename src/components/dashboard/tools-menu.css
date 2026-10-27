@@ -1,0 +1,67 @@
+/*
+ * The phone's „ხელსაწყოები“ sheet in both themes. `.tools-menu` is the
+ * root; a tile's own colour comes in as `--tile`.
+ */
+.tools-menu {
+  --tm-bg: #fafaf9;
+  --tm-title: #1c1a17;
+  --tm-surface: #ffffff;
+  --tm-border: #ece9e4;
+  --tm-control-border: #e7e5e4;
+  --tm-icon: #57534e;
+  --tm-label: #57534e;
+  --tm-placeholder: #78716c;
+  --tm-switch: #f5f4f0;
+  --tm-switch-on: #ffffff;
+  --tm-switch-on-text: #1c1a17;
+  --tm-switch-on-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --tm-switch-off: #78716c;
+  --tm-out-bg: #ffffff;
+  --tm-out-border: #fecdd3;
+  --tm-out-text: #e11d48;
+
+  background: var(--tm-bg);
+  color: var(--tm-title);
+}
+
+html.dark .tools-menu {
+  --tm-bg: #0b0b0f;
+  --tm-title: #fafaf9;
+  --tm-surface: #15151b;
+  --tm-border: #26262e;
+  --tm-control-border: #2e2e38;
+  --tm-icon: #d4d4d8;
+  --tm-label: #d4d4d8;
+  --tm-placeholder: #a1a1aa;
+  --tm-switch: #0f0f14;
+  --tm-switch-on: #fafaf9;
+  --tm-switch-on-text: #0b0b0f;
+  --tm-switch-on-shadow: none;
+  --tm-switch-off: #a1a1aa;
+  --tm-out-bg: transparent;
+  --tm-out-border: rgba(251, 113, 133, 0.45);
+  --tm-out-text: #fb7185;
+}
+
+/* The tile's icon: a light tint of its colour, the colour darkened on the
+   light sheet so it reads; the plain colour on the dark one. */
+.tools-menu .tm-icon {
+  background: color-mix(in srgb, var(--tile) 12%, #ffffff);
+  color: color-mix(in srgb, var(--tile) 70%, #000000);
+}
+html.dark .tools-menu .tm-icon {
+  background: color-mix(in srgb, var(--tile) 14%, transparent);
+  color: var(--tile);
+}
+
+/* Whole words only: two lines at most, never split inside a word. */
+.tools-menu .tm-label {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: manual;
+}
+
+.tools-menu .tm-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
