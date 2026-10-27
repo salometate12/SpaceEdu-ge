@@ -77,11 +77,20 @@ const LAST = ["stats", "settings", "admin"];
 /** On the dock already. */
 const ON_DOCK = new Set(["dashboard", "profile"]);
 
+/** Not in the menu: lecture notes live in the journal now. */
+const NOT_IN_MENU = new Set(["lecture-notes"]);
+
+/** The menu's own names where the rail's differ. */
+const TILE_LABELS: Record<string, string> = {
+  research: "მასალის ანალიზი",
+  admin: "ადმინ პანელი",
+};
+
 export function buildToolTiles(groups: { items: RailItem[] }[], { isAdmin = false }: { isAdmin?: boolean } = {}): ToolTile[] {
   const seen = new Set<string>();
   const items = groups
     .flatMap((group) => group.items)
-    .filter((item) => !ON_DOCK.has(item.id) && (item.id !== "admin" || isAdmin))
+    .filter((item) => !ON_DOCK.has(item.id) && !NOT_IN_MENU.has(item.id) && (item.id !== "admin" || isAdmin))
     .filter((item) => {
       // The same page under two names (the abiturient's two quiz entries).
       const target = item.href ?? `action:${item.id}`;
@@ -99,6 +108,7 @@ export function buildToolTiles(groups: { items: RailItem[] }[], { isAdmin = fals
     .sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.index - b.index)
     .map(({ item }, index) => ({
       ...item,
+      label: TILE_LABELS[item.id] ?? item.label,
       color: TOOL_COLORS[item.id] ?? TOOL_PALETTE[index % TOOL_PALETTE.length],
       keywords: KEYWORDS[item.id] ?? [],
     }));
@@ -135,30 +145,5 @@ export function filterTools(tiles: ToolTile[], query: string): ToolTile[] {
   return tiles.filter((tile) => {
     const haystack = [tile.label, ...tile.keywords].join(" ").toLowerCase();
     return needles.some((text) => haystack.includes(text));
-  });
-}
-
-const GEORGIAN_VOWELS = new Set(["ა", "ე", "ი", "ო", "უ"]);
-const SOFT_HYPHEN = "­";
-
-/**
- * Soft hyphens in long Georgian words, after a vowel (a syllable end), so a
- * narrow tile breaks „მასწავლებელი“ as „მასწავ-ლებელი“ instead of letting it
- * run out. The browser uses one only when the word doesn't fit; other words
- * and Latin are left alone. Each part keeps at least 3 letters.
- */
-export function softHyphenate(text: string, minLength = 9): string {
-  return text.replace(/[ა-ჿ]+/g, (word) => {
-    if (word.length < minLength) return word;
-    let result = "";
-    for (let index = 0; index < word.length; index += 1) {
-      result += word[index];
-      const before = index + 1;
-      const after = word.length - before;
-      if (GEORGIAN_VOWELS.has(word[index]) && !GEORGIAN_VOWELS.has(word[index + 1] ?? "") && before >= 3 && after >= 3) {
-        result += SOFT_HYPHEN;
-      }
-    }
-    return result;
   });
 }

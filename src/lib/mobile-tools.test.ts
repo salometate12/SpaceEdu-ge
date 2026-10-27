@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildRailGroups } from "@/components/dashboard/DashboardSideRail";
-import { buildToolTiles, filterTools, softHyphenate } from "./mobile-tools";
+import { buildToolTiles, filterTools } from "./mobile-tools";
 
 const groups = (space: "student" | "abiturient", pathname = "/dashboard-student") =>
   buildRailGroups({ space, pathname, onAiChat: () => {}, aiChatOpen: false });
@@ -13,8 +13,8 @@ describe("phone tools menu", () => {
     expect(labels(tiles)).not.toContain("დეშბორდი");
     expect(labels(tiles)).not.toContain("პროფილი");
     expect(labels(tiles)).toEqual(expect.arrayContaining(["AI პრეზენტაცია", "CV გენერატორი", "სილაბუსი", "ჟურნალი", "პარამეტრები"]));
-    expect(labels(tiles)).not.toContain("Admin Panel");
-    expect(labels(buildToolTiles(groups("student"), { isAdmin: true }))).toContain("Admin Panel");
+    expect(labels(tiles)).not.toContain("ადმინ პანელი");
+    expect(labels(buildToolTiles(groups("student"), { isAdmin: true }))).toContain("ადმინ პანელი");
   });
 
   it("abiturient: the abiturient's tools and subjects, AI chat first, one quiz", () => {
@@ -58,11 +58,12 @@ describe("tool search", () => {
 });
 
 describe("tile labels", () => {
-  it("long Georgian words get soft hyphens at syllable ends; short words and Latin don't", () => {
-    // Each part keeps at least 3 letters: მასწა-ვლე-ბელი.
-    expect(softHyphenate("AI მასწავლებელი")).toBe("AI მასწა\u00ADვლე\u00ADბელი");
-    expect(softHyphenate("ჟურნალი")).toBe("ჟურნალი");
-    expect(softHyphenate("CV გენერატორი").startsWith("CV ")).toBe(true);
-    expect(softHyphenate("კალკულატორი").replace(/\u00AD/g, "")).toBe("კალკულატორი");
+  it("the menu's names: „მასალის ანალიზი“, „ადმინ პანელი“, and no lecture notes", () => {
+    const tiles = buildToolTiles(groups("student"), { isAdmin: true });
+    expect(labels(tiles)).toContain("მასალის ანალიზი");
+    expect(labels(tiles)).not.toContain("მასალა → ანალიზი");
+    expect(labels(tiles)).not.toContain("Admin Panel");
+    expect(labels(tiles)).not.toContain("ლექციის ნოტები");
+    expect(tiles.some((tile) => tile.id === "lecture-notes")).toBe(false);
   });
 });
