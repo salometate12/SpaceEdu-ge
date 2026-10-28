@@ -218,6 +218,9 @@ export { CALENDAR_UPDATED_EVENT };
 /** sessionStorage handoff: the dashboard calendar writes a ready-made prompt
  * here, then routes to /ai-teacher, which consumes it once and auto-sends. */
 export const AI_TEACHER_PROMPT_KEY = "spaceedu-ai-teacher-initial-prompt";
+/** Optional, beside the prompt: the title the new conversation gets
+ * (e.g. the study day's topic) instead of one cut from the prompt. */
+export const AI_TEACHER_TITLE_KEY = "spaceedu-ai-teacher-initial-title";
 
 const STUDY_PROMPT_TYPE_LABEL: Record<SyllabusMilestoneType, string> = {
   midterm: "შუალედური გამოცდა",

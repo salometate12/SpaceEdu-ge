@@ -28,7 +28,7 @@ import {
   type AiTeacherConversation,
 } from "@/lib/ai-teacher-history";
 import { AI_TEACHER_CONTENT, type AiTeacherSpace } from "@/lib/ai-teacher-content";
-import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
+import { AI_TEACHER_PROMPT_KEY, AI_TEACHER_TITLE_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { buildSuggestions, type SuggestionKind } from "@/lib/ai-teacher-suggestions";
@@ -130,6 +130,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const initialPromptConsumed = useRef(false);
+  // A handed-over prompt can name its conversation (the study day's topic).
+  const handoffTitleRef = useRef<string | null>(null);
 
   const router = useRouter();
   useMobileChatViewport();
@@ -199,7 +201,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     setConversations(
       saveConversation({
         id: conversationIdRef.current,
-        title: conversationTitleFrom(finalMessages),
+        title: handoffTitleRef.current ?? conversationTitleFrom(finalMessages),
         messages: finalMessages,
       }, space),
     );
@@ -298,6 +300,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     try {
       pending = window.sessionStorage.getItem(AI_TEACHER_PROMPT_KEY);
       if (pending) window.sessionStorage.removeItem(AI_TEACHER_PROMPT_KEY);
+      const title = window.sessionStorage.getItem(AI_TEACHER_TITLE_KEY);
+      window.sessionStorage.removeItem(AI_TEACHER_TITLE_KEY);
+      if (pending && title?.trim()) handoffTitleRef.current = title.trim().slice(0, 80);
     } catch {
       pending = null;
     }
@@ -334,6 +339,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const startNewChat = () => {
     abortRef.current?.abort();
     conversationIdRef.current = null;
+    handoffTitleRef.current = null;
     setActiveConversationId(null);
     setMessages([]);
     setFriendlyError(null);
@@ -346,6 +352,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   const openConversation = (conversation: AiTeacherConversation) => {
     abortRef.current?.abort();
     conversationIdRef.current = conversation.id;
+    handoffTitleRef.current = null;
     setActiveConversationId(conversation.id);
     setMessages(conversation.messages);
     setOpenCount((count) => count + 1);

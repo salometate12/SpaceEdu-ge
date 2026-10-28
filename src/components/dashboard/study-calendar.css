@@ -1,0 +1,69 @@
+/*
+ * „შენი სასწავლო კალენდარი“ on the dashboards, light style, both themes.
+ * `.study-cal` is the root.
+ */
+.study-cal {
+  --sc-card: #ffffff;
+  --sc-border: #ece9e4;
+  --sc-day-border: #ece9e4;
+  --sc-done: #fafaf9;
+  --sc-done-text: #78716c;
+  --sc-title: #1c1a17;
+  --sc-text: #57534e;
+  --sc-muted: #78716c;
+  --sc-today: #be185d;
+  --sc-today-ring: #1c1a17;
+  --sc-selected: #fbcfe8;
+  --sc-track: #f1efeb;
+  --sc-fill: #ec4899;
+  --sc-panel: #fafaf9;
+  --sc-panel-border: #f1efeb;
+  --sc-row: #ffffff;
+  --sc-button-border: #e7e5e4;
+  --sc-circle: #d6d3d1;
+  --sc-tile-bg: #fdf2f8;
+  --sc-tile: #db2777;
+  --sc-high-bg: #fdf2f8;
+  --sc-high: #9d174d;
+  --sc-medium-bg: #fefce8;
+  --sc-medium: #854d0e;
+  --sc-review-bg: #f0fdf4;
+  --sc-review: #166534;
+
+  background: var(--sc-card);
+  color: var(--sc-text);
+}
+
+html.dark .study-cal {
+  --sc-card: #15151b;
+  --sc-border: #26262e;
+  --sc-day-border: #2e2e38;
+  --sc-done: #0f0f14;
+  --sc-done-text: #71717a;
+  --sc-title: #fafaf9;
+  --sc-text: #d4d4d8;
+  --sc-muted: #a1a1aa;
+  --sc-today: #f9a8d4;
+  --sc-today-ring: #fafaf9;
+  --sc-selected: rgba(236, 72, 153, 0.4);
+  --sc-track: #27272f;
+  --sc-fill: #f472b6;
+  --sc-panel: #0f0f14;
+  --sc-panel-border: #2e2e38;
+  --sc-row: #15151b;
+  --sc-button-border: #2e2e38;
+  --sc-circle: #52525b;
+  --sc-tile-bg: rgba(236, 72, 153, 0.14);
+  --sc-tile: #f472b6;
+  --sc-high-bg: rgba(236, 72, 153, 0.14);
+  --sc-high: #f9a8d4;
+  --sc-medium-bg: rgba(250, 204, 21, 0.12);
+  --sc-medium: #fde68a;
+  --sc-review-bg: rgba(74, 222, 128, 0.12);
+  --sc-review: #86efac;
+}
+
+.study-cal .sc-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
