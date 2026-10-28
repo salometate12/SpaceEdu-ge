@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Flame } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
 import { NotificationsBell } from "@/components/notifications/NotificationsBell";
-import { AvatarDropdown } from "./AvatarDropdown";
+import { AvatarDropdown, PROFILE_MENU_ID } from "./AvatarDropdown";
 import { FocusModeToggle } from "./FocusModeToggle";
 import { HeaderBrand, HeaderNav, HeaderPill, headerNavItemClass } from "./HeaderPill";
 import { SpaceChip } from "./SpaceChip";
 import { brandHomeHref, dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { aiTeacherHrefForSpace, profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 
 interface DashboardHeaderProps {
   scrolled: boolean;
@@ -27,11 +28,19 @@ export function DashboardHeader({
   scrolled,
 }: DashboardHeaderProps) {
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarButtonRef = useRef<HTMLButtonElement>(null);
+  const identity = useCurrentUserIdentity();
   const [streak, setStreak] = useState(0);
   const firstName = useCurrentUserFirstName();
   const avatarInitial = firstName ? firstName.charAt(0).toUpperCase() : "მ";
   const { photoUrl } = useCurrentUserAvatar();
   const pathname = usePathname();
+  // A new page closes the profile menu.
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    setAvatarOpen(false);
+  }
   // The student dashboard carries a side rail with the account links, so
   // the pill leaves the avatar to it. The nav itself stays: see
   // `navItems` — the student's row is their own tools, not the shared ones.
@@ -112,10 +121,16 @@ export function DashboardHeader({
         <NotificationsBell />
         <div className={`relative hidden md:block ${hasSideRail ? "md:hidden" : ""}`}>
           <button
+            ref={avatarButtonRef}
             type="button"
             onClick={() => setAvatarOpen((prev) => !prev)}
             aria-label="პროფილის მენიუ"
-            className="h-9 w-9 overflow-hidden rounded-full border border-[#d81878] bg-[#2a0a1a] text-sm font-semibold text-[#f5b8d4] transition-colors hover:bg-[#3a0f26]"
+            aria-haspopup="menu"
+            aria-expanded={avatarOpen}
+            aria-controls={avatarOpen ? PROFILE_MENU_ID : undefined}
+            className={`h-9 w-9 overflow-hidden rounded-full border border-[#d81878] bg-[#2a0a1a] text-sm font-semibold text-[#f5b8d4] transition-[background-color,box-shadow] hover:bg-[#3a0f26] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e11d74] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101017] ${
+              avatarOpen ? (effectiveSpace === "abiturient" ? "ring-2 ring-[#facc15]" : "ring-2 ring-[#ec4899]") : ""
+            }`}
           >
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
@@ -126,9 +141,16 @@ export function DashboardHeader({
           </button>
           <AvatarDropdown
             open={avatarOpen}
+            onClose={() => setAvatarOpen(false)}
+            triggerRef={avatarButtonRef}
             isAdmin={isAdmin}
             profileHref={profileHrefForSpace(effectiveSpace)}
             statsHref={statsHrefForSpace(effectiveSpace)}
+            space={effectiveSpace}
+            name={identity.name ?? firstName}
+            email={identity.email}
+            initial={avatarInitial}
+            photoUrl={photoUrl}
           />
         </div>
       </div>
