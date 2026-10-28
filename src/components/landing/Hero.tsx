@@ -1,177 +1,122 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Bot, Clock, Lock } from "lucide-react";
-import { Bulb, Flower, RainbowArc, Sparkle, Sun } from "./notebook/Doodles";
-import {
-  ACCENT_CARD,
-  ACCENT_PILL,
-  ACCENT_SOLID,
-  ACCENT_TEXT,
-  type NotebookAccent,
-} from "./notebook/accents";
+import { ArrowRight, Clock, Lightbulb } from "lucide-react";
+import { NotebookSheet } from "./notebook/NotebookSheet";
 
 const SUBTITLE_TEXT =
   "SpaceEdu შენი სასწავლო სივრცეა სკოლიდან უნივერსიტეტამდე. AI დაგიგეგმავს, აგიხსნის და შეგამოწმებს, შენ კი მხოლოდ სწავლობ.";
 
-const PILLS: { label: string; accent: NotebookAccent }[] = [
-  { label: "სასწავლო გეგმა", accent: "blue" },
-  { label: "AI მასწავლებელი", accent: "pink" },
-  { label: "კონსპექტი", accent: "amber" },
-  { label: "ქვიზი", accent: "green" },
-  { label: "ფლეშქარდები", accent: "blue" },
-];
+const SUBJECTS = ["მათემატიკა", "ქართული", "ისტორია", "ინგლისური"];
 
-const HERO_CARDS: {
-  title: string;
-  desc: string;
-  icon: typeof Lock;
-  accent: NotebookAccent;
-  tilt: string;
-}[] = [
-  {
-    title: "ყველაფერი ერთად",
-    desc: "გეგმა, ქვიზი, კონსპექტი და AI მასწავლებელი ერთ სივრცეში",
-    icon: Lock,
-    accent: "blue",
-    tilt: "hover:-rotate-1",
-  },
-  {
-    title: "AI მასწავლებელი",
-    desc: "ყველაფერს ეტაპობრივად გიხსნის, ნებისმიერ დროს",
-    icon: Bot,
-    accent: "green",
-    tilt: "hover:rotate-1",
-  },
-  {
-    title: "24/7",
-    desc: "ხელმისაწვდომია ნებისმიერი მოწყობილობიდან",
-    icon: Clock,
-    accent: "pink",
-    tilt: "hover:-rotate-1",
-  },
-];
+const tilt = (deg: number) => ({ "--tilt": `${deg}deg` }) as CSSProperties;
+
+function TimerPill() {
+  return (
+    <span className="inline-flex h-7 items-center gap-1 rounded-full bg-white px-2.5 text-[12.5px] font-semibold tabular-nums text-[#1c1a17]">
+      <Clock className="h-3.5 w-3.5" strokeWidth={2.2} />
+      02:14:30
+    </span>
+  );
+}
+
+/** The three notes stuck beside the hero on wide screens. Decoration only. */
+function HeroStickers() {
+  return (
+    <div aria-hidden className="relative hidden h-[520px] lg:block">
+      <div className="sticker-lift absolute left-0 top-0 z-[1] w-[300px]">
+        <div className="sticker sticker-yellow p-5" style={tilt(-3)}>
+          <div className="flex items-center justify-between gap-2">
+            <span className="whitespace-nowrap text-[13px] font-bold text-[#854d0e]">გამოცდის სიმულაცია</span>
+            <TimerPill />
+          </div>
+          <p className="mt-3 text-[19px] font-bold">ისტორია · ეროვნული</p>
+          <p className="mt-1 text-[14px] text-[#57534e]">რეალური ფორმატი და დრო</p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#fde68a]">
+            <div className="h-full w-[45%] rounded-full bg-[#ca8a04]" />
+          </div>
+        </div>
+      </div>
+      <div className="sticker-lift absolute right-0 top-[150px] z-[2] w-[260px]">
+        <div className="sticker sticker-green p-5" style={tilt(2.5)}>
+          <span className="text-[13px] font-bold text-[#166534]">საგნების სივრცეები</span>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {SUBJECTS.map((subject) => (
+              <span key={subject} className="rounded-full bg-white px-2.5 py-1 text-[12.5px] font-semibold text-[#1c1a17]">
+                {subject}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-[14px] text-[#57534e]">სავარჯიშოები თითოეულ საგანში</p>
+        </div>
+      </div>
+      <div className="sticker-lift absolute bottom-0 left-6 z-[3] w-[270px]">
+        <div className="sticker sticker-pink p-5" style={tilt(-1.5)}>
+          <span className="text-[13px] font-bold text-[#9d174d]">სტუდენტისთვის</span>
+          <p className="mt-2 text-[16px] font-bold">სილაბუსიდან სემესტრის გეგმა</p>
+          <p className="mt-1 text-[14px] text-[#57534e]">12 ვადა ჩაჯდა კალენდარში</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Phones and tablets: two of the notes side by side under the sheet. */
+function HeroStickersCompact() {
+  return (
+    <div aria-hidden className="mt-3 flex gap-3 lg:hidden">
+      <div className="sticker sticker-yellow min-w-0 flex-1 p-3.5">
+        <p className="text-[12.5px] font-bold text-[#854d0e]">გამოცდის სიმულაცია</p>
+        <p className="mt-1 truncate text-[14px] font-bold">ისტორია · 02:14:30</p>
+      </div>
+      <div className="sticker sticker-green min-w-0 flex-1 p-3.5">
+        <p className="text-[12.5px] font-bold text-[#166534]">საგნების სივრცეები</p>
+        <p className="mt-1 truncate text-[14px] font-bold">სავარჯიშოები</p>
+      </div>
+    </div>
+  );
+}
 
 export function Hero() {
   return (
-    <section className="relative mx-auto w-full max-w-7xl px-4 pb-14 pt-8 sm:px-6 sm:py-14 lg:py-20">
-      {/* Margin doodles, as on /about. Hidden where the column already fills
-          the sheet. */}
-      <RainbowArc className="pointer-events-none absolute right-4 top-8 hidden w-24 -rotate-6 opacity-90 lg:block lg:w-32" />
-      <Sparkle className="pointer-events-none absolute left-10 top-24 hidden h-5 w-5 -rotate-12 text-amber-400 lg:block" />
-      <Sun className="pointer-events-none absolute left-4 bottom-40 hidden h-12 w-12 text-amber-500/70 xl:block dark:text-amber-300/60" />
-      <Flower className="pointer-events-none absolute right-8 bottom-32 hidden h-12 w-12 rotate-12 text-pink-400/70 xl:block dark:text-pink-400/50" />
-
-      <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-        <span
-          className="stagger-in mb-4 inline-flex sm:mb-6 items-center gap-2 rounded-xl border-2 border-slate-800/80 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-slate-800 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-100"
-          style={{ animationDelay: "0ms" }}
-        >
-          <Bulb className="h-4 w-4 text-amber-500 dark:text-amber-300" />
-          სასწავლო პლატფორმა შენთვის
-        </span>
-
-        <h1 className="headline responsive-display mx-auto max-sm:text-[28px] max-w-4xl text-center font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-          <span className="block">
-            <span className="headline-word-in" style={{ animationDelay: "120ms" }}>
-              ისწავლე
-            </span>{" "}
-            <span
-              className={`headline-word-in ${ACCENT_TEXT.blue}`}
-              style={{ animationDelay: "230ms" }}
-            >
-              უფრო
-            </span>{" "}
-            <span
-              className={`headline-word-in ${ACCENT_TEXT.blue}`}
-              style={{ animationDelay: "340ms" }}
-            >
-              ჭკვიანურად,
+    <section className="relative">
+      <NotebookSheet>
+        <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
+          <div className="min-w-0">
+            <span className="inline-flex h-[34px] items-center gap-2 rounded-full bg-[var(--ld-yellow-bg)] px-3.5 text-[13.5px] font-semibold text-[var(--ld-yellow)] max-[379px]:h-[30px] max-[379px]:text-[12.5px]">
+              <Lightbulb className="h-4 w-4" strokeWidth={2} aria-hidden />
+              სასწავლო პლატფორმა შენთვის
             </span>
-          </span>
-          <span className="block">
-            <span className="headline-word-in" style={{ animationDelay: "450ms" }}>
-              შექმენი
-            </span>{" "}
-            <span className="headline-word-in" style={{ animationDelay: "550ms" }}>
-              შენი
-            </span>{" "}
-            <span className="headline-word-in" style={{ animationDelay: "650ms" }}>
-              სასწავლო
-            </span>{" "}
-            <span
-              className={`headline-word-in ${ACCENT_TEXT.green}`}
-              style={{ animationDelay: "750ms" }}
-            >
-              სივრცე
-            </span>
-          </span>
-        </h1>
 
-        <p
-          className="stagger-in mx-auto mt-4 max-w-2xl sm:mt-6 text-center text-sm leading-relaxed text-slate-700 sm:text-base md:text-lg dark:text-slate-300"
-          style={{ animationDelay: "950ms" }}
-        >
-          {SUBTITLE_TEXT}
-        </p>
+            <h1 className="mt-5 text-[30px] font-bold max-[379px]:mt-4 max-[379px]:text-[27px] leading-[1.18] tracking-tight text-[var(--ld-title)] sm:text-[42px] lg:text-[54px]">
+              ისწავლე უფრო <span className="mark-pink">ჭკვიანურად</span>, შექმენი შენი სასწავლო{" "}
+              <span className="mark-yellow">სივრცე</span>
+            </h1>
 
-        <div
-          className="stagger-in mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-8 sm:gap-3.5"
-          style={{ animationDelay: "1050ms" }}
-        >
-          <Link
-            href="/select-space"
-            className={`paper-sticker group inline-flex items-center gap-2 rounded-full border-2 px-7 py-3 sm:py-3.5 text-base font-bold ${ACCENT_SOLID.violet}`}
-          >
-            უფასოდ დაიწყე
-            <ArrowUpRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-          <Link
-            href="#how-it-works"
-            className="inline-flex items-center rounded-full border-2 border-slate-400 bg-white/60 px-7 py-3 sm:py-3.5 text-base font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
-          >
-            როგორ მუშაობს
-          </Link>
-        </div>
-      </div>
+            <p className="mt-4 max-w-[520px] text-[16px] leading-[1.65] text-[var(--ld-text)] max-[379px]:mt-3 max-[379px]:text-[15px] max-[379px]:leading-[1.55] sm:mt-5 sm:text-[18px]">
+              {SUBTITLE_TEXT}
+            </p>
 
-      <div className="mt-12 grid gap-4 sm:grid-cols-3">
-        {HERO_CARDS.map((card, index) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={card.title}
-              className={`stagger-in h-full rounded-2xl border-2 p-5 transition-transform duration-300 ${card.tilt} ${ACCENT_CARD[card.accent]}`}
-              style={{ animationDelay: `${1150 + index * 100}ms` }}
-            >
-              <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[card.accent]}`}
+            <div className="mt-6 flex flex-col gap-3 max-[379px]:mt-5 max-[379px]:gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/select-space"
+                className="ld-primary ld-focus inline-flex h-[52px] items-center justify-center gap-2 rounded-full px-7 text-[16px] font-semibold transition-colors"
               >
-                <Icon
-                  className={`h-4 w-4 stroke-[2] ${ACCENT_TEXT[card.accent]}`}
-                  aria-hidden
-                />
-              </div>
-              <p className={`headline mt-4 text-2xl font-bold ${ACCENT_TEXT[card.accent]}`}>
-                {card.title}
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                {card.desc}
-              </p>
+                უფასოდ დაიწყე
+                <ArrowRight className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+              </Link>
+              <Link
+                href="#how-it-works"
+                className="ld-secondary ld-focus inline-flex h-12 items-center justify-center rounded-full px-7 text-[16px] font-semibold transition-colors max-[379px]:h-11 sm:h-[52px]"
+              >
+                როგორ მუშაობს
+              </Link>
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      <div className="mt-9 flex flex-wrap items-center justify-center gap-2.5">
-        {PILLS.map((pill, index) => (
-          <span
-            key={pill.label}
-            className={`stagger-in rounded-full border-2 px-4 py-1.5 text-sm font-semibold leading-none ${ACCENT_PILL[pill.accent]}`}
-            style={{ animationDelay: `${1500 + index * 60}ms` }}
-          >
-            {pill.label}
-          </span>
-        ))}
-      </div>
+          <HeroStickers />
+        </div>
+      </NotebookSheet>
+      <HeroStickersCompact />
     </section>
   );
 }

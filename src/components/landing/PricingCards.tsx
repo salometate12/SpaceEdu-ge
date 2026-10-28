@@ -12,26 +12,13 @@ import {
 } from "@/lib/landing-pricing-plans";
 import { checkoutHref } from "@/lib/checkout-routes";
 import { registrationHref } from "@/lib/registration-role";
-import { Ruler } from "./notebook/Doodles";
-import {
-  ACCENT_CARD,
-  ACCENT_SOLID,
-  ACCENT_TEXT,
-  PLAIN_CARD,
-  type NotebookAccent,
-} from "./notebook/accents";
+import { NotebookSheet } from "./notebook/NotebookSheet";
+import "./landing.css";
 
-const ROLE_TABS: { id: PricingRole; label: string }[] = [
-  { id: "abiturient", label: "აბიტურიენტი" },
-  { id: "student", label: "სტუდენტი" },
+const ROLE_TABS: { id: PricingRole; label: string; dot: string }[] = [
+  { id: "abiturient", label: "აბიტურიენტი", dot: "bg-[#facc15]" },
+  { id: "student", label: "სტუდენტი", dot: "bg-[#ec4899]" },
 ];
-
-/** One pen colour per audience — the tabs, the popular card and its badge
- *  all pick it up, so switching tabs reads as switching pens. */
-const ROLE_ACCENT: Record<PricingRole, NotebookAccent> = {
-  abiturient: "violet",
-  student: "blue",
-};
 
 /**
  * The free tier still starts with an account; the paid ones go straight to
@@ -52,57 +39,42 @@ function PricingTierCard({
   delayMs: number;
 }) {
   const popular = tier.popular === true;
-  const accent = ROLE_ACCENT[role];
 
   return (
-    <RevealOnScroll delayMs={delayMs}>
+    <RevealOnScroll delayMs={delayMs} className="h-full">
       <article
-        className={`relative flex min-h-[420px] flex-col justify-between rounded-2xl border-2 p-8 ${
-          popular ? ACCENT_CARD[accent] : PLAIN_CARD
+        className={`relative flex h-full flex-col gap-5 rounded-[24px] bg-[var(--ld-card)] p-7 ${
+          popular ? "border-2 border-[#1c1a17] dark:border-[#fafaf9]" : "border border-[var(--ld-card-border)]"
         }`}
       >
         {popular && (
-          <span
-            className={`paper-sticker absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_SOLID[accent]}`}
-          >
+          <span className="absolute -top-3.5 left-6 -rotate-2 whitespace-nowrap rounded-[6px] bg-[#fde68a] px-2.5 py-1 text-[12.5px] font-bold text-[#713f12]">
             ყველაზე პოპულარული
           </span>
         )}
 
-        <div>
-          <h3 className="headline text-lg font-bold text-slate-900 dark:text-slate-50">
-            {tier.name}
-          </h3>
-          <div className="mt-4 flex flex-wrap items-end gap-x-2 gap-y-1">
-            <p className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-slate-50">
-              {tier.price}
-            </p>
-            <p className="pb-1 text-sm text-slate-600 dark:text-slate-400">{tier.period}</p>
-          </div>
-          <ul className="mt-6 space-y-3">
-            {tier.features.map((feature) => (
-              <li
-                key={feature}
-                className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
-              >
-                <Check
-                  className={`mt-0.5 h-4 w-4 shrink-0 stroke-[2.5] ${
-                    popular ? ACCENT_TEXT[accent] : "text-slate-500 dark:text-slate-400"
-                  }`}
-                  aria-hidden
-                />
-                <span className="min-w-0 break-words">{feature}</span>
-              </li>
-            ))}
-          </ul>
+        <h3 className="text-[17px] font-bold text-[var(--ld-title)]">{tier.name}</h3>
+        <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+          <p className="text-[40px] font-bold leading-none tracking-tight text-[var(--ld-title)]">{tier.price}</p>
+          <p className="pb-1 text-[14px] text-[var(--ld-muted)]">{tier.period}</p>
         </div>
+        <ul className="space-y-2.5">
+          {tier.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2.5 text-[14.5px] leading-relaxed text-[var(--ld-text)]">
+              <Check
+                className={`mt-1 h-4 w-4 shrink-0 ${popular ? "text-[#e11d74]" : "text-[var(--ld-muted)]"}`}
+                strokeWidth={2.5}
+                aria-hidden
+              />
+              <span className="min-w-0 break-words">{feature}</span>
+            </li>
+          ))}
+        </ul>
 
         <Link
           href={tierCtaHref(tier, role)}
-          className={`mt-8 block w-full rounded-full border-2 px-4 py-3 text-center text-sm font-bold ${
-            popular
-              ? `paper-sticker ${ACCENT_SOLID[accent]}`
-              : "border-slate-400 bg-white/60 text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
+          className={`ld-focus mt-auto flex h-12 w-full items-center justify-center rounded-full px-4 text-center text-[15px] font-semibold transition-colors ${
+            popular ? "ld-primary" : "ld-secondary"
           }`}
         >
           {tier.cta}
@@ -117,68 +89,51 @@ export function PricingCards() {
   const tiers = pricingTiersForRole(activeRole);
 
   return (
-    <section
-      id="pricing"
-      className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
-    >
-      <Ruler className="pointer-events-none absolute left-6 top-14 hidden w-24 -rotate-12 text-slate-400 xl:block dark:text-slate-500" />
-
-      <div className="mx-auto mb-10 max-w-2xl text-center">
-        <p
-          className={`text-xs font-bold uppercase tracking-wider ${ACCENT_TEXT.violet}`}
-        >
-          ფასები
-        </p>
-        <h2 className="headline mt-2 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          აირჩიე შენი სივრცის პაკეტი
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-          აბიტურიენტისა და სტუდენტისთვის ცალკე პაკეტები, დამალული გადასახადების გარეშე.
-        </p>
-      </div>
-
-      <div className="mb-12 flex justify-center">
-        <div
-          className={`inline-flex rounded-full border-2 p-1 ${PLAIN_CARD}`}
-          role="tablist"
-          aria-label="ფასების კატეგორია"
-        >
-          {ROLE_TABS.map((tab) => {
-            const active = activeRole === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveRole(tab.id)}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-200 sm:px-8 ${
-                  active
-                    ? `border-2 ${ACCENT_SOLID[ROLE_ACCENT[tab.id]]}`
-                    : "border-2 border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+    <section id="pricing" className="landing relative scroll-mt-24">
+      <NotebookSheet>
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-0 max-w-xl">
+            <h2 className="text-[26px] font-bold leading-tight tracking-tight text-[var(--ld-title)] sm:text-[34px]">
+              აირჩიე შენი სივრცის <span className="mark-pink">პაკეტი</span>
+            </h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-[var(--ld-text)] sm:text-[16px]">
+              აბიტურიენტისა და სტუდენტისთვის ცალკე პაკეტები, დამალული გადასახადების გარეშე.
+            </p>
+          </div>
+          <div
+            className="inline-flex h-[46px] shrink-0 items-center rounded-full bg-[var(--ld-soft)] p-1"
+            role="tablist"
+            aria-label="ფასების კატეგორია"
+          >
+            {ROLE_TABS.map((tab) => {
+              const active = activeRole === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveRole(tab.id)}
+                  className={`ld-focus inline-flex h-full items-center gap-2 rounded-full px-4 text-[14px] font-semibold transition-colors sm:px-5 ${
+                    active
+                      ? "bg-[var(--ld-segment-on)] text-[var(--ld-title)] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                      : "text-[var(--ld-muted)] hover:text-[var(--ld-title)]"
+                  }`}
+                >
+                  <span aria-hidden className={`h-2 w-2 rounded-full ${tab.dot}`} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      <div
-        key={activeRole}
-        className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3"
-        role="tabpanel"
-      >
-        {tiers.map((tier, index) => (
-          <PricingTierCard
-            key={tier.id}
-            tier={tier}
-            role={activeRole}
-            delayMs={80 * (index + 1)}
-          />
-        ))}
-      </div>
+        <div key={activeRole} className="mt-10 grid grid-cols-1 items-stretch gap-5 md:grid-cols-3" role="tabpanel">
+          {tiers.map((tier, index) => (
+            <PricingTierCard key={tier.id} tier={tier} role={activeRole} delayMs={80 * (index + 1)} />
+          ))}
+        </div>
+      </NotebookSheet>
     </section>
   );
 }

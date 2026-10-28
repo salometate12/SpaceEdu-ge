@@ -1,0 +1,181 @@
+/*
+ * The landing in the site's light style, both themes: a plain page, white
+ * cards, one pink primary, highlighter marks instead of coloured words, and
+ * two ruled notebook sheets (the hero and the prices). `.landing` is the
+ * root; the header pill and the footer read the same tokens.
+ */
+.landing,
+.landing-pill,
+.landing-footer {
+  --ld-bg: #fafaf9;
+  --ld-card: #ffffff;
+  --ld-card-border: #ece9e4;
+  --ld-title: #1c1a17;
+  --ld-text: #57534e;
+  --ld-muted: #6f6a64;
+  --ld-primary: #e11d74;
+  --ld-primary-hover: #cf1769;
+  --ld-secondary: #ffffff;
+  --ld-secondary-border: #e7e5e4;
+  --ld-soft: #f5f4f0;
+  --ld-segment-on: #ffffff;
+
+  --ld-mark-pink: #fbcfe8;
+  --ld-mark-yellow: #fde68a;
+
+  --ld-yellow-bg: #fef9c3;
+  --ld-yellow: #854d0e;
+  --ld-green-bg: #dcfce7;
+  --ld-green: #166534;
+  --ld-pink-bg: #fce7f3;
+  --ld-pink: #9d174d;
+}
+
+html.dark .landing,
+html.dark .landing-pill,
+html.dark .landing-footer {
+  --ld-bg: #0c0c10;
+  --ld-card: #15151b;
+  --ld-card-border: #26262e;
+  --ld-title: #fafaf9;
+  --ld-text: #d4d4d8;
+  --ld-muted: #a1a1aa;
+  --ld-secondary: #15151b;
+  --ld-secondary-border: #2e2e38;
+  --ld-soft: #0f0f14;
+  --ld-segment-on: #2a2a33;
+
+  --ld-mark-pink: rgba(236, 72, 153, 0.45);
+  --ld-mark-yellow: rgba(250, 204, 21, 0.4);
+
+  --ld-yellow-bg: rgba(250, 204, 21, 0.14);
+  --ld-yellow: #fde68a;
+  --ld-green-bg: rgba(74, 222, 128, 0.14);
+  --ld-green: #86efac;
+  --ld-pink-bg: rgba(236, 72, 153, 0.16);
+  --ld-pink: #f9a8d4;
+}
+
+.landing {
+  background: var(--ld-bg);
+  color: var(--ld-text);
+}
+
+/* Highlighter strokes under a word. */
+.landing .mark-pink {
+  background: linear-gradient(transparent 60%, var(--ld-mark-pink) 60%);
+  padding: 0 0.08em;
+}
+.landing .mark-yellow {
+  background: linear-gradient(transparent 60%, var(--ld-mark-yellow) 60%);
+  padding: 0 0.08em;
+}
+
+/* Buttons. */
+.landing .ld-primary,
+.landing-pill .ld-primary {
+  background: var(--ld-primary);
+  color: #ffffff;
+}
+.landing .ld-primary:hover,
+.landing-pill .ld-primary:hover {
+  background: var(--ld-primary-hover);
+}
+.landing .ld-secondary {
+  background: var(--ld-secondary);
+  border: 1px solid var(--ld-secondary-border);
+  color: var(--ld-title);
+}
+.landing .ld-secondary:hover {
+  border-color: var(--ld-muted);
+}
+.landing .ld-focus:focus-visible,
+.landing-pill .ld-focus:focus-visible,
+.landing-footer .ld-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* One ruled notebook sheet: blue-grey rules every 40px and a pink margin
+   line. Only the landing's hero and prices sit on one. */
+.landing-paper {
+  border-radius: 32px;
+  border: 1px solid #ece9e4;
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(to right, transparent 87px, #fbcfe8 87px, #fbcfe8 89px, transparent 89px),
+    repeating-linear-gradient(to bottom, transparent 0 39px, #eef0f4 39px 40px);
+  padding: 72px 64px 56px 128px;
+}
+html.dark .landing-paper {
+  border-color: #26262e;
+  background-color: #15151b;
+  background-image:
+    linear-gradient(to right, transparent 87px, rgba(236, 72, 153, 0.35) 87px, rgba(236, 72, 153, 0.35) 89px, transparent 89px),
+    repeating-linear-gradient(to bottom, transparent 0 39px, #1f1f27 39px 40px);
+}
+@media (max-width: 639px) {
+  .landing-paper {
+    border-radius: 26px;
+    padding: 28px 20px 24px 44px;
+  }
+}
+@media (max-width: 379px) {
+  .landing-paper {
+    padding-top: 22px;
+    padding-bottom: 20px;
+  }
+}
+@media (max-width: 639px) {
+  .landing-paper {
+    background-image:
+      linear-gradient(to right, transparent 27px, #fbcfe8 27px, #fbcfe8 29px, transparent 29px),
+      repeating-linear-gradient(to bottom, transparent 0 35px, #eef0f4 35px 36px);
+  }
+  html.dark .landing-paper {
+    background-image:
+      linear-gradient(to right, transparent 27px, rgba(236, 72, 153, 0.35) 27px, rgba(236, 72, 153, 0.35) 29px, transparent 29px),
+      repeating-linear-gradient(to bottom, transparent 0 35px, #1f1f27 35px 36px);
+  }
+}
+
+/* The hero's stickers: light paper in both themes, dark ink, a soft lift. */
+.landing .sticker {
+  border-radius: 6px 6px 22px 6px;
+  color: #1c1a17;
+  box-shadow: 0 10px 24px rgba(28, 26, 23, 0.1);
+  transition: transform 200ms ease;
+}
+.landing .sticker-yellow {
+  background: #fef9c3;
+}
+.landing .sticker-green {
+  background: #dcfce7;
+}
+.landing .sticker-pink {
+  background: #fce7f3;
+}
+html.dark .landing .sticker {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .landing .sticker-lift:hover .sticker {
+    transform: translateY(-3px) rotate(var(--tilt));
+  }
+}
+.landing .sticker {
+  transform: rotate(var(--tilt, 0deg));
+}
+@media (max-width: 1023px) {
+  .landing .sticker {
+    transform: none;
+  }
+}
+
+/* The header pill on the landing, /pricing, /about and /contact: follows
+   the theme instead of staying black. */
+.landing-pill {
+  background: var(--ld-card);
+  border: 1px solid var(--ld-card-border);
+  color: var(--ld-title);
+}

@@ -15,11 +15,27 @@ import type { ReactNode } from "react";
  */
 export function HeaderPill({
   scrolled,
+  tone = "dark",
   children,
 }: {
   scrolled: boolean;
+  /** "page": the landing's pill, white or dark with the theme (landing.css). */
+  tone?: "dark" | "page";
   children: ReactNode;
 }) {
+  if (tone === "page") {
+    return (
+      <header className="px-3 py-2.5 sm:px-6 sm:py-3">
+        <div
+          className={`landing-pill mx-auto flex h-14 w-full max-w-[1180px] items-center gap-1.5 rounded-full px-2 transition-shadow duration-300 sm:h-16 sm:gap-2 sm:px-3 ${
+            scrolled ? "shadow-[0_12px_32px_-20px_rgba(28,26,23,0.35)]" : ""
+          }`}
+        >
+          {children}
+        </div>
+      </header>
+    );
+  }
   // The strip carries no colour of its own — `Header` paints it in the
   // ground of the page it floats over, so the pill reads as sitting on
   // that page rather than on a band of its own. Depth on scroll comes
@@ -49,7 +65,22 @@ export function BrandLogo({ className = "h-9 w-auto" }: { className?: string }) 
 }
 
 /** Logo badge + wordmark, always the left-most item in the pill. */
-export function HeaderBrand({ href }: { href: string }) {
+export function HeaderBrand({ href, tone = "dark" }: { href: string; tone?: "dark" | "page" }) {
+  if (tone === "page") {
+    // The landing's pill follows the theme, so each theme gets its artwork.
+    return (
+      <Link href={href} aria-label="SpaceEdu" className="ld-focus flex shrink-0 items-center rounded-full pl-1 sm:pr-2">
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG */}
+        <img src="/spaceedu-logo.svg" alt="" width={117} height={36} className="hidden h-9 w-auto sm:block dark:sm:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG */}
+        <img src="/spaceedu-logo-dark.svg" alt="" width={117} height={36} className="hidden h-9 w-auto dark:sm:block" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG */}
+        <img src="/spaceedu-mark.svg" alt="" width={36} height={36} className="h-9 w-9 sm:hidden dark:hidden" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG */}
+        <img src="/spaceedu-mark-dark.svg" alt="" width={36} height={36} className="hidden h-9 w-9 dark:block dark:sm:hidden" />
+      </Link>
+    );
+  }
   return (
     <Link
       href={href}
