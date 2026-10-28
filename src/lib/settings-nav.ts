@@ -1,15 +1,13 @@
 import {
   BarChart3,
   Bell,
-  CreditCard,
+  CircleUser,
   Crown,
-  Languages,
+  LayoutDashboard,
   LayoutGrid,
-  MonitorSmartphone,
   Palette,
   Shield,
   TriangleAlert,
-  User,
   type LucideIcon,
 } from "lucide-react";
 import { profileHrefForSpace, statsHrefForSpace } from "@/lib/access-control";
@@ -26,13 +24,20 @@ import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 export const SETTINGS_PROFILE_HREF = "/settings/profile";
 export const SETTINGS_SPACE_HREF = "/settings/space";
 export const SETTINGS_SECURITY_HREF = "/settings/security";
-export const SETTINGS_SESSIONS_HREF = "/settings/sessions";
 export const SETTINGS_NOTIFICATIONS_HREF = "/settings/notifications";
 export const SETTINGS_APPEARANCE_HREF = "/settings/appearance";
-export const SETTINGS_LANGUAGE_HREF = "/settings/language";
 export const SETTINGS_PLAN_HREF = "/settings/plan";
-export const SETTINGS_BILLING_HREF = "/settings/billing";
 export const SETTINGS_DANGER_HREF = "/settings/danger";
+/** Phones: the menu screen every settings page goes back to. */
+export const SETTINGS_MENU_HREF = "/settings";
+
+/**
+ * Pages folded into another one; the old URLs redirect (next.config.ts) to
+ * their section there.
+ */
+export const SETTINGS_SESSIONS_HREF = `${SETTINGS_SECURITY_HREF}#sessions`;
+export const SETTINGS_LANGUAGE_HREF = `${SETTINGS_APPEARANCE_HREF}#language`;
+export const SETTINGS_BILLING_HREF = `${SETTINGS_PLAN_HREF}#billing`;
 
 export interface ProfileNavItem {
   href: string;
@@ -42,6 +47,7 @@ export interface ProfileNavItem {
 }
 
 export interface ProfileNavGroup {
+  /** Empty for the danger zone, which sits under a divider instead. */
   title: string;
   items: ProfileNavItem[];
 }
@@ -60,41 +66,46 @@ export function buildProfileNav(
     {
       title: "ჩემი პროგრესი",
       items: [
-        { href: profileHrefForSpace(space, options), label: "მიმოხილვა", icon: User },
+        { href: profileHrefForSpace(space, options), label: "მიმოხილვა", icon: LayoutDashboard },
         { href: statsHrefForSpace(space, options), label: "სტატისტიკა", icon: BarChart3 },
       ],
     },
     {
       title: "ანგარიში",
       items: [
-        { href: SETTINGS_PROFILE_HREF, label: "პროფილი", icon: User },
+        { href: SETTINGS_PROFILE_HREF, label: "პროფილი", icon: CircleUser },
         { href: SETTINGS_SPACE_HREF, label: "სასწავლო სივრცე", icon: LayoutGrid },
-        { href: SETTINGS_SECURITY_HREF, label: "უსაფრთხოება", icon: Shield },
-        { href: SETTINGS_SESSIONS_HREF, label: "სესიები", icon: MonitorSmartphone },
+        { href: SETTINGS_SECURITY_HREF, label: "უსაფრთხოება და სესიები", icon: Shield },
       ],
     },
     {
       title: "პარამეტრები",
       items: [
         { href: SETTINGS_NOTIFICATIONS_HREF, label: "შეტყობინებები", icon: Bell },
-        { href: SETTINGS_APPEARANCE_HREF, label: "გარეგნობა", icon: Palette },
-        { href: SETTINGS_LANGUAGE_HREF, label: "ენა", icon: Languages },
+        { href: SETTINGS_APPEARANCE_HREF, label: "გარეგნობა და ენა", icon: Palette },
       ],
     },
     {
       title: "გამოწერა",
-      items: [
-        { href: SETTINGS_PLAN_HREF, label: "პლანი", icon: Crown },
-        { href: SETTINGS_BILLING_HREF, label: "გადახდა", icon: CreditCard },
-      ],
+      items: [{ href: SETTINGS_PLAN_HREF, label: "პლანი და გადახდა", icon: Crown }],
     },
     {
-      title: "სხვა",
+      title: "",
       items: [
         { href: SETTINGS_DANGER_HREF, label: "საშიში ზონა", icon: TriangleAlert, danger: true },
       ],
     },
   ];
+}
+
+/** The menu item a path belongs to, for the page title and the phone's back bar. */
+export function activeProfileNavItem(groups: ProfileNavGroup[], pathname: string): ProfileNavItem | null {
+  for (const group of groups) {
+    for (const item of group.items) {
+      if (isProfileNavItemActive(pathname, item.href)) return item;
+    }
+  }
+  return null;
 }
 
 /**

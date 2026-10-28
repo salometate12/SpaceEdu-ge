@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Smartphone, Lock, MessageSquare, ShieldCheck } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SETTINGS_TONE, SettingsCard, SettingsRows, SoonBadge, ToggleRow } from "@/components/profile/settings-ui";
-import { nbButtonClass } from "@/lib/nb-button";
+import {
+  ActiveBadge,
+  psButton,
+  ROW_SUB,
+  ROW_TITLE,
+  SETTINGS_ROW,
+  SETTINGS_ROW_TEXT,
+  SettingsCard,
+  SettingsRows,
+  SoonBadge,
+  ToggleRow,
+} from "@/components/profile/settings-ui";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -28,7 +37,8 @@ export function SettingsSecurity() {
         if (!active) return;
         const identities = data.user?.identities ?? [];
         const google = identities.find((i) => i.provider === "google");
-        setGoogleEmail((google?.identity_data?.email as string) ?? data.user?.email ?? null);
+        // Only a real Google identity counts as „connected“.
+        setGoogleEmail(google ? ((google.identity_data?.email as string) ?? data.user?.email ?? null) : null);
         setHasPassword(identities.some((i) => i.provider === "email"));
       } catch {
         /* leave defaults */
@@ -67,107 +77,101 @@ export function SettingsSecurity() {
   };
 
   const mismatch = confirm.length > 0 && password !== confirm;
-  const fieldWrap = "flex flex-col gap-1.5";
-  const labelClass = "text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]";
-  const inputClass = `w-full rounded-lg border bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`;
 
   return (
     <>
-      <SettingsCard
-        icon={Lock}
-        title="პაროლის შეცვლა"
-        subtitle="გამოიყენე ძლიერი, უნიკალური პაროლი"
-      >
+      <SettingsCard title="პაროლის შეცვლა" subtitle="გამოიყენე ძლიერი პაროლი, რომელსაც სხვაგან არ იყენებ">
         {!hasPassword && (
-          <p className="mb-3 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-secondary)]">
-            შენ Google-ით ხარ შესული. აქ შეგიძლია დააყენო პაროლი, რომ ელ-ფოსტითაც შეხვიდე.
+          <p className="mb-4 rounded-[14px] bg-[var(--ps-soft)] px-4 py-3 text-[13.5px] text-[var(--ps-text)]">
+            Google-ით ხარ შესული. აქ შეგიძლია პაროლი დააყენო, რომ ელ-ფოსტითაც შეხვიდე.
           </p>
         )}
-        <div className="flex flex-col gap-2.5">
-          <div className={fieldWrap}>
-            <span className={labelClass}>ახალი პაროლი</span>
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              placeholder="მინ. 8 სიმბოლო"
-              className={`${inputClass} border-[var(--border-hover)]`}
-            />
-          </div>
-          <div className={fieldWrap}>
-            <span className={labelClass}>გაიმეორე</span>
-            <PasswordInput
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              autoComplete="new-password"
-              invalid={mismatch}
-              placeholder="••••••••"
-              className={`${inputClass} ${mismatch ? "border-rose-500" : "border-[var(--border-hover)]"}`}
-            />
-            {mismatch && (
-              <span className="text-[11px] font-medium text-rose-600 dark:text-rose-400">
-                პაროლები არ ემთხვევა
-              </span>
-            )}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => void handleSubmit()}
-          disabled={state === "saving"}
-          className={nbButtonClass({ variant: "primary", block: true, className: "mt-4" })}
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
         >
-          {state === "saving" ? "ნახლდება..." : "პაროლის განახლება"}
-        </button>
-        {error && (
-          <p role="alert" className="mt-2 text-center text-xs font-medium text-rose-600 dark:text-rose-400">
-            {error}
-          </p>
-        )}
-        {state === "saved" && (
-          <p role="status" className="mt-2 text-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            პაროლი განახლდა
-          </p>
-        )}
-        {state === "error" && !error && (
-          <p role="alert" className="mt-2 text-center text-xs font-medium text-rose-600 dark:text-rose-400">
-            ვერ განახლდა. სცადე თავიდან.
-          </p>
-        )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">ახალი პაროლი</span>
+              <PasswordInput
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setState("idle");
+                }}
+                autoComplete="new-password"
+                placeholder="მინიმუმ 8 სიმბოლო"
+                className="ps-field !pr-11"
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">გაიმეორე პაროლი</span>
+              <PasswordInput
+                value={confirm}
+                onChange={(e) => {
+                  setConfirm(e.target.value);
+                  setState("idle");
+                }}
+                autoComplete="new-password"
+                invalid={mismatch}
+                aria-invalid={mismatch}
+                className="ps-field !pr-11"
+              />
+              {mismatch && <span className="text-[13px] font-medium text-[var(--ps-danger)]">პაროლები არ ემთხვევა</span>}
+            </label>
+          </div>
+          {error && (
+            <p role="alert" className="mt-4 text-[13.5px] font-medium text-[var(--ps-danger)]">
+              {error}
+            </p>
+          )}
+          {state === "saved" && (
+            <p role="status" className="mt-4 text-[13.5px] font-medium text-[var(--ps-ok)]">
+              პაროლი განახლდა
+            </p>
+          )}
+          {state === "error" && !error && (
+            <p role="alert" className="mt-4 text-[13.5px] font-medium text-[var(--ps-danger)]">
+              ვერ განახლდა. სცადე თავიდან.
+            </p>
+          )}
+          <div className="ps-actions mt-6">
+            <button type="submit" disabled={state === "saving" || !password || !confirm} className={psButton("primary")}>
+              {state === "saving" ? "ნახლდება…" : "პაროლის განახლება"}
+            </button>
+          </div>
+        </form>
       </SettingsCard>
 
-      <SettingsCard
-        icon={ShieldCheck}
-        title="ორფაქტორიანი დაცვა"
-        subtitle="დაამატე დაცვის დამატებითი ფენა"
-        flush
-      >
+      <SettingsCard title="ორფაქტორიანი დაცვა" subtitle="დამატებითი დაცვა შესვლისას" flush>
         <SettingsRows>
+          <ToggleRow title="SMS კოდი" subtitle="შესვლისას კოდი ტელეფონზე" control={<SoonBadge />} muted />
           <ToggleRow
-            icon={MessageSquare}
-            title="SMS კოდი"
-            subtitle="ტელეფონზე კოდის გაგზავნა"
+            title="ავთენტიფიკატორის აპი"
+            subtitle="Google Authenticator ან მსგავსი აპი"
             control={<SoonBadge />}
+            muted
           />
-          <ToggleRow
-            icon={Smartphone}
-            title="Authenticator App"
-            subtitle="Google Authenticator / Authy"
-            control={<SoonBadge />}
-          />
-          {googleEmail && (
-            <div className={SETTINGS_ROW}>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FAECE7] text-[#D85A30] dark:bg-[rgba(216,90,48,0.16)] dark:text-[#f0916e]">
-                <span className="text-sm font-bold">G</span>
-              </span>
-              <div className={SETTINGS_ROW_TEXT}>
-                <div className="text-[13px] text-[var(--text-primary)]">Google</div>
-                <div className="text-[11px] text-[var(--text-secondary)] [overflow-wrap:anywhere]">
-                  {googleEmail} — დაკავშირებულია
-                </div>
-              </div>
+        </SettingsRows>
+      </SettingsCard>
+
+      <SettingsCard title="დაკავშირებული ანგარიშები" subtitle="სხვა გზები, რომლითაც შეგიძლია შესვლა" flush>
+        <SettingsRows>
+          <div className={SETTINGS_ROW}>
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--ps-border)] text-[15px] font-bold text-[var(--ps-title)]"
+              aria-hidden
+            >
+              G
+            </span>
+            <div className={SETTINGS_ROW_TEXT}>
+              <div className={ROW_TITLE}>Google</div>
+              <div className={`${ROW_SUB} [overflow-wrap:anywhere]`}>{googleEmail ?? "არ არის დაკავშირებული"}</div>
             </div>
-          )}
+            {googleEmail ? <ActiveBadge>დაკავშირებულია</ActiveBadge> : null}
+          </div>
         </SettingsRows>
       </SettingsCard>
     </>

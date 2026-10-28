@@ -18,24 +18,24 @@ export interface Badge {
 
 export const DEFAULT_BADGES: Badge[] = [
   { id: "streak_7", icon: Flame, color: "purple", name: "7 დღის სტრიქი", unlocked: true },
-  { id: "quiz_master", icon: BrainCircuit, color: "cyan", name: "Quiz მასტერი", unlocked: true },
+  { id: "quiz_master", icon: BrainCircuit, color: "cyan", name: "ქვიზის ოსტატი", unlocked: true },
   { id: "first_plan", icon: CheckCircle2, color: "green", name: "პირველი გეგმა", unlocked: true },
   { id: "sessions_50", icon: Award, color: "amber", name: "50 სესია", unlocked: true },
   {
     id: "streak_30",
     icon: Lock,
     color: "gray",
-    name: "30 სტრიქი",
+    name: "30 დღის სტრიქი",
     unlocked: false,
-    requirement: "18 სტრიქი გჭირდება",
+    requirement: "30 დღე ზედიზედ",
   },
   {
     id: "quiz_100",
     icon: Lock,
     color: "gray",
-    name: "100% Quiz",
+    name: "100% ქვიზში",
     unlocked: false,
-    requirement: "ერთ Quiz-ში 100%",
+    requirement: "ერთ ქვიზში ყველა პასუხი სწორი",
   },
   {
     id: "all_subjects",
@@ -43,15 +43,15 @@ export const DEFAULT_BADGES: Badge[] = [
     color: "gray",
     name: "ყველა საგანი",
     unlocked: false,
-    requirement: "ყველა საგანი ისწავლე",
+    requirement: "აქტივობა ყველა საგანში",
   },
   {
     id: "mock_exam",
     icon: Lock,
     color: "gray",
-    name: "Mock Exam",
+    name: "საცდელი გამოცდა",
     unlocked: false,
-    requirement: "Mock Exam გაიარე",
+    requirement: "გაიარე ერთი სიმულაცია",
   },
 ];
 

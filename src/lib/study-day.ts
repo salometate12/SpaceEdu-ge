@@ -8,7 +8,8 @@ import type { StudyPlanCalendarDay } from "@/lib/study-plan-calendar";
 const WEEKDAY_SHORT = ["კვი", "ორშ", "სამ", "ოთხ", "ხუთ", "პარ", "შაბ"];
 const WEEKDAY_LONG = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
 const MONTH_SHORT = ["იან", "თებ", "მარ", "აპრ", "მაი", "ივნ", "ივლ", "აგვ", "სექ", "ოქტ", "ნოე", "დეკ"];
-const MONTH_LONG = [
+/** Georgian month names, January first (not left to Intl: some browsers lack the ka data). */
+export const MONTH_LONG = [
   "იანვარი",
   "თებერვალი",
   "მარტი",

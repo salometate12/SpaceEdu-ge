@@ -1,10 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Trash2, TriangleAlert } from "lucide-react";
-import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows, SoonBadge } from "@/components/profile/settings-ui";
+import {
+  psButton,
+  ROW_SUB,
+  ROW_TITLE,
+  SETTINGS_ROW,
+  SETTINGS_ROW_TEXT,
+  SettingsCard,
+  SettingsPageTitle,
+  SettingsRows,
+  SoonBadge,
+} from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
-import { nbButtonClass } from "@/lib/nb-button";
 import { userStore } from "@/lib/user-data";
 import {
   CATEGORY_ACCURACY_KEY,
@@ -19,8 +27,8 @@ import {
 
 // Progress lives on the account (lib/user-data): removing it through the
 // store clears it here and on the account, so no device brings it back.
-// Export (needs a server bundle) and account deletion (needs the Supabase
-// admin API server-side) have no route yet → "მალე".
+// Account deletion needs the Supabase admin API server-side and has no
+// route yet → „მალე“.
 const PROGRESS_KEYS = [
   TOOL_USAGE_KEY,
   STREAK_KEY,
@@ -46,87 +54,52 @@ export function SettingsDanger() {
     setCleared(true);
   };
 
-  const rowClass = `${SETTINGS_ROW} justify-between`;
-
   return (
-    <SettingsCard
-      icon={TriangleAlert}
-      title="საშიში ზონა"
-      subtitle="ეს მოქმედებები შეუქცევადია"
-      danger
-      flush
-    >
-      <SettingsRows>
-        <div className={rowClass}>
-          <div className={SETTINGS_ROW_TEXT}>
-            <div className="text-[13px] text-[var(--text-primary)]">მონაცემების ექსპორტი</div>
-            <div className="text-[11px] text-[var(--text-secondary)]">
-              ყველა პროგრესი და კონსპექტი ერთ ფაილად
-            </div>
-          </div>
-          <button
-            type="button"
-            disabled
-            title="მალე"
-            className={nbButtonClass({ variant: "secondary", size: "sm", className: "shrink-0" })}
-          >
-            <Download aria-hidden />
-            ექსპორტი
-            <SoonBadge />
-          </button>
-        </div>
+    <>
+      <SettingsPageTitle>საშიში ზონა</SettingsPageTitle>
 
-        <div className={rowClass}>
-          <div className={SETTINGS_ROW_TEXT}>
-            <div className="text-[13px] text-[var(--text-primary)]">პროგრესის გასუფთავება</div>
-            <div className="text-[11px] text-[var(--text-secondary)]">
-              Quiz ისტორია, სტრიქი და სტატისტიკა ყველა მოწყობილობაზე წაიშლება
+      <SettingsCard title="საშიში ზონა" subtitle="ამ მოქმედებების დაბრუნება შეუძლებელია" danger flush>
+        <SettingsRows>
+          <div className={SETTINGS_ROW}>
+            <div className={SETTINGS_ROW_TEXT}>
+              <div className={ROW_TITLE}>პროგრესის გასუფთავება</div>
+              <div className={ROW_SUB}>ქვიზების ისტორია, სტრიქი, მიზნები და სტატისტიკა წაიშლება ყველა მოწყობილობაზე</div>
             </div>
+            {cleared ? (
+              <span role="status" className="shrink-0 text-[13.5px] font-semibold text-[var(--ps-ok)]">
+                გასუფთავდა
+              </span>
+            ) : (
+              <button type="button" onClick={() => setConfirmClear(true)} className={psButton("danger")}>
+                გასუფთავება
+              </button>
+            )}
           </div>
-          {cleared ? (
-            <span className="shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              გასუფთავდა
+
+          <div className={SETTINGS_ROW}>
+            <div className={SETTINGS_ROW_TEXT}>
+              <div className={ROW_TITLE}>ანგარიშის წაშლა</div>
+              <div className={ROW_SUB}>ანგარიში და ყველა მონაცემი სამუდამოდ წაიშლება</div>
+            </div>
+            <span className="flex shrink-0 items-center gap-2">
+              <SoonBadge />
+              <button type="button" disabled className={psButton("danger")}>
+                ანგარიშის წაშლა
+              </button>
             </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmClear(true)}
-              className={nbButtonClass({ variant: "danger", size: "sm", className: "shrink-0" })}
-            >
-              <Trash2 aria-hidden />
-              გასუფთავება
-            </button>
-          )}
-        </div>
-
-        <div className={rowClass}>
-          <div className={SETTINGS_ROW_TEXT}>
-            <div className="text-[13px] text-[var(--text-primary)]">ანგარიშის წაშლა</div>
-            <div className="text-[11px] text-[var(--text-secondary)]">
-              ყველა მონაცემი სამუდამოდ წაიშლება
-            </div>
           </div>
-          <button
-            type="button"
-            disabled
-            title="მალე"
-            className={nbButtonClass({ variant: "danger", size: "sm", className: "shrink-0" })}
-          >
-            <Trash2 aria-hidden />
-            ანგარიშის წაშლა
-            <SoonBadge />
-          </button>
-        </div>
-      </SettingsRows>
+        </SettingsRows>
+      </SettingsCard>
 
       <ConfirmDialog
         open={confirmClear}
-        title="პროგრესის გასუფთავება"
-        message="Quiz ისტორია, სტრიქი, დღის მიზნები და პროგრესი წაიშლება შენი ანგარიშიდან — ყველა მოწყობილობაზე. ეს შეუქცევადია."
+        title="გავასუფთაოთ პროგრესი?"
+        message="ქვიზების ისტორია, სტრიქი, დღის მიზნები და სტატისტიკა წაიშლება შენი ანგარიშიდან, ყველა მოწყობილობაზე. ამის დაბრუნება შეუძლებელია."
         confirmLabel="გასუფთავება"
+        confirmWord="წაშლა"
         onConfirm={handleClear}
         onCancel={() => setConfirmClear(false)}
       />
-    </SettingsCard>
+    </>
   );
 }

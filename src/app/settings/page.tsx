@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation";
-import { SETTINGS_PROFILE_HREF } from "@/lib/settings-nav";
+import { SettingsMenuRoute } from "@/components/profile/SettingsMenuRoute";
 
+/**
+ * Phones: the profile menu screen (drawn by ProfileShell on this path).
+ * Desktop has the side menu instead, so it moves on to the profile form.
+ */
 export default function SettingsIndexPage() {
-  redirect(SETTINGS_PROFILE_HREF);
+  return <SettingsMenuRoute />;
 }

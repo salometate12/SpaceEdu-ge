@@ -10,15 +10,14 @@ import {
   FileText,
   GraduationCap,
   ListChecks,
-  NotebookPen,
   Presentation,
   Sparkles,
   StickyNote,
   type LucideIcon,
 } from "lucide-react";
-import { getToolUsageEvents, type ToolUsageEvent } from "@/lib/activity";
+import { getToolUsageEvents } from "@/lib/activity";
 import { DASHBOARD_METRICS_UPDATED_EVENT } from "@/lib/dashboard-metrics";
-import { DashboardCard, dashboardCardActionClass } from "@/components/dashboard/DashboardCard";
+import { buildDiary, type DiaryDay } from "@/lib/diary";
 
 const TOOL_ICON: Record<string, LucideIcon> = {
   quiz: ListChecks,
@@ -33,6 +32,21 @@ const TOOL_ICON: Record<string, LucideIcon> = {
   eli5: Sparkles,
 };
 
+type ToolGroup = "plan" | "ai" | "practice";
+
+/** The logo's three books: planning pink, explaining yellow, practising green. */
+const GROUP_TILE: Record<ToolGroup, string> = {
+  plan: "bg-[#fdf2f8] text-[#db2777] dark:bg-[rgba(236,72,153,0.14)] dark:text-[#f472b6]",
+  ai: "bg-[#fefce8] text-[#a16207] dark:bg-[rgba(250,204,21,0.12)] dark:text-[#fde68a]",
+  practice: "bg-[#f0fdf4] text-[#15803d] dark:bg-[rgba(74,222,128,0.12)] dark:text-[#86efac]",
+};
+
+function groupFor(toolId: string): ToolGroup {
+  if (/quiz|presentation|cv|deck/.test(toolId)) return "practice";
+  if (/ai-teacher|eli5|research|material/.test(toolId)) return "ai";
+  return "plan";
+}
+
 function iconFor(toolId: string): LucideIcon {
   if (TOOL_ICON[toolId]) return TOOL_ICON[toolId];
   if (toolId.includes("quiz")) return TOOL_ICON.quiz;
@@ -42,33 +56,23 @@ function iconFor(toolId: string): LucideIcon {
 }
 
 function timeLabel(at: number): string {
-  const now = new Date();
   const then = new Date(at);
-  const startOfToday = new Date(now).setHours(0, 0, 0, 0);
-  const startOfThen = new Date(then).setHours(0, 0, 0, 0);
-  const days = Math.round((startOfToday - startOfThen) / 86_400_000);
-  if (days <= 0) {
-    return `${String(then.getHours()).padStart(2, "0")}:${String(then.getMinutes()).padStart(2, "0")}`;
-  }
-  if (days === 1) return "გუშინ";
-  return `${then.getDate()}.${String(then.getMonth() + 1).padStart(2, "0")}`;
+  return `${String(then.getHours()).padStart(2, "0")}:${String(then.getMinutes()).padStart(2, "0")}`;
 }
 
 interface DiaryLogProps {
-  /** This space's stats page — "ყველა ნახვა" used to always open the
-   * student one, even from the abiturient profile. */
+  /** This space's stats page, for „ყველა“. */
   statsHref?: string;
 }
 
+/** The latest activity, by day, each tool once per subject per day. */
 export function DiaryLog({ statsHref = "/profile/stats" }: DiaryLogProps = {}) {
-  const [events, setEvents] = useState<ToolUsageEvent[]>([]);
+  const [days, setDays] = useState<DiaryDay[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
-      setEvents(
-        [...getToolUsageEvents()].sort((a, b) => b.timestamp - a.timestamp).slice(0, 8),
-      );
+      setDays(buildDiary(getToolUsageEvents()));
       setHydrated(true);
     };
     refresh();
@@ -83,51 +87,51 @@ export function DiaryLog({ statsHref = "/profile/stats" }: DiaryLogProps = {}) {
   }, []);
 
   return (
-    <DashboardCard
-      icon={NotebookPen}
-      tone="amber"
-      title="დღიური"
-      action={
-        <Link href={statsHref} className={dashboardCardActionClass}>
-          ყველა ნახვა →
+    <section aria-label="ბოლო აქტივობა" className="ps-card p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-[17px] font-bold text-[var(--ps-title)]">ბოლო აქტივობა</h2>
+        <Link
+          href={statsHref}
+          className="ps-focus rounded-sm text-[13.5px] font-semibold text-[#be185d] hover:underline dark:text-[#f9a8d4]"
+        >
+          ყველა →
         </Link>
-      }
-    >
-      {hydrated && events.length === 0 ? (
-        <p className="mt-3 text-sm text-[var(--text-secondary)]">
-          ჯერ აქტივობა არ გაქვს — გახსენი რომელიმე ხელსაწყო და აქ გამოჩნდება.
+      </div>
+
+      {hydrated && days.length === 0 ? (
+        <p className="mt-3 text-[14.5px] text-[var(--ps-muted)]">
+          ჯერ აქტივობა არ გაქვს. გახსენი რომელიმე ხელსაწყო და აქ გამოჩნდება.
         </p>
       ) : (
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {events.map((event) => {
-            const Icon = iconFor(event.toolId);
-            return (
-              <li
-                key={event.id}
-                className="flex h-14 items-center gap-3 rounded-xl border border-[var(--border)] px-3"
-              >
-                <span
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                  aria-hidden
-                >
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
-                    {event.toolTitle}
-                  </p>
-                  {event.subject ? (
-                    <p className="truncate text-xs text-[var(--text-muted)]">{event.subject}</p>
-                  ) : null}
-                </div>
-                <span className="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">
-                  {timeLabel(event.timestamp)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="mt-3 flex flex-col gap-3">
+          {days.map((day) => (
+            <div key={day.label}>
+              <h3 className="px-2 pb-1 text-[12.5px] font-semibold text-[var(--ps-muted)]">{day.label}</h3>
+              <ul>
+                {day.entries.map((entry) => {
+                  const Icon = iconFor(entry.toolId);
+                  const sub = [entry.subject, entry.count > 1 ? `${entry.count}-ჯერ` : null].filter(Boolean).join(" · ");
+                  return (
+                    <li key={entry.key} className="flex items-center gap-3 rounded-[14px] px-2 py-2.5">
+                      <span
+                        className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[12px] ${GROUP_TILE[groupFor(entry.toolId)]}`}
+                        aria-hidden
+                      >
+                        <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14.5px] font-semibold text-[var(--ps-title)]">{entry.title}</p>
+                        {sub ? <p className="truncate text-[13px] text-[var(--ps-muted)]">{sub}</p> : null}
+                      </div>
+                      <span className="shrink-0 text-[13px] text-[var(--ps-muted)]">{timeLabel(entry.at)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
-    </DashboardCard>
+    </section>
   );
 }

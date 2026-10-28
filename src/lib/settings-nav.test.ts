@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeProfileNavItem,
   buildProfileNav,
   isProfileNavItemActive,
   SETTINGS_PROFILE_HREF,
@@ -36,6 +37,30 @@ describe("buildProfileNav", () => {
   it("always includes the shared /settings/profile entry", () => {
     const hrefs = buildProfileNav("student").flatMap((g) => g.items.map((i) => i.href));
     expect(hrefs).toContain(SETTINGS_PROFILE_HREF);
+  });
+});
+
+describe("the merged menu", () => {
+  it("has nine entries, the danger zone last and on its own", () => {
+    const groups = buildProfileNav("student");
+    expect(groups.flatMap((g) => g.items)).toHaveLength(9);
+    const last = groups[groups.length - 1];
+    expect(last.title).toBe("");
+    expect(last.items.map((i) => i.href)).toEqual(["/settings/danger"]);
+  });
+
+  it("no longer lists the folded-in pages", () => {
+    const hrefs = buildProfileNav("student").flatMap((g) => g.items.map((i) => i.href));
+    for (const gone of ["/settings/sessions", "/settings/language", "/settings/billing"]) {
+      expect(hrefs).not.toContain(gone);
+    }
+  });
+
+  it("finds the entry a page belongs to", () => {
+    const groups = buildProfileNav("abiturient");
+    expect(activeProfileNavItem(groups, "/settings/security")?.label).toBe("უსაფრთხოება და სესიები");
+    expect(activeProfileNavItem(groups, "/profile-abiturient/stats")?.label).toBe("სტატისტიკა");
+    expect(activeProfileNavItem(groups, "/settings")).toBeNull();
   });
 });
 

@@ -65,6 +65,10 @@ const nextConfig: NextConfig = {
         destination: "/subject/georgian",
         permanent: true,
       },
+      // Settings pages folded into another one: each goes to its section.
+      { source: "/settings/sessions", destination: "/settings/security#sessions", permanent: true },
+      { source: "/settings/language", destination: "/settings/appearance#language", permanent: true },
+      { source: "/settings/billing", destination: "/settings/plan#billing", permanent: true },
     ];
   },
 };

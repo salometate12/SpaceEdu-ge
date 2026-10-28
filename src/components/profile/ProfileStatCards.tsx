@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Flame, Target, TrendingUp, type LucideIcon } from "lucide-react";
 import { useStreak } from "@/hooks/useStreak";
-import { DASHBOARD_CARD_TONES, type DashboardCardTone } from "@/components/dashboard/DashboardCard";
 import {
   computeDashboardMetrics,
   DASHBOARD_METRICS_UPDATED_EVENT,
@@ -64,8 +62,8 @@ export function ProfileStatCards({ statsHref }: ProfileStatCardsProps) {
   const streakSub = !streak.ready
     ? ""
     : streak.current === 0
-      ? "დაიწყე დღეს — გახსენი რომელიმე ხელსაწყო"
-      : `პირადი რეკორდი: ${streak.best}`;
+      ? "დაიწყე დღეს, გახსენი რომელიმე ხელსაწყო"
+      : `რეკორდი: ${streak.best} დღე`;
 
   const quizValue = metrics?.quizAccuracy != null ? `${metrics.quizAccuracy}%` : "—";
   const quizSub = !metrics
@@ -73,8 +71,9 @@ export function ProfileStatCards({ statsHref }: ProfileStatCardsProps) {
     : metrics.quizAccuracy === null
       ? "გაიარე პირველი ქვიზი"
       : metrics.quizAccuracyDelta === null || metrics.quizAccuracyDelta === 0
-        ? "საშუალო სიზუსტე"
+        ? "იგივე, რაც გასულ თვეს"
         : `${metrics.quizAccuracyDelta > 0 ? "+" : ""}${metrics.quizAccuracyDelta}% ამ თვეში`;
+  const quizUp = (metrics?.quizAccuracyDelta ?? 0) > 0;
 
   const sessionsSub = !metrics
     ? ""
@@ -86,71 +85,56 @@ export function ProfileStatCards({ statsHref }: ProfileStatCardsProps) {
 
   return (
     <section aria-label="მთავარი მაჩვენებლები" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <StatCard label="სტრიქი" value={streak.ready ? `${streak.current} დღე` : "—"} sub={streakSub} />
       <StatCard
-        icon={Flame}
-        tone="amber"
-        label="სტრიკი"
-        value={streak.ready ? `${streak.current} დღე` : "—"}
-        sub={streakSub}
-      />
-      <StatCard
-        icon={Target}
-        tone="violet"
-        label="Quiz სიზუსტე"
+        label="ქვიზის სიზუსტე"
         value={quizValue}
         sub={quizSub}
+        good={quizUp}
         footer={
           weakest ? (
             <Link
               href={statsHref}
-              className="mt-1 block text-xs font-medium leading-normal text-[var(--accent-primary)] hover:underline"
+              className="ps-focus mt-2 block rounded-sm text-[13px] font-semibold leading-normal text-[#be185d] hover:underline dark:text-[#f9a8d4]"
             >
-              ყველაზე სუსტი საგანი: {weakest.name} →
+              ყველაზე სუსტი: {weakest.name} →
             </Link>
           ) : null
         }
       />
       <StatCard
-        icon={TrendingUp}
-        tone="emerald"
         label="ამ კვირის სესიები"
         value={metrics ? String(metrics.sessionsThisWeek) : "—"}
         sub={sessionsSub}
+        good={(metrics?.sessionsDelta ?? 0) > 0}
       />
     </section>
   );
 }
 
 function StatCard({
-  icon: Icon,
-  tone,
   label,
   value,
   sub,
+  good = false,
   footer,
 }: {
-  icon: LucideIcon;
-  tone: DashboardCardTone;
   label: string;
   value: string;
   sub: string;
+  /** The line under the number is good news: green instead of muted. */
+  good?: boolean;
   footer?: React.ReactNode;
 }) {
   return (
-    <article className="flex min-h-[120px] flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5">
-      <div className="flex items-center gap-2.5">
-        <span
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${DASHBOARD_CARD_TONES[tone]}`}
-          aria-hidden
-        >
-          <Icon className="h-4 w-4" strokeWidth={1.75} />
-        </span>
-        <h3 className="text-sm text-[var(--text-secondary)]">{label}</h3>
-      </div>
-      <p className="mt-3 text-3xl font-semibold tabular-nums leading-none text-[var(--text-primary)]">
-        {value}
-      </p>
-      {sub && <p className="mt-2 text-xs leading-normal text-[var(--text-secondary)]">{sub}</p>}
+    <article className="ps-card flex min-h-[132px] flex-col p-5">
+      <h3 className="text-[13.5px] font-medium text-[var(--ps-muted)]">{label}</h3>
+      <p className="mt-2 text-[30px] font-bold leading-none text-[var(--ps-title)]">{value}</p>
+      {sub && (
+        <p className={`mt-2 text-[13px] leading-normal ${good ? "font-semibold text-[#16a34a] dark:text-[#86efac]" : "text-[var(--ps-muted)]"}`}>
+          {sub}
+        </p>
+      )}
       {footer}
     </article>
   );

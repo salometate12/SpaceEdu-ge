@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Award, Bell, Brain, Calendar, Flame, Megaphone } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SETTINGS_TONE, SettingsCard, Toggle, ToggleRow, SettingsRows } from "@/components/profile/settings-ui";
-import { nbButtonClass } from "@/lib/nb-button";
+import { CARD_X, psButton, SettingsCard, SettingsPageTitle, SettingsRows, Toggle, ToggleRow } from "@/components/profile/settings-ui";
+import { Toast } from "@/components/ui/Toast";
 
 // These preferences are stored on the account (user_metadata.notificationPrefs)
 // via updateUser. There is no server-side push/email sender yet, so nothing
@@ -32,6 +31,7 @@ const DEFAULT_PREFS: NotifPrefs = {
 export function SettingsNotifications() {
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const closeToast = useCallback(() => setState("idle"), []);
 
   useEffect(() => {
     if (!isSupabaseBrowserConfigured()) return;
@@ -73,77 +73,55 @@ export function SettingsNotifications() {
     }
   };
 
-  return (
-    <SettingsCard
-      icon={Bell}
-      title="შეტყობინებები"
-      subtitle="აირჩიე რა შეგახსენოს SpaceEdu-მ"
-      flush
-    >
-      <SettingsRows className="border-b">
-        <ToggleRow
-          icon={Flame}
-          title="სტრიქის შეხსენება"
-          subtitle="ყოველდღიური სასწავლო შეხსენება"
-          control={<Toggle checked={prefs.streak} onChange={(v) => set("streak", v)} label="სტრიქის შეხსენება" />}
-        />
-        <ToggleRow
-          icon={Brain}
-          title="Quiz შედეგები"
-          subtitle="Quiz-ის დასრულების შემდეგ"
-          control={<Toggle checked={prefs.quiz} onChange={(v) => set("quiz", v)} label="Quiz შედეგები" />}
-        />
-        <ToggleRow
-          icon={Award}
-          title="ახალი ბეჯი"
-          subtitle="ბეჯის განბლოკვისას"
-          control={<Toggle checked={prefs.badge} onChange={(v) => set("badge", v)} label="ახალი ბეჯი" />}
-        />
-        <ToggleRow
-          icon={Calendar}
-          title="სასწავლო გეგმა"
-          subtitle="დღევანდელი გეგმის შეხსენება"
-          control={<Toggle checked={prefs.studyPlan} onChange={(v) => set("studyPlan", v)} label="სასწავლო გეგმა" />}
-        />
-        <ToggleRow
-          icon={Megaphone}
-          title="SpaceEdu სიახლეები"
-          subtitle="ახალი ფუნქციები და განახლებები"
-          control={<Toggle checked={prefs.news} onChange={(v) => set("news", v)} label="SpaceEdu სიახლეები" />}
-        />
-      </SettingsRows>
+  const rows: { key: "streak" | "quiz" | "badge" | "studyPlan" | "news"; title: string; subtitle: string }[] = [
+    { key: "streak", title: "სტრიქის შეხსენება", subtitle: "ყოველდღე, რომ სტრიქი არ გაგიწყდეს" },
+    { key: "quiz", title: "ქვიზის შედეგები", subtitle: "ქვიზის დასრულების შემდეგ" },
+    { key: "badge", title: "ახალი ბეჯი", subtitle: "როცა ბეჯს მოიპოვებ" },
+    { key: "studyPlan", title: "სასწავლო გეგმა", subtitle: "დღევანდელი გეგმის შეხსენება" },
+    { key: "news", title: "SpaceEdu-ს სიახლეები", subtitle: "ახალი ხელსაწყოები და განახლებები" },
+  ];
 
-      <div className="px-4 py-5 sm:px-5">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]">
-            შეხსენების დრო (თბილისი)
-          </span>
-          <input
-            type="time"
-            value={prefs.reminderTime}
-            onChange={(e) => set("reminderTime", e.target.value)}
-            className={`w-36 rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`}
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={state === "saving"}
-          className={nbButtonClass({ variant: "primary", className: "mt-4" })}
-        >
-          {state === "saving" ? "ინახება..." : "შენახვა"}
-        </button>
-        {state === "saved" && (
-          <span role="status" className="ml-3 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            შენახულია
-          </span>
-        )}
-        {state === "error" && (
-          <span role="alert" className="ml-3 text-xs font-medium text-rose-600 dark:text-rose-400">
-            ვერ შევინახე
-          </span>
-        )}
-      </div>
-    </SettingsCard>
+  return (
+    <>
+      <SettingsPageTitle>შეტყობინებები</SettingsPageTitle>
+
+      <SettingsCard title="რა შეგახსენოთ" subtitle="ჩართე მხოლოდ ის, რაც გჭირდება" flush>
+        <SettingsRows>
+          {rows.map((row) => (
+            <ToggleRow
+              key={row.key}
+              title={row.title}
+              subtitle={row.subtitle}
+              control={<Toggle checked={prefs[row.key]} onChange={(v) => set(row.key, v)} label={row.title} />}
+            />
+          ))}
+        </SettingsRows>
+
+        <div className={`${CARD_X} border-t border-[var(--ps-divider)] pb-6 pt-5`}>
+          <label className="flex flex-col gap-2">
+            <span className="ps-label">შეხსენების დრო</span>
+            <span className="text-[13px] text-[var(--ps-muted)]">თბილისის დროით</span>
+            <input
+              type="time"
+              value={prefs.reminderTime}
+              onChange={(e) => set("reminderTime", e.target.value)}
+              className="ps-field mt-1 !w-40"
+            />
+          </label>
+          {state === "error" && (
+            <p role="alert" className="mt-4 text-[13.5px] font-medium text-[var(--ps-danger)]">
+              ვერ შევინახე. სცადე თავიდან.
+            </p>
+          )}
+          <div className="ps-actions mt-6">
+            <button type="button" onClick={() => void handleSave()} disabled={state === "saving"} className={psButton("primary")}>
+              {state === "saving" ? "ინახება…" : "შენახვა"}
+            </button>
+          </div>
+        </div>
+      </SettingsCard>
+
+      {state === "saved" ? <Toast message="შენახულია" onClose={closeToast} duration={3000} /> : null}
+    </>
   );
 }

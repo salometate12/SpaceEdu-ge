@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { nbButtonClass } from "@/lib/nb-button";
+import { psButton } from "@/components/profile/settings-ui";
 
 /**
  * A small accessible confirmation dialog (role="dialog", aria-modal). Escape or
@@ -67,32 +67,28 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 shadow-xl"
+        className="w-full max-w-sm rounded-[24px] border border-[var(--ps-border)] bg-[var(--ps-card)] p-6 shadow-[0_16px_40px_rgba(28,26,23,0.16)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">{title}</h2>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--text-secondary)]">{message}</p>
+        <h2 className="text-[17px] font-bold text-[var(--ps-title)]">{title}</h2>
+        <p className="mt-2 text-[14px] leading-relaxed text-[var(--ps-text)]">{message}</p>
 
         {confirmWord && (
-          <label className="mt-3 block">
-            <span className="text-[11px] text-[var(--text-secondary)]">
+          <label className="mt-4 flex flex-col gap-2">
+            <span className="ps-label">
               დასადასტურებლად ჩაწერე „{confirmWord}&rdquo;
             </span>
             <input
               ref={inputRef}
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-rose-500"
+              className="ps-field"
             />
           </label>
         )}
 
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className={nbButtonClass({ variant: "secondary", size: "sm" })}
-          >
+        <div className="ps-actions mt-6">
+          <button type="button" onClick={handleCancel} className={psButton("secondary")}>
             გაუქმება
           </button>
           <button
@@ -100,7 +96,7 @@ export function ConfirmDialog({
             type="button"
             disabled={!ready}
             onClick={handleConfirm}
-            className={nbButtonClass({ variant: danger ? "danger" : "primary", size: "sm" })}
+            className={psButton(danger ? "danger" : "primary")}
           >
             {confirmLabel}
           </button>

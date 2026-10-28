@@ -1,52 +1,58 @@
-import { Award } from "lucide-react";
-import { getBadgeColor, type Badge } from "@/lib/badges";
-import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { Lock } from "lucide-react";
+import type { Badge } from "@/lib/badges";
 
 interface BadgeGridProps {
   badges: Badge[];
 }
 
+/** Each earned badge's circle, in the site's light palette. */
+const EARNED_TONE: Record<Badge["color"], string> = {
+  purple: "bg-[#fce7f3] text-[#be185d] dark:bg-[rgba(236,72,153,0.16)] dark:text-[#f9a8d4]",
+  cyan: "bg-[#e0f2fe] text-[#0369a1] dark:bg-[rgba(56,189,248,0.14)] dark:text-[#7dd3fc]",
+  green: "bg-[#dcfce7] text-[#15803d] dark:bg-[rgba(74,222,128,0.14)] dark:text-[#86efac]",
+  amber: "bg-[#fef9c3] text-[#a16207] dark:bg-[rgba(250,204,21,0.14)] dark:text-[#fde68a]",
+  gray: "bg-[var(--ps-soft)] text-[var(--ps-muted)]",
+};
+
+/** Eight badges in one row (4 × 2 on a phone): earned ones in colour, locked ones dashed with what they need. */
 export function BadgeGrid({ badges }: BadgeGridProps) {
   const unlockedCount = badges.filter((badge) => badge.unlocked).length;
 
   return (
-    <DashboardCard icon={Award} tone="violet" title="ბეჯები" meta={`${unlockedCount}/${badges.length}`}>
-      <ul className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-        {badges.map((badge) => {
-          const color = getBadgeColor(badge.color);
-          return (
-            <li
-              key={badge.id}
-              className={`rounded-xl border border-[var(--border)] p-3 text-center ${
-                badge.unlocked ? "" : "bg-[var(--bg-secondary)] opacity-60"
-              }`}
-              title={badge.unlocked ? badge.name : badge.requirement}
-            >
+    <section aria-label="ბეჯები" className="ps-card p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-[17px] font-bold text-[var(--ps-title)]">ბეჯები</h2>
+        <span className="text-[13.5px] text-[var(--ps-muted)]">
+          {unlockedCount} / {badges.length}
+        </span>
+      </div>
+      <ul className="mt-5 grid grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8">
+        {badges.map((badge) => (
+          <li
+            key={badge.id}
+            className={`flex flex-col items-center text-center ${badge.unlocked ? "" : "opacity-55"}`}
+            title={badge.unlocked ? badge.name : badge.requirement}
+          >
+            {badge.unlocked ? (
+              <span className={`flex h-12 w-12 items-center justify-center rounded-full ${EARNED_TONE[badge.color]}`} aria-hidden>
+                <badge.icon className="h-[22px] w-[22px]" strokeWidth={2} />
+              </span>
+            ) : (
               <span
-                className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-secondary)]"
-                style={
-                  badge.unlocked
-                    ? { background: `color-mix(in oklab, ${color}, transparent 85%)` }
-                    : undefined
-                }
+                className="flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-dashed border-[#d6d3d1] text-[var(--ps-muted)] dark:border-[#3f3f46]"
                 aria-hidden
               >
-                <badge.icon
-                  className="h-5 w-5"
-                  strokeWidth={2}
-                  style={{ color: badge.unlocked ? color : "var(--text-muted)" }}
-                />
+                <Lock className="h-[18px] w-[18px]" strokeWidth={2} />
               </span>
-              <p className="mt-2 text-xs font-semibold text-[var(--text-primary)]">{badge.name}</p>
-              {!badge.unlocked && badge.requirement && (
-                <p className="mt-0.5 text-[11px] leading-snug text-[var(--text-muted)]">
-                  {badge.requirement}
-                </p>
-              )}
-            </li>
-          );
-        })}
+            )}
+            <p className="mt-2 text-[12.5px] font-semibold leading-tight text-[var(--ps-title)]">{badge.name}</p>
+            {!badge.unlocked && badge.requirement ? (
+              <p className="mt-0.5 text-[11.5px] leading-snug text-[var(--ps-muted)]">{badge.requirement}</p>
+            ) : null}
+            <span className="sr-only">{badge.unlocked ? "მოპოვებულია" : "ჯერ არ არის მოპოვებული"}</span>
+          </li>
+        ))}
       </ul>
-    </DashboardCard>
+    </section>
   );
 }
