@@ -2,10 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
-import type { WritingTaskGraderResponse } from "@/lib/ai/writing-task-grader-schema";
+import { WRITING_TASK_TOTAL_MAX, writingTaskMaxes, type WritingTaskGraderResponse } from "@/lib/ai/writing-task-grader-schema";
 import { localGradeWritingTask } from "@/lib/writing-task-grader-local";
 import { recordQuestProgress } from "@/lib/daily-quests";
 import { recordToolUsage } from "@/lib/activity";
+import { logActivity } from "@/lib/activity-log";
+import { essayGradeEvent } from "@/lib/stats/abiturient";
 
 export interface WritingTaskGradeInput {
   prompt?: string;
@@ -46,6 +48,14 @@ export function useWritingTaskGrading(toolId = "abit-writing-task"): WritingTask
       setUsedFallback(false);
       recordToolUsage(toolId, "წერითი დავალების შემფასებელი");
 
+      const logGrade = (graded: WritingTaskGraderResponse) =>
+        logActivity({
+          type: "essay_graded",
+          space: "abiturient",
+          subject: "ქართული ენა",
+          ...essayGradeEvent(graded.totalScore, WRITING_TASK_TOTAL_MAX, graded.criteria, writingTaskMaxes(year)),
+        });
+
       try {
         const response = await fetchAiJson<WritingTaskGraderResponse>({
           pageType: "writing-task-grader",
@@ -60,9 +70,12 @@ export function useWritingTaskGrading(toolId = "abit-writing-task"): WritingTask
           },
         });
         setResult(response);
+        logGrade(response);
       } catch (error) {
         console.warn("writing-task grader falling back to local rubric", error);
-        setResult(localGradeWritingTask(text, { year, hasBoundText, prompt: input.prompt }));
+        const local = localGradeWritingTask(text, { year, hasBoundText, prompt: input.prompt });
+        setResult(local);
+        logGrade(local);
         setUsedFallback(true);
       } finally {
         setBusy(false);

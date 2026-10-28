@@ -1,4 +1,5 @@
 import { ACTIVE_SUBJECT_KEY, TOOL_USAGE_KEY as USAGE_STORAGE_KEY } from "./user-data-keys";
+import { logActivity, toolKey } from "./activity-log";
 import { userStore } from "./user-data";
 
 export interface ToolUsageEvent {
@@ -64,6 +65,7 @@ export function recordToolUsage(toolId: string, toolTitle: string): void {
   };
   const next = [...events, event].slice(-MAX_EVENTS);
   userStore.set(USAGE_STORAGE_KEY, next);
+  logActivity({ type: "tool_open", tool: toolKey(toolId), subject: event.subject });
 }
 
 export function usageByTool(events: ToolUsageEvent[]): Record<string, number> {

@@ -1,5 +1,7 @@
 "use client";
 
+import { logActivity, toStatsSpace } from "@/lib/activity-log";
+import { getActiveSubject } from "@/lib/activity";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -219,6 +221,11 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       content: trimmed,
     };
     const assistantId = crypto.randomUUID();
+
+    // A new conversation counts once as a session; every question as a message.
+    const statsSpace = toStatsSpace(space) ?? "student";
+    if (priorMessages.length === 0) logActivity({ type: "ai_session", tool: "ai_teacher", space: statsSpace });
+    logActivity({ type: "ai_message", tool: "ai_teacher", space: statsSpace, subject: getActiveSubject() });
 
     setFriendlyError(null);
     setSidebarOpen(false);

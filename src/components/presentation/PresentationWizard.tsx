@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -282,6 +283,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
       }));
       // A fresh deck starts a fresh undo history.
       dispatch({ type: "reset", present: { title: parsed.title, templateId: selectedTemplate.id, slides } });
+      logActivity({ type: "presentation_created", tool: "presentation", meta: { slides: slides.length } });
       setStep(4);
     } catch (err) {
       setError(

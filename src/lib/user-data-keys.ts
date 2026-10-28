@@ -58,6 +58,11 @@ export const CATEGORY_ACCURACY_KEY = "spaceedu-category-accuracy";
 export const QUIZ_STATS_KEY = "spaceedu-quiz-stats";
 export const CV_UPDATED_KEY = "spaceedu-cv-updated-at";
 export const TOOL_USAGE_KEY = "spaceedu-tool-usage";
+/** Every counted action, tagged with its space: the one source for the stats pages and badges. */
+export const ACTIVITY_LOG_KEY = "spaceedu-activity-log";
+export const ACTIVITY_LOG_UPDATED_EVENT = "spaceedu-activity-log-updated";
+/** How many events the log keeps (newest first), well under the 1 MB row limit. */
+export const ACTIVITY_LOG_LIMIT = 2500;
 export const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
 export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
 /** Read as is by the first-paint script in layout.tsx: "light" | "dark" | "system". */
@@ -262,6 +267,7 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: QUIZ_STATS_KEY, merge: mergeQuizAttempts, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: CV_UPDATED_KEY, merge: later, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: TOOL_USAGE_KEY, merge: mergeToolUsage, event: DASHBOARD_METRICS_UPDATED_EVENT },
+  { key: ACTIVITY_LOG_KEY, merge: mergeNewestById("createdAt", ACTIVITY_LOG_LIMIT), event: ACTIVITY_LOG_UPDATED_EVENT },
   { key: ACTIVE_SUBJECT_KEY, event: SEMESTER_SUBJECTS_UPDATED_EVENT },
   // The dashboard's journal widget shows the XP and re-reads on this event.
   { key: JOURNAL_PROGRESS_KEY, merge: mergeJournalProgress, event: LECTURE_NOTES_UPDATED_EVENT },

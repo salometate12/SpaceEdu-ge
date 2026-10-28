@@ -1,4 +1,3 @@
-import { DEFAULT_BADGES } from "@/lib/badges";
 import { loadProfileShellData } from "@/lib/profile-shell-data";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
@@ -22,7 +21,7 @@ export default async function ProfilePage() {
 
       <DailyGoals showDashboardToggle />
 
-      <BadgeGrid badges={DEFAULT_BADGES} />
+      <BadgeGrid space="student" />
 
       <DiaryLog statsHref="/profile/stats" />
     </>

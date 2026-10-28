@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import { useMemo, useState } from "react";
 import { CalendarDays, CalendarPlus, Check, Clock } from "lucide-react";
 import { SyllabusEventsPanel } from "@/components/syllabus/SyllabusEventsPanel";
@@ -154,7 +155,16 @@ export function CalendarView({ plan, totalDays, advice, subject, space }: Calend
                     ...prev,
                     [key]: !done,
                   }));
-                  if (!done) recordDailyActivity();
+                  if (!done) {
+                    recordDailyActivity();
+                    logActivity({
+                      type: "plan_day_done",
+                      tool: "study_plan",
+                      space: space === "student" ? "student" : "abiturient",
+                      subject: subject ?? null,
+                      meta: { hours: day.hours },
+                    });
+                  }
                 }}
                 aria-label={done ? "მონიშნე დაუსრულებლად" : "მონიშნე დასრულებულად"}
                 aria-pressed={done}

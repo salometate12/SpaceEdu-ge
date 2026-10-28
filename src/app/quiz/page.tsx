@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import { ArrowRight, FileText, X } from "lucide-react";
 import {
   useEffect,
@@ -200,6 +201,13 @@ export default function QuizPage() {
     if (isQuizOver(next) && !repeatingMistakes) {
       recordDailyActivity();
       recordQuizResult(quizTotals(next).firstTry, questions.length, getActiveSubject());
+      logActivity({
+        type: "quiz_completed",
+        tool: "quiz",
+        subject: getActiveSubject(),
+        value: questions.length ? Math.round((quizTotals(next).firstTry / questions.length) * 100) : null,
+        meta: { questions: questions.length },
+      });
     }
     setRun(next);
     setSelectedOptionIndex(null);

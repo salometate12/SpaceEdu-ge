@@ -1,4 +1,3 @@
-import { DEFAULT_BADGES } from "@/lib/badges";
 import { loadProfileShellData } from "@/lib/profile-shell-data";
 import { BadgeGrid } from "@/components/profile/BadgeGrid";
 import { DailyGoals } from "@/components/profile/DailyGoals";
@@ -18,13 +17,13 @@ export default async function AbiturientProfilePage() {
 
       <WeekStreakStrip />
 
-      <ProfileStatCards statsHref="/profile-abiturient/stats" />
+      <ProfileStatCards statsHref="/profile/stats" />
 
       <DailyGoals />
 
-      <BadgeGrid badges={DEFAULT_BADGES} />
+      <BadgeGrid space="abiturient" />
 
-      <DiaryLog statsHref="/profile-abiturient/stats" />
+      <DiaryLog statsHref="/profile/stats" />
     </>
   );
 }

@@ -15,6 +15,7 @@ import {
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
 import { userStore } from "@/lib/user-data";
 import {
+  ACTIVITY_LOG_KEY,
   CATEGORY_ACCURACY_KEY,
   DAILY_GOALS_KEY,
   DAILY_QUESTS_KEY,
@@ -30,6 +31,7 @@ import {
 // Account deletion needs the Supabase admin API server-side and has no
 // route yet → „მალე“.
 const PROGRESS_KEYS = [
+  ACTIVITY_LOG_KEY,
   TOOL_USAGE_KEY,
   STREAK_KEY,
   DAILY_GOALS_KEY,

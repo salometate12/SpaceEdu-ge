@@ -27,7 +27,7 @@ import {
   type SpaceeduSpace,
 } from "@/lib/space-back-navigation";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
-import { aiTeacherHrefForSpace, profileHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
+import { aiTeacherHrefForSpace, profileHrefForSpace, statsHrefForSpace, studyPlanHrefForSpace } from "@/lib/access-control";
 import { abiturientMenuGroups } from "@/lib/abiturient-menu";
 import { signOutUser } from "@/lib/auth";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
@@ -151,7 +151,7 @@ export function resolveRailHref(
   if (id === "dashboard") return dashboardHrefForSpace(space);
   if (id === "study-plan") return studyPlanHrefForSpace(space);
   if (id === "profile") return profileHrefForSpace(space);
-  if (id === "stats") return `${profileHrefForSpace(space)}/stats`;
+  if (id === "stats") return statsHrefForSpace(space);
   if (id === "research") return researchPlatformHref("abit");
   if (id === "ai-teacher") return aiTeacherHrefForSpace(space);
   return fallback;

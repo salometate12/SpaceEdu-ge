@@ -60,13 +60,25 @@ export function studyPlanHrefForSpace(space: SpaceeduSpace | null | undefined): 
   return "/study-plan/abit";
 }
 
+/**
+ * The stats entry point. /profile/stats itself sends each user on to their
+ * working space's page (/profile/stats/student or /abiturient); those pages
+ * are shared routes that refuse to show another space's numbers, so they
+ * are deliberately not space-guarded or space "homes".
+ */
+export const STATS_HREF = "/profile/stats";
+
 export function statsHrefForSpace(
   space: SpaceeduSpace | null | undefined,
   options: NoSpaceOptions = {},
 ): string {
-  if (space === "student") return "/profile/stats";
-  if (space === "abiturient" || space === "school") return "/profile-abiturient/stats";
+  if (space === "student" || space === "abiturient" || space === "school") return STATS_HREF;
   return options.isAdmin ? NO_SPACE_ADMIN_HREF : SELECT_SPACE_HREF;
+}
+
+/** The stats page of one space. */
+export function statsPageForSpace(space: SpaceeduSpace): string {
+  return `${STATS_HREF}/${space === "student" ? "student" : "abiturient"}`;
 }
 
 /**
@@ -94,8 +106,6 @@ export const SPACE_GUARDED_ROUTES: {
   { path: DASHBOARD_SCHOOL_HREF, space: "school", match: "prefix", redirectTo: "dashboard" },
   { path: PROFILE_ABITURIENT_HREF, space: "abiturient", match: "exact", redirectTo: "profile" },
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact", redirectTo: "profile" },
-  { path: "/profile/stats", space: "student", match: "exact", redirectTo: "profile" },
-  { path: "/profile-abiturient/stats", space: "abiturient", match: "exact", redirectTo: "profile" },
   // Each AI teacher sends the other space to its own one, so a public
   // link to /ai-teacher still lands a signed-in abiturient on theirs.
   { path: AI_TEACHER_STUDENT_HREF, space: "student", match: "exact", redirectTo: "ai-teacher" },
@@ -125,8 +135,6 @@ const SPACE_HOME_ROUTES: { path: string; space: SpaceeduSpace; match: "exact" | 
   { path: DASHBOARD_SCHOOL_HREF, space: "school", match: "prefix" },
   { path: PROFILE_ABITURIENT_HREF, space: "abiturient", match: "exact" },
   { path: PROFILE_STUDENT_HREF, space: "student", match: "exact" },
-  { path: "/profile/stats", space: "student", match: "exact" },
-  { path: "/profile-abiturient/stats", space: "abiturient", match: "exact" },
 ];
 
 /** The space whose home route this is, or null for any other page. */

@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -270,6 +271,7 @@ export function ResearchPlatform() {
       const sourceKind: ResearchFileKind = mode === "file" && kind ? kind : "text";
       const item = researchHistoryItem({ name, kind: sourceKind, sections: keys, result: data });
       setResult(data);
+      logActivity({ type: "material_analyzed", tool: "material_analysis", meta: { kind: sourceKind } });
       setShownFrom({ name, kind: sourceKind, sections: keys, id: item.id });
       setHistory((current) => {
         const next = addResearchHistory(current, item);
