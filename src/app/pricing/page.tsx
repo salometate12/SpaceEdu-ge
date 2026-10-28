@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingCards } from "@/components/landing/PricingCards";
 import { Button } from "@/components/ui/Button";
+import "@/components/landing/landing.css";
 
 export const metadata: Metadata = {
   title: "ფასები",
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <main className="under-site-header mx-auto min-h-dvh w-full max-w-7xl px-4 py-10 sm:px-6">
+    <main className="landing under-site-header min-h-dvh w-full px-3 py-10 sm:px-5 lg:px-8">
+      <div className="mx-auto w-full max-w-[1176px]">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="headline text-3xl font-bold">ფასები</h1>
         <Link href="/">
@@ -20,6 +22,7 @@ export default function PricingPage() {
         </Link>
       </div>
       <PricingCards />
+      </div>
     </main>
   );
 }

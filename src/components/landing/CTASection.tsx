@@ -1,29 +1,26 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
-import { RainbowArc } from "./notebook/Doodles";
-import { ACCENT_CARD, ACCENT_SOLID } from "./notebook/accents";
 
 export function CTASection() {
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
+    <section>
       <RevealOnScroll delayMs={120}>
-        <div
-          className={`relative overflow-hidden rounded-[1.75rem] border-2 p-10 text-center sm:p-14 ${ACCENT_CARD.violet}`}
-        >
-          <RainbowArc className="pointer-events-none absolute -left-6 -top-4 hidden w-28 -rotate-12 opacity-80 sm:block" />
-          <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-            მზად ხარ, რომ შექმნა შენი სასწავლო სივრცე?
+        <div className="rounded-[32px] bg-[#fce7f3] px-6 py-12 text-center sm:px-14 sm:py-16 dark:bg-[rgba(236,72,153,0.12)]">
+          <h2 className="text-[26px] font-bold leading-tight tracking-tight text-[var(--ld-title)] sm:text-[34px]">
+            მზად ხარ, რომ შექმნა შენი სასწავლო{" "}
+            <span className="bg-[linear-gradient(transparent_60%,#f9a8d4_60%)] px-[0.08em] dark:bg-[linear-gradient(transparent_60%,rgba(236,72,153,0.45)_60%)]">
+              სივრცე
+            </span>
+            ?
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-            დაიწყე დღესვე, უფასოდ და ბარათის გარეშე.
-          </p>
+          <p className="mt-3 text-[15px] leading-relaxed text-[var(--ld-text)] sm:text-[16px]">დაიწყე დღესვე, უფასოდ და ბარათის გარეშე.</p>
           <Link
             href="/select-space"
-            className={`paper-sticker group mt-6 inline-flex items-center gap-2 rounded-full border-2 px-8 py-4 text-base font-bold ${ACCENT_SOLID.violet}`}
+            className="ld-primary ld-focus mt-7 inline-flex h-[52px] items-center gap-2 rounded-full px-8 text-[16px] font-semibold transition-colors"
           >
             უფასოდ დაწყება
-            <ArrowUpRight className="h-4 w-4 stroke-[2.5] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <ArrowRight className="h-4 w-4" strokeWidth={2.4} aria-hidden />
           </Link>
         </div>
       </RevealOnScroll>

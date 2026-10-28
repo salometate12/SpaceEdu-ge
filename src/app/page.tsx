@@ -1,13 +1,12 @@
 import { AbiturientCenter } from "@/components/landing/AbiturientCenter";
+import "@/components/landing/landing.css";
 import { AuthErrorNotice } from "@/components/landing/AuthErrorNotice";
 import { CTASection } from "@/components/landing/CTASection";
 import { Features } from "@/components/landing/Features";
 import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { NotebookSheet } from "@/components/landing/notebook/NotebookSheet";
 import { PricingCards } from "@/components/landing/PricingCards";
-import { Starfield } from "@/components/landing/Starfield";
 import { WhoItsFor } from "@/components/landing/WhoItsFor";
 import { WhySpaceEdu } from "@/components/landing/WhySpaceEdu";
 
@@ -48,39 +47,27 @@ const STRUCTURED_DATA = {
 
 export default function LandingPage() {
   return (
-    <div id="hero" className="landing-dark-bg under-site-header relative min-h-dvh overflow-hidden">
+    <div id="hero" className="landing under-site-header relative min-h-dvh">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
       />
-      <Starfield />
-      <div className="relative z-10">
-        <AuthErrorNotice />
-        {/* The landing is a stack of notebook sheets rather than one long
-            page. The dark ground stays visible between them, which is what
-            gives every section change its drawn edge; the header pill and
-            the footer are the chrome the stack sits on, so they stay dark
-            in both themes. */}
-        <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-5 sm:pb-8 lg:px-8">
-          <NotebookSheet>
-            <Hero />
-            <HowItWorks />
-          </NotebookSheet>
-          <NotebookSheet>
-            <AbiturientCenter />
-            <Features />
-          </NotebookSheet>
-          <NotebookSheet>
-            <WhoItsFor />
-            <WhySpaceEdu />
-          </NotebookSheet>
-          <NotebookSheet>
-            <PricingCards />
-            <CTASection />
-          </NotebookSheet>
+      <AuthErrorNotice />
+      {/* The hero and the prices are notebook sheets; the sections between
+          them are plain cards on the page. */}
+      <div className="mx-auto w-full max-w-[1240px] px-3 pb-14 pt-2 sm:px-5 sm:pb-20 lg:px-8">
+        <Hero />
+        <HowItWorks />
+        <AbiturientCenter />
+        <Features />
+        <WhoItsFor />
+        <WhySpaceEdu />
+        <div className="mt-6 space-y-14 sm:mt-10 sm:space-y-20">
+          <PricingCards />
+          <CTASection />
         </div>
-        <LandingFooter forceDark />
       </div>
+      <LandingFooter />
     </div>
   );
 }
