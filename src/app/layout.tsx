@@ -157,7 +157,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);if(localStorage.getItem('spaceedu-animations')==='off'){e.classList.add('no-animations');}var p=location.pathname;e.dataset.ground=p==='/'?'landing':(p==='/about'||p==='/contact'||p==='/checkout'||p.indexOf('/checkout/')===0)?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
+            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);if(localStorage.getItem('spaceedu-animations')==='off'){e.classList.add('no-animations');}var p=location.pathname;e.dataset.ground=(p==='/'||p==='/pricing')?'landing':(p==='/about'||p==='/contact'||p==='/checkout'||p.indexOf('/checkout/')===0)?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
           }}
         />
       </head>
