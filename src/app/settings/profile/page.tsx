@@ -1,4 +1,4 @@
-import { getServerAccountMeta } from "@/lib/auth-server";
+import { getServerAccountMeta, getServerWorkingSpace } from "@/lib/auth-server";
 import { customAvatarUrl, providerAvatarUrl } from "@/lib/avatar";
 import {
   SettingsProfileForm,
@@ -14,7 +14,7 @@ function str(meta: Record<string, unknown>, ...keys: string[]): string {
 }
 
 export default async function SettingsProfilePage() {
-  const account = await getServerAccountMeta();
+  const [account, working] = await Promise.all([getServerAccountMeta(), getServerWorkingSpace()]);
   const meta = account?.metadata ?? {};
   const initial: ProfileFormValues = {
     firstName: str(meta, "firstName", "first_name"),
@@ -33,6 +33,7 @@ export default async function SettingsProfilePage() {
       initials={initials}
       customPhotoUrl={customAvatarUrl(meta)}
       providerPhotoUrl={providerAvatarUrl(meta)}
+      space={working.space}
     />
   );
 }

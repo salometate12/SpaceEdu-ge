@@ -1,0 +1,321 @@
+/*
+ * The profile / settings pages in the light style, both themes: a plain
+ * page, white cards with a thin border and no shadow, one pink primary,
+ * pill buttons that sit at the end of a form instead of spanning it.
+ * `.pshell` is the root (ProfileShell); every piece reads its tokens.
+ */
+.pshell {
+  --ps-bg: #fafaf9;
+  --ps-card: #ffffff;
+  --ps-border: #ece9e4;
+  --ps-title: #1c1a17;
+  --ps-text: #57534e;
+  --ps-muted: #78716c;
+  --ps-field: #ffffff;
+  --ps-field-border: #e7e5e4;
+  --ps-hover: #f5f4f0;
+  --ps-soft: #f5f4f0;
+  --ps-divider: #f1efeb;
+  --ps-active-bg: #fdf2f8;
+  --ps-active: #9d174d;
+  --ps-secondary: #ffffff;
+  --ps-secondary-border: #e7e5e4;
+  --ps-danger: #e11d48;
+  --ps-danger-border: #fecdd3;
+  --ps-danger-hover: #fff1f2;
+  --ps-strong-ring: #1c1a17;
+  --ps-ok-bg: #dcfce7;
+  --ps-ok: #166534;
+
+  --ps-student-bg: #fce7f3;
+  --ps-student: #9d174d;
+  --ps-abit-bg: #fef9c3;
+  --ps-abit: #854d0e;
+
+  --ps-yellow-bg: #fef9c3;
+  --ps-yellow: #854d0e;
+  --ps-green-bg: #dcfce7;
+  --ps-green: #166534;
+
+  background: var(--ps-bg);
+  color: var(--ps-text);
+}
+
+html.dark .pshell {
+  --ps-bg: #0c0c10;
+  --ps-card: #15151b;
+  --ps-border: #26262e;
+  --ps-title: #fafaf9;
+  --ps-text: #d4d4d8;
+  --ps-muted: #a1a1aa;
+  --ps-field: #0f0f14;
+  --ps-field-border: #2e2e38;
+  --ps-hover: #1f1f27;
+  --ps-soft: #1b1b22;
+  --ps-divider: #26262e;
+  --ps-active-bg: rgba(236, 72, 153, 0.14);
+  --ps-active: #f9a8d4;
+  --ps-secondary: #15151b;
+  --ps-secondary-border: #2e2e38;
+  --ps-danger: #fb7185;
+  --ps-danger-border: rgba(251, 113, 133, 0.45);
+  --ps-danger-hover: rgba(251, 113, 133, 0.1);
+  --ps-strong-ring: #fafaf9;
+  --ps-ok-bg: rgba(74, 222, 128, 0.14);
+  --ps-ok: #86efac;
+
+  --ps-student-bg: rgba(236, 72, 153, 0.16);
+  --ps-student: #f9a8d4;
+  --ps-abit-bg: rgba(250, 204, 21, 0.14);
+  --ps-abit: #fde68a;
+
+  --ps-yellow-bg: rgba(250, 204, 21, 0.14);
+  --ps-yellow: #fde68a;
+  --ps-green-bg: rgba(74, 222, 128, 0.14);
+  --ps-green: #86efac;
+}
+
+/* Cards. */
+.pshell .ps-card {
+  background: var(--ps-card);
+  border: 1px solid var(--ps-border);
+  border-radius: 24px;
+}
+
+/* Text fields. */
+.pshell .ps-field {
+  width: 100%;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--ps-field-border);
+  background: var(--ps-field);
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--ps-title);
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.pshell textarea.ps-field {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+.pshell .ps-field::placeholder {
+  color: var(--ps-muted);
+}
+.pshell .ps-field:focus {
+  border-color: #e11d74;
+  box-shadow: 0 0 0 3px rgba(225, 29, 116, 0.15);
+}
+.pshell .ps-field[readonly] {
+  color: var(--ps-muted);
+  cursor: not-allowed;
+}
+.pshell .ps-field[aria-invalid="true"] {
+  border-color: var(--ps-danger);
+}
+.pshell .ps-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ps-title);
+}
+
+/* Buttons: pills, no shadow. */
+.pshell .ps-btn {
+  display: inline-flex;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  padding: 0 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.pshell .ps-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.pshell .ps-btn--sm {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13.5px;
+}
+.pshell .ps-btn--primary {
+  background: #e11d74;
+  color: #ffffff;
+}
+.pshell .ps-btn--primary:hover:not(:disabled) {
+  background: #cf1769;
+}
+.pshell .ps-btn--secondary {
+  background: var(--ps-secondary);
+  border-color: var(--ps-secondary-border);
+  color: var(--ps-title);
+}
+.pshell .ps-btn--secondary:hover:not(:disabled) {
+  background: var(--ps-hover);
+}
+.pshell .ps-btn--ghost {
+  background: transparent;
+  color: var(--ps-text);
+}
+.pshell .ps-btn--ghost:hover:not(:disabled) {
+  background: var(--ps-hover);
+}
+.pshell .ps-btn--danger {
+  background: var(--ps-secondary);
+  border-color: var(--ps-danger-border);
+  color: var(--ps-danger);
+}
+.pshell .ps-btn--danger:hover:not(:disabled) {
+  background: var(--ps-danger-hover);
+}
+.pshell .ps-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* One focus look for everything clickable on these pages. */
+.pshell .ps-focus:focus-visible,
+.pshell .ps-btn:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* A form's buttons: at its end, on the right; stacked full-width on a
+   phone, the main action on top. */
+.pshell .ps-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+@media (max-width: 767px) {
+  .pshell .ps-actions {
+    flex-direction: column-reverse;
+  }
+  .pshell .ps-actions > .ps-btn {
+    width: 100%;
+  }
+}
+
+/* The side menu. */
+.pshell .ps-nav-item {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 8px 12px;
+  line-height: 1.3;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ps-text);
+  transition: background-color 120ms ease;
+}
+.pshell .ps-nav-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--ps-muted);
+}
+.pshell .ps-nav-item:hover {
+  background: var(--ps-hover);
+}
+.pshell .ps-nav-item[aria-current="page"] {
+  background: var(--ps-active-bg);
+  color: var(--ps-active);
+  font-weight: 600;
+}
+.pshell .ps-nav-item[aria-current="page"] svg {
+  color: var(--ps-active);
+}
+.pshell .ps-nav-item--danger,
+.pshell .ps-nav-item--danger svg {
+  color: var(--ps-danger);
+}
+.pshell .ps-nav-item--danger:hover {
+  background: var(--ps-danger-hover);
+}
+.pshell .ps-nav-item--danger[aria-current="page"],
+.pshell .ps-nav-item--danger[aria-current="page"] svg {
+  background: var(--ps-danger-hover);
+  color: var(--ps-danger);
+}
+
+/* A row in a phone's grouped list. */
+.pshell .ps-row {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--ps-title);
+}
+.pshell .ps-row + .ps-row {
+  border-top: 1px solid var(--ps-divider);
+}
+.pshell .ps-row svg.ps-row-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--ps-muted);
+}
+.pshell .ps-row:active {
+  background: var(--ps-hover);
+}
+
+/* The on/off switch. */
+.pshell .ps-switch {
+  position: relative;
+  height: 24px;
+  width: 42px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--ps-field-border);
+  transition: background-color 150ms ease;
+}
+.pshell .ps-switch[aria-checked="true"] {
+  background: #e11d74;
+}
+.pshell .ps-switch > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 150ms ease;
+}
+.pshell .ps-switch[aria-checked="true"] > span {
+  transform: translateX(18px);
+}
+.pshell .ps-switch:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+.pshell .ps-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pshell .ps-switch,
+  .pshell .ps-switch > span {
+    transition: none;
+  }
+}

@@ -1,11 +1,20 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { Laptop, LogOut, MonitorSmartphone } from "lucide-react";
+import { Laptop, LogOut, Smartphone } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SETTINGS_ROW, SETTINGS_ROW_TEXT, SettingsCard, SettingsRows } from "@/components/profile/settings-ui";
-import { nbButtonClass } from "@/lib/nb-button";
+import {
+  ActiveBadge,
+  CARD_X,
+  psButton,
+  ROW_SUB,
+  ROW_TITLE,
+  SETTINGS_ROW,
+  SETTINGS_ROW_TEXT,
+  SettingsCard,
+  SettingsRows,
+} from "@/components/profile/settings-ui";
 
 function describeDevice(ua: string): { name: string; mobile: boolean } {
   const mobile = /iPhone|iPad|Android|Mobile/i.test(ua);
@@ -20,7 +29,7 @@ function describeDevice(ua: string): { name: string; mobile: boolean } {
   else if (/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser = "Chrome";
   else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = "Safari";
   else if (/Firefox\//i.test(ua)) browser = "Firefox";
-  return { name: `${os} — ${browser}`, mobile };
+  return { name: `${os} · ${browser}`, mobile };
 }
 
 const DEFAULT_DEVICE = { name: "ეს მოწყობილობა", mobile: false };
@@ -61,50 +70,47 @@ export function SettingsSessions() {
     }
   };
 
-  const DeviceIcon = device.mobile ? MonitorSmartphone : Laptop;
+  const DeviceIcon = device.mobile ? Smartphone : Laptop;
 
+  // Only this device is listed: the others can't be named from the browser,
+  // but they can all be signed out at once.
   return (
-    <SettingsCard
-      icon={MonitorSmartphone}
-      title="აქტიური სესიები"
-      subtitle="Supabase-ი სესიების სრულ სიას არ აბრუნებს — ჩანს მხოლოდ ეს მოწყობილობა"
-      flush
-    >
-      <SettingsRows className="border-b">
+    <SettingsCard id="sessions" title="აქტიური სესიები" subtitle="მოწყობილობები, სადაც ანგარიშში ხარ შესული" flush>
+      <SettingsRows>
         <div className={SETTINGS_ROW}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
-            <DeviceIcon className="h-[18px] w-[18px] stroke-[1.75]" aria-hidden />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--ps-soft)] text-[var(--ps-text)]">
+            <DeviceIcon className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
           </span>
           <div className={SETTINGS_ROW_TEXT}>
-            <div className="text-[13px] text-[var(--text-primary)]">{device.name}</div>
-            <div className="text-[11px] text-[var(--text-secondary)]">მიმდინარე სესია</div>
+            <div className={ROW_TITLE}>{device.name}</div>
+            <div className={ROW_SUB}>ეს მოწყობილობა</div>
           </div>
-          <span className="shrink-0 rounded-full bg-[#E1F5EE] px-2 py-0.5 text-[10px] font-medium text-[#0F6E56] dark:bg-[rgba(29,158,117,0.16)] dark:text-[#4fd1a5]">
-            მიმდინარე
-          </span>
+          <ActiveBadge>მიმდინარე</ActiveBadge>
         </div>
       </SettingsRows>
 
-      <div className="px-4 py-5 sm:px-5">
-        <button
-          type="button"
-          onClick={() => void handleSignOutOthers()}
-          disabled={state === "working"}
-          className={nbButtonClass({ variant: "secondary", block: true })}
-        >
-          <LogOut aria-hidden />
-          {state === "working" ? "მიმდინარეობს..." : "ყველა სხვა სესიიდან გასვლა"}
-        </button>
+      <div className={`${CARD_X} pb-6 pt-3`}>
         {state === "done" && (
-          <p role="status" className="mt-2 text-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            ყველა სხვა სესია დასრულდა
+          <p role="status" className="mb-3 text-[13.5px] font-medium text-[var(--ps-ok)]">
+            სხვა მოწყობილობებიდან გამოხვედი
           </p>
         )}
         {state === "error" && (
-          <p role="alert" className="mt-2 text-center text-xs font-medium text-rose-600 dark:text-rose-400">
+          <p role="alert" className="mb-3 text-[13.5px] font-medium text-[var(--ps-danger)]">
             ვერ მოხერხდა. სცადე თავიდან.
           </p>
         )}
+        <div className="ps-actions">
+          <button
+            type="button"
+            onClick={() => void handleSignOutOthers()}
+            disabled={state === "working"}
+            className={psButton("secondary")}
+          >
+            <LogOut aria-hidden />
+            {state === "working" ? "მიმდინარეობს…" : "სხვა მოწყობილობებიდან გასვლა"}
+          </button>
+        </div>
       </div>
     </SettingsCard>
   );

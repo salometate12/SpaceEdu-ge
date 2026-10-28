@@ -1,15 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Check, IdCard, Loader2, Trash2, Upload } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Loader2, Trash2, Upload } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { SETTINGS_TONE, SettingsCard } from "@/components/profile/settings-ui";
+import { psButton, SettingsCard, SettingsPageTitle } from "@/components/profile/settings-ui";
 import { ConfirmDialog } from "@/components/profile/settings/ConfirmDialog";
+import { SpaceAvatar } from "@/components/profile/SpaceAvatar";
+import { Toast } from "@/components/ui/Toast";
 import { AVATAR_ACCEPT, AVATAR_ERRORS, avatarFileProblem } from "@/lib/avatar";
 import { removeAvatar, uploadAvatar } from "@/lib/avatar-upload";
 import { useCurrentUserAvatar } from "@/hooks/useCurrentUserAvatar";
-import { nbButtonClass } from "@/lib/nb-button";
+import type { SpaceeduSpace } from "@/lib/space-back-navigation";
 
 export interface ProfileFormValues {
   firstName: string;
@@ -19,7 +21,13 @@ export interface ProfileFormValues {
   institution: string;
 }
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "error";
+
+const FIELDS: (keyof ProfileFormValues)[] = ["firstName", "lastName", "bio", "city", "institution"];
+
+function sameValues(a: ProfileFormValues, b: ProfileFormValues): boolean {
+  return FIELDS.every((key) => a[key].trim() === b[key].trim());
+}
 
 export function SettingsProfileForm({
   initial,
@@ -27,8 +35,11 @@ export function SettingsProfileForm({
   initials,
   customPhotoUrl = null,
   providerPhotoUrl = null,
+  space = null,
 }: {
   initial: ProfileFormValues;
+  /** The working space: names the school / university field and tints the initials. */
+  space?: SpaceeduSpace | null;
   email: string;
   initials: string;
   /** The user's own uploaded photo. */
@@ -37,7 +48,11 @@ export function SettingsProfileForm({
   providerPhotoUrl?: string | null;
 }) {
   const [values, setValues] = useState<ProfileFormValues>(initial);
+  // What's on the account: „გაუქმება“ goes back to it, and „შენახვა“ waits for a change from it.
+  const [saved, setSaved] = useState<ProfileFormValues>(initial);
   const [state, setState] = useState<SaveState>("idle");
+  const [toast, setToast] = useState(false);
+  const closeToast = useCallback(() => setToast(false), []);
   // The live account (follows uploads); the server's values until it loads.
   const liveAvatar = useCurrentUserAvatar();
   const ownPhoto = liveAvatar.loaded ? liveAvatar.customPhotoUrl : customPhotoUrl;
@@ -83,8 +98,11 @@ export function SettingsProfileForm({
     }
   };
 
-  const set = (key: keyof ProfileFormValues, value: string) =>
+  const set = (key: keyof ProfileFormValues, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
+    if (state === "error") setState("idle");
+  };
+  const dirty = !sameValues(values, saved);
 
   const handleSave = async () => {
     if (!isSupabaseBrowserConfigured()) {
@@ -104,39 +122,36 @@ export function SettingsProfileForm({
         },
       });
       if (error) throw error;
-      setState("saved");
+      setSaved(values);
+      setState("idle");
+      setToast(true);
     } catch {
       setState("error");
     }
   };
 
-  const fieldClass = `w-full rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none ${SETTINGS_TONE.fieldFocus}`;
-  const labelClass =
-    "text-[11px] uppercase tracking-[0.04em] text-[var(--text-secondary)]";
+  const studentSpace = space === "student";
 
   return (
-    <SettingsCard bodyClassName="p-0">
-      {/* Avatar block */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-[var(--border)] px-4 py-5 sm:px-5">
-        <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0f0f14] bg-[var(--bg-secondary)] text-[22px] font-semibold text-[var(--text-primary)] dark:border-[#f4f4f5]">
-          {shownPhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
-            <img src={shownPhoto} alt="პროფილის ფოტო" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-          ) : (
-            initials || "მე"
-          )}
-          {photoBusy ? (
-            <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white" aria-label="მიმდინარეობს…">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </span>
-          ) : null}
-        </span>
-        <div className="min-w-[12rem] flex-1">
-          <div className="truncate text-[15px] font-medium text-[var(--text-primary)]">
-            {[values.firstName, values.lastName].filter(Boolean).join(" ") || "მომხმარებელი"}
-          </div>
-          <div className="text-xs text-[var(--text-secondary)] [overflow-wrap:anywhere]">{email || "—"}</div>
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+    <>
+      <SettingsPageTitle>პროფილი</SettingsPageTitle>
+
+      <SettingsCard title="ფოტო" subtitle="ჩანს პროფილის მენიუში და გვერდით მენიუში">
+        <div className="flex flex-wrap items-center gap-5">
+          <span className="relative">
+            <SpaceAvatar
+              space={space}
+              initials={initials}
+              photoUrl={shownPhoto}
+              className="h-[72px] w-[72px] rounded-full text-[24px]"
+            />
+            {photoBusy ? (
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white" aria-label="მიმდინარეობს…">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </span>
+            ) : null}
+          </span>
+          <div className="min-w-0 flex-1">
             <input
               ref={fileRef}
               type="file"
@@ -147,35 +162,37 @@ export function SettingsProfileForm({
                 event.target.value = "";
               }}
             />
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={photoBusy !== null}
-              className={nbButtonClass({ variant: "primary", size: "sm" })}
-            >
-              {photoBusy === "uploading" ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
-              {photoBusy === "uploading" ? "იტვირთება…" : "ფოტოს ატვირთვა"}
-            </button>
-            {ownPhoto ? (
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(true)}
+                onClick={() => fileRef.current?.click()}
                 disabled={photoBusy !== null}
-                className={nbButtonClass({ variant: "secondary", size: "sm" })}
+                className={psButton("secondary")}
               >
-                <Trash2 aria-hidden />
-                წაშლა
+                {photoBusy === "uploading" ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
+                {photoBusy === "uploading" ? "იტვირთება…" : "ფოტოს ატვირთვა"}
               </button>
+              {ownPhoto ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={photoBusy !== null}
+                  className={psButton("ghost")}
+                >
+                  <Trash2 aria-hidden />
+                  წაშლა
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-2 text-[13px] text-[var(--ps-muted)]">JPG, PNG ან WEBP, მაქსიმუმ 5 MB</p>
+            {photoError ? (
+              <p role="alert" className="mt-1 text-[13px] font-medium text-[var(--ps-danger)]">
+                {photoError}
+              </p>
             ) : null}
           </div>
-          <p className="mt-1.5 text-[11px] text-[var(--text-secondary)]">JPG, PNG ან WEBP · მაქს. 5 MB</p>
-          {photoError ? (
-            <p role="alert" className="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
-              {photoError}
-            </p>
-          ) : null}
         </div>
-      </div>
+      </SettingsCard>
       <ConfirmDialog
         open={confirmDelete}
         title="წავშალოთ პროფილის ფოტო?"
@@ -186,73 +203,68 @@ export function SettingsProfileForm({
         onCancel={() => setConfirmDelete(false)}
       />
 
-      {/* Fields */}
-      <div className="p-5">
-        <h2 className="flex items-center gap-2 text-[15px] font-medium text-[var(--text-primary)]">
-          <IdCard className={`h-4 w-4 stroke-[1.75] ${SETTINGS_TONE.headingIcon}`} aria-hidden />
-          პირადი ინფო
-        </h2>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">სახელი, კონტაქტი და ბიო</p>
-
-        <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClass}>სახელი</span>
-            <input className={fieldClass} value={values.firstName} onChange={(e) => set("firstName", e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClass}>გვარი</span>
-            <input className={fieldClass} value={values.lastName} onChange={(e) => set("lastName", e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1.5 sm:col-span-2">
-            <span className={labelClass}>ელ-ფოსტა</span>
-            <input
-              className={`${fieldClass} cursor-not-allowed opacity-70`}
-              value={email}
-              type="email"
-              readOnly
-              aria-readonly="true"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 sm:col-span-2">
-            <span className={labelClass}>ბიო</span>
-            <textarea
-              className={`${fieldClass} min-h-[70px] resize-y`}
-              placeholder="რამდენიმე სიტყვა შენს შესახებ..."
-              value={values.bio}
-              onChange={(e) => set("bio", e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClass}>ქალაქი</span>
-            <input className={fieldClass} placeholder="თბილისი" value={values.city} onChange={(e) => set("city", e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className={labelClass}>სკოლა / უნივ.</span>
-            <input className={fieldClass} placeholder="სახელი" value={values.institution} onChange={(e) => set("institution", e.target.value)} />
-          </label>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={state === "saving"}
-          className={nbButtonClass({ variant: "primary", block: true, className: "mt-5" })}
+      <SettingsCard title="პირადი ინფორმაცია" subtitle="სახელი, კონტაქტი და რამდენიმე სიტყვა შენზე">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSave();
+          }}
         >
-          <Check aria-hidden />
-          {state === "saving" ? "ინახება..." : "ცვლილებების შენახვა"}
-        </button>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">სახელი</span>
+              <input className="ps-field" autoComplete="given-name" value={values.firstName} onChange={(e) => set("firstName", e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">გვარი</span>
+              <input className="ps-field" autoComplete="family-name" value={values.lastName} onChange={(e) => set("lastName", e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-2 sm:col-span-2">
+              <span className="ps-label">ელ-ფოსტა</span>
+              <input className="ps-field" value={email} type="email" readOnly aria-readonly="true" />
+            </label>
+            <label className="flex flex-col gap-2 sm:col-span-2">
+              <span className="ps-label">ბიო</span>
+              <textarea
+                className="ps-field"
+                placeholder="რამდენიმე სიტყვა შენს შესახებ"
+                value={values.bio}
+                onChange={(e) => set("bio", e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">ქალაქი</span>
+              <input className="ps-field" placeholder="თბილისი" value={values.city} onChange={(e) => set("city", e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="ps-label">{studentSpace ? "უნივერსიტეტი" : "სკოლა"}</span>
+              <input
+                className="ps-field"
+                placeholder={studentSpace ? "მაგ. თსუ" : "მაგ. 51-ე საჯარო სკოლა"}
+                value={values.institution}
+                onChange={(e) => set("institution", e.target.value)}
+              />
+            </label>
+          </div>
 
-        {state === "saved" && (
-          <p role="status" className="mt-2 text-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            ცვლილებები შენახულია
-          </p>
-        )}
-        {state === "error" && (
-          <p role="alert" className="mt-2 text-center text-xs font-medium text-rose-600 dark:text-rose-400">
-            ვერ შევინახე. სცადე თავიდან.
-          </p>
-        )}
-      </div>
-    </SettingsCard>
+          {state === "error" && (
+            <p role="alert" className="mt-4 text-[13.5px] font-medium text-[var(--ps-danger)]">
+              ვერ შევინახე. სცადე თავიდან.
+            </p>
+          )}
+
+          <div className="ps-actions mt-6">
+            <button type="button" onClick={() => setValues(saved)} disabled={!dirty || state === "saving"} className={psButton("secondary")}>
+              გაუქმება
+            </button>
+            <button type="submit" disabled={!dirty || state === "saving"} className={psButton("primary")}>
+              {state === "saving" ? "ინახება…" : "შენახვა"}
+            </button>
+          </div>
+        </form>
+      </SettingsCard>
+
+      {toast ? <Toast message="შენახულია" onClose={closeToast} duration={3000} /> : null}
+    </>
   );
 }
