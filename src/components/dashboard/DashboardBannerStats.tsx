@@ -1,9 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Flame, Hourglass } from "lucide-react";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
-import { EXAM_COUNTDOWN_UPDATED_EVENT, getExamCountdownDays } from "@/lib/exam-countdown";
+import {
+  EXAM_DATE_HREF,
+  EXAM_DATE_PASSED,
+  EXAM_DATE_PROMPT,
+  EXAM_DATE_RENEW,
+  getExamCountdown,
+  type ExamCountdown,
+} from "@/lib/exam-countdown";
+import { CALENDAR_UPDATED_EVENT } from "@/lib/syllabus-calendar";
+import { STUDY_PLAN_CALENDAR_UPDATED_EVENT } from "@/lib/study-plan-calendar";
 
 export type DashboardWorkspace = "abiturient" | "student";
 
@@ -17,7 +27,8 @@ const COUNTDOWN_LABEL: Record<DashboardWorkspace, string> = {
 };
 
 /**
- * The streak comes from localStorage and the countdown from today's date,
+ * The streak comes from localStorage and the countdown from the saved
+ * study plan (or syllabus) and today's date,
  * so neither exists on the server: it renders 0 and an em dash, the
  * browser renders the real pair, and React counts that as a failed
  * hydration — which throws away the whole tree's event handlers, leaving
@@ -27,7 +38,7 @@ const COUNTDOWN_LABEL: Record<DashboardWorkspace, string> = {
  */
 export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
   const [streak, setStreak] = useState(0);
-  const [countdown, setCountdown] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<ExamCountdown | null>(null);
 
   useEffect(() => {
     const sync = () => setStreak(getCurrentStreak());
@@ -41,12 +52,18 @@ export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
   }, []);
 
   useEffect(() => {
-    const sync = () => setCountdown(getExamCountdownDays());
+    const sync = () => setCountdown(getExamCountdown(workspace));
     sync();
-    // The account's countdown replaces this device's once it arrives.
-    window.addEventListener(EXAM_COUNTDOWN_UPDATED_EVENT, sync);
-    return () => window.removeEventListener(EXAM_COUNTDOWN_UPDATED_EVENT, sync);
-  }, []);
+    // Counts to the study plan's last day or the syllabus's next exam, so
+    // either changing (here or synced from the account) re-reads it.
+    const events = [STUDY_PLAN_CALENDAR_UPDATED_EVENT, CALENDAR_UPDATED_EVENT, "storage"];
+    for (const name of events) window.addEventListener(name, sync);
+    return () => {
+      for (const name of events) window.removeEventListener(name, sync);
+    };
+  }, [workspace]);
+
+  const noDate = countdown !== null && countdown.kind !== "days";
 
   const streakActiveToday = streak > 0;
   const vivid = workspace === "student";
@@ -83,15 +100,26 @@ export function DashboardBannerStats({ workspace }: DashboardBannerStatsProps) {
           <Hourglass className="h-5 w-5" strokeWidth={2} />
         </span>
         <div>
-          <p
-            suppressHydrationWarning
-            className="mono text-2xl font-bold leading-none text-cyan-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.25)] mobile-vivid-stat-value"
-          >
-            {countdown ?? "—"}
-          </p>
-          <p className="mt-1 max-w-[8rem] text-[11px] font-medium leading-tight tracking-wide text-cyan-700/80 dark:text-cyan-400/80 mobile-vivid-stat-label">
-            {COUNTDOWN_LABEL[workspace]}
-          </p>
+          {noDate ? (
+            <Link
+              href={EXAM_DATE_HREF[workspace]}
+              className="block max-w-[11rem] text-[12px] font-semibold leading-tight text-cyan-700 hover:underline dark:text-cyan-300 mobile-vivid-stat-label"
+            >
+              {countdown.kind === "passed" ? `${EXAM_DATE_PASSED} · ${EXAM_DATE_RENEW}` : EXAM_DATE_PROMPT[workspace]}
+            </Link>
+          ) : (
+            <>
+              <p
+                suppressHydrationWarning
+                className="mono text-2xl font-bold leading-none text-cyan-600 dark:text-cyan-400 dark:drop-shadow-[0_0_12px_rgba(34,211,238,0.25)] mobile-vivid-stat-value"
+              >
+                {countdown?.kind === "days" ? countdown.days : "—"}
+              </p>
+              <p className="mt-1 max-w-[8rem] text-[11px] font-medium leading-tight tracking-wide text-cyan-700/80 dark:text-cyan-400/80 mobile-vivid-stat-label">
+                {COUNTDOWN_LABEL[workspace]}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
