@@ -1,196 +1,134 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  Calculator,
-  Calendar,
-  Copy,
-  FileText,
-  GraduationCap,
-  Lightbulb,
-  MessageSquare,
-  RotateCw,
-  Video,
-} from "lucide-react";
 import Link from "next/link";
-import { MoveRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Calculator, Copy, FileText, Lightbulb, MessageSquareText, RotateCw } from "lucide-react";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
-import { Pencil, Sparkle } from "./notebook/Doodles";
-import { ACCENT_CARD, ACCENT_TEXT, type NotebookAccent } from "./notebook/accents";
+import { LANDING_CARD, SectionHeading, TILE, type TileColor } from "./SectionHeading";
 
-interface ToolCard {
-  id: string;
-  kicker?: string;
-  title: string;
-  body: string;
-  icon: LucideIcon;
-  accent: NotebookAccent;
-  featured?: boolean;
-}
-
-const SIDE_TOOLS: ToolCard[] = [
+/** Only tools that exist; colours as on the dashboard's tool cards. */
+const TOOLS: { id: string; title: string; body: string; icon: LucideIcon; color: TileColor }[] = [
   {
     id: "quiz",
     title: "ქვიზი",
     body: "ატვირთე PDF ან ფაილი და მიიღე ქვიზი, რომელიც სუსტ ადგილებს გაჩვენებს.",
     icon: RotateCw,
-    accent: "blue",
+    color: "teal",
   },
   {
     id: "ai-teacher",
     title: "AI მასწავლებელი",
     body: "ვერ გაიგე თემა? ჰკითხე და აგიხსნის, ნებისმიერ დროს.",
-    icon: MessageSquare,
-    accent: "green",
+    icon: MessageSquareText,
+    color: "green",
   },
-];
-
-const MID_TOOLS: ToolCard[] = [
   {
     id: "conspectus",
     title: "კონსპექტი",
     body: "გრძელი მასალიდან მოკლე და მოწესრიგებული კონსპექტი წამებში.",
     icon: FileText,
-    accent: "amber",
+    color: "yellow",
   },
   {
     id: "eli5",
     title: "ELI5 ახსნა",
     body: "რთული თემა ისე, რომ ბავშვსაც გაეგება.",
     icon: Lightbulb,
-    accent: "pink",
+    color: "blue",
   },
   {
     id: "flashcards",
     title: "ფლეშქარდები",
-    body: "დაიმახსოვრე მთავარი ცნებები ბარათებით.",
+    body: "დაიმახსოვრე მთავარი ცნებები ბარათებით, რომლებსაც AI PDF ფაილიდან, ტექსტიდან ან YouTube ვიდეოდან შექმნის.",
     icon: Copy,
-    accent: "green",
-  },
-];
-
-const SMALL_TOOLS: ToolCard[] = [
-  {
-    id: "flashcards-any-source",
-    title: "ფლეშქარდები ნებისმიერი წყაროდან",
-    body: "დაამატე PDF, ტექსტი ან YouTube ვიდეო და AI მთავარ საკითხებს ბარათებად გამოყოფს.",
-    icon: Video,
-    accent: "pink",
+    color: "orange",
   },
   {
     id: "score-calculator",
     title: "ქულის კალკულატორი",
-    body: "გამოთვალე მოსალოდნელი ქულა საგნების მიხედვით.",
+    body: "გამოთვალე მოსალოდნელი ქულა და ნახე, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის შანსი.",
     icon: Calculator,
-    accent: "green",
-  },
-  {
-    id: "program-picker",
-    title: "პროგრამის შესარჩევი",
-    body: "ნახე, რომელ უნივერსიტეტსა და პროგრამაზე გაქვს ჩარიცხვის შანსი შენი ქულებით.",
-    icon: GraduationCap,
-    accent: "amber",
+    color: "pink",
   },
 ];
 
-function ToolTile({ tool, className = "" }: { tool: ToolCard; className?: string }) {
-  const Icon = tool.icon;
-  return (
-    <article
-      className={`flex h-full flex-col justify-between rounded-2xl border-2 p-6 transition-transform duration-300 hover:-translate-y-1 ${ACCENT_CARD[tool.accent]} ${className}`}
-    >
-      <div>
-        <div
-          className={`mb-4 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-white/70 dark:bg-white/[0.08] ${ACCENT_CARD[tool.accent]}`}
-        >
-          <Icon
-            className={`h-4 w-4 stroke-[2] ${ACCENT_TEXT[tool.accent]}`}
-            aria-hidden
-          />
-        </div>
-        {tool.kicker && (
-          <p
-            className={`mono mb-1 text-[10px] font-bold uppercase tracking-wider ${ACCENT_TEXT[tool.accent]}`}
-          >
-            {tool.kicker}
-          </p>
-        )}
-        <h3
-          className={`mb-2 font-bold text-slate-900 dark:text-slate-50 ${tool.featured ? "text-xl" : "text-sm"}`}
-        >
-          {tool.title}
-        </h3>
-        <p className="text-xs leading-relaxed text-slate-700 sm:text-sm dark:text-slate-300">
-          {tool.body}
-        </p>
-      </div>
-    </article>
-  );
-}
+/** A small static picture of the plan: three days, today outlined. */
+const PLAN_DAYS = [
+  { day: "ორშ", topic: "ელასტიურობა", hours: "2 სთ", today: false },
+  { day: "სამ", topic: "ბაზრის წონასწორობა", hours: "1.5 სთ", today: true },
+  { day: "ოთხ", topic: "ქვიზი და გამეორება", hours: "1 სთ", today: false },
+];
 
 export function Features() {
   return (
-    <section id="features" className="relative mx-auto w-full max-w-7xl py-16 sm:py-20">
-      <Pencil className="pointer-events-none absolute left-6 top-14 hidden h-12 w-12 rotate-12 text-amber-600/70 xl:block dark:text-amber-400/60" />
-      <Sparkle className="pointer-events-none absolute right-8 top-16 hidden h-5 w-5 -rotate-12 text-sky-400 xl:block" />
+    <section id="features" className="scroll-mt-24 py-14 sm:py-20">
+      <SectionHeading
+        title={
+          <>
+            შენი სასწავლო <span className="mark-pink">ხელსაწყოები</span>
+          </>
+        }
+        subtitle="ყველაფერი, რაც სწავლისთვის დაგჭირდება, ერთ სივრცეში"
+      />
 
-      <div className="mx-auto mb-10 max-w-2xl px-4 text-center sm:px-6">
-        <h2 className="headline text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-50">
-          შენი სასწავლო ხელსაწყოები
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-base dark:text-slate-300">
-          ყველაფერი, რაც სწავლისთვის დაგჭირდება, ერთ სივრცეში
-        </p>
-      </div>
-
-      <div className="mx-auto max-w-6xl space-y-4 px-4">
-        <RevealOnScroll>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.7fr_1fr]">
-            <ToolTile
-              tool={{
-                id: "study-plan",
-                kicker: "მთავარი ხელსაწყო",
-                title: "სასწავლო გეგმა",
-                body: "დაგეგმე სწავლა საგნების მიხედვით და მიჰყევი დღიდან დღემდე. ყოველთვის ხედავ, რა გელოდება დღეს, ამ კვირაში და გამოცდამდე.",
-                icon: Calendar,
-                accent: "violet",
-                featured: true,
-              }}
-              className="min-h-[220px]"
-            />
-            <div className="grid grid-cols-1 gap-4">
-              {SIDE_TOOLS.map((tool) => (
-                <ToolTile key={tool.id} tool={tool} />
-              ))}
-            </div>
+      <RevealOnScroll>
+        <article className={`${LANDING_CARD} grid grid-cols-1 items-center gap-8 p-6 sm:p-8 md:grid-cols-2`}>
+          <div className="min-w-0">
+            <span className="inline-flex h-8 items-center rounded-full bg-[var(--ld-pink-bg)] px-3.5 text-[13px] font-semibold text-[var(--ld-pink)]">
+              მთავარი ხელსაწყო
+            </span>
+            <h3 className="mt-4 text-[24px] font-bold text-[var(--ld-title)] sm:text-[26px]">სასწავლო გეგმა</h3>
+            <p className="mt-2 max-w-md text-[15px] leading-relaxed text-[var(--ld-text)]">
+              დაგეგმე სწავლა საგნების მიხედვით და მიჰყევი დღიდან დღემდე. ყოველთვის ხედავ, რა გელოდება დღეს, ამ კვირაში და
+              გამოცდამდე.
+            </p>
+            <Link
+              href="/select-space"
+              className="ld-primary ld-focus mt-5 inline-flex h-12 items-center gap-2 rounded-full px-6 text-[15px] font-semibold transition-colors"
+            >
+              გეგმის შექმნა
+              <ArrowRight className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+            </Link>
           </div>
-        </RevealOnScroll>
-
-        <RevealOnScroll delayMs={80}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {MID_TOOLS.map((tool) => (
-              <ToolTile key={tool.id} tool={tool} />
+          <div aria-hidden className="flex flex-col gap-2.5">
+            {PLAN_DAYS.map((item) => (
+              <div
+                key={item.day}
+                className={`flex items-center gap-3 rounded-[16px] bg-[var(--ld-bg)] px-4 py-3 ${
+                  item.today ? "border-2 border-[var(--ld-title)]" : "border border-[var(--ld-card-border)]"
+                }`}
+              >
+                <span className="w-9 shrink-0 text-[13px] font-semibold text-[var(--ld-muted)]">{item.day}</span>
+                <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-[var(--ld-title)]">{item.topic}</span>
+                <span className="shrink-0 text-[13px] text-[var(--ld-muted)]">{item.hours}</span>
+              </div>
             ))}
           </div>
-        </RevealOnScroll>
+        </article>
+      </RevealOnScroll>
 
-        <RevealOnScroll delayMs={140}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {SMALL_TOOLS.map((tool) => (
-              <ToolTile key={tool.id} tool={tool} />
-            ))}
-          </div>
-        </RevealOnScroll>
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {TOOLS.map((tool, index) => {
+          const Icon = tool.icon;
+          return (
+            <RevealOnScroll key={tool.id} delayMs={60 * (index + 1)} className="h-full">
+              <article className={`${LANDING_CARD} h-full p-6`}>
+                <span aria-hidden className={`flex h-11 w-11 items-center justify-center rounded-[12px] ${TILE[tool.color]}`}>
+                  <Icon className="h-5 w-5" strokeWidth={1.8} />
+                </span>
+                <h3 className="mt-4 text-[17px] font-bold text-[var(--ld-title)]">{tool.title}</h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-[var(--ld-text)]">{tool.body}</p>
+              </article>
+            </RevealOnScroll>
+          );
+        })}
       </div>
 
-      <div className="mt-12 flex justify-center">
+      <div className="mt-8 flex justify-center">
         <Link
           href="/select-space"
-          className="group flex items-center gap-2 rounded-full border-2 border-slate-400 bg-white/60 px-8 py-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-600 hover:text-slate-900 dark:border-white/20 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/40 dark:hover:text-white"
+          className="ld-secondary ld-focus inline-flex h-12 items-center gap-2 rounded-full px-7 text-[15px] font-semibold transition-colors"
         >
           ყველა ხელსაწყო
-          <MoveRight
-            className="h-4 w-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1"
-            aria-hidden
-          />
+          <ArrowRight className="h-4 w-4" strokeWidth={2.2} aria-hidden />
         </Link>
       </div>
     </section>

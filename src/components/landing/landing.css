@@ -29,6 +29,14 @@
   --ld-green: #166534;
   --ld-pink-bg: #fce7f3;
   --ld-pink: #9d174d;
+  --ld-blue-bg: #e0f2fe;
+  --ld-blue: #075985;
+  --ld-teal-bg: #ccfbf1;
+  --ld-teal: #115e59;
+  --ld-orange-bg: #ffedd5;
+  --ld-orange: #9a3412;
+  --ld-off: #f5f4f0;
+  --ld-off-border: #d6d3d1;
 }
 
 html.dark .landing,
@@ -54,6 +62,14 @@ html.dark .landing-footer {
   --ld-green: #86efac;
   --ld-pink-bg: rgba(236, 72, 153, 0.16);
   --ld-pink: #f9a8d4;
+  --ld-blue-bg: rgba(56, 189, 248, 0.14);
+  --ld-blue: #7dd3fc;
+  --ld-teal-bg: rgba(45, 212, 191, 0.14);
+  --ld-teal: #5eead4;
+  --ld-orange-bg: rgba(251, 146, 60, 0.14);
+  --ld-orange: #fdba74;
+  --ld-off: #111116;
+  --ld-off-border: #2e2e38;
 }
 
 .landing {
