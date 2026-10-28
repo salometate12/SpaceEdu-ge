@@ -1,0 +1,112 @@
+/*
+ * The header's profile menu. It sits inside the header pill, which carries
+ * a `dark` class in both themes, so its colours key off <html> — the page's
+ * real theme — not Tailwind's dark: variant.
+ */
+html .profile-menu {
+  --pm-panel: #ffffff;
+  --pm-border: #ece9e4;
+  --pm-shadow: 0 16px 40px rgba(28, 26, 23, 0.12);
+  --pm-text: #1c1a17;
+  --pm-muted: #78716c;
+  --pm-icon: #57534e;
+  --pm-hover: #f5f4f0;
+  --pm-divider: #f1efeb;
+  --pm-out: #e11d48;
+  --pm-out-hover: #fff1f2;
+  --pm-admin: #c2410c;
+  --pm-pill: #ffffff;
+
+  --pm-student-bg: #fdf2f8;
+  --pm-student: #9d174d;
+  --pm-abit-bg: #fefce8;
+  --pm-abit: #854d0e;
+
+  background: var(--pm-panel);
+  border: 1px solid var(--pm-border);
+  box-shadow: var(--pm-shadow);
+  color: var(--pm-text);
+}
+
+html.dark .profile-menu {
+  --pm-panel: #15151b;
+  --pm-border: #26262e;
+  --pm-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --pm-text: #fafaf9;
+  --pm-muted: #a1a1aa;
+  --pm-icon: #a1a1aa;
+  --pm-hover: #1f1f27;
+  --pm-divider: #26262e;
+  --pm-out: #fb7185;
+  --pm-out-hover: rgba(251, 113, 133, 0.1);
+  --pm-admin: #fdba74;
+  --pm-pill: #0f0f14;
+
+  --pm-student-bg: rgba(236, 72, 153, 0.12);
+  --pm-student: #f9a8d4;
+  --pm-abit-bg: rgba(250, 204, 21, 0.12);
+  --pm-abit: #fde68a;
+}
+
+.profile-menu {
+  animation: profile-menu-in 120ms ease-out;
+}
+@keyframes profile-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-menu {
+    animation: none;
+  }
+}
+
+.profile-menu .pm-item {
+  display: flex;
+  height: 44px;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  padding: 0 12px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--pm-text);
+  text-align: left;
+  outline: none;
+}
+.profile-menu .pm-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--pm-icon);
+  flex-shrink: 0;
+}
+.profile-menu .pm-item:hover,
+.profile-menu .pm-item:focus-visible {
+  background: var(--pm-hover);
+}
+.profile-menu .pm-item:focus-visible,
+.profile-menu .pm-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+.profile-menu .pm-admin,
+.profile-menu .pm-admin svg {
+  color: var(--pm-admin);
+}
+.profile-menu .pm-out,
+.profile-menu .pm-out svg {
+  color: var(--pm-out);
+  font-weight: 600;
+}
+.profile-menu .pm-out:hover,
+.profile-menu .pm-out:focus-visible {
+  background: var(--pm-out-hover);
+}
+.profile-menu .pm-divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--pm-divider);
+}

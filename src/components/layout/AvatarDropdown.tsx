@@ -2,25 +2,79 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 import { BarChart3, LogOut, Settings, Shield, User } from "lucide-react";
 import { signOutUser } from "@/lib/auth";
+import { useDismiss } from "@/hooks/useDismiss";
+import "./profile-menu.css";
+
+export const PROFILE_MENU_ID = "profile-menu";
 
 interface AvatarDropdownProps {
   open: boolean;
+  onClose: () => void;
+  /** The avatar button: excluded from „outside“, and gets focus back on Esc. */
+  triggerRef: RefObject<HTMLElement | null>;
   isAdmin?: boolean;
   profileHref?: string;
   statsHref?: string;
+  /** The working space, for the space strip and the avatar's colour. */
+  space: string;
+  name: string | null;
+  email: string | null;
+  initial: string;
+  photoUrl?: string | null;
 }
 
+const SPACE: Record<"student" | "abiturient", { label: string; strip: string; dot: string; avatar: string }> = {
+  student: {
+    label: "სტუდენტის სივრცე",
+    strip: "bg-[var(--pm-student-bg)] text-[var(--pm-student)]",
+    dot: "bg-[#ec4899]",
+    avatar: "bg-[#fce7f3] text-[#9d174d]",
+  },
+  abiturient: {
+    label: "აბიტურიენტის სივრცე",
+    strip: "bg-[var(--pm-abit-bg)] text-[var(--pm-abit)]",
+    dot: "bg-[#facc15]",
+    avatar: "bg-[#fef9c3] text-[#854d0e]",
+  },
+};
+
+export function spaceLook(space: string) {
+  return space === "abiturient" ? SPACE.abiturient : SPACE.student;
+}
+
+/**
+ * The header's profile menu: who's signed in, their space with „შეცვლა“,
+ * the account links, the admin panel for admins, and „გასვლა“. Closes on a
+ * press outside, Esc, a pick, or a route change (handled by the header).
+ */
 export function AvatarDropdown({
   open,
+  onClose,
+  triggerRef,
   isAdmin = false,
   profileHref = "/profile",
   statsHref = "/profile/stats",
+  space,
+  name,
+  email,
+  initial,
+  photoUrl,
 }: AvatarDropdownProps) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const look = spaceLook(space);
+
+  useDismiss(open, onClose, panelRef, triggerRef);
+
+  // Opening puts focus on the first item, so the arrows work at once.
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current?.querySelector<HTMLElement>("[role=menuitem]")?.focus();
+  }, [open]);
 
   if (!open) return null;
 
@@ -31,57 +85,99 @@ export function AvatarDropdown({
     } finally {
       window.localStorage.removeItem("spaceedu_space");
       window.localStorage.removeItem("spaceedu-active-space");
+      onClose();
       router.push("/select-space");
       router.refresh();
     }
   };
 
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const items = [...(panelRef.current?.querySelectorAll<HTMLElement>("[role=menuitem]") ?? [])];
+    if (items.length === 0) return;
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    const move = (next: number) => {
+      event.preventDefault();
+      items[(next + items.length) % items.length].focus();
+    };
+    if (event.key === "ArrowDown") move(index + 1);
+    else if (event.key === "ArrowUp") move(index - 1);
+    else if (event.key === "Home") move(0);
+    else if (event.key === "End") move(items.length - 1);
+    // Tab leaves the menu and carries on through the page.
+    else if (event.key === "Tab") onClose();
+  };
+
   return (
-    <div className="absolute right-0 top-11 z-50 min-w-[180px] rounded-[10px] border border-[var(--border)] bg-[var(--bg-secondary)] p-1 shadow-[0_8px_24px_rgba(0,0,0,0.4)] animate-[fade-in-up_.15s_ease]">
-      <Link
-        href={profileHref}
-        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--text-primary)]"
-      >
-        <User className="h-4 w-4" />
+    <div
+      ref={panelRef}
+      id={PROFILE_MENU_ID}
+      role="menu"
+      aria-label="პროფილის მენიუ"
+      onKeyDown={onKeyDown}
+      className="profile-menu absolute right-0 top-[calc(100%+12px)] z-50 w-[320px] rounded-[22px] p-2"
+    >
+      <div className="flex items-center gap-3 px-3 pb-3.5 pt-3">
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-[16px] font-bold ${look.avatar}`}>
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- user photo from Storage / Google
+            <img src={photoUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            initial
+          )}
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-[15.5px] font-bold text-[var(--pm-text)]">{name ?? "შენი ანგარიში"}</span>
+          {email ? <span className="block truncate text-[13px] text-[var(--pm-muted)]">{email}</span> : null}
+        </span>
+      </div>
+
+      <div className={`mx-1 mb-2 flex items-center gap-2 rounded-[14px] px-3 py-2.5 text-[13.5px] font-semibold ${look.strip}`}>
+        <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${look.dot}`} />
+        <span className="min-w-0 flex-1 truncate">{look.label}</span>
+        <Link
+          href="/select-space"
+          role="menuitem"
+          onClick={onClose}
+          className="pm-focus inline-flex h-[26px] shrink-0 items-center rounded-full bg-[var(--pm-pill)] px-3 text-[12.5px] font-semibold text-[var(--pm-text)]"
+        >
+          შეცვლა
+        </Link>
+      </div>
+
+      <Link href={profileHref} role="menuitem" onClick={onClose} className="pm-item">
+        <User aria-hidden />
         პროფილი
       </Link>
-      <Link
-        href={statsHref}
-        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--text-primary)]"
-      >
-        <BarChart3 className="h-4 w-4" />
+      <Link href={statsHref} role="menuitem" onClick={onClose} className="pm-item">
+        <BarChart3 aria-hidden />
         სტატისტიკა
       </Link>
-      <Link
-        href="/settings"
-        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--text-primary)]"
-      >
-        <Settings className="h-4 w-4" />
+      <Link href="/settings" role="menuitem" onClick={onClose} className="pm-item">
+        <Settings aria-hidden />
         პარამეტრები
       </Link>
-      {isAdmin && (
+
+      {isAdmin ? (
         <>
-          <div className="my-1 h-px bg-[var(--border)]" />
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-pink-700 transition-colors hover:bg-pink-100 dark:text-[#f5b8d4] dark:hover:bg-[#2a0a1a] dark:hover:text-[#ee7ab0]"
-          >
-            <Shield className="h-4 w-4" />
-            Admin Panel
+          <div className="pm-divider" role="separator" />
+          <Link href="/admin" role="menuitem" onClick={onClose} className="pm-item pm-admin">
+            <Shield aria-hidden />
+            ადმინ პანელი
           </Link>
         </>
-      )}
-      <div className="my-1 h-px bg-[var(--border)]" />
+      ) : null}
+
+      <div className="pm-divider" role="separator" />
       <button
         type="button"
+        role="menuitem"
         onClick={() => void handleSignOut()}
         disabled={signingOut}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-rose-600 transition-colors hover:bg-[var(--nav-hover-bg)] disabled:opacity-60 dark:text-[#f472b6]"
+        className="pm-item pm-out disabled:opacity-60"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut aria-hidden />
         {signingOut ? "გასვლა..." : "გასვლა"}
       </button>
     </div>
   );
 }
-
