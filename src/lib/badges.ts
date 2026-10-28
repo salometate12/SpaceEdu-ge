@@ -1,11 +1,4 @@
-import {
-  Award,
-  BrainCircuit,
-  CheckCircle2,
-  Flame,
-  Lock,
-  type LucideIcon,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface Badge {
   id: string;
@@ -15,45 +8,6 @@ export interface Badge {
   unlocked: boolean;
   requirement?: string;
 }
-
-export const DEFAULT_BADGES: Badge[] = [
-  { id: "streak_7", icon: Flame, color: "purple", name: "7 დღის სტრიქი", unlocked: true },
-  { id: "quiz_master", icon: BrainCircuit, color: "cyan", name: "ქვიზის ოსტატი", unlocked: true },
-  { id: "first_plan", icon: CheckCircle2, color: "green", name: "პირველი გეგმა", unlocked: true },
-  { id: "sessions_50", icon: Award, color: "amber", name: "50 სესია", unlocked: true },
-  {
-    id: "streak_30",
-    icon: Lock,
-    color: "gray",
-    name: "30 დღის სტრიქი",
-    unlocked: false,
-    requirement: "30 დღე ზედიზედ",
-  },
-  {
-    id: "quiz_100",
-    icon: Lock,
-    color: "gray",
-    name: "100% ქვიზში",
-    unlocked: false,
-    requirement: "ერთ ქვიზში ყველა პასუხი სწორი",
-  },
-  {
-    id: "all_subjects",
-    icon: Lock,
-    color: "gray",
-    name: "ყველა საგანი",
-    unlocked: false,
-    requirement: "აქტივობა ყველა საგანში",
-  },
-  {
-    id: "mock_exam",
-    icon: Lock,
-    color: "gray",
-    name: "საცდელი გამოცდა",
-    unlocked: false,
-    requirement: "გაიარე ერთი სიმულაცია",
-  },
-];
 
 export function getBadgeColor(color: Badge["color"]): string {
   switch (color) {

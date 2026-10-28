@@ -15,10 +15,7 @@ describe("buildProfileNav", () => {
 
   it("points them at the abiturient routes for an abiturient", () => {
     const groups = buildProfileNav("abiturient");
-    expect(groups[0].items.map((i) => i.href)).toEqual([
-      "/profile-abiturient",
-      "/profile-abiturient/stats",
-    ]);
+    expect(groups[0].items.map((i) => i.href)).toEqual(["/profile-abiturient", "/profile/stats"]);
   });
 
   it("never sends an unknown space to the abiturient profile", () => {
@@ -59,7 +56,7 @@ describe("the merged menu", () => {
   it("finds the entry a page belongs to", () => {
     const groups = buildProfileNav("abiturient");
     expect(activeProfileNavItem(groups, "/settings/security")?.label).toBe("უსაფრთხოება და სესიები");
-    expect(activeProfileNavItem(groups, "/profile-abiturient/stats")?.label).toBe("სტატისტიკა");
+    expect(activeProfileNavItem(groups, "/profile/stats/abiturient")?.label).toBe("სტატისტიკა");
     expect(activeProfileNavItem(groups, "/settings")).toBeNull();
   });
 });

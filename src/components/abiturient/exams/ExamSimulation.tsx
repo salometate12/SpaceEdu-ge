@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -337,6 +338,13 @@ export function ExamSimulation({
         }
       });
       recordQuizResult(correctCount, total || 1, subjectTitle);
+      logActivity({
+        type: "mock_exam_completed",
+        space: "abiturient",
+        subject: subjectTitle,
+        value: Math.round((correctCount / (total || 1)) * 100),
+        meta: { questions: total },
+      });
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
     }

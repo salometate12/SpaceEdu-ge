@@ -116,9 +116,13 @@ describe("middleware — normal abiturient", () => {
     expect(redirectPath(await middleware(request("/ai-teacher/abit")))).toBeNull();
   });
 
-  it("redirects them away from the student profile and stats", async () => {
+  it("redirects them away from the student profile", async () => {
     expect(redirectPath(await middleware(request("/profile", "student")))).toBe("/profile-abiturient");
-    expect(redirectPath(await middleware(request("/profile/stats")))).toBe("/profile-abiturient");
+  });
+
+  it("lets the shared stats routes through (the pages pick the space)", async () => {
+    expect(redirectPath(await middleware(request("/profile/stats")))).toBeNull();
+    expect(redirectPath(await middleware(request("/profile/stats/student")))).toBeNull();
   });
 
   it("remembers their own space from their dashboard", async () => {

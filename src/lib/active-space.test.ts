@@ -42,7 +42,9 @@ describe("activeSpaceToRemember", () => {
     expect(activeSpaceToRemember("/dashboard-student", null)).toBe("student");
     expect(activeSpaceToRemember("/dashboard-abit", "student")).toBe("abiturient");
     expect(activeSpaceToRemember("/profile", "abiturient")).toBe("student");
-    expect(activeSpaceToRemember("/profile-abiturient/stats", null)).toBe("abiturient");
+    expect(activeSpaceToRemember("/profile-abiturient", null)).toBe("abiturient");
+    // The stats pages never switch the working space.
+    expect(activeSpaceToRemember("/profile/stats/abiturient", "student")).toBeNull();
   });
 
   it("leaves the cookie alone when it already holds that space", () => {
@@ -79,6 +81,7 @@ describe("profile / stats hrefs with no space", () => {
   it("are unchanged for a known space", () => {
     expect(profileHrefForSpace("student")).toBe("/profile");
     expect(profileHrefForSpace("abiturient")).toBe("/profile-abiturient");
-    expect(statsHrefForSpace("school")).toBe("/profile-abiturient/stats");
+    expect(statsHrefForSpace("school")).toBe("/profile/stats");
+    expect(statsHrefForSpace("student")).toBe("/profile/stats");
   });
 });

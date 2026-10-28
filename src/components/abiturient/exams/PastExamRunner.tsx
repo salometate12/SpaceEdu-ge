@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -157,6 +158,13 @@ export function PastExamRunner({
     if (!revealed) return;
     if (isLast) {
       recordQuizResult(correctCount, total, subjectTitle);
+      logActivity({
+        type: "past_test_solved",
+        space: "abiturient",
+        subject: subjectTitle,
+        value: total ? Math.round((correctCount / total) * 100) : null,
+        meta: { tasks: total },
+      });
       recordQuestProgress("solve-test", 1);
       recordDailyActivity();
       setFinished(true);

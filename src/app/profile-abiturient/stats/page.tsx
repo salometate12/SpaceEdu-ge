@@ -1,7 +1,7 @@
-import { getProfileData } from "@/lib/profile";
-import { AbiturientStatsView } from "@/components/profile/AbiturientStatsView";
+import { redirect } from "next/navigation";
+import { statsPageForSpace } from "@/lib/access-control";
 
-export default async function AbiturientProfileStatsPage() {
-  const { user } = await getProfileData();
-  return <AbiturientStatsView user={user} />;
+// The stats pages moved under /profile/stats; old links land on the abiturient one.
+export default function AbiturientStatsRedirect() {
+  redirect(statsPageForSpace("abiturient"));
 }

@@ -1,4 +1,5 @@
 import { recordDailyActivity } from "./daily-streak";
+import { logActivity } from "./activity-log";
 import { STUDY_PLAN_CALENDAR_UPDATED_EVENT, STUDY_PLAN_KEYS } from "./user-data-keys";
 import { userStore } from "./user-data";
 import type { SyllabusMilestone } from "@/lib/syllabus-calendar";
@@ -70,6 +71,13 @@ export function toggleStudyPlanDayDone(space: StudyPlanSpace, date: string): voi
   notifyStudyPlanCalendarUpdated();
   if (!isDone) {
     recordDailyActivity();
+    logActivity({
+      type: "plan_day_done",
+      tool: "study_plan",
+      space,
+      subject: current.subject || null,
+      meta: { hours: current.days.find((day) => day.date === date)?.hours ?? 0 },
+    });
   }
 }
 

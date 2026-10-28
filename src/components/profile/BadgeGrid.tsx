@@ -1,8 +1,12 @@
+"use client";
+
 import { Lock } from "lucide-react";
 import type { Badge } from "@/lib/badges";
+import type { StatsSpace } from "@/lib/activity-log";
+import { useBadges } from "./useBadges";
 
 interface BadgeGridProps {
-  badges: Badge[];
+  space: StatsSpace;
 }
 
 /** Each earned badge's circle, in the site's light palette. */
@@ -15,18 +19,17 @@ const EARNED_TONE: Record<Badge["color"], string> = {
 };
 
 /** Eight badges in one row (4 × 2 on a phone): earned ones in colour, locked ones dashed with what they need. */
-export function BadgeGrid({ badges }: BadgeGridProps) {
+export function BadgeGrid({ space }: BadgeGridProps) {
+  const badges = useBadges(space) ?? [];
   const unlockedCount = badges.filter((badge) => badge.unlocked).length;
 
   return (
     <section aria-label="ბეჯები" className="ps-card p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-[17px] font-bold text-[var(--ps-title)]">ბეჯები</h2>
-        <span className="text-[13.5px] text-[var(--ps-muted)]">
-          {unlockedCount} / {badges.length}
-        </span>
+        <span className="text-[13.5px] text-[var(--ps-muted)]">{badges.length ? `${unlockedCount} / ${badges.length}` : ""}</span>
       </div>
-      <ul className="mt-5 grid grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8">
+      <ul className="mt-5 grid min-h-[96px] grid-cols-4 gap-x-2 gap-y-5 lg:grid-cols-8">
         {badges.map((badge) => (
           <li
             key={badge.id}

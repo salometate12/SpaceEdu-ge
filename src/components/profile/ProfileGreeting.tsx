@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { Award, Flame } from "lucide-react";
 import { useStreak } from "@/hooks/useStreak";
-import { DEFAULT_BADGES } from "@/lib/badges";
 import { DAILY_GOALS_UPDATED_EVENT, loadDailyGoals } from "@/lib/daily-goals";
 import { goalsForDay } from "@/lib/goals-card";
 import { localToday } from "@/lib/study-plan-board";
 import { SpaceAvatar } from "./SpaceAvatar";
+import { useBadges } from "./useBadges";
 
 interface ProfileGreetingProps {
   space: "student" | "abiturient";
@@ -46,7 +46,8 @@ export function ProfileGreeting({ space, name, initials }: ProfileGreetingProps)
   const streak = useStreak();
   const openGoals = useOpenGoalsToday();
   const firstName = name.split(" ")[0] || name;
-  const unlocked = DEFAULT_BADGES.filter((badge) => badge.unlocked).length;
+  const badges = useBadges(space);
+  const unlocked = badges?.filter((badge) => badge.unlocked).length ?? 0;
   const chip = SPACE_CHIP[space];
 
   return (
@@ -59,7 +60,7 @@ export function ProfileGreeting({ space, name, initials }: ProfileGreetingProps)
             {chip.label}
           </span>
           <h1 className="mt-2 text-[26px] font-bold leading-tight tracking-tight text-[var(--ps-title)] [overflow-wrap:anywhere]">
-            გამარჯობა, {firstName}!
+            {firstName ? `გამარჯობა, ${firstName}!` : "გამარჯობა!"}
           </h1>
           <p className="mt-1 min-h-[1.4em] text-[14.5px] text-[var(--ps-text)]">{greetingLine(openGoals)}</p>
         </div>
@@ -74,7 +75,7 @@ export function ProfileGreeting({ space, name, initials }: ProfileGreetingProps)
         <div className="rounded-[18px] bg-[var(--ps-green-bg)] p-4 text-[var(--ps-green)]">
           <Award className="h-5 w-5" strokeWidth={2} aria-hidden />
           <p className="mt-2 text-[20px] font-bold leading-none">
-            {unlocked} / {DEFAULT_BADGES.length}
+            {badges ? `${unlocked} / ${badges.length}` : "—"}
           </p>
           <p className="mt-1 text-[13px] font-medium">ბეჯი</p>
         </div>

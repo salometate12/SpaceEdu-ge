@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -157,7 +158,16 @@ export function StudyPlanPlanner() {
     const next = { ...saved, done: toggleDone(saved.done, date) };
     writeSavedPlan(next);
     setSaved(next);
-    if (!wasDone) recordDailyActivity();
+    if (!wasDone) {
+      recordDailyActivity();
+      logActivity({
+        type: "plan_day_done",
+        tool: "study_plan",
+        space: "student",
+        subject: saved.subject || null,
+        meta: { hours: saved.plan.find((day) => day.date === date)?.hours ?? saved.hoursPerDay },
+      });
+    }
   };
 
   const toCalendar = () => {

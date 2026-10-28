@@ -1,4 +1,3 @@
-import { getProfileData } from "@/lib/profile";
 import {
   getCurrentServerUserName,
   getServerAccountMeta,
@@ -18,14 +17,14 @@ export interface ProfileShellData {
  * back gracefully when there's no session (dev / signed-out preview).
  */
 export async function loadProfileShellData(): Promise<ProfileShellData> {
-  const { user } = await getProfileData();
   const [serverName, accountMeta] = await Promise.all([
     getCurrentServerUserName(),
     getServerAccountMeta(),
   ]);
 
-  let userName = user.name;
-  let initials = user.initials;
+  // No session (dev / signed-out preview): no name rather than a made-up one.
+  let userName = "";
+  let initials = "";
   if (serverName) {
     const fullName = [serverName.firstName, serverName.lastName].filter(Boolean).join(" ");
     if (fullName) userName = fullName;

@@ -1,5 +1,6 @@
 "use client";
 
+import { logActivity } from "@/lib/activity-log";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -137,6 +138,7 @@ export function JournalEditor({
         if (!awarded) {
           awarded = true;
           saveJournalProgress(awardJournalSave(loadJournalProgress()).progress);
+          logActivity({ type: "journal_entry", tool: "journal" });
         }
       },
       setStatus,
