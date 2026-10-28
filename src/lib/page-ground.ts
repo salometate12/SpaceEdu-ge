@@ -10,7 +10,8 @@ export type PageGround = "app" | "landing" | "paper";
 
 export function pageGround(pathname: string | null | undefined): PageGround {
   if (!pathname) return "app";
-  if (pathname === "/") return "landing";
+  // /pricing is the landing's prices on their own page: the same ground.
+  if (pathname === "/" || pathname === "/pricing") return "landing";
   if (
     pathname === "/about" ||
     pathname === "/contact" ||

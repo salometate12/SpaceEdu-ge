@@ -1208,6 +1208,14 @@ html.dark .paper-sticker:active {
   :root {
     --site-header-h: 5rem;
   }
+
+  /* The landing-style pill is taller (64px, not 56): 12 + 64 + 12. If the
+     variable stays shorter than the strip, the page under it starts lower
+     than the top and a band of <body> shows above the pill. */
+  html[data-ground="landing"],
+  html[data-landing-header] {
+    --site-header-h: 5.5rem;
+  }
 }
 
 /* The gap above the header pill on phones.
@@ -1227,9 +1235,10 @@ html.dark .paper-sticker:active {
     --site-header-gap: max(0.5rem, env(safe-area-inset-top, 0px));
   }
 
+  /* Phones: 10 + the 56px landing pill + 10, under the safe-area gap. */
   html[data-ground="landing"],
   html[data-landing-header] {
-    --site-header-h: calc(4.5rem + var(--site-header-gap));
+    --site-header-h: calc(4.75rem + var(--site-header-gap));
   }
 }
 
