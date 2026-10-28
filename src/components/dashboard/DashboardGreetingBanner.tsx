@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Flame, Hourglass } from "lucide-react";
 import { getCurrentStreak, STREAK_UPDATED_EVENT } from "@/lib/daily-streak";
-import { EXAM_COUNTDOWN_UPDATED_EVENT, getExamCountdownDays } from "@/lib/exam-countdown";
+import {
+  EXAM_DATE_HREF,
+  EXAM_DATE_PASSED,
+  EXAM_DATE_PROMPT,
+  EXAM_DATE_RENEW,
+  getExamCountdown,
+  type ExamCountdown,
+} from "@/lib/exam-countdown";
+import { CALENDAR_UPDATED_EVENT } from "@/lib/syllabus-calendar";
 import { STUDY_PLAN_CALENDAR_UPDATED_EVENT } from "@/lib/study-plan-calendar";
 import { readTodayPlan, studyPlanHref, type TodayPlan } from "@/lib/today-plan";
 import type { DashboardWorkspace } from "./DashboardBannerStats";
@@ -29,6 +37,9 @@ const COUNTDOWN_LABEL: Record<DashboardWorkspace, string> = {
  * The dashboard's greeting: the space, „გამარჯობა, …!“, today's plan with
  * a button to start it, and the streak and countdown tiles.
  *
+ * The countdown counts to a real date (see exam-countdown.ts); with none,
+ * its tile asks for one.
+ *
  * The plan, the streak and the countdown come from this device's storage
  * and today's date, so they're read after mounting — the server render
  * has none of them.
@@ -37,16 +48,16 @@ export function DashboardGreetingBanner({ workspace, title }: DashboardGreetingB
   // undefined: not read yet; null: nothing planned today.
   const [plan, setPlan] = useState<TodayPlan | null | undefined>(undefined);
   const [streak, setStreak] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<ExamCountdown | null>(null);
 
   useEffect(() => {
     const sync = () => {
       setPlan(readTodayPlan(workspace));
       setStreak(getCurrentStreak());
-      setCountdown(getExamCountdownDays());
+      setCountdown(getExamCountdown(workspace));
     };
     sync();
-    const events = [STREAK_UPDATED_EVENT, EXAM_COUNTDOWN_UPDATED_EVENT, STUDY_PLAN_CALENDAR_UPDATED_EVENT, "storage"];
+    const events = [STREAK_UPDATED_EVENT, STUDY_PLAN_CALENDAR_UPDATED_EVENT, CALENDAR_UPDATED_EVENT, "storage"];
     for (const name of events) window.addEventListener(name, sync);
     return () => {
       for (const name of events) window.removeEventListener(name, sync);
@@ -96,7 +107,16 @@ export function DashboardGreetingBanner({ workspace, title }: DashboardGreetingB
 
       <div className="flex gap-2.5 max-[639px]:w-full">
         <GreetingTile tone="yellow" icon={<Flame className="h-5 w-5" strokeWidth={1.9} />} value={streak} label="სტრიქი" />
-        <GreetingTile tone="blue" icon={<Hourglass className="h-5 w-5" strokeWidth={1.9} />} value={countdown} label={COUNTDOWN_LABEL[workspace]} />
+        {countdown === null || countdown.kind === "days" ? (
+          <GreetingTile
+            tone="blue"
+            icon={<Hourglass className="h-5 w-5" strokeWidth={1.9} />}
+            value={countdown?.days ?? null}
+            label={COUNTDOWN_LABEL[workspace]}
+          />
+        ) : (
+          <ExamDatePromptTile workspace={workspace} passed={countdown.kind === "passed"} />
+        )}
       </div>
     </section>
   );
@@ -128,5 +148,49 @@ function GreetingTile({
       </p>
       <p className="text-[12.5px] text-[var(--dt-text)]">{label}</p>
     </div>
+  );
+}
+
+/** The countdown tile when there's no date to count to, or it has passed. */
+function ExamDatePromptTile({ workspace, passed }: { workspace: DashboardWorkspace; passed: boolean }) {
+  return (
+    <Link
+      href={EXAM_DATE_HREF[workspace]}
+      className="dt-focus group flex w-[168px] flex-col gap-1.5 rounded-[18px] bg-[var(--dt-blue-bg)] p-4 transition-colors max-[639px]:w-auto max-[639px]:flex-1"
+    >
+      <span aria-hidden className="text-[var(--dt-blue)]">
+        <Hourglass className="h-5 w-5" strokeWidth={1.9} />
+      </span>
+      {passed ? (
+        <>
+          <p className="text-[14px] font-semibold leading-snug text-[var(--dt-title)]">{EXAM_DATE_PASSED}</p>
+          <p className="text-[12.5px] font-semibold leading-snug text-[var(--dt-blue)]">
+            <TextWithArrow text={EXAM_DATE_RENEW} />
+          </p>
+        </>
+      ) : (
+        <p className="text-[13px] font-semibold leading-snug text-[var(--dt-title)]">
+          <TextWithArrow text={EXAM_DATE_PROMPT[workspace]} />
+        </p>
+      )}
+    </Link>
+  );
+}
+
+/** The text, with an arrow that wraps together with its last word. */
+function TextWithArrow({ text }: { text: string }) {
+  const cut = text.lastIndexOf(" ");
+  return (
+    <>
+      {text.slice(0, cut + 1)}
+      <span className="whitespace-nowrap">
+        {text.slice(cut + 1)}
+        <ArrowRight
+          className="ml-1 inline h-3.5 w-3.5 align-[-2px] text-[var(--dt-blue)] transition-transform group-hover:translate-x-0.5"
+          strokeWidth={2.2}
+          aria-hidden
+        />
+      </span>
+    </>
   );
 }
