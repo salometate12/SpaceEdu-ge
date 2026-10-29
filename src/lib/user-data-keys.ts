@@ -63,6 +63,9 @@ export const ACTIVITY_LOG_KEY = "spaceedu-activity-log";
 export const ACTIVITY_LOG_UPDATED_EVENT = "spaceedu-activity-log-updated";
 /** How many events the log keeps (newest first), well under the 1 MB row limit. */
 export const ACTIVITY_LOG_LIMIT = 2500;
+/** Where the student is in each flashcard deck (lib/flashcard-session). */
+export const FLASHCARD_SESSIONS_KEY = "spaceedu-flashcard-sessions";
+export const FLASHCARD_SESSIONS_LIMIT = 40;
 export const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
 export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
 /** Read as is by the first-paint script in layout.tsx: "light" | "dark" | "system". */
@@ -268,6 +271,7 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: CV_UPDATED_KEY, merge: later, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: TOOL_USAGE_KEY, merge: mergeToolUsage, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: ACTIVITY_LOG_KEY, merge: mergeNewestById("createdAt", ACTIVITY_LOG_LIMIT), event: ACTIVITY_LOG_UPDATED_EVENT },
+  { key: FLASHCARD_SESSIONS_KEY, merge: mergeNewestById("updatedAt", FLASHCARD_SESSIONS_LIMIT) },
   { key: ACTIVE_SUBJECT_KEY, event: SEMESTER_SUBJECTS_UPDATED_EVENT },
   // The dashboard's journal widget shows the XP and re-reads on this event.
   { key: JOURNAL_PROGRESS_KEY, merge: mergeJournalProgress, event: LECTURE_NOTES_UPDATED_EVENT },

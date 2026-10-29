@@ -238,6 +238,7 @@ export function ActivityMap({ heatmap, best, busiest }: { heatmap: HeatCell[][];
 export const TOOL_LABEL: Record<ToolKey, string> = {
   ai_teacher: "AI მასწავლებელი",
   quiz: "ქვიზი",
+  flashcards: "ფლეშბარათები",
   study_plan: "სასწავლო გეგმა",
   presentation: "პრეზენტაცია",
   material_analysis: "მასალის ანალიზი",
@@ -255,6 +256,7 @@ export const TOOL_LABEL: Record<ToolKey, string> = {
 /** The logo's three books: planning pink, explaining yellow, practising green. */
 export function toolFill(tool: ToolKey): string {
   if (tool === "ai_teacher" || tool === "eli5" || tool === "material_analysis" || tool === "conspectus") return "#eab308";
+  if (tool === "flashcards") return "#f59e0b";
   if (tool === "quiz" || tool === "presentation" || tool === "cv" || tool === "practice" || tool === "open_grader") return "#22c55e";
   return "#ec4899";
 }

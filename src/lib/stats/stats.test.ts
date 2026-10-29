@@ -153,6 +153,7 @@ describe("activity log helpers", () => {
     expect(toolKey("ai-teacher")).toBe("ai_teacher");
     expect(toolKey("abit-history-open")).toBe("open_grader");
     expect(toolKey("study-plan")).toBe("study_plan");
+    expect(toolKey("flashcards")).toBe("flashcards");
   });
   it("imports the old tool opens and quiz runs into the given space", () => {
     const events = legacyEvents(
