@@ -1,7 +1,9 @@
 import mammoth from "mammoth";
 import type { UserModelMessage } from "ai";
+import { extractPptxText } from "@/lib/pptx/extractText";
+import { DIFFICULTY_HINT, GenerationInputError, type Difficulty } from "@/lib/generation-options";
 
-export type InputType = "file" | "audio" | "video" | "youtube" | "text";
+export type InputType = "file" | "audio" | "video" | "youtube" | "text" | "presentation";
 export type GenerationMode = "flashcards" | "summary";
 
 const TEXT_MIME = ["text/plain"];
@@ -10,8 +12,11 @@ const PDF_MIME = ["application/pdf"];
 const DOCX_MIME = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
-const AUDIO_MIME = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-m4a", "audio/mp4"];
+const AUDIO_MIME = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/x-m4a", "audio/mp4"];
 const VIDEO_MIME = ["video/mp4", "video/webm"];
+const PPTX_MIME = ["application/vnd.openxmlformats-officedocument.presentationml.presentation"];
+
+export const PPTX_NO_TEXT_ERROR = "ამ პრეზენტაციაში ტექსტი ვერ ვიპოვე. სცადე PDF ან ჩასვი ტექსტი.";
 
 export async function buildUserMessage(
   inputType: InputType,
@@ -21,10 +26,13 @@ export async function buildUserMessage(
     youtubeTranscript?: string;
     topic?: string;
     cardCount?: number;
+    difficulty?: Difficulty | null;
+    /** A later part of a big deck: questions the first part already asked. */
+    avoidQuestions?: string[];
     mode?: GenerationMode;
   },
 ): Promise<UserModelMessage> {
-  const { file, text, youtubeTranscript, topic, cardCount, mode = "flashcards" } =
+  const { file, text, youtubeTranscript, topic, cardCount, difficulty, avoidQuestions = [], mode = "flashcards" } =
     options;
 
   const topicHint = topic?.trim()
@@ -42,8 +50,12 @@ export async function buildUserMessage(
       : [
           "გააანალიზე შემდეგი სასწავლო მასალა და შექმენი ფლეშბარათები.",
           cardCount
-            ? `შექმენი დაახლოებით ${cardCount} ფლეშბარათი.`
+            ? `შექმენი ზუსტად ${cardCount} ფლეშბარათი, არც მეტი და არც ნაკლები.`
             : "შექმენი 10-15 ფლეშბარათი.",
+          difficulty ? DIFFICULTY_HINT[difficulty] : "",
+          avoidQuestions.length
+            ? `ეს კითხვები უკვე შექმნილია, არ გაიმეორო და სხვა დეტალებზე ჰკითხე:\n${avoidQuestions.map((q) => `- ${q}`).join("\n")}`
+            : "",
           topicHint,
         ]
           .filter(Boolean)
@@ -53,6 +65,15 @@ export async function buildUserMessage(
     return {
       role: "user",
       content: `${preamble}\n\n--- მასალა ---\n${text}`,
+    };
+  }
+
+  if (inputType === "presentation") {
+    const slides = file ? await extractPptxText(Buffer.from(await file.arrayBuffer())) : (text ?? "");
+    if (!slides.trim()) throw new GenerationInputError(PPTX_NO_TEXT_ERROR);
+    return {
+      role: "user",
+      content: `${preamble}\nმასალა პრეზენტაციაა: გამოიყენე სლაიდების ტექსტიც და შენიშვნებიც.\n\n--- პრეზენტაცია ---\n${slides}`,
     };
   }
 
@@ -69,6 +90,12 @@ export async function buildUserMessage(
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const mimeType = file.type || "application/octet-stream";
+
+  if (PPTX_MIME.includes(mimeType) || file.name.toLowerCase().endsWith(".pptx")) {
+    const slides = await extractPptxText(buffer);
+    if (!slides.trim()) throw new GenerationInputError(PPTX_NO_TEXT_ERROR);
+    return { role: "user", content: `${preamble}\n\n--- პრეზენტაცია ---\n${slides}` };
+  }
 
   if (TEXT_MIME.includes(mimeType) || file.name.endsWith(".txt")) {
     const fileText = buffer.toString("utf-8");

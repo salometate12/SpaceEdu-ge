@@ -12,6 +12,7 @@ import {
   ChevronRight,
   FileSearch,
   GraduationCap,
+  Layers,
   LayoutDashboard,
   LogOut,
   MessageSquareText,
@@ -46,6 +47,7 @@ export const GENERAL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "dashboard", label: "დეშბორდი", href: "/dashboard-student", icon: LayoutDashboard },
   { id: "study-plan", label: "სასწავლო გეგმა", href: "/study-plan", icon: CalendarClock },
   { id: "quiz", label: "ვიქტორინა", href: "/quiz", icon: Brain },
+  { id: "flashcards", label: "AI ფლეშბარათები", href: "/generate", icon: Layers },
   { id: "profile", label: "პროფილი", href: "/profile", icon: User },
 ];
 

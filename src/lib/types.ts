@@ -2,6 +2,8 @@ export interface Flashcard {
   id: string;
   question: string;
   answer: string;
+  /** A short nudge that doesn't give the answer away (generated decks). */
+  hint?: string;
 }
 
 export type DeckCategory =
@@ -21,6 +23,8 @@ export interface Deck {
   description: string;
   category: Exclude<DeckCategory, "all">;
   cards: Flashcard[];
+  /** Where a generated deck came from, e.g. „პრეზენტაცია: უჯრედი“. */
+  source?: string;
 }
 
 export interface DeckProgress {

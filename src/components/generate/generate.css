@@ -1,0 +1,211 @@
+/*
+ * The AI generator (/generate) and the flashcards, in the light style in
+ * both themes: a plain page, white cards with a thin border and no shadow,
+ * one pink primary. `.gen` is the root; every piece reads its tokens.
+ */
+.gen {
+  --gen-bg: #fafaf9;
+  --gen-card: #ffffff;
+  --gen-border: #ece9e4;
+  --gen-field: #ffffff;
+  --gen-field-border: #e7e5e4;
+  --gen-title: #1c1a17;
+  --gen-text: #57534e;
+  --gen-muted: #6f6a64;
+  --gen-faint: #78716c;
+  --gen-soft: #f5f4f0;
+  --gen-hover: #f5f4f0;
+  --gen-strong: #1c1a17;
+  --gen-on-strong: #ffffff;
+  --gen-mark: #fbcfe8;
+  --gen-chip-bg: #fdf2f8;
+  --gen-chip: #9d174d;
+
+  background: var(--gen-bg);
+  color: var(--gen-text);
+}
+
+html.dark .gen {
+  --gen-bg: #0c0c10;
+  --gen-card: #15151b;
+  --gen-border: #26262e;
+  --gen-field: #0f0f14;
+  --gen-field-border: #2e2e38;
+  --gen-title: #fafaf9;
+  --gen-text: #d4d4d8;
+  --gen-muted: #a1a1aa;
+  --gen-faint: #a1a1aa;
+  --gen-soft: #1b1b22;
+  --gen-hover: #1f1f27;
+  --gen-strong: #fafaf9;
+  --gen-on-strong: #15151b;
+  --gen-mark: rgba(236, 72, 153, 0.35);
+  --gen-chip-bg: rgba(236, 72, 153, 0.14);
+  --gen-chip: #f9a8d4;
+}
+
+.gen .gen-card {
+  background: var(--gen-card);
+  border: 1px solid var(--gen-border);
+  border-radius: 24px;
+}
+
+.gen .gen-mark {
+  background: linear-gradient(transparent 60%, var(--gen-mark) 60%);
+  padding: 0 0.08em;
+}
+
+.gen .gen-field {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid var(--gen-field-border);
+  background: var(--gen-field);
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--gen-title);
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.gen textarea.gen-field {
+  height: auto;
+  padding: 14px 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.gen .gen-field::placeholder {
+  color: var(--gen-faint);
+}
+.gen .gen-field:focus {
+  border-color: #e11d74;
+  box-shadow: 0 0 0 3px rgba(225, 29, 116, 0.15);
+}
+
+.gen .gen-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--gen-title);
+}
+
+/* An option that's picked: a strong 2px ring instead of the thin border. */
+.gen .gen-option {
+  border: 1px solid var(--gen-border);
+  background: var(--gen-card);
+  transition: border-color 120ms ease;
+}
+.gen .gen-option:hover {
+  border-color: var(--gen-field-border);
+}
+.gen .gen-option[aria-checked="true"],
+.gen .gen-option[aria-pressed="true"] {
+  border: 2px solid var(--gen-strong);
+}
+
+/* Small rounded choices: picked is solid dark. */
+.gen .gen-chip {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--gen-soft);
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gen-title);
+  transition: background-color 120ms ease;
+}
+.gen .gen-chip[aria-checked="true"],
+.gen .gen-chip[aria-pressed="true"] {
+  background: var(--gen-strong);
+  color: var(--gen-on-strong);
+}
+
+.gen .gen-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  background: #e11d74;
+  color: #ffffff;
+  font-weight: 700;
+  transition: background-color 120ms ease;
+}
+.gen .gen-primary:hover:not(:disabled) {
+  background: #cf1769;
+}
+.gen .gen-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.gen .gen-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--gen-field-border);
+  background: var(--gen-card);
+  color: var(--gen-title);
+  font-weight: 600;
+}
+.gen .gen-secondary:hover {
+  background: var(--gen-hover);
+}
+
+.gen .gen-focus:focus-visible,
+.gen .gen-primary:focus-visible,
+.gen .gen-secondary:focus-visible,
+.gen .gen-chip:focus-visible,
+.gen .gen-option:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* The source tiles' colour pairs. */
+.gen .tile-file { --tile-bg: #fdf2f8; --tile: #db2777; }
+.gen .tile-audio { --tile-bg: #f0fdf4; --tile: #15803d; }
+.gen .tile-video { --tile-bg: #eff6ff; --tile: #1d4ed8; }
+.gen .tile-youtube { --tile-bg: #fff1f2; --tile: #e11d48; }
+.gen .tile-presentation { --tile-bg: #fff7ed; --tile: #c2410c; }
+.gen .tile-text { --tile-bg: #f5f4f0; --tile: #57534e; }
+html.dark .gen .tile-file { --tile-bg: rgba(236, 72, 153, 0.14); --tile: #f472b6; }
+html.dark .gen .tile-audio { --tile-bg: rgba(74, 222, 128, 0.12); --tile: #86efac; }
+html.dark .gen .tile-video { --tile-bg: rgba(59, 130, 246, 0.14); --tile: #93c5fd; }
+html.dark .gen .tile-youtube { --tile-bg: rgba(244, 63, 94, 0.14); --tile: #fda4af; }
+html.dark .gen .tile-presentation { --tile-bg: rgba(249, 115, 22, 0.14); --tile: #fdba74; }
+html.dark .gen .tile-text { --tile-bg: #1b1b22; --tile: #d4d4d8; }
+
+/* Phones: the source pills, picked one solid dark. */
+@media (max-width: 640px) {
+  .gen .gen-source[aria-checked="true"] {
+    background: var(--gen-strong);
+    color: var(--gen-on-strong);
+    border-color: var(--gen-strong);
+  }
+  .gen .gen-source[aria-checked="true"] .gen-source-icon {
+    background: transparent;
+    color: var(--gen-on-strong);
+  }
+}
+
+/* The recorder's live wave. */
+.gen .gen-wave span {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 9999px;
+  background: #15803d;
+  transition: height 80ms linear;
+}
+html.dark .gen .gen-wave span {
+  background: #86efac;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gen .gen-wave span {
+    transition: none;
+  }
+}

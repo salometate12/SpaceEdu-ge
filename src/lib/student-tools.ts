@@ -3,6 +3,7 @@ import {
   Brain,
   CalendarClock,
   FileSearch,
+  Layers,
   ListChecks,
   MessageSquareText,
   Sparkles,
@@ -40,6 +41,16 @@ export const STUDENT_TOOLS: StudentTool[] = [
     icon: Brain,
     accent: STUDENT_TOOL_ACCENTS.quiz,
     tile: { bg: "#f0fdfa", fg: "#0f766e", darkBg: "rgba(45,212,191,.12)", darkFg: "#5eead4" },
+  },
+  {
+    // Beside the quiz: both are for going over material.
+    id: "flashcards",
+    title: "AI ფლეშბარათები",
+    description: "ატვირთე ლექცია, ვიდეო ან პრეზენტაცია და მიიღე ბარათები გასამეორებლად",
+    href: "/generate",
+    icon: Layers,
+    accent: STUDENT_TOOL_ACCENTS.flashcards,
+    tile: { bg: "#fffbeb", fg: "#b45309", darkBg: "rgba(245,158,11,.12)", darkFg: "#fcd34d" },
   },
   {
     id: "ai-teacher",
