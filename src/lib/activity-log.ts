@@ -30,12 +30,14 @@ export type ActivityType =
   | "essay_graded"
   | "presentation_created"
   | "material_analyzed"
-  | "journal_entry";
+  | "journal_entry"
+  | "flashcards_completed";
 
 /** The tools the stats pages count, by one name each. */
 export type ToolKey =
   | "ai_teacher"
   | "quiz"
+  | "flashcards"
   | "study_plan"
   | "presentation"
   | "material_analysis"
@@ -97,7 +99,8 @@ export function currentStatsSpace(): StatsSpace {
 export function toolKey(toolId: string): ToolKey {
   const id = toolId.toLowerCase();
   if (id.includes("ai-teacher") || id === "ai") return "ai_teacher";
-  if (id.includes("quiz") || id.includes("flashcard")) return "quiz";
+  if (id.includes("flashcard") || id === "generate") return "flashcards";
+  if (id.includes("quiz")) return "quiz";
   if (id.includes("study-plan") || id.includes("plan")) return "study_plan";
   if (id.includes("presentation") || id.includes("deck")) return "presentation";
   if (id.includes("research") || id.includes("material") || id.includes("analy")) return "material_analysis";

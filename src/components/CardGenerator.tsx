@@ -142,6 +142,7 @@ export function CardGenerator() {
 
   const [running, setRunning] = useState<UploadedData | null>(null);
   const [readyCards, setReadyCards] = useState(0);
+  const [latestQuestion, setLatestQuestion] = useState<string | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
 
   const ytPreview = useYouTubePreview(youtubeUrl);
@@ -271,9 +272,13 @@ export function CardGenerator() {
   const runFlashcards = async (data: UploadedData) => {
     setRunning(data);
     setReadyCards(0);
+    setLatestQuestion(null);
     setRunError(null);
     try {
-      const parsed = await generateFlashcards(data, (ready) => setReadyCards(ready));
+      const parsed = await generateFlashcards(data, (ready, latest) => {
+        setReadyCards(ready);
+        if (latest?.question) setLatestQuestion(latest.question);
+      });
       const deck = createDeckFromGenerated(parsed, "georgian", data.sourceLabel);
       saveCustomDeck(deck);
       router.push(`/deck/${deck.id}`);
@@ -298,6 +303,7 @@ export function CardGenerator() {
       <GenerationProgress
         total={running.cardCount}
         ready={readyCards}
+        latestQuestion={latestQuestion}
         sourceLabel={running.sourceLabel}
         error={runError}
         onRetry={() => void runFlashcards(running)}

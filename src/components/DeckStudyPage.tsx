@@ -6,7 +6,7 @@ import { CUSTOM_DECKS_UPDATED_EVENT, getCustomDeckById } from "@/lib/custom-deck
 import { ka } from "@/lib/i18n";
 import { getDeckById } from "@/lib/mockData";
 import type { Deck } from "@/lib/types";
-import { StudySession } from "./StudySession";
+import { FlashcardStudy } from "./flashcards/FlashcardStudy";
 
 interface DeckStudyPageProps {
   deckId: string;
@@ -56,5 +56,5 @@ export function DeckStudyPage({ deckId }: DeckStudyPageProps) {
     );
   }
 
-  return <StudySession deck={deck} />;
+  return <FlashcardStudy deck={deck} />;
 }

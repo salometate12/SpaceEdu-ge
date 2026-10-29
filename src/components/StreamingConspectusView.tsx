@@ -1,5 +1,7 @@
 "use client";
 
+import { GenerationProgress } from "@/components/generate/GenerationProgress";
+import "@/components/generate/generate.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -236,6 +238,20 @@ export function StreamingConspectusView({
 
   const isSearchingPhase = isLoading && content.length === 0;
   const isWritingPhase = isLoading && content.length > 0;
+
+  // Before the first words arrive: the generator's loader, with sheets.
+  if (isSearchingPhase || (error && content.length === 0)) {
+    return (
+      <GenerationProgress
+        kind="summary"
+        total={0}
+        ready={0}
+        error={error}
+        onRetry={retryStream}
+        onBack={() => router.push("/generate")}
+      />
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
