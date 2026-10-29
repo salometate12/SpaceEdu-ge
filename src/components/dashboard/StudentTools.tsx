@@ -74,6 +74,8 @@ export function StudentTools() {
           const lead = index === 0;
           // Seven cards in three columns: the first and the last span two, so no row has a gap.
           const wideLast = index === TOOLS.length - 1 && TOOLS.length % 3 === 1;
+          // Phones (two columns under the wide plan): an odd count leaves the last one alone, so it spans the row.
+          const wideLastPhone = index === TOOLS.length - 1 && (TOOLS.length - 1) % 2 === 1;
 
           if (isLive) {
             return (
@@ -104,7 +106,7 @@ export function StudentTools() {
               className={`student-tool-card min-w-0 ${
                 lead
                   ? "col-span-2 flex-row items-center gap-3 p-4 sm:min-h-[168px] sm:flex-col sm:items-start sm:justify-start sm:gap-0 sm:p-6"
-                  : `flex-col gap-3 p-3.5 sm:min-h-[168px] sm:gap-0 sm:p-6 ${wideLast ? "md:col-span-2" : ""}`
+                  : `flex-col gap-3 p-3.5 sm:min-h-[168px] sm:gap-0 sm:p-6 ${wideLast ? "md:col-span-2" : ""} ${wideLastPhone ? "max-md:col-span-2" : ""}`
               }`}
             >
               {lead ? (

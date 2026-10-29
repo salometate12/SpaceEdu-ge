@@ -5,6 +5,7 @@ import {
   requireApiKey,
 } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
+import { GenerationInputError } from "@/lib/generation-options";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
       temperature: 0.25,
     });
   } catch (error) {
+    if (error instanceof GenerationInputError) {
+      return Response.json({ error: error.message, message: error.message }, { status: 400 });
+    }
     return errorJsonResponse(error, "generate-summary");
   }
 }

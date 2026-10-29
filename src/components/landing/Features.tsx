@@ -36,7 +36,7 @@ const TOOLS: { id: string; title: string; body: string; icon: LucideIcon; color:
   },
   {
     id: "flashcards",
-    title: "ფლეშქარდები",
+    title: "ფლეშბარათები",
     body: "დაიმახსოვრე მთავარი ცნებები ბარათებით, რომლებსაც AI PDF ფაილიდან, ტექსტიდან ან YouTube ვიდეოდან შექმნის.",
     icon: Copy,
     color: "orange",

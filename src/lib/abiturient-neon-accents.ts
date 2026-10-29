@@ -78,6 +78,7 @@ export const DASHBOARD_TOOL_ACCENTS = {
 export const STUDENT_TOOL_ACCENTS = {
   studyPlan: NEON_SUBJECT_ACCENTS.history,
   quiz: NEON_SUBJECT_ACCENTS.math,
+  flashcards: NEON_SUBJECT_ACCENTS.math,
   aiTeacher: NEON_SUBJECT_ACCENTS.geography,
   presentation: NEON_SUBJECT_ACCENTS.english,
   research: NEON_SUBJECT_ACCENTS.georgian,

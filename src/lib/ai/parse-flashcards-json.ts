@@ -2,11 +2,13 @@ import { generatedFlashcardsSchema, type GeneratedFlashcards } from "./schemas";
 
 export const FLASHCARD_JSON_OUTPUT_RULE = `
 8. დააბრუნე მხოლოდ სწორი JSON ობიექტი, markdown-ის გარეშე, ამ სტრუქტურით:
-{"deckTitle":"...","deckDescription":"...","cards":[{"question":"...","answer":"..."}]}`;
+{"deckTitle":"...","deckDescription":"...","cards":[{"question":"...","answer":"...","hint":"..."}]}
+"hint" არასავალდებულოა: მოკლე მინიშნება, რომელიც პასუხს პირდაპირ არ ამბობს.`;
 
 export interface FlashcardDraft {
   question: string;
   answer: string;
+  hint?: string;
 }
 
 export interface IncrementalFlashcardsParse {
@@ -162,7 +164,9 @@ export function parseGeneratedFlashcardsJson(text: string): GeneratedFlashcards 
     if (start === -1 || end <= start) continue;
 
     try {
-      const parsed = JSON.parse(candidate.slice(start, end + 1)) as unknown;
+      const parsed = JSON.parse(candidate.slice(start, end + 1)) as { cards?: unknown };
+      // A model that overshoots the 50-card cap still gives a usable deck.
+      if (Array.isArray(parsed?.cards)) parsed.cards = parsed.cards.slice(0, 50);
       return generatedFlashcardsSchema.parse(parsed);
     } catch (error) {
       lastError = error;
@@ -174,7 +178,7 @@ export function parseGeneratedFlashcardsJson(text: string): GeneratedFlashcards 
     return generatedFlashcardsSchema.parse({
       deckTitle: incremental.deckTitle || "AI ფლეშბარათები",
       deckDescription: incremental.deckDescription || "",
-      cards: incremental.cards,
+      cards: incremental.cards.slice(0, 50),
     });
   }
 

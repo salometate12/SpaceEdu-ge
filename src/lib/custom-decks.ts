@@ -29,9 +29,10 @@ export function createDeckFromGenerated(
   data: {
     deckTitle: string;
     deckDescription: string;
-    cards: { question: string; answer: string }[];
+    cards: { question: string; answer: string; hint?: string }[];
   },
   category: Deck["category"] = "georgian",
+  source?: string,
 ): Deck {
   const id = `custom-${Date.now()}`;
   return {
@@ -43,6 +44,8 @@ export function createDeckFromGenerated(
       id: `${id}-${index}`,
       question: card.question,
       answer: card.answer,
+      ...(card.hint?.trim() ? { hint: card.hint.trim() } : {}),
     })),
+    ...(source ? { source } : {}),
   };
 }

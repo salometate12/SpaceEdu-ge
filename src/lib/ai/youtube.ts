@@ -1,35 +1,35 @@
-import { YoutubeTranscript } from "youtube-transcript";
+import { YoutubeTranscript, type TranscriptResponse } from "youtube-transcript";
+import { sliceTranscript } from "@/lib/generation-options";
+import { extractYouTubeVideoId } from "./youtube-id";
 
-export function extractYouTubeVideoId(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu.be")) {
-      return parsed.pathname.slice(1).split("/")[0] || null;
-    }
-    if (parsed.hostname.includes("youtube.com")) {
-      return parsed.searchParams.get("v");
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
+export { extractYouTubeVideoId };
 
-export async function fetchYouTubeTranscript(url: string): Promise<string> {
+/** The video's timed captions: Georgian first, then English. */
+export async function fetchYouTubeSegments(url: string): Promise<TranscriptResponse[]> {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) {
     throw new Error("არასწორი YouTube ბმული");
   }
-
-  const segments = await YoutubeTranscript.fetchTranscript(videoId, {
+  return YoutubeTranscript.fetchTranscript(videoId, {
     lang: "ka",
   }).catch(async () => {
     return YoutubeTranscript.fetchTranscript(videoId, { lang: "en" });
   });
+}
 
-  const text = segments.map((s) => s.text).join(" ").trim();
+/** The transcript as text; with `range` (seconds), only that part of the video. */
+export async function fetchYouTubeTranscript(
+  url: string,
+  range?: { start: number; end: number } | null,
+): Promise<string> {
+  const segments = await fetchYouTubeSegments(url);
+  const text = range
+    ? sliceTranscript(segments, range.start, range.end)
+    : segments.map((s) => s.text).join(" ").trim();
   if (!text) {
-    throw new Error("ტრანსკრიპტი ვერ მოიძებნა ამ ვიდეოსთვის");
+    throw new Error(
+      range ? "ამ მონაკვეთში სუბტიტრები ვერ ვიპოვე. აირჩიე სხვა დრო." : "ტრანსკრიპტი ვერ მოიძებნა ამ ვიდეოსთვის",
+    );
   }
   return text;
 }

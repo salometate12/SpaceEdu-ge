@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Copy,
   Download,
   ExternalLink,
   FileText,
+  Layers,
   Loader2,
   MoreHorizontal,
   Pencil,
@@ -60,6 +62,7 @@ const nextPaint = () =>
   new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
 export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyPresentationsProps) {
+  const router = useRouter();
   // Signed in: kept on the account; otherwise only on this device.
   const onAccount = useUserDataStatus() !== "local";
   const [query, setQuery] = useState("");
@@ -346,6 +349,16 @@ export function MyPresentations({ presentations, onOpen, onNew, onChanged }: MyP
                                 }}
                               >
                                 დუბლირება
+                              </MenuItem>
+                              <MenuItem
+                                icon={<Layers className="h-4 w-4" />}
+                                disabled={!ready}
+                                onClick={() => {
+                                  close();
+                                  router.push(`/generate?source=presentation&id=${encodeURIComponent(presentation.id)}`);
+                                }}
+                              >
+                                ფლეშბარათების შექმნა
                               </MenuItem>
                               <MenuItem
                                 icon={<Download className="h-4 w-4" />}

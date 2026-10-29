@@ -8,10 +8,11 @@ export const generatedFlashcardsSchema = z.object({
       z.object({
         question: z.string().describe("კითხვა ქართულად"),
         answer: z.string().describe("პასუხი ქართულად"),
+        hint: z.string().optional().describe("მოკლე მინიშნება, არასავალდებულო"),
       }),
     )
     .min(5)
-    .max(25),
+    .max(50),
 });
 
 export type GeneratedFlashcards = z.infer<typeof generatedFlashcardsSchema>;
