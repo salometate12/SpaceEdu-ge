@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ka } from "@/lib/i18n";
-import { CONSPECTUS_UPDATED_EVENT, getConspectusById, type Conspectus } from "@/lib/conspectus-storage";
+import { CONSPECTUS_UPDATED_EVENT, getConspectusById, markConspectusOpened, type Conspectus } from "@/lib/conspectus-storage";
 import { ConspectusReader } from "./ConspectusReader";
 
 export function ConspectusPageClient() {
@@ -18,8 +18,10 @@ export function ConspectusPageClient() {
       setReady(true);
       return;
     }
-    setConspectus(getConspectusById(id) ?? null);
+    const found = getConspectusById(id) ?? null;
+    setConspectus(found);
     setReady(true);
+    if (found) markConspectusOpened(id);
     // Opened on a new device before the account's copy arrived.
     const sync = () => setConspectus(getConspectusById(id) ?? null);
     window.addEventListener(CONSPECTUS_UPDATED_EVENT, sync);

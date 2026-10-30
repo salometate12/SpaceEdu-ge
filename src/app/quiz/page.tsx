@@ -35,19 +35,24 @@ import {
   quizTotals,
   type QuizRunState,
 } from "@/lib/quiz-run";
+import {
+  attemptFromRun,
+  getQuiz,
+  latestAttempt,
+  markQuizOpened,
+  saveAttempt,
+  startAttempt,
+  unfinishedAttempt,
+  type QuizAttempt,
+  type QuizQuestion,
+} from "@/lib/quiz-library";
+import { startQuizGeneration, watchGeneration } from "@/lib/library/generation";
 import "./quiz-theme.css";
 
-export interface QuizQuestion {
-  id: number;
-  questionText: string;
-  options: [string, string, string, string];
-  correctAnswerIndex: number;
-  explanation: string;
-}
+export type { QuizQuestion };
 
-interface QuizApiResponse {
-  questions: QuizQuestion[];
-}
+/** How long after an answer the attempt is written (and at once when the page hides). */
+const SAVE_DELAY_MS = 500;
 
 type Phase = "input" | "loading" | "failed" | "active" | "results";
 
@@ -61,7 +66,6 @@ const QUESTION_COUNT_OPTIONS = [5, 10, 15, 20];
 // What /api/quiz accepts.
 const MIN_QUESTIONS = 3;
 const MAX_QUESTIONS = 25;
-const GENERATION_ERROR = "AI ახლა გადატვირთულია, სცადე ცოტა ხანში.";
 
 export default function QuizPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +96,71 @@ export default function QuizPage() {
   const [error, setError] = useState<string | null>(null);
   // Generation failed: shown in the generating card with „ხელახლა ცდა“.
   const [generationError, setGenerationError] = useState<string | null>(null);
+  // The saved quiz („ჩემი მასალები“) and the attempt being answered.
+  const [quizTitle, setQuizTitle] = useState("");
+  const [attempt, setAttempt] = useState<Pick<QuizAttempt, "id" | "quizId" | "startedAt" | "only"> | null>(null);
+
+  // Every answer is kept on the account: written shortly after, and at once
+  // when the page is hidden or left.
+  const pendingSave = useRef<QuizAttempt | null>(null);
+  // Left while the quiz was being made: it finishes in „ჩემი მასალები“ with a notification.
+  const leave = useRef<(() => void) | null>(null);
+  useEffect(() => () => leave.current?.(), []);
+  useEffect(() => {
+    if (!attempt || run.turns.length === 0) return;
+    pendingSave.current = attemptFromRun(attempt, run);
+    const timer = window.setTimeout(() => {
+      if (pendingSave.current) saveAttempt(pendingSave.current);
+      pendingSave.current = null;
+    }, SAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [attempt, run]);
+  useEffect(() => {
+    const flush = () => {
+      if (pendingSave.current) saveAttempt(pendingSave.current);
+      pendingSave.current = null;
+    };
+    const hidden = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", hidden);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
+
+  /** Opens a saved quiz: carries on with its unfinished attempt, or starts one. */
+  const openSaved = (quizId: string, mode: "continue" | "restart" | "mistakes" = "continue") => {
+    const quiz = getQuiz(quizId);
+    if (!quiz || quiz.status !== "ready" || quiz.questions.length === 0) return false;
+    markQuizOpened(quiz.id);
+    const count = quiz.questions.length;
+    const open = mode === "continue" ? unfinishedAttempt(quiz.id) : undefined;
+    const last = latestAttempt(quiz.id);
+    const mistakes = mode === "mistakes" && last ? questionsToRepeat(last.run) : [];
+    const next = open ?? startAttempt(quiz.id, count, mistakes.length > 0 ? mistakes : undefined);
+    setQuestions(quiz.questions);
+    setQuizTitle(quiz.title);
+    setAttempt({ id: next.id, quizId: next.quizId, startedAt: next.startedAt, ...(next.only ? { only: next.only } : {}) });
+    setRun(next.run);
+    setRepeatingMistakes(Boolean(next.only));
+    setSelectedOptionIndex(null);
+    setIsSubmitted(false);
+    return true;
+  };
+
+  // `?quiz=<id>` (from „ჩემი მასალები“), with `&mode=restart` or `&mode=mistakes`.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const quizId = params.get("quiz");
+    if (!quizId) return;
+    const mode = params.get("mode");
+    void Promise.resolve().then(() => openSaved(quizId, mode === "restart" || mode === "mistakes" ? mode : "continue"));
+    // Once, on arrival.
+  }, []);
 
   const phase: Phase = useMemo(() => {
     if (isLoading) return "loading";
@@ -150,41 +219,26 @@ export default function QuizPage() {
     setGenerationError(null);
     setQuestions([]);
     setRun(createQuizRun(0));
+    setAttempt(null);
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
 
+    // Saved in „ჩემი მასალები“ from the start; finished even if this page closes.
+    const started = startQuizGeneration(file, questionCount);
+    const release = watchGeneration(started.quizId);
+    let here = true;
+    leave.current = () => {
+      here = false;
+      release();
+    };
     try {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-      formData.append("questionCount", String(questionCount));
-
-      const response = await fetch("/api/quiz", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = (await response.json()) as
-        | QuizApiResponse
-        | { error?: string | boolean; message?: string };
-
-      if (!response.ok) {
-        // Only a real message: some errors come back as `{ error: true }`.
-        const message =
-          "message" in data && typeof data.message === "string" && data.message
-            ? data.message
-            : "error" in data && typeof data.error === "string" && data.error
-              ? data.error
-              : GENERATION_ERROR;
-        throw new Error(message);
-      }
-
-      const generated = (data as QuizApiResponse).questions;
-      setQuestions(generated);
-      setRun(createQuizRun(generated.length));
+      const quiz = await started.done;
+      if (here) openSaved(quiz.id, "restart");
     } catch (err) {
-      setGenerationError(err instanceof Error && err.message ? err.message : GENERATION_ERROR);
+      if (here) setGenerationError(err instanceof Error && err.message ? err.message : "AI ახლა გადატვირთულია, სცადე ცოტა ხანში.");
     } finally {
-      setIsLoading(false);
+      release();
+      if (here) setIsLoading(false);
     }
   };
 
@@ -215,7 +269,11 @@ export default function QuizPage() {
   };
 
   const repeatMistakes = () => {
-    setRun(createQuizRun(questions.length, questionsToRepeat(run)));
+    // A new attempt with only the wrong questions.
+    const only = questionsToRepeat(run);
+    const next = attempt ? startAttempt(attempt.quizId, questions.length, only) : null;
+    if (next) setAttempt({ id: next.id, quizId: next.quizId, startedAt: next.startedAt, only });
+    setRun(createQuizRun(questions.length, only));
     setRepeatingMistakes(true);
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
@@ -224,6 +282,8 @@ export default function QuizPage() {
   const restart = () => {
     setFile(null);
     setQuestions([]);
+    setAttempt(null);
+    setQuizTitle("");
     setRun(createQuizRun(0));
     setRepeatingMistakes(false);
     setSelectedOptionIndex(null);
@@ -235,7 +295,7 @@ export default function QuizPage() {
     }
   };
 
-  const sourceName = file ? file.name.replace(/\.[^.]+$/, "") : "";
+  const sourceName = file ? file.name.replace(/\.[^.]+$/, "") : quizTitle;
 
   if (phase === "results") {
     return (

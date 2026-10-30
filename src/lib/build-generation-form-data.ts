@@ -13,6 +13,8 @@ export function buildGenerationFormData(
   formData.append("cardCount", String(part?.count ?? input.cardCount));
   if (part?.avoidQuestions.length) formData.append("avoidQuestions", JSON.stringify(part.avoidQuestions.slice(0, 50)));
   if (input.difficulty) formData.append("difficulty", input.difficulty);
+  // Not read by the model: kept with what's saved (the conspectus).
+  if (input.sourceLabel) formData.append("sourceLabel", input.sourceLabel);
 
   if (input.inputType === "text") {
     formData.append("text", input.text);

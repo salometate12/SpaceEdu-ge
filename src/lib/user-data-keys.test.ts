@@ -8,6 +8,8 @@ import {
   mergeQuizAttempts,
   mergeStreak,
   mergeToolUsage,
+  SYNCED_KEYS,
+  CUSTOM_DECKS_STORAGE_KEY,
 } from "./user-data-keys";
 
 const context = { localAt: 1, remoteAt: 2 };
@@ -93,5 +95,26 @@ describe("progress merges: nothing earned on either device is lost", () => {
         context,
       ),
     ).toEqual({ xp: 450, streak: 1, lastSaveDate: "2026-10-22", unlocked: { week: true, first: true } });
+  });
+});
+
+describe("generated decks", () => {
+  const merge = SYNCED_KEYS.find((spec) => spec.key === CUSTOM_DECKS_STORAGE_KEY)!.merge!;
+
+  it("the later edit of a deck wins: a deleted deck stays deleted, a finished one stays finished", () => {
+    const local = [
+      { id: "d1", title: "უჯრედი", status: "ready", updatedAt: 30 },
+      { id: "d2", title: "ატომი", status: "generating", updatedAt: 10 },
+    ];
+    const remote = [
+      { id: "d1", title: "უჯრედი", deletedAt: 20, updatedAt: 20 },
+      { id: "d2", title: "ატომი", status: "ready", updatedAt: 40 },
+      { id: "d3", title: "ძველი" },
+    ];
+    expect(merge(local, remote, context)).toEqual([
+      { id: "d1", title: "უჯრედი", status: "ready", updatedAt: 30 },
+      { id: "d2", title: "ატომი", status: "ready", updatedAt: 40 },
+      { id: "d3", title: "ძველი" },
+    ]);
   });
 });

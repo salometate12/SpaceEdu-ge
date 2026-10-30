@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AudioLines,
@@ -20,9 +20,9 @@ import { BackButton } from "@/components/ui/BackButton";
 import { FieldError } from "@/components/ui/Alert";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { takeHandoff } from "@/lib/tool-handoff";
-import { createDeckFromGenerated, saveCustomDeck } from "@/lib/custom-decks";
 import type { UploadedData } from "@/lib/generation-input";
-import { generateFlashcards, GENERATION_ERROR } from "@/lib/generate-flashcards";
+import { GENERATION_ERROR } from "@/lib/generate-flashcards";
+import { followProgress, isGeneratingHere, startDeckGeneration, watchGeneration } from "@/lib/library/generation";
 import { setPendingSummaryGeneration } from "@/lib/pending-generation";
 import type { InputType } from "@/lib/ai/process-input";
 import {
@@ -269,21 +269,41 @@ export function CardGenerator() {
     sourceLabel: sourceLabel(),
   });
 
+  // The deck being made, saved in „ჩემი მასალები“ from the start: leaving
+  // this page doesn't stop it (lib/library/generation).
+  const [deckId, setDeckId] = useState<string | null>(null);
+  // Left before it finished: no redirect, and the notification says it's ready.
+  const leave = useRef<(() => void) | null>(null);
+  useEffect(() => () => leave.current?.(), []);
+
   const runFlashcards = async (data: UploadedData) => {
     setRunning(data);
     setReadyCards(0);
     setLatestQuestion(null);
     setRunError(null);
+    // „თავიდან ცდა“ fills the same deck again.
+    const again = deckId && !isGeneratingHere(deckId) ? deckId : undefined;
+    const started = startDeckGeneration(data, again);
+    setDeckId(started.deckId);
+    const release = watchGeneration(started.deckId);
+    const stopProgress = followProgress(started.deckId, (ready, latest) => {
+      setReadyCards(ready);
+      if (latest) setLatestQuestion(latest);
+    });
+    let here = true;
+    leave.current = () => {
+      here = false;
+      stopProgress();
+      release();
+    };
     try {
-      const parsed = await generateFlashcards(data, (ready, latest) => {
-        setReadyCards(ready);
-        if (latest?.question) setLatestQuestion(latest.question);
-      });
-      const deck = createDeckFromGenerated(parsed, "georgian", data.sourceLabel);
-      saveCustomDeck(deck);
-      router.push(`/deck/${deck.id}`);
+      const deck = await started.done;
+      if (here) router.push(`/deck/${deck.id}`);
     } catch (error) {
-      setRunError(error instanceof Error ? error.message : GENERATION_ERROR);
+      if (here) setRunError(error instanceof Error ? error.message : GENERATION_ERROR);
+    } finally {
+      stopProgress();
+      release();
     }
   };
 
@@ -306,6 +326,7 @@ export function CardGenerator() {
         latestQuestion={latestQuestion}
         sourceLabel={running.sourceLabel}
         error={runError}
+        keepsGoing
         onRetry={() => void runFlashcards(running)}
         onBack={() => {
           setRunning(null);

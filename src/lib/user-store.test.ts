@@ -423,6 +423,8 @@ describe("merge rules", () => {
       "spaceedu-lecture-notes",
       "spaceedu-abit-lecture-notes",
       "flashcards-conspectus",
+      "spaceedu-quizzes",
+      "spaceedu-quiz-attempts",
       "flashcards-custom-decks",
       "spaceedu-ai-teacher-conversations-student",
       "spaceedu-ai-teacher-conversations-abiturient",

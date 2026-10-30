@@ -9,6 +9,12 @@ export interface Conspectus {
   content: string;
   createdAt: number;
   sourceLabel?: string;
+  /** The kind of material (lib/types MaterialSourceType). */
+  sourceType?: string;
+  /** Saved once the whole text has arrived. */
+  status?: "generating" | "ready" | "failed";
+  /** ms, for „ბოლოს გახსნილი“. */
+  lastOpenedAt?: number;
 }
 
 export function getConspectusList(): Conspectus[] {
@@ -26,6 +32,16 @@ export function saveConspectus(conspectus: Conspectus): void {
   const existing = getConspectusList();
   const filtered = existing.filter((c) => c.id !== conspectus.id);
   userStore.set(STORAGE_KEY, [conspectus, ...filtered].slice(0, 20));
+}
+
+/** For „ბოლოს გახსნილი“. Quiet: the open page mustn't reload over it. */
+export function markConspectusOpened(id: string, now: number = Date.now()): void {
+  const list = getConspectusList();
+  if (!list.some((c) => c.id === id)) return;
+  userStore.set(
+    STORAGE_KEY,
+    list.map((c) => (c.id === id ? { ...c, lastOpenedAt: now } : c)),
+  );
 }
 
 export function getConspectusById(id: string): Conspectus | undefined {
