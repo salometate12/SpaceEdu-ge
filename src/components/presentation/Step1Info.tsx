@@ -1,8 +1,10 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
 import { PRESENTATION_LEVELS } from "@/lib/presentation-constants";
+import { StepSection, TONES } from "@/components/ui/wizard/StepSection";
+import { ChoiceChips, Field } from "@/components/ui/wizard/fields";
 import { PhotoUploader } from "./PhotoUploader";
 import type { PresentationForm } from "./PresentationWizard";
 
@@ -13,162 +15,83 @@ interface Step1InfoProps {
   onPhotosChange: (photos: UploadedPhoto[]) => void;
 }
 
+export const SLIDE_COUNTS = [5, 8, 10, 12, 15];
+
+export const LANGUAGES = [
+  { value: "ქართული", label: "ქართული" },
+  { value: "ინგლისური", label: "English" },
+  { value: "ქართული + ინგლისური", label: "ორივე" },
+];
+
+/** Each quick chip adds one sentence to the instructions. */
+export const QUICK_INSTRUCTIONS = [
+  { label: "სტატისტიკა", phrase: "დაამატე სტატისტიკა და რიცხვები." },
+  { label: "მოკლედ", phrase: "ტექსტი იყოს მოკლე, სლაიდზე მაქსიმუმ სამი პუნქტი." },
+  { label: "მაგალითები", phrase: "თითო თემაზე მოიყვანე მაგალითი." },
+  { label: "აკადემიური", phrase: "დაწერე აკადემიური სტილით და ბოლოს მიუთითე წყაროები." },
+];
+
+/** The instructions with `phrase` added on a new line (once). */
+export function withPhrase(text: string, phrase: string): string {
+  if (text.includes(phrase)) return text;
+  return text.trim() ? `${text.trim()}\n${phrase}` : phrase;
+}
+
 export function Step1Info({ form, onChange, photos, onPhotosChange }: Step1InfoProps) {
-  const quickTags = ["+ სტატისტიკა", "+ მოკლე", "+ მაგალითები", "+ აკადემიური"];
-  const options = {
-    slideCount: [5, 8, 10, 12, 15],
-    level: PRESENTATION_LEVELS,
-    language: [
-      { value: "ქართული", label: "ქართული" },
-      { value: "ინგლისური", label: "English" },
-      { value: "ქართული + ინგლისური", label: "ორივე" },
-    ],
-  };
-
-  const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10";
-  const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500";
-  const pillActive =
-    "border-pink-300 bg-pink-50 text-pink-700 shadow-sm dark:border-pink-400/30 dark:bg-pink-500/10 dark:text-pink-300";
-  const pillInactive =
-    "border-slate-200 bg-white text-slate-500 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-pink-300";
-
-  const toggleTag = (tag: string) => {
-    const hasTag = form.extraInstructions.includes(tag);
-    if (hasTag) {
-      onChange({
-        extraInstructions: form.extraInstructions
-          .replace(tag, "")
-          .replace(/\s{2,}/g, " ")
-          .trim(),
-      });
-      return;
-    }
-    onChange({
-      extraInstructions: `${form.extraInstructions} ${tag}`.trim(),
-    });
-  };
-
   return (
-    <section className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-pink-600 dark:border-pink-400/15 dark:bg-pink-500/10 dark:text-pink-400">
-          <FileText className="h-4 w-4" />
-        </span>
-        <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
-          ინფორმაცია
-        </h2>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm">
-          <span className={labelClass}>თემა</span>
-          <input
-            value={form.topic}
-            onChange={(e) => onChange({ topic: e.target.value })}
-            className={inputClass}
-          />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className={labelClass}>საგანი</span>
-          <input
-            value={form.subject}
-            onChange={(e) => onChange({ subject: e.target.value })}
-            className={inputClass}
-          />
-        </label>
+    <StepSection icon={FileText} tone={TONES.orange} title="ინფორმაცია" subtitle="რაზეა პრეზენტაცია">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="თემა" htmlFor="pr-topic">
+          <input id="pr-topic" value={form.topic} onChange={(e) => onChange({ topic: e.target.value })} placeholder="მაგ. ფოტოსინთეზი" className="wz-input" />
+        </Field>
+        <Field label="საგანი" htmlFor="pr-subject">
+          <input id="pr-subject" value={form.subject} onChange={(e) => onChange({ subject: e.target.value })} placeholder="მაგ. ბიოლოგია" className="wz-input" />
+        </Field>
       </div>
 
-      <div className="space-y-3">
-        <p className={labelClass}>სლაიდები</p>
-        <div className="flex flex-wrap gap-2">
-          {options.slideCount.map((count) => {
-            const active = form.slideCount === count;
-            return (
-              <button
-                key={count}
-                type="button"
-                onClick={() => onChange({ slideCount: count })}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
-                  active ? pillActive : pillInactive
-                }`}
-              >
-                {count} სლაიდი
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Field label="სლაიდების რაოდენობა">
+        <ChoiceChips
+          label="სლაიდების რაოდენობა"
+          options={SLIDE_COUNTS.map((count) => ({ value: count, label: String(count) }))}
+          value={form.slideCount}
+          onChange={(slideCount) => onChange({ slideCount })}
+        />
+      </Field>
 
-      <div className="space-y-3">
-        <p className={labelClass}>დონე</p>
-        <div className="flex flex-wrap gap-2">
-          {options.level.map((level) => {
-            const active = form.level === level;
-            return (
-              <button
-                key={level}
-                type="button"
-                onClick={() => onChange({ level })}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
-                  active ? pillActive : pillInactive
-                }`}
-              >
-                {level}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <Field label="დონე">
+        <ChoiceChips label="დონე" options={PRESENTATION_LEVELS.map((level) => ({ value: level, label: level }))} value={form.level} onChange={(level) => onChange({ level })} />
+      </Field>
 
-      <div className="space-y-3">
-        <p className={labelClass}>ენა</p>
-        <div className="flex flex-wrap gap-2">
-          {options.language.map((language) => {
-            const active = form.language === language.value;
-            return (
-              <button
-                key={language.value}
-                type="button"
-                onClick={() => onChange({ language: language.value })}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
-                  active ? pillActive : pillInactive
-                }`}
-              >
-                {language.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <div className="space-y-2">
-        <p className={labelClass}>ფოტოები (არასავალდებულო)</p>
+      <Field label="ენა">
+        <ChoiceChips label="ენა" options={LANGUAGES} value={form.language} onChange={(language) => onChange({ language })} />
+      </Field>
+
+      <Field label="ფოტოები" optional>
         <PhotoUploader photos={photos} onChange={onPhotosChange} />
-      </div>
-      <label className="space-y-1 text-sm">
-        <span className={labelClass}>დამატებითი მითითებები</span>
+      </Field>
+
+      <Field label="დამატებითი მითითებები" optional htmlFor="pr-extra">
         <textarea
+          id="pr-extra"
           value={form.extraInstructions}
           onChange={(e) => onChange({ extraInstructions: e.target.value })}
-          className={`min-h-24 ${inputClass}`}
+          placeholder="მაგ. ბოლოს დაამატე შეჯამება და წყაროები"
+          className="wz-input min-h-[84px]"
         />
-      </label>
-      <div className="flex flex-wrap gap-2">
-        {quickTags.map((tag) => {
-          const active = form.extraInstructions.includes(tag);
-          return (
+        <div className="flex flex-wrap gap-2">
+          {QUICK_INSTRUCTIONS.map((item) => (
             <button
-              key={tag}
+              key={item.label}
               type="button"
-              className={`rounded-full border px-3 py-1 text-xs transition ${
-                active ? pillActive : pillInactive
-              }`}
-              onClick={() => toggleTag(tag)}
+              onClick={() => onChange({ extraInstructions: withPhrase(form.extraInstructions, item.phrase) })}
+              className="wz-chip wz-chip--quick"
             >
-              {tag}
+              <Plus className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+              {item.label}
             </button>
-          );
-        })}
-      </div>
-    </section>
+          ))}
+        </div>
+      </Field>
+    </StepSection>
   );
 }
