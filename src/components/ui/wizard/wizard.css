@@ -1,0 +1,220 @@
+/*
+ * The step-by-step forms (/cv, /presentation) in the light style, both
+ * themes: a plain page, white cards with a thin border and no shadow, one
+ * pink primary, a dark ring for what's picked. `.wz` is the root.
+ */
+.wz {
+  --wz-bg: #fafaf9;
+  --wz-card: #ffffff;
+  --wz-border: #ece9e4;
+  --wz-field: #ffffff;
+  --wz-field-border: #e7e5e4;
+  --wz-title: #1c1a17;
+  --wz-text: #57534e;
+  --wz-muted: #6f6a64;
+  --wz-faint: #78716c;
+  --wz-future: #a8a29e;
+  --wz-soft: #f5f4f0;
+  --wz-panel: #f5f4f0;
+  --wz-hover: #f5f4f0;
+  --wz-divider: #f1efeb;
+  --wz-strong: #1c1a17;
+  --wz-on-strong: #ffffff;
+  --wz-done-bg: #dcfce7;
+  --wz-done: #16a34a;
+  --wz-done-line: #86efac;
+  --wz-segment-done: #4ade80;
+
+  background: var(--wz-bg);
+  color: var(--wz-text);
+}
+
+html.dark .wz {
+  --wz-bg: #0c0c10;
+  --wz-card: #15151b;
+  --wz-border: #26262e;
+  --wz-field: #0f0f14;
+  --wz-field-border: #2e2e38;
+  --wz-title: #fafaf9;
+  --wz-text: #d4d4d8;
+  --wz-muted: #a1a1aa;
+  --wz-faint: #a1a1aa;
+  --wz-future: #71717a;
+  --wz-soft: #1b1b22;
+  --wz-panel: #15151b;
+  --wz-hover: #1f1f27;
+  --wz-divider: #26262e;
+  --wz-strong: #fafaf9;
+  --wz-on-strong: #15151b;
+  --wz-done-bg: rgba(74, 222, 128, 0.14);
+  --wz-done: #86efac;
+  --wz-done-line: rgba(134, 239, 172, 0.5);
+  --wz-segment-done: #4ade80;
+}
+
+.wz .wz-card {
+  background: var(--wz-card);
+  border: 1px solid var(--wz-border);
+  border-radius: 28px;
+}
+
+/* Fields: 52px, radius 14, a pink 2px ring on focus. */
+.wz .wz-input {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid var(--wz-field-border);
+  background: var(--wz-field);
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--wz-title);
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.wz .wz-input.wz-input--icon {
+  padding-left: 44px;
+}
+.wz textarea.wz-input {
+  height: auto;
+  padding: 14px 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.wz .wz-input::placeholder {
+  color: var(--wz-future);
+}
+.wz .wz-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #e11d74;
+}
+.wz .wz-input[aria-invalid="true"] {
+  border-color: #e11d48;
+}
+
+/* Chips: picked is solid dark with a check; the rest white with a thin border. */
+.wz .wz-chip {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--wz-field-border);
+  background: var(--wz-card);
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wz-text);
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.wz .wz-chip:hover {
+  border-color: var(--wz-future);
+}
+.wz .wz-chip[aria-checked="true"],
+.wz .wz-chip[aria-pressed="true"] {
+  border-color: var(--wz-strong);
+  background: var(--wz-strong);
+  color: var(--wz-on-strong);
+}
+.wz .wz-chip--quick {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.wz .wz-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  background: #e11d74;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 120ms ease;
+}
+.wz .wz-primary:hover:not(:disabled) {
+  background: #cf1769;
+}
+.wz .wz-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.wz .wz-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--wz-field-border);
+  background: var(--wz-card);
+  color: var(--wz-title);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.wz .wz-secondary:hover:not(:disabled) {
+  background: var(--wz-hover);
+}
+
+.wz .wz-focus:focus-visible,
+.wz .wz-primary:focus-visible,
+.wz .wz-secondary:focus-visible,
+.wz .wz-chip:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* The on/off switch, 44×26. */
+.wz .wz-switch {
+  position: relative;
+  height: 26px;
+  width: 44px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--wz-field-border);
+  transition: background-color 150ms ease;
+}
+.wz .wz-switch[aria-checked="true"] {
+  background: #e11d74;
+}
+.wz .wz-switch > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: 20px;
+  width: 20px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 150ms ease;
+}
+.wz .wz-switch[aria-checked="true"] > span {
+  transform: translateX(18px);
+}
+.wz .wz-switch:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz .wz-switch,
+  .wz .wz-switch > span {
+    transition: none;
+  }
+}
+
+/* A section's icon tile; its colours come in as variables. */
+.wz .wz-tile {
+  background: var(--tile-bg);
+  color: var(--tile);
+}
+html.dark .wz .wz-tile {
+  background: var(--tile-dark-bg);
+  color: var(--tile-dark);
+}
