@@ -113,22 +113,24 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
           setDragActive(false);
           if (!full) void addFiles(imageFiles(event.dataTransfer.files));
         }}
-        className={`flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-6 text-center transition disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`wz-focus flex min-h-[84px] w-full items-center gap-4 rounded-[18px] border-[1.5px] border-dashed px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${
           dragActive
-            ? "border-pink-400 bg-pink-50 text-pink-700 dark:border-pink-400/60 dark:bg-pink-500/10 dark:text-pink-200"
-            : "border-stone-300 bg-stone-50 text-slate-600 hover:border-pink-300 hover:bg-pink-50/50 dark:border-white/15 dark:bg-white/[0.02] dark:text-zinc-300 dark:hover:border-pink-400/40"
+            ? "border-[#e11d74] bg-[#fdf2f8] dark:bg-pink-500/10"
+            : "border-[var(--wz-field-border)] bg-[var(--wz-field)] hover:border-[var(--wz-future)]"
         }`}
       >
         {busy ? (
-          <Loader2 className="h-5 w-5 animate-spin text-pink-600 dark:text-pink-400" />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center text-[#e11d74]">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </span>
         ) : (
           <UploadIconBadge size={44} />
         )}
-        <span className="text-sm font-semibold">
-          {full ? `ატვირთულია ${MAX_PHOTOS} ფოტო (მაქსიმუმი)` : "ჩააგდე ფოტოები აქ ან აირჩიე ფაილები"}
-        </span>
-        <span className="text-xs text-slate-500 dark:text-zinc-500">
-          JPG, PNG ან WEBP · მაქს. {MAX_PHOTOS} ფოტო · თითო 10 MB-მდე
+        <span className="min-w-0">
+          <span className="block text-[14.5px] font-semibold text-[var(--wz-title)]">
+            {full ? `ატვირთულია ${MAX_PHOTOS} ფოტო, მეტი არ ეტევა` : "ჩააგდე ფოტოები ან აირჩიე"}
+          </span>
+          <span className="block text-[13px] text-[var(--wz-faint)]">JPG, PNG, WEBP · მაქს. {MAX_PHOTOS} ფოტო, თითო 10 MB</span>
         </span>
       </button>
       <input
@@ -144,7 +146,7 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
       />
 
       {errors.length > 0 && (
-        <ul className="space-y-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        <ul role="alert" className="space-y-1 text-[13px] font-medium text-rose-600 dark:text-rose-400">
           {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
@@ -152,47 +154,45 @@ export function PhotoUploader({ photos, onChange }: PhotoUploaderProps) {
       )}
 
       {photos.length > 0 && (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="flex flex-col gap-2">
           {photos.map((photo, index) => (
             <li
               key={photo.id}
               data-photo-tile={photo.id}
-              className={`space-y-1.5 transition ${draggingId === photo.id ? "opacity-60" : ""}`}
+              className={`flex items-center gap-3 rounded-[14px] border border-[var(--wz-border)] p-2 transition ${draggingId === photo.id ? "opacity-60" : ""}`}
             >
-              <div className="relative overflow-hidden rounded-xl border border-stone-200 bg-stone-100 dark:border-white/10 dark:bg-white/[0.04]">
+              <button
+                type="button"
+                aria-label={`რიგის შეცვლა: ${photo.name}`}
+                onPointerDown={(event) => startReorder(event, photo.id)}
+                onPointerMove={moveReorder}
+                onPointerUp={() => setDraggingId(null)}
+                onPointerCancel={() => setDraggingId(null)}
+                className="wz-focus inline-flex h-8 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[var(--wz-future)] active:cursor-grabbing"
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+              <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[10px] bg-[var(--wz-soft)]">
                 {/* eslint-disable-next-line @next/next/no-img-element -- local data URL */}
-                <img src={photo.dataUrl} alt={photo.caption || photo.name} className="aspect-[4/3] w-full object-cover" draggable={false} />
-                <span className="absolute left-1.5 top-1.5 rounded-full bg-black/55 px-1.5 text-[10px] font-semibold text-white">
-                  {index + 1}
-                </span>
-                <button
-                  type="button"
-                  aria-label={`რიგის შეცვლა: ${photo.name}`}
-                  onPointerDown={(event) => startReorder(event, photo.id)}
-                  onPointerMove={moveReorder}
-                  onPointerUp={() => setDraggingId(null)}
-                  onPointerCancel={() => setDraggingId(null)}
-                  className="absolute bottom-1.5 left-1.5 inline-flex h-7 w-7 cursor-grab touch-none items-center justify-center rounded-full bg-black/55 text-white active:cursor-grabbing"
-                >
-                  <GripVertical className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label={`წაშლა: ${photo.name}`}
-                  onClick={() => onChange(photos.filter((p) => p.id !== photo.id))}
-                  className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-rose-600"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
+                <img src={photo.dataUrl} alt={photo.caption || photo.name} className="h-full w-full object-cover" draggable={false} />
+                <span className="absolute left-1 top-1 rounded-full bg-black/55 px-1.5 text-[10px] font-semibold text-white">{index + 1}</span>
+              </span>
               <input
                 value={photo.caption}
                 maxLength={200}
                 onChange={(event) => update(photo.id, { caption: event.target.value })}
                 placeholder="რას აჩვენებს? მაგ. „ნიუტონის პორტრეტი“"
                 aria-label={`წარწერა: ${photo.name}`}
-                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:ring-pink-500/10"
+                className="wz-input !h-11 min-w-0 flex-1 !text-[14px]"
               />
+              <button
+                type="button"
+                aria-label={`წაშლა: ${photo.name}`}
+                onClick={() => onChange(photos.filter((p) => p.id !== photo.id))}
+                className="wz-focus inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--wz-muted)] hover:bg-[var(--wz-hover)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </li>
           ))}
         </ul>

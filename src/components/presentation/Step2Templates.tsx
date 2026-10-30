@@ -1,6 +1,8 @@
 "use client";
 
-import { Check, LayoutTemplate } from "lucide-react";
+import { Check, Palette } from "lucide-react";
+import { StepSection, TONES } from "@/components/ui/wizard/StepSection";
+import { slideTheme } from "@/lib/presentation-theme";
 import { NewBadge, TemplatePreview } from "./TemplatePreview";
 import type { PresentationTemplate } from "./PresentationWizard";
 
@@ -10,50 +12,54 @@ interface Step2TemplatesProps {
   onSelect: (id: string) => void;
 }
 
-export function Step2Templates({
-  templates,
-  selectedTemplateId,
-  onSelect,
-}: Step2TemplatesProps) {
+/** The design's three colours: background, title and accent. */
+export function templateColors(id: string): string[] {
+  const theme = slideTheme(id);
+  return [theme.bg, theme.title, theme.accent];
+}
+
+export function Step2Templates({ templates, selectedTemplateId, onSelect }: Step2TemplatesProps) {
   return (
-    <section>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-pink-600 dark:border-pink-400/15 dark:bg-pink-500/10 dark:text-pink-400">
-          <LayoutTemplate className="h-4 w-4" />
-        </span>
-        <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
-          Template არჩევა
-        </h2>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <StepSection icon={Palette} tone={TONES.pink} title="დიზაინი" subtitle="აირჩიე სტილი, ფერებს მერეც შეცვლი">
+      <div role="radiogroup" aria-label="დიზაინი" className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {templates.map((template) => {
           const selected = selectedTemplateId === template.id;
           return (
             <button
               key={template.id}
               type="button"
+              role="radio"
+              aria-checked={selected}
               onClick={() => onSelect(template.id)}
-              className={`relative rounded-2xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
-                selected
-                  ? "border-pink-400 bg-pink-50 shadow-sm dark:border-pink-400/50 dark:bg-pink-500/10"
-                  : "border-slate-200 bg-white hover:border-pink-200 dark:border-white/[0.1] dark:bg-white/[0.02] dark:hover:border-pink-400/30"
+              className={`wz-focus relative flex min-w-0 flex-col gap-2.5 rounded-[20px] p-2.5 text-left transition-colors ${
+                selected ? "border-2 border-[var(--wz-strong)] p-[9px]" : "border border-[var(--wz-border)] hover:border-[var(--wz-future)]"
               }`}
             >
-              {selected && (
-                <span className="absolute right-2.5 top-2.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-pink-600 text-white shadow-sm dark:bg-pink-500">
-                  <Check className="h-3 w-3" strokeWidth={3} />
+              {selected ? (
+                <span className="absolute right-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--wz-strong)] text-[var(--wz-on-strong)]" aria-hidden>
+                  <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </span>
-              )}
-              <TemplatePreview template={template} />
-              <p className="mt-2 flex items-center gap-2 headline font-semibold text-slate-900 dark:text-zinc-100">
-                {template.name}
-                {template.isNew ? <NewBadge /> : null}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">{template.desc}</p>
+              ) : null}
+              <span className="relative block overflow-hidden rounded-[12px]">
+                <TemplatePreview template={template} />
+                {template.isNew ? (
+                  <span className="absolute bottom-1.5 left-1.5">
+                    <NewBadge />
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex items-center gap-2 px-1 pb-0.5">
+                <span className="min-w-0 flex-1 truncate text-[14.5px] font-bold text-[var(--wz-title)]">{template.name}</span>
+                <span className="flex shrink-0 gap-1 max-sm:hidden" aria-hidden>
+                  {templateColors(template.id).map((color, index) => (
+                    <span key={index} className="h-3.5 w-3.5 rounded-full border border-black/10 dark:border-white/15" style={{ background: color }} />
+                  ))}
+                </span>
+              </span>
             </button>
           );
         })}
       </div>
-    </section>
+    </StepSection>
   );
 }
