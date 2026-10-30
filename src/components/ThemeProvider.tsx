@@ -32,6 +32,15 @@ function systemTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+/** The browser bar and status bar follow the page's background (--page-bg). */
+export const PAGE_BG: Record<Theme, string> = { light: "#fafaf9", dark: "#0c0c10" };
+
+function applyThemeColor(theme: Theme) {
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
+    meta.content = PAGE_BG[theme];
+  });
+}
+
 function resolveTheme(preference: ThemePreference): Theme {
   return preference === "system" ? systemTheme() : preference;
 }
@@ -40,6 +49,7 @@ function resolveTheme(preference: ThemePreference): Theme {
 function applyPreference(preference: ThemePreference) {
   const resolved = resolveTheme(preference);
   document.documentElement.classList.toggle("dark", resolved === "dark");
+  applyThemeColor(resolved);
   // The first-paint inline script in layout.tsx reads this same key and treats
   // anything other than "light"/"dark" (i.e. "system") as follow-the-OS.
   // Kept as bare text, and on the account (the same theme on every device).
@@ -91,6 +101,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // to <html> here too (DOM only).
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
+    applyThemeColor(theme);
   }, [theme]);
 
   // Same for the animations switch (the first-paint script covers reloads).

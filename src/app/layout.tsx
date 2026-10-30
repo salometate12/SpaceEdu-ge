@@ -130,8 +130,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#d81878" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0f" },
+    // The page's background (--page-bg); ThemeProvider keeps it in step
+    // with a theme picked on the site rather than by the system.
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c10" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -152,7 +154,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);if(localStorage.getItem('spaceedu-animations')==='off'){e.classList.add('no-animations');}var p=location.pathname;e.dataset.ground=(p==='/'||p==='/pricing')?'landing':(p==='/about'||p==='/contact'||p==='/checkout'||p.indexOf('/checkout/')===0)?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
+            __html: `(function(){try{var e=document.documentElement;var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);e.classList.toggle('dark',d);document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute('content',d?'#0c0c10':'#fafaf9')});if(localStorage.getItem('spaceedu-animations')==='off'){e.classList.add('no-animations');}var p=location.pathname;e.dataset.ground=(p==='/'||p==='/pricing')?'landing':(p==='/about'||p==='/contact'||p==='/checkout'||p.indexOf('/checkout/')===0)?'paper':'app';if(p==='/about'){var l=localStorage.getItem('spaceedu-language');if(l==='en'||l==='ka'){e.lang=l;}}}catch(e){}})();`,
           }}
         />
       </head>

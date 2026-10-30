@@ -55,7 +55,10 @@ html.dark .skeleton-shimmer {
 
 /* დღის რეჟიმი (default light) */
 :root {
-  --bg-primary: #f8fafc;
+  /* The page's one background, everywhere: plain, no pattern. Pages that
+     used --bg-primary as their ground get the same colour through it. */
+  --page-bg: #fafaf9;
+  --bg-primary: var(--page-bg);
   --bg-secondary: #f1f5f9;
   --bg-card: #ffffff;
   --bg-card-hover: #f1f5f9;
@@ -81,12 +84,12 @@ html.dark .skeleton-shimmer {
   --glow-cyan: 0 0 20px rgba(8, 145, 178, 0.15);
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
-  --body-grid-color: #e2e8f0;
 }
 
 /* ღამის რეჟიმი */
 html.dark {
-  --bg-primary: #0a0a0f;
+  --page-bg: #0c0c10;
+  --bg-primary: var(--page-bg);
   --bg-secondary: #111118;
   --bg-card: #16161f;
   --bg-card-hover: #1c1c28;
@@ -110,7 +113,6 @@ html.dark {
   --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.3);
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
-  --body-grid-color: #1e1e2e;
 }
 
 @theme inline {
@@ -126,15 +128,14 @@ html.dark {
   --breakpoint-nav: 55rem;
 }
 
+html,
 body {
-  background-color: var(--bg-primary);
+  background-color: var(--page-bg);
+  background-image: none;
+}
+
+body {
   color: var(--text-primary);
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    var(--body-grid-color) 1px,
-    transparent 0
-  );
-  background-size: 32px 32px;
   font-family: var(--font-dm-sans), var(--font-noto-georgian), sans-serif;
   transition:
     background-color 0.25s ease,
@@ -372,23 +373,11 @@ html.dark .dashboard-glass-card:hover {
   opacity: 0.5;
 }
 
-/* Student dashboard ground (set by StudentDashboardView). Light only: a
- * warm off-white under the white DashboardCards, with a border that reads
- * on it. Dark keeps --bg-primary, which already separates the cards. The
- * dot grid on <body> is untouched. */
+/* Student dashboard (set by StudentDashboardView): the page keeps the
+ * one --page-bg like every other page; only the cards' border is tuned. */
 html[data-surface="student-dashboard"] {
-  --dashboard-surface: #f5f4f0;
+  --dashboard-surface: var(--page-bg);
   --dashboard-card-border: #ecebe8;
-}
-
-html[data-surface="student-dashboard"]:not(.dark) body {
-  background-color: var(--dashboard-surface);
-}
-
-/* …and the same on <html> (the overscroll and status-bar ground). */
-html[data-surface="student-dashboard"]:not(.dark) {
-  --ground-color: var(--dashboard-surface);
-  background-color: var(--dashboard-surface);
 }
 
 html.dark[data-surface="student-dashboard"] {
@@ -399,7 +388,7 @@ html.dark .dashboard-tool-card {
   border-color: rgb(255 255 255 / 0.06);
   background: rgb(22 22 26 / 0.4);
   box-shadow: none;
-  /* The dark card is translucent; the blur keeps the dot grid behind it soft. */
+  /* The dark card is translucent; the blur softens whatever is behind it. */
   backdrop-filter: blur(12px);
 }
 
@@ -1313,30 +1302,10 @@ html.dark {
 }
 
 /* The ground's colour as a variable too: the status-bar band below paints
-   with it. App pages put it on <html> as well — before, only <body> had a
-   colour (and the dotted grid), so a rubber-band pull on iOS showed the
-   dots, and a different shade, past the page's edge. */
+   with it, and <html> carries it so a rubber-band pull on iOS shows the
+   same colour past the page's edge. The app and the landing share it. */
 html {
-  --ground-color: var(--bg-primary);
-}
-
-html[data-ground="app"] {
-  background-color: var(--bg-primary);
-}
-
-/* The landing follows the theme like the app, in the light style's
-   ground (landing.css). */
-html[data-ground="landing"],
-html[data-ground="landing"] body {
-  --ground-color: #fafaf9;
-  background-color: #fafaf9;
-  background-image: none;
-}
-
-html.dark[data-ground="landing"],
-html.dark[data-ground="landing"] body {
-  --ground-color: #0c0c10;
-  background-color: #0c0c10;
+  --ground-color: var(--page-bg);
 }
 
 html[data-ground="paper"],
