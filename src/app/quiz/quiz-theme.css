@@ -5,7 +5,7 @@
  * and the main button only.
  */
 .quiz-run {
-  --quiz-bg: #fffdf6;
+  --quiz-bg: var(--page-bg);
   --quiz-card: #ffffff;
   --quiz-card-border: #ece9e4;
   --quiz-drop-border: #d6d3d1;
@@ -40,7 +40,7 @@
 }
 
 html.dark .quiz-run {
-  --quiz-bg: #141413;
+  --quiz-bg: var(--page-bg);
   --quiz-card: #1c1b19;
   --quiz-card-border: #2e2c29;
   --quiz-drop-border: #44413c;
