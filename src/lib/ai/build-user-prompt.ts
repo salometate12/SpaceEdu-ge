@@ -1,4 +1,5 @@
 import type { AiPageType } from "./page-types";
+import { experiencesForPrompt, normalizeExperiences } from "@/lib/cv-experience";
 import { normalizePresentationLevel, type PresentationLevel } from "@/lib/presentation-constants";
 import { aiTeacherSpaceFromPayload } from "./page-prompts";
 import { studyPlanDaysToGenerate } from "./study-plan-days";
@@ -226,7 +227,7 @@ export function buildUserPrompt(
         `კონტაქტი: ${asString(profile.email)} | ${asString(profile.phone)}`,
         profile.portfolio ? `პორტფოლიო: ${asString(profile.portfolio)}` : "",
         `განათლება: ${asString(profile.university)} — ${asString(profile.degree)} (${asString(profile.graduationYear)})`,
-        `გამოცდილება (ნედლი ტექსტი):\n${asString(profile.experienceText)}`,
+        `გამოცდილება (თითო ჩანაწერი ცალკე, თითოეულისთვის დაწერე საკუთარი პუნქტები):\n${experiencesForPrompt(normalizeExperiences(profile))}`,
         `ინსტრუმენტები: ${Array.isArray(profile.tools) ? profile.tools.join(", ") : ""}`,
         `რბილი უნარები: ${asString(profile.softSkills)}`,
         `ტემპლეიტის სტილი: ${asString(profile.template, "modern")}`,
