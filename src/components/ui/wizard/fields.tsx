@@ -56,12 +56,15 @@ export function ChoiceChips<T extends string | number>({
   options,
   value,
   onChange,
+  trailing,
   className = "",
 }: {
   label: string;
   options: { value: T; label: string }[];
   value: T | T[];
   onChange: (value: T) => void;
+  /** After the chips, in the same row (e.g. „+ სხვა“). */
+  trailing?: ReactNode;
   className?: string;
 }) {
   const multiple = Array.isArray(value);
@@ -82,6 +85,7 @@ export function ChoiceChips<T extends string | number>({
           {option.label}
         </button>
       ))}
+      {trailing}
     </div>
   );
 }
