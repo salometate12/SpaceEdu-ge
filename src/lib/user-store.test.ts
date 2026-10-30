@@ -437,6 +437,7 @@ describe("merge rules", () => {
       "spaceedu-cv-updated-at",
       "spaceedu-tool-usage",
       "spaceedu-activity-log",
+      "spaceedu-flashcard-sessions",
       "spaceedu-active-subject",
       "spaceedu-journal-progress",
       "theme",

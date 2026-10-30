@@ -209,3 +209,129 @@ html.dark .gen .gen-wave span {
     transition: none;
   }
 }
+
+/* ---- The loader: cards dealt onto a deck ---- */
+.gen .deal-stage {
+  background: #fdf7fa;
+}
+html.dark .gen .deal-stage {
+  background: rgba(236, 72, 153, 0.06);
+}
+.gen .deal-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220px;
+  height: 150px;
+  margin: -75px 0 0 -110px;
+  border-radius: 18px;
+  border: 1px solid var(--gen-border);
+  background: var(--gen-card);
+  box-shadow: 0 8px 24px rgba(28, 26, 23, 0.06);
+  transform: rotate(var(--tilt, 0deg));
+}
+html.dark .gen .deal-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.gen .deal-fly {
+  animation: deal-in 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+@keyframes deal-in {
+  0% {
+    opacity: 0;
+    transform: translate(-260px, 40px) rotate(-18deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(var(--tilt, 2deg));
+  }
+}
+/* The summary's sheets: pages laid on a pile. */
+.gen .deal-sheet {
+  width: 170px;
+  height: 220px;
+  margin: -110px 0 0 -85px;
+  border-radius: 10px;
+}
+.gen .deal-pulse {
+  animation: deal-pulse 1.6s ease-in-out infinite;
+}
+@keyframes deal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 116, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(225, 29, 116, 0);
+  }
+}
+.gen .deal-tip {
+  animation: deal-tip 450ms ease both;
+}
+@keyframes deal-tip {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gen .deal-fly {
+    display: none;
+  }
+  .gen .deal-pulse,
+  .gen .deal-tip {
+    animation: none;
+  }
+}
+
+/* ---- Studying: the flip card ---- */
+.gen .flip-scene {
+  perspective: 1600px;
+}
+.gen .flip-inner {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+}
+.gen .flip-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.gen .flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 28px;
+  border: 1px solid var(--gen-border);
+  background: var(--gen-card);
+}
+.gen .flip-back {
+  transform: rotateY(180deg);
+  background: #fffdf5;
+}
+html.dark .gen .flip-back {
+  background: #17161a;
+}
+/* The two cards of the deck peeking out under the current one. */
+.gen .flip-layer {
+  position: absolute;
+  left: 50%;
+  border-radius: 28px;
+  border: 1px solid var(--gen-border);
+  background: var(--gen-card);
+  transform: translateX(-50%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gen .flip-inner {
+    transition: none;
+  }
+}
