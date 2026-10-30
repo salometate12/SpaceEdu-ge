@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
-import { BarChart3, LogOut, Settings, Shield, User } from "lucide-react";
+import { BarChart3, FolderOpen, LogOut, Settings, Shield, User } from "lucide-react";
 import { signOutUser } from "@/lib/auth";
 import { useDismiss } from "@/hooks/useDismiss";
 import "./profile-menu.css";
@@ -147,6 +147,10 @@ export function AvatarDropdown({
       <Link href={profileHref} role="menuitem" onClick={onClose} className="pm-item">
         <User aria-hidden />
         პროფილი
+      </Link>
+      <Link href="/library" role="menuitem" onClick={onClose} className="pm-item">
+        <FolderOpen aria-hidden />
+        ჩემი მასალები
       </Link>
       <Link href={statsHref} role="menuitem" onClick={onClose} className="pm-item">
         <BarChart3 aria-hidden />

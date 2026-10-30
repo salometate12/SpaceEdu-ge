@@ -3,6 +3,7 @@
 import { logActivity } from "@/lib/activity-log";
 import { ArrowRight, FileText, X } from "lucide-react";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -16,7 +17,7 @@ import {
   QUIZ_COLUMN,
   QUIZ_FOCUS_RING,
   QUIZ_PRIMARY_BUTTON,
-  QuizBackLink,
+  useBackHref,
   QuizResults,
   QuizRun,
 } from "@/components/Quiz/QuizRun";
@@ -24,7 +25,12 @@ import { setDockHidden } from "@/lib/mobile-overlay";
 import { recordDailyActivity } from "@/lib/daily-streak";
 import { recordQuizResult } from "@/lib/dashboard-metrics";
 import { getActiveSubject } from "@/lib/activity";
-import { takeHandoff } from "@/lib/tool-handoff";
+import { hasHandoff, takeHandoff } from "@/lib/tool-handoff";
+import { BackButton } from "@/components/ui/BackButton";
+import { Toast } from "@/components/ui/Toast";
+import { MaterialsList, ResumeStrip } from "@/components/library/MaterialsList";
+import { ToolTabs, useToolTab } from "@/components/library/ToolTabs";
+import { useMaterials } from "@/components/library/useMaterials";
 import {
   answerTurn,
   createQuizRun,
@@ -47,6 +53,7 @@ import {
   type QuizQuestion,
 } from "@/lib/quiz-library";
 import { startQuizGeneration, watchGeneration } from "@/lib/library/generation";
+import { firstTryMistakes } from "@/lib/library/materials";
 import "./quiz-theme.css";
 
 export type { QuizQuestion };
@@ -140,7 +147,7 @@ export default function QuizPage() {
     const count = quiz.questions.length;
     const open = mode === "continue" ? unfinishedAttempt(quiz.id) : undefined;
     const last = latestAttempt(quiz.id);
-    const mistakes = mode === "mistakes" && last ? questionsToRepeat(last.run) : [];
+    const mistakes = mode === "mistakes" && last ? firstTryMistakes(last.run.firstTry) : [];
     const next = open ?? startAttempt(quiz.id, count, mistakes.length > 0 ? mistakes : undefined);
     setQuestions(quiz.questions);
     setQuizTitle(quiz.title);
@@ -170,9 +177,18 @@ export default function QuizPage() {
     return "active";
   }, [isLoading, generationError, questions.length, run]);
 
+  // „ახალი“ · „ჩემი მასალები“: the saved quizzes, on this page.
+  const materials = useMaterials();
+  const [handed] = useState(() => typeof window !== "undefined" && hasHandoff("quiz"));
+  const [tab, setTab] = useToolTab({ ready: materials.ready, hasItems: materials.quizzes.length > 0, forceNew: handed });
+  const [savedToast, setSavedToast] = useState(false);
+  const closeToast = useCallback(() => setSavedToast(false), []);
+  const backHref = useBackHref();
+  const library = phase === "input" && tab === "library";
+
   // Phones: the main button is pinned to the bottom on the upload and
   // generating screens too (the run hides the dock itself).
-  const pinnedBottom = phase === "input" || phase === "loading" || phase === "failed";
+  const pinnedBottom = (phase === "input" && tab === "new") || phase === "loading" || phase === "failed";
   useEffect(() => {
     setDockHidden("quiz-upload", pinnedBottom);
     return () => setDockHidden("quiz-upload", false);
@@ -295,6 +311,20 @@ export default function QuizPage() {
     }
   };
 
+  /** Back out of a run or its results to „ჩემი მასალები“; the attempt is saved first. */
+  const leaveRun = (saved: boolean) => {
+    if (pendingSave.current) saveAttempt(pendingSave.current);
+    else if (attempt && run.turns.length > 0) saveAttempt(attemptFromRun(attempt, run));
+    pendingSave.current = null;
+    restart();
+    const url = new URL(window.location.href);
+    url.searchParams.delete("quiz");
+    url.searchParams.delete("mode");
+    window.history.replaceState(window.history.state, "", url);
+    setTab("library");
+    setSavedToast(saved);
+  };
+
   const sourceName = file ? file.name.replace(/\.[^.]+$/, "") : quizTitle;
 
   if (phase === "results") {
@@ -304,7 +334,11 @@ export default function QuizPage() {
         run={run}
         sourceName={sourceName}
         onRepeatMistakes={repeatMistakes}
-        onNewQuiz={restart}
+        onNewQuiz={() => {
+          restart();
+          setTab("new");
+        }}
+        onBack={() => leaveRun(false)}
         repeatRun={repeatingMistakes}
       />
     );
@@ -321,7 +355,9 @@ export default function QuizPage() {
         onSelect={setSelectedOptionIndex}
         onCheck={checkAnswer}
         onNext={goNext}
-        onRestart={restart}
+        // „თავიდან“: the same quiz, a new attempt.
+        onRestart={() => (attempt ? openSaved(attempt.quizId, "restart") : restart())}
+        onBack={() => leaveRun(true)}
       />
     );
   }
@@ -342,8 +378,10 @@ export default function QuizPage() {
   // Upload, generating and its failure share the run's column and card.
   return (
     <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)] max-sm:pb-[calc(96px+env(safe-area-inset-bottom))]">
-      <main className={`${QUIZ_COLUMN} pb-10 pt-[calc(var(--safe-top)+12px)]`}>
-        <QuizBackLink />
+      <main
+        className={`${library ? "mx-auto w-full max-w-[1180px] px-4 sm:px-6 sm:pb-14 sm:pt-10" : QUIZ_COLUMN} pb-10 pt-[calc(var(--safe-top)+12px)]`}
+      >
+        <BackButton size="lg" fallbackHref={backHref} />
 
         {phase === "input" ? (
           <>
@@ -355,6 +393,18 @@ export default function QuizPage() {
                 ატვირთე PDF ან ტექსტი — მიიღებ ქვიზს, რომელიც გაგების შესამოწმებლადაა აწყობილი.
               </p>
             </div>
+
+            {tab ? <ToolTabs className="mt-6" tab={tab} count={materials.quizzes.length} onChange={setTab} /> : null}
+
+            {tab === "library" ? (
+              <div className="lib mt-5 flex flex-col gap-5">
+                <ResumeStrip items={materials.quizzes} kind="quiz" />
+                <MaterialsList items={materials.quizzes} kind="quiz" onCreate={() => setTab("new")} />
+              </div>
+            ) : null}
+
+            {tab === "new" ? (
+            <>
 
             <section
               aria-label="ქვიზის მასალა"
@@ -479,6 +529,8 @@ export default function QuizPage() {
                 <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
               </button>
             </div>
+            </>
+            ) : null}
           </>
         ) : (
           <div className="mt-5 sm:mt-6">
@@ -496,6 +548,7 @@ export default function QuizPage() {
           </div>
         )}
       </main>
+      {savedToast ? <Toast message="შენახულია, გააგრძელებ „ჩემს მასალებში“" onClose={closeToast} /> : null}
     </div>
   );
 }

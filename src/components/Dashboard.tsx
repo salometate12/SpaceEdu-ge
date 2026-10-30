@@ -19,6 +19,7 @@ import { DashboardStatCards } from "./dashboard/DashboardStatCards";
 import { DashboardSideRail } from "./dashboard/DashboardSideRail";
 import { DashboardCalendarPanel } from "./dashboard/DashboardCalendarPanel";
 import { StudentTools } from "./dashboard/StudentTools";
+import { ContinueCard } from "./library/ContinueCard";
 import { SemesterSubjects } from "./dashboard/SemesterSubjects";
 import { StudentStudyCalendar } from "./dashboard/StudentStudyCalendar";
 import { DailyGoals } from "./profile/DailyGoals";
@@ -123,6 +124,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           <div className="flex flex-col gap-5 max-[639px]:px-4">
           <DashboardStatCards metrics={metrics} />
+
+          <ContinueCard />
 
           <StudentTools />
 
