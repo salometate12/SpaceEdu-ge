@@ -3,16 +3,11 @@
 import { logActivity } from "@/lib/activity-log";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Check,
-  ChevronRight,
-  FileText,
-  HelpCircle,
-  LayoutTemplate,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
+import { StepperBar } from "@/components/ui/StepperBar";
+import { StepFooter } from "@/components/ui/wizard/StepFooter";
+import { WizardColumns } from "@/components/ui/wizard/WizardPage";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { PresentationResponse } from "@/lib/ai/presentation-schema";
 import { DEFAULT_PRESENTATION_LEVEL } from "@/lib/presentation-constants";
@@ -34,18 +29,13 @@ import { photoMeta, type UploadedPhoto } from "@/lib/presentation-photos";
 import { PresentationThinkingLoader } from "./PresentationThinkingLoader";
 import { Step1Info } from "./Step1Info";
 import { Step2Templates } from "./Step2Templates";
-import { Step3PhotosQA } from "./Step3PhotosQA";
+import { normalizeAudience, Step3PhotosQA } from "./Step3PhotosQA";
 import { Step4Result } from "./Step4Result";
-import { SURFACE } from "./surface";
+import { PresentationSummary } from "./PresentationSummary";
 
 export type { GeneratedSlide, PresentationForm, PresentationTemplate, QAAnswers } from "@/lib/presentation-types";
 
-const STEPS = [
-  { n: 1, label: "ინფო", icon: FileText },
-  { n: 2, label: "დიზაინი", icon: LayoutTemplate },
-  { n: 3, label: "დეტალები", icon: HelpCircle },
-  { n: 4, label: "შედეგი", icon: Sparkles },
-] as const;
+const STEPS = [{ label: "ინფორმაცია" }, { label: "დიზაინი" }, { label: "დეტალები" }, { label: "შედეგი" }];
 
 const SAVE_DELAY_MS = 800;
 
@@ -72,6 +62,8 @@ interface PresentationWizardProps {
   /** The first time it's saved (the page then puts the id in the URL). */
   onFirstSave?: (id: string) => void;
   onNewPresentation: () => void;
+  /** After each successful save (the page shows „შენახულია“ for a moment). */
+  onSaved?: () => void;
 }
 
 /** Everything that is saved; a new object whenever any of it changes. */
@@ -84,7 +76,11 @@ interface Snapshot {
   photos: UploadedPhoto[];
 }
 
-export function PresentationWizard({ presentationId, onFirstSave, onNewPresentation }: PresentationWizardProps) {
+export function PresentationWizard({ presentationId, onFirstSave, onNewPresentation, onSaved }: PresentationWizardProps) {
+  const onSavedRef = useRef(onSaved);
+  useEffect(() => {
+    onSavedRef.current = onSaved;
+  }, [onSaved]);
   const [loaded, setLoaded] = useState(false);
   const [step, setStep] = useState<SavedPresentation["step"]>(1);
   const [form, setForm] = useState<PresentationForm>(DEFAULT_FORM);
@@ -109,7 +105,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
           const { presentation } = saved;
           createdAt.current = presentation.createdAt;
           setForm({ ...DEFAULT_FORM, ...presentation.form });
-          setQa({ ...DEFAULT_QA, ...presentation.qa });
+          setQa({ ...DEFAULT_QA, ...presentation.qa, audience: normalizeAudience(presentation.qa?.audience ?? DEFAULT_QA.audience) });
           setSelectedTemplateId(presentation.templateId);
           setPhotos(saved.photos);
           if (presentation.slides?.length) {
@@ -187,6 +183,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         exists.current = true;
         setSavedSnapshot(current);
         setSaveProblem(null);
+        onSavedRef.current?.();
         if (first) onFirstSave?.(presentationId);
       } catch {
         setSaveProblem("error");
@@ -222,11 +219,11 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
   const saveStatus =
     saveProblem === "limit" ? (
       <span className="font-medium text-amber-700 dark:text-amber-300">
-        არ ინახება: უკვე {MAX_PRESENTATIONS} პრეზენტაცია გაქვს — ძველი წაშალე
+        არ ინახება: უკვე {MAX_PRESENTATIONS} პრეზენტაცია გაქვს, ძველი წაშალე
       </span>
     ) : saveProblem === "error" ? (
       <button type="button" onClick={() => void flush()} className="font-medium text-rose-600 underline-offset-2 hover:underline dark:text-rose-400">
-        ვერ შეინახა — სცადე ხელახლა
+        ვერ შეინახა. სცადე ხელახლა
       </button>
     ) : pending ? (
       <span className="inline-flex items-center gap-1 text-slate-500 dark:text-zinc-500">
@@ -310,175 +307,97 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {storageProblem ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200">
-          {storageProblem}
-        </p>
-      ) : null}
-      {step < 4 && saveStatus ? <div className="flex justify-end text-xs">{saveStatus}</div> : null}
-      <div className="flex items-center">
-        {STEPS.map((s, i) => {
-          const isDone = step > s.n;
-          const isActive = step === s.n;
-          const clickable = s.n < step && step < 4;
-          const StepIcon = s.icon;
-          return (
-            <div key={s.n} className="flex flex-1 items-center last:flex-none">
-              <button
-                type="button"
-                disabled={!clickable}
-                onClick={() => clickable && setStep(s.n as SavedPresentation["step"])}
-                className={`flex flex-col items-center gap-1.5 ${clickable ? "cursor-pointer" : "cursor-default"}`}
-              >
-                <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all ${
-                    isActive
-                      ? "border-pink-500 bg-pink-600 text-white shadow-[0_0_0_4px_rgba(124,58,237,0.15)] dark:border-pink-400 dark:bg-pink-500"
-                      : isDone
-                        ? "border-pink-300 bg-pink-50 text-pink-600 dark:border-pink-400/40 dark:bg-pink-500/10 dark:text-pink-300"
-                        : "border-slate-200 bg-white text-slate-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-600"
-                  }`}
-                >
-                  {isDone ? (
-                    <Check className="h-4 w-4" strokeWidth={2.5} />
-                  ) : (
-                    <StepIcon className="h-4 w-4" strokeWidth={2} />
-                  )}
-                </span>
-                <span
-                  className={`text-[11px] font-semibold ${
-                    isActive
-                      ? "text-pink-700 dark:text-pink-300"
-                      : "text-slate-500 dark:text-zinc-500"
-                  }`}
-                >
-                  {s.label}
-                </span>
-              </button>
-              {i < STEPS.length - 1 && (
-                <span
-                  className={`mx-2 h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                    isDone ? "bg-pink-300 dark:bg-pink-500/40" : "bg-slate-200 dark:bg-white/10"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+  const back = () => setStep((s) => Math.max(1, s - 1) as SavedPresentation["step"]);
+  const next = () => (step === 3 ? void generate() : setStep((s) => Math.min(3, s + 1) as SavedPresentation["step"]));
 
-      {/* One plain surface for steps 1–3. The editor (step 4) needs the full
-          width, so it sits straight on the page with no card around it. */}
-      <section className={editorStep ? "mt-6" : `mt-6 ${SURFACE}`}>
-        <>
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <PresentationThinkingLoader />
-              </motion.div>
-            ) : (
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -12 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {step === 1 && (
-                  <Step1Info
-                    form={form}
-                    onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
-                    photos={photos}
-                    onPhotosChange={setPhotos}
-                  />
-                )}
-                {step === 2 && (
-                  <Step2Templates
-                    templates={TEMPLATES}
-                    selectedTemplateId={selectedTemplateId}
-                    onSelect={setSelectedTemplateId}
-                  />
-                )}
-                {step === 3 && (
-                  <Step3PhotosQA
-                    qa={qa}
-                    onQaChange={(next) => setQa((prev) => ({ ...prev, ...next }))}
-                  />
-                )}
-                {step === 4 && deck && (
-                  <Step4Result
-                    deck={deck}
-                    photos={photos}
-                    language={form.language}
-                    topic={form.topic}
-                    canUndo={history.past.length > 0}
-                    canRedo={history.future.length > 0}
-                    onUndo={undo}
-                    onRedo={redo}
-                    onCommit={commitDeck}
-                    onPhotosChange={setPhotos}
-                    onNewPresentation={onNewPresentation}
-                    saveStatus={saveStatus}
-                  />
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {error && !loading && (
-            <div className="mt-5 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
-              {error}
-              <button className="ml-3 underline" onClick={generate}>
-                კვლავ სცადე
-              </button>
-            </div>
+  const body = (
+    <AnimatePresence mode="wait">
+      {loading ? (
+        <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <PresentationThinkingLoader />
+        </motion.div>
+      ) : (
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -12 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {step === 1 && (
+            <Step1Info form={form} onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))} photos={photos} onPhotosChange={setPhotos} />
           )}
-        </>
+          {step === 2 && <Step2Templates templates={TEMPLATES} selectedTemplateId={selectedTemplateId} onSelect={setSelectedTemplateId} />}
+          {step === 3 && <Step3PhotosQA qa={qa} onQaChange={(patch) => setQa((prev) => ({ ...prev, ...patch }))} />}
+          {step === 4 && deck && (
+            <Step4Result
+              deck={deck}
+              photos={photos}
+              language={form.language}
+              topic={form.topic}
+              canUndo={history.past.length > 0}
+              canRedo={history.future.length > 0}
+              onUndo={undo}
+              onRedo={redo}
+              onCommit={commitDeck}
+              onPhotosChange={setPhotos}
+              onNewPresentation={onNewPresentation}
+              saveStatus={saveStatus}
+            />
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
-        {step < 4 && (
-          <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-white/[0.08]">
-            <button
-              type="button"
-              disabled={step === 1 || loading}
-              onClick={() => setStep((s) => Math.max(1, s - 1) as SavedPresentation["step"])}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-              უკან
-            </button>
-            {step < 3 && (
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => setStep((s) => Math.min(3, s + 1) as SavedPresentation["step"])}
-                className="inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
-              >
-                შემდეგი
-                <ChevronRight className="h-4 w-4" strokeWidth={2} />
-              </button>
-            )}
-            {step === 3 && (
-              <button
-                type="button"
-                disabled={loading}
-                onClick={generate}
-                className="inline-flex items-center gap-1.5 rounded-full bg-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-pink-500 dark:hover:bg-pink-400"
-              >
-                <Sparkles className="h-4 w-4" strokeWidth={2} />
-                გენერაცია
-              </button>
-            )}
-          </footer>
-        )}
-      </section>
+  const errorBox =
+    error && !loading ? (
+      <Alert
+        tone="error"
+        className="mt-5"
+        action={
+          <button type="button" onClick={() => void generate()} className="wz-secondary h-10 px-4 text-[14px]">
+            კვლავ სცადე
+          </button>
+        }
+      >
+        {error}
+      </Alert>
+    ) : null;
+
+  return (
+    <div className="flex flex-col gap-5">
+      {storageProblem ? <Alert tone="warning">{storageProblem}</Alert> : null}
+      {/* Only a problem with saving is shown here; a good save is the page's „შენახულია“. */}
+      {step < 4 && saveProblem ? <div className="flex justify-end text-[13px]">{saveStatus}</div> : null}
+      <StepperBar steps={STEPS} current={step} onStep={step < 4 ? (n) => setStep(n as SavedPresentation["step"]) : undefined} />
+
+      {editorStep ? (
+        <section>
+          {body}
+          {errorBox}
+        </section>
+      ) : (
+        <WizardColumns
+          form={
+            <>
+              {body}
+              {errorBox}
+              {step < 4 && !loading ? (
+                <StepFooter
+                  step={step}
+                  total={STEPS.length}
+                  onBack={back}
+                  onNext={next}
+                  nextLabel={step === 3 ? "პრეზენტაციის შექმნა" : "შემდეგი"}
+                  final={step === 3}
+                />
+              ) : null}
+            </>
+          }
+          panel={step < 4 && !loading ? <PresentationSummary form={form} template={selectedTemplate} qa={qa} step={step} /> : undefined}
+        />
+      )}
     </div>
   );
 }

@@ -1,118 +1,58 @@
 "use client";
 
 import { HelpCircle } from "lucide-react";
+import { StepSection, TONES } from "@/components/ui/wizard/StepSection";
+import { ChoiceChips, Field } from "@/components/ui/wizard/fields";
 
-interface Step3PhotosQAProps {
-  qa: {
-    goal: string;
-    audience: string;
-    tone: string;
-    mainPoint: string;
-  };
-  onQaChange: (qa: Partial<{
-    goal: string;
-    audience: string;
-    tone: string;
-    mainPoint: string;
-  }>) => void;
+interface QA {
+  goal: string;
+  audience: string;
+  tone: string;
+  mainPoint: string;
 }
 
-const OPTIONS = {
+interface Step3PhotosQAProps {
+  qa: QA;
+  onQaChange: (qa: Partial<QA>) => void;
+}
+
+export const QA_OPTIONS = {
   goal: ["ცნების განმარტება", "არგუმენტის დამტკიცება", "ისტორიის მიმოხილვა", "კვლევის წარდგენა"],
-  audience: ["კლასელები", "პროფესორი", "კომისია", "შერეული"],
+  // Students present to their groupmates, not classmates.
+  audience: ["ჯგუფელები", "პროფესორი", "კომისია", "შერეული"],
   tone: ["აკადემიური", "მეგობრული", "ფორმალური", "კრეატიული"],
 };
 
-export function Step3PhotosQA({
-  qa,
-  onQaChange,
-}: Step3PhotosQAProps) {
-  return (
-    <section className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-pink-600 dark:border-pink-400/15 dark:bg-pink-500/10 dark:text-pink-400">
-          <HelpCircle className="h-4 w-4" />
-        </span>
-        <div>
-          <h2 className="headline text-xl font-semibold text-slate-900 dark:text-zinc-100">
-            დეტალები
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-zinc-400">
-            რამდენიმე კითხვა, რომ AI-მ ტექსტი შენს მიზანს მოარგოს
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <QASelect
-          label="რა არის შენი პრეზენტაციის მთავარი მიზანი?"
-          value={qa.goal}
-          options={OPTIONS.goal}
-          onChange={(value) => onQaChange({ goal: value })}
-        />
-        <QASelect
-          label="ვინ არის შენი აუდიტორია?"
-          value={qa.audience}
-          options={OPTIONS.audience}
-          onChange={(value) => onQaChange({ audience: value })}
-        />
-        <QASelect
-          label="რა ტონი გინდა?"
-          value={qa.tone}
-          options={OPTIONS.tone}
-          onChange={(value) => onQaChange({ tone: value })}
-        />
-        <label className="space-y-1 text-sm">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-            რა არის ყველაზე მნიშვნელოვანი?
-          </span>
-          <input
-            value={qa.mainPoint}
-            onChange={(e) => onQaChange({ mainPoint: e.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:border-pink-400/50 dark:focus:ring-pink-500/10"
-            placeholder="შეიყვანე მთავარი პუნქტი..."
-          />
-        </label>
-      </div>
-    </section>
-  );
+/** Saved presentations from before may still say „კლასელები“. */
+export function normalizeAudience(value: string): string {
+  return value === "კლასელები" ? "ჯგუფელები" : value;
 }
 
-function QASelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}) {
+const chips = (values: string[]) => values.map((value) => ({ value, label: value }));
+
+export function Step3PhotosQA({ qa, onQaChange }: Step3PhotosQAProps) {
   return (
-    <div className="space-y-2 text-sm">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-500">
-        {label}
-      </span>
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => {
-          const active = value === opt;
-          return (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => onChange(opt)}
-              className={`rounded-full border px-3 py-1 text-xs transition ${
-                active
-                  ? "border-pink-300 bg-pink-50 text-pink-700 shadow-sm dark:border-pink-400/30 dark:bg-pink-500/10 dark:text-pink-300"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-zinc-400 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-pink-300"
-              }`}
-            >
-              {opt}
-            </button>
-          );
-        })}
+    <StepSection icon={HelpCircle} tone={TONES.blue} title="დეტალები" subtitle="რამდენიმე კითხვა, რომ ტექსტი შენს მიზანს მოერგოს">
+      <div className="flex flex-col gap-[22px]">
+        <Field label="რა არის მთავარი მიზანი?">
+          <ChoiceChips label="რა არის მთავარი მიზანი?" options={chips(QA_OPTIONS.goal)} value={qa.goal} onChange={(goal) => onQaChange({ goal })} />
+        </Field>
+        <Field label="ვინ არის აუდიტორია?">
+          <ChoiceChips label="ვინ არის აუდიტორია?" options={chips(QA_OPTIONS.audience)} value={normalizeAudience(qa.audience)} onChange={(audience) => onQaChange({ audience })} />
+        </Field>
+        <Field label="რა ტონი გინდა?">
+          <ChoiceChips label="რა ტონი გინდა?" options={chips(QA_OPTIONS.tone)} value={qa.tone} onChange={(tone) => onQaChange({ tone })} />
+        </Field>
+        <Field label="რა არის ყველაზე მნიშვნელოვანი?" optional htmlFor="pr-main">
+          <input
+            id="pr-main"
+            value={qa.mainPoint}
+            onChange={(e) => onQaChange({ mainPoint: e.target.value })}
+            placeholder="მაგ. სინათლის და ბნელი ფაზების განსხვავება"
+            className="wz-input"
+          />
+        </Field>
       </div>
-    </div>
+    </StepSection>
   );
 }
