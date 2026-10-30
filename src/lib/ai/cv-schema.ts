@@ -10,7 +10,12 @@ export const CvProfileSchema = z.object({
   university: z.string().optional(),
   degree: z.string().optional(),
   graduationYear: z.string().optional(),
+  /** Old clients: all the experience as one text (read as the first entry). */
   experienceText: z.string().optional(),
+  experiences: z
+    .array(z.object({ role: z.string().default(""), place: z.string().default(""), description: z.string().default("") }))
+    .max(6)
+    .optional(),
   tools: z.array(z.string()).default([]),
   softSkills: z.string().optional(),
   /** Old ids (minimal-tech…) still arrive from saved state; mapped to the new set. */

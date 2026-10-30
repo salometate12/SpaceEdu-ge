@@ -1,6 +1,6 @@
 import { Noto_Serif_Georgian } from "next/font/google";
 import { CvGenerator } from "@/components/cv/CvGenerator";
-import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
+import { WizardPage } from "@/components/ui/wizard/WizardPage";
 
 /** The classic template's serif (the sans is the site's own). */
 const notoSerifGeorgian = Noto_Serif_Georgian({
@@ -11,12 +11,14 @@ const notoSerifGeorgian = Noto_Serif_Georgian({
 
 export default function CvPage() {
   return (
-    <main className={`${notoSerifGeorgian.variable} mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-8`}>
-      <ToolPageHeader
+    <div className={notoSerifGeorgian.variable}>
+      <WizardPage
         title="AI CV გენერატორი"
-        subtitle="შეავსე შენი მონაცემები და AI შეგირჩევს იდეალურ სტრუქტურას სტაჟირებებისა და ვაკანსიებისთვის."
-      />
-      <CvGenerator />
-    </main>
+        subtitle="შეავსე მონაცემები და მიიღე მზა CV სტაჟირებისთვის ან ვაკანსიისთვის"
+        backHref="/dashboard-student"
+      >
+        <CvGenerator />
+      </WizardPage>
+    </div>
   );
 }
