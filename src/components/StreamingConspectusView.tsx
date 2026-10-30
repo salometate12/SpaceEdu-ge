@@ -31,10 +31,13 @@ interface PendingPayload {
 
 function saveAndRedirect(
   router: ReturnType<typeof useRouter>,
-  topic: string,
+  pending: PendingPayload,
   body: string,
   savedRef: React.MutableRefObject<boolean>,
 ) {
+  const topic = pending.topic;
+  const inputType = pending.formData.get("inputType");
+  const sourceLabel = pending.formData.get("sourceLabel");
   if (savedRef.current || !body.trim()) return false;
 
   savedRef.current = true;
@@ -46,6 +49,9 @@ function saveAndRedirect(
     title,
     content: body.trim(),
     createdAt: Date.now(),
+    status: "ready",
+    ...(typeof inputType === "string" && inputType ? { sourceType: inputType } : {}),
+    ...(typeof sourceLabel === "string" && sourceLabel ? { sourceLabel } : {}),
   });
 
   router.replace(`/conspectus/${id}`);
@@ -95,7 +101,7 @@ export function StreamingConspectusView({
           throw new Error(ka.generator.error);
         }
 
-        saveAndRedirect(router, pending.topic, body, savedRef);
+        saveAndRedirect(router, pending, body, savedRef);
       } catch (err) {
         if (controller.signal.aborted) return;
 
@@ -162,7 +168,7 @@ export function StreamingConspectusView({
   const savePartial = () => {
     const pending = pendingRef.current;
     if (!pending) return;
-    saveAndRedirect(router, pending.topic, contentRef.current, savedRef);
+    saveAndRedirect(router, pending, contentRef.current, savedRef);
   };
 
   const leftPanel = (

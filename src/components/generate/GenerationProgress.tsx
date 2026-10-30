@@ -56,6 +56,7 @@ export function GenerationProgress({
   error,
   onRetry,
   onBack,
+  keepsGoing = false,
 }: {
   kind?: "flashcards" | "summary";
   total: number;
@@ -65,6 +66,8 @@ export function GenerationProgress({
   error: string | null;
   onRetry: () => void;
   onBack: () => void;
+  /** Saved and finished without this page: says it can be closed. */
+  keepsGoing?: boolean;
 }) {
   const elapsed = useElapsed();
   const [tip, setTip] = useState(0);
@@ -182,6 +185,9 @@ export function GenerationProgress({
                 <div className="h-2.5 overflow-hidden rounded-full bg-[var(--gen-soft)]" role="progressbar" aria-label="პროგრესი" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
                   <div className="h-full rounded-full bg-[#e11d74] transition-[width] duration-700" style={{ width: `${Math.max(3, percent)}%` }} />
                 </div>
+                {keepsGoing ? (
+                  <p className="-mt-3 text-[13.5px] text-[var(--gen-muted)]">შეგიძლია დახურო, მზად რომ იქნება შეგატყობინებთ</p>
+                ) : null}
 
                 <div className="mt-auto rounded-[18px] bg-[#fefce8] p-4 dark:bg-[rgba(250,204,21,0.1)]">
                   <p className="text-[12.5px] font-bold text-[#854d0e] dark:text-[#fde68a]">რჩევა</p>

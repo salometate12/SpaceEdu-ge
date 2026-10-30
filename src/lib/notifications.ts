@@ -109,6 +109,14 @@ function addIfMissing(list: AppNotification[], fresh: AppNotification[]): AppNot
   return [...list, ...fresh.filter((item) => !ids.has(item.id))];
 }
 
+/** One notification from the app itself (a deck or quiz that's ready), once per id. */
+export function addSystemNotification(item: { id: string; title: string; body?: string; href?: string }, now: Date = new Date()): void {
+  if (typeof window === "undefined") return;
+  const list = getAllNotifications(now);
+  const next = addIfMissing(list, [{ ...item, kind: "system", createdAt: now.toISOString(), readAt: null }]);
+  if (next.length !== list.length) writeAll(pruneNotifications(next, now));
+}
+
 const MORNING_HOUR = 6;
 
 const DUE_TYPE: Record<string, string> = { deadline: "დედლაინი", midterm: "შუალედური", final: "ფინალური", quiz: "ქვიზი" };

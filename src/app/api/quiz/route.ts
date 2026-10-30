@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { jobStoreForRequest, type JobStore } from "@/lib/generation-jobs-server";
 import { extractTextFromPdfFile, PdfExtractError } from "@/lib/ai/extract-pdf-text";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
@@ -78,6 +80,11 @@ export async function POST(request: Request) {
   const limited = await enforceRateLimit(request, "ai");
   if (limited) return limited;
 
+  // A signed-in student's quiz: kept as a job row too (lib/generation-jobs),
+  // so a tab closed while it was being made still finds it.
+  let store: JobStore | null = null;
+  let jobId = "";
+
   try {
     requireApiKey("quiz");
 
@@ -94,6 +101,8 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const fileEntry = formData.get("file");
+    jobId = String(formData.get("jobId") ?? "");
+    store = await jobStoreForRequest(jobId);
 
     if (!(fileEntry instanceof File)) {
       return Response.json(
@@ -118,8 +127,20 @@ export async function POST(request: Request) {
       temperature: 0.35,
     });
 
+    if (store) {
+      const jobs = store;
+      after(() =>
+        jobs.write({ id: jobId, kind: "quiz", status: "ready", questions: (object as { questions?: unknown[] }).questions ?? [], updatedAt: Date.now() }),
+      );
+    }
+
     return Response.json(object);
   } catch (error) {
+    if (store) {
+      const jobs = store;
+      const message = error instanceof Error ? error.message.slice(0, 300) : "";
+      after(() => jobs.write({ id: jobId, kind: "quiz", status: "failed", error: message, updatedAt: Date.now() }));
+    }
     if (error instanceof PdfExtractError) {
       return Response.json(
         { error: true, message: error.message },

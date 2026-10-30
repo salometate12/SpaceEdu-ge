@@ -14,6 +14,7 @@ export const LECTURE_NOTES_UPDATED_EVENT = "spaceedu-lecture-notes-updated";
 export const ABIT_LECTURE_NOTES_UPDATED_EVENT = "spaceedu-abit-lecture-notes-updated";
 export const CONSPECTUS_UPDATED_EVENT = "spaceedu-conspectus-updated";
 export const CUSTOM_DECKS_UPDATED_EVENT = "spaceedu-custom-decks-updated";
+export const QUIZZES_UPDATED_EVENT = "spaceedu-quizzes-updated";
 export const AI_TEACHER_HISTORY_UPDATED_EVENT = "spaceedu-ai-teacher-history-updated";
 export const ASSISTANT_HISTORY_UPDATED_EVENT = "spaceedu-assistant-history-updated";
 export const CV_PREFS_UPDATED_EVENT = "spaceedu-cv-prefs-updated";
@@ -43,6 +44,11 @@ export const LECTURE_NOTES_STORAGE_KEY = "spaceedu-lecture-notes";
 export const ABIT_LECTURE_NOTES_STORAGE_KEY = "spaceedu-abit-lecture-notes";
 export const CONSPECTUS_STORAGE_KEY = "flashcards-conspectus";
 export const CUSTOM_DECKS_STORAGE_KEY = "flashcards-custom-decks";
+/** Saved quizzes (lib/quiz-library): the questions, kept for „ჩემი მასალები“. */
+export const QUIZZES_KEY = "spaceedu-quizzes";
+/** Every pass through a saved quiz, finished or not. */
+export const QUIZ_ATTEMPTS_KEY = "spaceedu-quiz-attempts";
+export const QUIZ_ATTEMPTS_LIMIT = 80;
 export const AI_TEACHER_HISTORY_KEYS = {
   student: "spaceedu-ai-teacher-conversations-student",
   abiturient: "spaceedu-ai-teacher-conversations-abiturient",
@@ -256,7 +262,10 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: LECTURE_NOTES_UPDATED_EVENT },
   { key: ABIT_LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: ABIT_LECTURE_NOTES_UPDATED_EVENT },
   { key: CONSPECTUS_STORAGE_KEY, merge: mergeNewestById("createdAt", 20), event: CONSPECTUS_UPDATED_EVENT },
-  { key: CUSTOM_DECKS_STORAGE_KEY, merge: unionById, event: CUSTOM_DECKS_UPDATED_EVENT },
+  { key: QUIZZES_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT },
+  { key: QUIZ_ATTEMPTS_KEY, merge: mergeNewestById("updatedAt", QUIZ_ATTEMPTS_LIMIT), event: QUIZZES_UPDATED_EVENT },
+  // A deck generating on one device, renamed or deleted on another: the later edit wins.
+  { key: CUSTOM_DECKS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CUSTOM_DECKS_UPDATED_EVENT },
   { key: AI_TEACHER_HISTORY_KEYS.student, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },
   { key: AI_TEACHER_HISTORY_KEYS.abiturient, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },
   { key: ASSISTANT_HISTORY_KEY_BASE, variants: true, merge: mergeNewestById("createdAt", 24), event: ASSISTANT_HISTORY_UPDATED_EVENT },
