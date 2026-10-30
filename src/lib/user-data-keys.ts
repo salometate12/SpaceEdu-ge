@@ -261,7 +261,8 @@ export const SYNCED_KEYS: SyncSpec[] = [
   // Content (PR 2).
   { key: LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: LECTURE_NOTES_UPDATED_EVENT },
   { key: ABIT_LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: ABIT_LECTURE_NOTES_UPDATED_EVENT },
-  { key: CONSPECTUS_STORAGE_KEY, merge: mergeNewestById("createdAt", 20), event: CONSPECTUS_UPDATED_EVENT },
+  // Renamed or deleted on one device: the later edit wins (saveConspectus keeps 20).
+  { key: CONSPECTUS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CONSPECTUS_UPDATED_EVENT },
   { key: QUIZZES_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT },
   { key: QUIZ_ATTEMPTS_KEY, merge: mergeNewestById("updatedAt", QUIZ_ATTEMPTS_LIMIT), event: QUIZZES_UPDATED_EVENT },
   // A deck generating on one device, renamed or deleted on another: the later edit wins.

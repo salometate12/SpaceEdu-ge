@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AudioLines,
@@ -19,7 +19,7 @@ import {
 import { BackButton } from "@/components/ui/BackButton";
 import { FieldError } from "@/components/ui/Alert";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
-import { takeHandoff } from "@/lib/tool-handoff";
+import { hasHandoff, takeHandoff } from "@/lib/tool-handoff";
 import type { UploadedData } from "@/lib/generation-input";
 import { GENERATION_ERROR } from "@/lib/generate-flashcards";
 import { followProgress, isGeneratingHere, startDeckGeneration, watchGeneration } from "@/lib/library/generation";
@@ -42,6 +42,9 @@ import { AudioRecorder } from "./generate/AudioRecorder";
 import { GenerationProgress } from "./generate/GenerationProgress";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
 import { useYouTubePreview, YouTubeSource, type YouTubeMode } from "./generate/YouTubeSource";
+import { MaterialsList, ResumeStrip } from "./library/MaterialsList";
+import { ToolTabs, useToolTab } from "./library/ToolTabs";
+import { useMaterials } from "./library/useMaterials";
 import "./generate/generate.css";
 
 export type { UploadedData };
@@ -147,6 +150,11 @@ export function CardGenerator() {
 
   const ytPreview = useYouTubePreview(youtubeUrl);
 
+  // „ახალი“ · „ჩემი მასალები“: the saved decks and conspectus, on this page.
+  const materials = useMaterials();
+  const libraryItems = useMemo(() => [...materials.decks, ...materials.conspectus], [materials]);
+  const [handed] = useState(() => typeof window !== "undefined" && hasHandoff("cards"));
+
   // Opened from a journal entry („გადააქციე ბარათებად“): its text, ready to go.
   useEffect(() => {
     void Promise.resolve().then(() => {
@@ -178,6 +186,13 @@ export function CardGenerator() {
       active = false;
     };
   }, [presetId]);
+
+  const [tab, setTab] = useToolTab({
+    ready: materials.ready,
+    hasItems: libraryItems.length > 0,
+    // Opened with material to use: straight to „ახალი“.
+    forceNew: handed || Boolean(presetId),
+  });
 
   const setCountValue = (value: number) => {
     const next = clampCardCount(value);
@@ -340,7 +355,7 @@ export function CardGenerator() {
 
   return (
     <div className="gen under-site-header min-h-dvh max-md:-mt-[var(--safe-top)] max-md:-mb-36 max-md:pb-36">
-      <div className="mx-auto w-full max-w-[1180px] px-4 pb-[230px] pt-[calc(var(--safe-top)+16px)] sm:px-6 md:pb-16 md:pt-10">
+      <div className={`mx-auto w-full max-w-[1180px] px-4 pt-[calc(var(--safe-top)+16px)] sm:px-6 md:pb-16 md:pt-10 ${tab === "new" ? "pb-[230px]" : "pb-16"}`}>
         <header className="flex items-start gap-3 sm:gap-4">
           <BackButton fallbackHref={DASHBOARD_HREF} />
           <div className="min-w-0 flex-1">
@@ -349,6 +364,16 @@ export function CardGenerator() {
           </div>
         </header>
 
+        {tab ? <ToolTabs className="mt-5 sm:mt-6" tab={tab} count={libraryItems.length} onChange={setTab} /> : null}
+
+        {tab === "library" ? (
+          <div className="lib mt-5 flex flex-col gap-5">
+            <ResumeStrip items={materials.decks} kind="deck" />
+            <MaterialsList items={libraryItems} kind="deck" onCreate={() => setTab("new")} />
+          </div>
+        ) : null}
+
+        {tab === "new" ? (
         <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr]">
           <section aria-label="მასალა" className="gen-card flex min-w-0 flex-col gap-6 p-4 sm:p-6">
             <div>
@@ -586,6 +611,7 @@ export function CardGenerator() {
             </div>
           </section>
         </div>
+        ) : null}
       </div>
     </div>
   );

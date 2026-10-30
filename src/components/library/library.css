@@ -1,0 +1,193 @@
+/*
+ * „ჩემი მასალები“ (/library, the library tab of /generate and /quiz, the
+ * dashboard's „continue“ card), both themes. `.lib` is the root.
+ */
+.lib {
+  --lib-card: #ffffff;
+  --lib-border: #ece9e4;
+  --lib-field-border: #e7e5e4;
+  --lib-title: #1c1a17;
+  --lib-text: #57534e;
+  --lib-muted: #78716c;
+  --lib-soft: #f5f4f0;
+  --lib-hover: #f5f4f0;
+  --lib-track: #f1efeb;
+  --lib-strong: #1c1a17;
+  --lib-on-strong: #ffffff;
+  --lib-pink: #e11d74;
+  --lib-count-bg: #fce7f3;
+  --lib-count: #9d174d;
+  --lib-known: #4ade80;
+  --lib-unknown: #fda4af;
+  --lib-teal: #0f766e;
+  --lib-ok: #16a34a;
+  --lib-warn: #d97706;
+  --lib-bad: #e11d48;
+  --lib-resume-deck: #fdf2f8;
+  --lib-resume-quiz: #f0fdfa;
+  --lib-resume-border: #fbcfe8;
+  --lib-resume-quiz-border: #99f6e4;
+  color: var(--lib-text);
+}
+
+html.dark .lib {
+  --lib-card: #15151b;
+  --lib-border: #26262e;
+  --lib-field-border: #2e2e38;
+  --lib-title: #fafaf9;
+  --lib-text: #d4d4d8;
+  --lib-muted: #a1a1aa;
+  --lib-soft: #1b1b22;
+  --lib-hover: #1f1f27;
+  --lib-track: #26262e;
+  --lib-strong: #fafaf9;
+  --lib-on-strong: #15151b;
+  --lib-count-bg: rgba(236, 72, 153, 0.18);
+  --lib-count: #f9a8d4;
+  --lib-unknown: #fb7185;
+  --lib-teal: #2dd4bf;
+  --lib-ok: #4ade80;
+  --lib-warn: #fbbf24;
+  --lib-bad: #fb7185;
+  --lib-resume-deck: rgba(236, 72, 153, 0.1);
+  --lib-resume-quiz: rgba(45, 212, 191, 0.08);
+  --lib-resume-border: rgba(236, 72, 153, 0.3);
+  --lib-resume-quiz-border: rgba(45, 212, 191, 0.3);
+}
+
+.lib .lib-card,
+.lib.lib-card {
+  background: var(--lib-card);
+  border: 1px solid var(--lib-border);
+  border-radius: 22px;
+}
+
+.lib .lib-focus:focus-visible {
+  outline: 2px solid var(--lib-pink);
+  outline-offset: 2px;
+}
+
+/* The source tile: its colours come from the kind of material. */
+.lib .lib-tile {
+  background: var(--tile-bg);
+  color: var(--tile);
+}
+.lib .src-file { --tile-bg: #fdf2f8; --tile: #db2777; }
+.lib .src-youtube { --tile-bg: #fff1f2; --tile: #e11d48; }
+.lib .src-presentation { --tile-bg: #fff7ed; --tile: #c2410c; }
+.lib .src-audio { --tile-bg: #f0fdf4; --tile: #15803d; }
+.lib .src-video { --tile-bg: #eff6ff; --tile: #1d4ed8; }
+.lib .src-text { --tile-bg: #f5f4f0; --tile: #57534e; }
+html.dark .lib .src-file { --tile-bg: rgba(236, 72, 153, 0.14); --tile: #f472b6; }
+html.dark .lib .src-youtube { --tile-bg: rgba(244, 63, 94, 0.14); --tile: #fb7185; }
+html.dark .lib .src-presentation { --tile-bg: rgba(249, 115, 22, 0.14); --tile: #fdba74; }
+html.dark .lib .src-audio { --tile-bg: rgba(74, 222, 128, 0.12); --tile: #86efac; }
+html.dark .lib .src-video { --tile-bg: rgba(59, 130, 246, 0.14); --tile: #93c5fd; }
+html.dark .lib .src-text { --tile-bg: #1f1f27; --tile: #d4d4d8; }
+
+/* Chips (filters, tabs): picked is solid dark. */
+.lib .lib-chip {
+  display: inline-flex;
+  height: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--lib-field-border);
+  background: var(--lib-card);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lib-text);
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.lib .lib-chip:hover {
+  border-color: var(--lib-muted);
+}
+.lib .lib-chip[aria-pressed="true"],
+.lib .lib-chip[aria-selected="true"] {
+  border-color: var(--lib-strong);
+  background: var(--lib-strong);
+  color: var(--lib-on-strong);
+}
+
+.lib .lib-count {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--lib-count-bg);
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--lib-count);
+}
+
+.lib .lib-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  background: var(--lib-pink);
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 120ms ease;
+}
+.lib .lib-primary:hover {
+  background: #cf1769;
+}
+.lib .lib-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--lib-field-border);
+  background: var(--lib-card);
+  color: var(--lib-title);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lib .lib-secondary:hover {
+  background: var(--lib-hover);
+}
+
+/* Filters scroll sideways on a phone instead of wrapping. */
+.lib .lib-scroll {
+  scrollbar-width: none;
+}
+.lib .lib-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes lib-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.lib .lib-generating-bar {
+  background: linear-gradient(90deg, #e11d74 0%, #f472b6 50%, #e11d74 100%);
+  background-size: 200% 100%;
+  animation: lib-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lib .lib-generating-bar {
+    animation: none;
+  }
+}
+
+/* On the picked (white) tab of the dark theme, the light count reads better. */
+html.dark .lib [aria-selected="true"] .lib-count {
+  background: #fce7f3;
+  color: #9d174d;
+}

@@ -4,6 +4,7 @@ import {
   BookMarked,
   Calculator,
   FileSearch,
+  FolderOpen,
   LayoutDashboard,
   Library,
   MessageSquare,
@@ -61,6 +62,7 @@ export function abiturientMenuGroups(): AbitMenuGroup[] {
       items: [
         { id: "dashboard", label: "დეშბორდი", href: "/dashboard-abit", icon: LayoutDashboard },
         { id: "quiz", label: "ვიქტორინა", href: "/quiz", icon: Brain },
+        { id: "my-materials", label: "ჩემი მასალები", href: "/library", icon: FolderOpen },
         { id: "profile", label: "პროფილი", href: "/profile-abiturient", icon: User },
       ],
     },

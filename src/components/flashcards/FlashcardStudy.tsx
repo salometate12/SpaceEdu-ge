@@ -20,6 +20,7 @@ import {
 } from "@/lib/flashcard-session";
 import { markCardLearned } from "@/lib/progress";
 import { readSpaceeduSpace } from "@/lib/space-back-navigation";
+import { deckAsQuizText } from "@/lib/library/materials";
 import { handOff } from "@/lib/tool-handoff";
 import type { Deck, Flashcard } from "@/lib/types";
 import { FlashcardResults } from "./FlashcardResults";
@@ -30,11 +31,6 @@ import "@/components/generate/generate.css";
 const SEGMENTS_UP_TO = 30;
 /** How far a swipe must go before it counts as an answer. */
 const SWIPE_THRESHOLD = 90;
-
-/** The deck's questions and answers as one text, for the quiz generator. */
-export function deckAsQuizText(deck: Deck): string {
-  return deck.cards.map((card, index) => `${index + 1}. ${card.question}\nპასუხი: ${card.answer}`).join("\n\n");
-}
 
 function ProgressBar({ deck, session }: { deck: Deck; session: FlashcardSession }) {
   const currentId = session.finishedAt ? null : session.order[session.index];

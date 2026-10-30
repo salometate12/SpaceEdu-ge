@@ -32,3 +32,12 @@ export function takeHandoff(target: HandoffTarget): Handoff | null {
     return null;
   }
 }
+
+/** Whether a tool has text waiting (it should open on its „ახალი“ tab). */
+export function hasHandoff(target: HandoffTarget): boolean {
+  try {
+    return window.sessionStorage.getItem(key(target)) !== null;
+  } catch {
+    return false;
+  }
+}

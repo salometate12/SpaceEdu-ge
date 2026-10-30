@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Check, MoreHorizontal, RotateCcw, X } from "lucide-react";
+import { ArrowRight, Check, MoreHorizontal, RotateCcw, X } from "lucide-react";
 import { parseInline } from "@/lib/markdown-blocks";
 import { setDockHidden } from "@/lib/mobile-overlay";
 import {
@@ -17,6 +17,7 @@ import {
   type SegmentState,
 } from "@/lib/quiz-run";
 import { getSpaceBackTarget, readSpaceeduSpace } from "@/lib/space-back-navigation";
+import { BackButton } from "@/components/ui/BackButton";
 
 export interface QuizRunQuestion {
   questionText: string;
@@ -37,8 +38,8 @@ export const QUIZ_PRIMARY_BUTTON = `inline-flex h-[52px] items-center justify-ce
 /** Every quiz screen sits in the same column, so nothing jumps between them. */
 export const QUIZ_COLUMN = "mx-auto w-full max-w-[720px] px-4 sm:px-6 sm:pb-14 sm:pt-10";
 
-/** The page's quiet round buttons (back, ⋯). */
-const ROUND_BUTTON = `inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--quiz-line)] bg-[var(--quiz-card)] text-[var(--quiz-strong)] transition-colors hover:border-[var(--quiz-muted)] ${FOCUS_RING}`;
+/** The run's ⋯, the size of the back button beside it. */
+const ROUND_BUTTON = `inline-flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full border border-[var(--quiz-line)] bg-[var(--quiz-card)] text-[var(--quiz-strong)] transition-colors hover:border-[var(--quiz-muted)] ${FOCUS_RING}`;
 
 const SEGMENT_CLASS: Record<SegmentState, string> = {
   correct: "border-transparent bg-[var(--quiz-seg-ok)]",
@@ -67,20 +68,6 @@ export function useBackHref(): string {
     void Promise.resolve().then(() => setHref(getSpaceBackTarget({ from: null, space: readSpaceeduSpace() }).href));
   }, []);
   return href;
-}
-
-/** „← დეშბორდზე დაბრუნება“, the same on every quiz screen. */
-export function QuizBackLink({ className = "" }: { className?: string }) {
-  const href = useBackHref();
-  return (
-    <Link
-      href={href}
-      className={`inline-flex h-10 items-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--quiz-muted)] transition-colors hover:text-[var(--quiz-strong)] ${QUIZ_FOCUS_RING} ${className}`}
-    >
-      <ArrowLeft className="h-4 w-4" aria-hidden />
-      დეშბორდზე დაბრუნება
-    </Link>
-  );
 }
 
 function Progress({ segments, number }: { segments: SegmentState[]; number: number }) {
@@ -193,6 +180,7 @@ export function QuizRun({
   onCheck,
   onNext,
   onRestart,
+  onBack,
 }: {
   question: QuizRunQuestion;
   run: QuizRunState;
@@ -203,6 +191,8 @@ export function QuizRun({
   onCheck: () => void;
   onNext: () => void;
   onRestart: () => void;
+  /** Leaving the run: it's saved, the page goes back to „ჩემი მასალები“. */
+  onBack: () => void;
 }) {
   const turn = currentTurn(run);
   const index = turn?.question ?? 0;
@@ -212,7 +202,6 @@ export function QuizRun({
   const totals = quizTotals(run);
   const answered = run.chosen.filter((choice) => choice !== null).length;
   const segments = progressSegments(run, { checked: submitted });
-  const backHref = useBackHref();
 
   // The phone's main button owns the bottom edge while the quiz runs.
   useEffect(() => {
@@ -286,12 +275,9 @@ export function QuizRun({
   return (
     <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)] max-sm:pb-[calc(96px+env(safe-area-inset-bottom))]">
       <div className={`${QUIZ_COLUMN} pb-10`}>
-        {/* Top: back to the dashboard, and ⋯ with „თავიდან“. On phones the progress sits between them. */}
+        {/* Top: back (saved, to „ჩემი მასალები“), and ⋯ with „თავიდან“. On phones the progress sits between them. */}
         <header className="sticky top-0 z-30 -mx-4 flex items-center gap-3 bg-[var(--quiz-bg)] px-4 pb-3 pt-[calc(var(--safe-top)+12px)] sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pt-0">
-          <Link href={backHref} aria-label="დეშბორდზე დაბრუნება" className={`${ROUND_BUTTON} sm:hidden`}>
-            <ArrowLeft className="h-[18px] w-[18px]" />
-          </Link>
-          <QuizBackLink className="max-sm:hidden" />
+          <BackButton size="lg" onClick={onBack} />
           <div className="min-w-0 flex-1 sm:hidden">
             <Progress segments={segments} number={index + 1} />
           </div>
@@ -467,6 +453,7 @@ export function QuizResults({
   sourceName,
   onRepeatMistakes,
   onNewQuiz,
+  onBack,
   repeatRun = false,
 }: {
   questions: QuizRunQuestion[];
@@ -476,6 +463,7 @@ export function QuizResults({
   repeatRun?: boolean;
   onRepeatMistakes: () => void;
   onNewQuiz: () => void;
+  onBack: () => void;
 }) {
   const backHref = useBackHref();
   const totals = quizTotals(run);
@@ -486,7 +474,7 @@ export function QuizResults({
   return (
     <div className="quiz-run under-site-header min-h-dvh max-sm:-mt-[var(--safe-top)]">
       <div className={`${QUIZ_COLUMN} pb-16 pt-[calc(var(--safe-top)+12px)]`}>
-        <QuizBackLink />
+        <BackButton size="lg" onClick={onBack} />
 
         <section
           aria-label="შედეგები"
