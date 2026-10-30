@@ -1,9 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import {
-  DM_Sans,
-  Noto_Sans_Georgian,
-  Sora,
-} from "next/font/google";
 import localFont from "next/font/local";
 import { HeaderByPath } from "@/components/layout/Header";
 import { DocumentGround } from "@/components/layout/DocumentGround";
@@ -26,26 +21,26 @@ import { PwaRegister } from "@/components/pwa/PwaRegister";
 import { UserDataSync } from "@/components/UserDataSync";
 import "./globals.css";
 
-const notoGeorgian = Noto_Sans_Georgian({
+// Every font is self-hosted (src/fonts/README.md): Turbopack's
+// next/font/google download kept failing the Vercel build.
+const notoGeorgian = localFont({
+  src: [{ path: "../fonts/noto-sans-georgian/NotoSansGeorgian-Variable.woff2", weight: "400 700", style: "normal" }],
   variable: "--font-noto-georgian",
-  subsets: ["georgian", "latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const sora = Sora({
+const sora = localFont({
+  src: [{ path: "../fonts/sora/Sora-Variable.woff2", weight: "500 700", style: "normal" }],
   variable: "--font-sora",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  display: "swap",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
+  src: [{ path: "../fonts/dm-sans/DMSans-Variable.woff2", weight: "400 700", style: "normal" }],
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-// Self-hosted (latin, from @fontsource/jetbrains-mono 5.2.8; OFL in the
-// folder): Turbopack's next/font/google fetch kept failing on Vercel for it.
 const jetbrainsMono = localFont({
   src: [
     { path: "../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2", weight: "400", style: "normal" },

@@ -1,16 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Noto_Serif_Georgian } from "next/font/google";
+import { notoSerifGeorgian } from "@/fonts/serif";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ToolPageHeader } from "@/components/layout/ToolPageHeader";
 import { PresentationApp } from "@/components/presentation/PresentationApp";
-
-/** Paper's slide titles (the sans font is the site's own). */
-const notoSerifGeorgian = Noto_Serif_Georgian({
-  variable: "--font-noto-serif-georgian",
-  subsets: ["georgian", "latin"],
-  weight: ["600", "700"],
-});
 
 export default function PresentationPage() {
   return (
