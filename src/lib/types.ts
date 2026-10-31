@@ -43,6 +43,9 @@ export interface Deck {
   jobId?: string;
   /** What to send again for „თავიდან ცდა“ (no files: those can't be kept). */
   retry?: GenerationRetry;
+  /** „ჩემი საგნები“: the subject (semester subject id) and topic it was made for. */
+  subjectId?: string;
+  topicId?: string;
 }
 
 export type DeckStatus = "generating" | "ready" | "failed";

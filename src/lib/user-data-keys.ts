@@ -16,6 +16,7 @@ export const CONSPECTUS_UPDATED_EVENT = "spaceedu-conspectus-updated";
 export const CUSTOM_DECKS_UPDATED_EVENT = "spaceedu-custom-decks-updated";
 export const QUIZZES_UPDATED_EVENT = "spaceedu-quizzes-updated";
 export const TASK_HELPERS_UPDATED_EVENT = "spaceedu-task-helpers-updated";
+export const SUBJECTS_UPDATED_EVENT = "spaceedu-subjects-updated";
 export const AI_TEACHER_HISTORY_UPDATED_EVENT = "spaceedu-ai-teacher-history-updated";
 export const ASSISTANT_HISTORY_UPDATED_EVENT = "spaceedu-assistant-history-updated";
 export const CV_PREFS_UPDATED_EVENT = "spaceedu-cv-prefs-updated";
@@ -53,6 +54,9 @@ export const QUIZ_ATTEMPTS_LIMIT = 80;
 /** „დავალების დამხმარე“ (lib/task-helper-store): each assignment with its plan and chat. */
 export const TASK_HELPERS_KEY = "spaceedu-task-helpers";
 export const TASK_HELPERS_LIMIT = 20;
+/** „ჩემი საგნები“ (lib/subject-store): each subject's topics, and what's known about its files (the files are in storage). */
+export const SUBJECT_TOPICS_KEY = "spaceedu-subject-topics";
+export const SUBJECT_FILES_KEY = "spaceedu-subject-files";
 export const AI_TEACHER_HISTORY_KEYS = {
   student: "spaceedu-ai-teacher-conversations-student",
   abiturient: "spaceedu-ai-teacher-conversations-abiturient",
@@ -270,6 +274,8 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: QUIZZES_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT },
   { key: QUIZ_ATTEMPTS_KEY, merge: mergeNewestById("updatedAt", QUIZ_ATTEMPTS_LIMIT), event: QUIZZES_UPDATED_EVENT },
   { key: TASK_HELPERS_KEY, merge: mergeNewestById("updatedAt", TASK_HELPERS_LIMIT), event: TASK_HELPERS_UPDATED_EVENT },
+  { key: SUBJECT_TOPICS_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT },
+  { key: SUBJECT_FILES_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT },
   // A deck generating on one device, renamed or deleted on another: the later edit wins.
   { key: CUSTOM_DECKS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CUSTOM_DECKS_UPDATED_EVENT },
   { key: AI_TEACHER_HISTORY_KEYS.student, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },

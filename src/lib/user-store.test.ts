@@ -426,6 +426,8 @@ describe("merge rules", () => {
       "spaceedu-quizzes",
       "spaceedu-quiz-attempts",
       "spaceedu-task-helpers",
+      "spaceedu-subject-topics",
+      "spaceedu-subject-files",
       "flashcards-custom-decks",
       "spaceedu-ai-teacher-conversations-student",
       "spaceedu-ai-teacher-conversations-abiturient",

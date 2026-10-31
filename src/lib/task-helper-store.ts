@@ -28,6 +28,8 @@ export interface TaskHelper {
   /** A semester subject (lib/semester-subjects) it belongs to. */
   subjectId?: string;
   subjectName?: string;
+  /** The subject's topic it belongs to („ჩემი საგნები“). */
+  topicId?: string;
   /** YYYY-MM-DD */
   dueDate?: string;
   /** The assignment's text (cut to TASK_INPUT_MAX_CHARS) and what the student wrote. */

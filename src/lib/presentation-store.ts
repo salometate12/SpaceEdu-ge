@@ -29,6 +29,9 @@ export interface SavedPresentation {
    * device that hasn't downloaded them yet still knows them. */
   photoMeta?: PhotoMeta[];
   thumbnail?: string;
+  /** „ჩემი საგნები“: the subject (semester subject id) and topic it was made for. */
+  subjectId?: string;
+  topicId?: string;
 }
 
 export type PhotoMeta = Omit<UploadedPhoto, "dataUrl">;

@@ -4,10 +4,8 @@
  * (lib/summary-files shareBudget), so no file is left out. Images, and PDFs
  * whose text can't be read (scans), go along as attachments instead.
  */
-import mammoth from "mammoth";
 import type { FilePart, ImagePart, TextPart, UserModelMessage } from "ai";
-import { extractPptxText } from "@/lib/pptx/extractText";
-import { extractTextFromPdfBuffer } from "@/lib/ai/extract-pdf-text";
+import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { summaryPreamble } from "@/lib/ai/process-input";
 import { shareBudget } from "@/lib/summary-files";
 
@@ -17,27 +15,10 @@ export const SUMMARY_TEXT_BUDGET = 120_000;
 export const MULTI_SOURCE_HINT =
   "მასალა რამდენიმე წყაროდანაა. გააერთიანე ერთ ლოგიკურ კონსპექტად, გაიმეორებული ინფორმაცია ერთხელ დაწერე, საჭიროებისას მიუთითე წყარო.";
 
-const IMAGE_TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
-
-const extension = (name: string) => name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? "";
-
 type Extracted = { name: string; text: string } | { name: string; part: FilePart | ImagePart };
 
 async function extract(file: File): Promise<Extracted> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = extension(file.name);
-  if (IMAGE_TYPES[ext]) return { name: file.name, part: { type: "image", image: buffer, mediaType: IMAGE_TYPES[ext] } };
-  if (ext === ".pdf") {
-    try {
-      return { name: file.name, text: await extractTextFromPdfBuffer(buffer) };
-    } catch {
-      // A scan or an odd encoding: the model reads the PDF itself.
-      return { name: file.name, part: { type: "file", data: buffer, mediaType: "application/pdf" } };
-    }
-  }
-  if (ext === ".pptx") return { name: file.name, text: await extractPptxText(buffer) };
-  if (ext === ".docx") return { name: file.name, text: (await mammoth.extractRawText({ buffer })).value };
-  return { name: file.name, text: buffer.toString("utf-8") };
+  return { name: file.name, ...(await extractFileContent(file.name, Buffer.from(await file.arrayBuffer()))) };
 }
 
 /** Joins the files' texts under their names, each cut to its share of `budget`. */
