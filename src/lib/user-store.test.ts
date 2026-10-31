@@ -425,6 +425,7 @@ describe("merge rules", () => {
       "flashcards-conspectus",
       "spaceedu-quizzes",
       "spaceedu-quiz-attempts",
+      "spaceedu-task-helpers",
       "flashcards-custom-decks",
       "spaceedu-ai-teacher-conversations-student",
       "spaceedu-ai-teacher-conversations-abiturient",
