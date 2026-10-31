@@ -6,6 +6,10 @@ export { SEMESTER_SUBJECTS_STORAGE_KEY, SEMESTER_SUBJECTS_UPDATED_EVENT } from "
 export interface SemesterSubject {
   id: string;
   name: string;
+  /** ECTS credits, when the student gives them („ჩემი საგნები“). */
+  credits?: number;
+  /** A tag colour index (SUBJECT_TAG_COLORS), when chosen. */
+  color?: number;
 }
 
 export const DEFAULT_SEMESTER_SUBJECTS: SemesterSubject[] = [

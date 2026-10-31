@@ -19,6 +19,9 @@ export interface Conspectus {
   updatedAt?: number;
   /** Deleted (kept, empty, so another device's copy doesn't bring it back). */
   deletedAt?: number;
+  /** „ჩემი საგნები“: the subject (semester subject id) and topic it was made for. */
+  subjectId?: string;
+  topicId?: string;
 }
 
 /** How many are kept (deleted ones aside). */

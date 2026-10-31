@@ -11,6 +11,7 @@ import {
   hasOutsideGenerations,
   reconcileGenerations,
 } from "@/lib/library/generation";
+import { connectSubjectFiles, disconnectSubjectFiles } from "@/lib/subject-files-client";
 
 /** How often a deck or quiz being made elsewhere (another tab, the server) is checked. */
 const GENERATION_POLL_MS = 3000;
@@ -42,12 +43,14 @@ export function UserDataSync() {
         userId = null;
         store.disconnect();
         disconnectGenerationJobs();
+        disconnectSubjectFiles({ clear: true });
         void disconnectPresentations();
         return;
       }
       if (!next) {
         store.detach();
         disconnectGenerationJobs();
+        disconnectSubjectFiles();
         return;
       }
       if (next === userId) return;
@@ -57,6 +60,7 @@ export function UserDataSync() {
         void store.connect(next, supabaseUserData(supabase, next));
         void connectPresentations(supabase, next);
         connectGenerationJobs(supabase, next);
+        connectSubjectFiles(supabase, next);
       }, 0);
     });
 

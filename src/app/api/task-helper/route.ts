@@ -1,10 +1,9 @@
-import mammoth from "mammoth";
 import { z } from "zod";
 import type { FilePart, ImagePart, TextPart } from "ai";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
-import { extractTextFromPdfBuffer } from "@/lib/ai/extract-pdf-text";
+import { extractFileContent, fileExtension as extension, IMAGE_TYPES } from "@/lib/ai/extract-file-text";
 import { GEORGIAN_TASK_MENTOR_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import { buildTaskHelperSchema, taskHelperJsonInstructions, TASK_TYPES, type TaskHelperModelAnswer } from "@/lib/ai/task-helper-schema";
 import { GenerationInputError } from "@/lib/generation-options";
@@ -26,8 +25,6 @@ const MAX_TEXT_CHARS = 50_000;
 /** What the model reads of a long brief or syllabus. */
 const MODEL_TEXT_CHARS = 60_000;
 
-const IMAGE_TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
-const extension = (name: string) => name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? "";
 
 const RequestSchema = z
   .object({
@@ -50,18 +47,8 @@ const text = (value: FormDataEntryValue | null) => (typeof value === "string" &&
 
 /** The assignment's text, or the file itself when it can't be read as text (a photo, a scan). */
 async function readAssignment(file: File): Promise<{ text: string; part?: FilePart | ImagePart }> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = extension(file.name);
-  if (IMAGE_TYPES[ext]) return { text: "", part: { type: "image", image: buffer, mediaType: IMAGE_TYPES[ext] } };
-  if (ext === ".pdf") {
-    try {
-      return { text: await extractTextFromPdfBuffer(buffer) };
-    } catch {
-      return { text: "", part: { type: "file", data: buffer, mediaType: "application/pdf" } };
-    }
-  }
-  if (ext === ".docx") return { text: (await mammoth.extractRawText({ buffer })).value };
-  return { text: buffer.toString("utf-8") };
+  const read = await extractFileContent(file.name, Buffer.from(await file.arrayBuffer()));
+  return "text" in read ? read : { text: "", part: read.part };
 }
 
 export async function POST(request: Request) {
