@@ -1,0 +1,168 @@
+/*
+ * „დავალების დამხმარე“ (/task-helper), both themes: white cards with a thin
+ * border, the tool's sky blue for what's done and current, one pink
+ * primary. `.th` is the root.
+ */
+.th {
+  --th-card: #ffffff;
+  --th-border: #ece9e4;
+  --th-field-border: #e7e5e4;
+  --th-title: #1c1a17;
+  --th-text: #57534e;
+  --th-muted: #78716c;
+  --th-soft: #f5f4f0;
+  --th-hover: #f5f4f0;
+  --th-track: #f1efeb;
+  --th-strong: #1c1a17;
+  --th-on-strong: #ffffff;
+  --th-sky-bg: #f0f9ff;
+  --th-sky: #0369a1;
+  --th-sky-line: #bae6fd;
+  --th-sky-solid: #0284c7;
+  --th-grade-bg: #fefce8;
+  --th-grade: #854d0e;
+  color: var(--th-text);
+}
+
+html.dark .th {
+  --th-card: #15151b;
+  --th-border: #26262e;
+  --th-field-border: #2e2e38;
+  --th-title: #fafaf9;
+  --th-text: #d4d4d8;
+  --th-muted: #a1a1aa;
+  --th-soft: #1b1b22;
+  --th-hover: #1f1f27;
+  --th-track: #26262e;
+  --th-strong: #fafaf9;
+  --th-on-strong: #15151b;
+  --th-sky-bg: rgba(56, 189, 248, 0.12);
+  --th-sky: #7dd3fc;
+  --th-sky-line: rgba(125, 211, 252, 0.35);
+  --th-sky-solid: #38bdf8;
+  --th-grade-bg: rgba(250, 204, 21, 0.1);
+  --th-grade: #fde68a;
+}
+
+.th .th-card {
+  background: var(--th-card);
+  border: 1px solid var(--th-border);
+  border-radius: 24px;
+}
+
+.th .th-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+.th .th-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--th-field-border);
+  background: var(--th-card);
+  padding: 0 14px;
+  height: 48px;
+  font-size: 15px;
+  color: var(--th-title);
+  outline: none;
+}
+.th textarea.th-input {
+  height: auto;
+  padding: 12px 14px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.th .th-input::placeholder {
+  color: var(--th-muted);
+}
+.th .th-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #e11d74;
+}
+
+.th .th-chip {
+  display: inline-flex;
+  height: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--th-field-border);
+  background: var(--th-card);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--th-text);
+  white-space: nowrap;
+}
+/* A long quick reply wraps instead of running out of its card. */
+.th .th-chip.th-chip--wrap {
+  height: auto;
+  min-height: 38px;
+  max-width: 100%;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.35;
+}
+.th .th-chip:hover {
+  border-color: var(--th-muted);
+}
+.th .th-chip[aria-pressed="true"],
+.th .th-chip[aria-checked="true"],
+.th .th-chip[aria-current="true"] {
+  border-color: var(--th-strong);
+  background: var(--th-strong);
+  color: var(--th-on-strong);
+}
+
+.th .th-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9999px;
+  background: #e11d74;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.th .th-primary:hover:not(:disabled) {
+  background: #cf1769;
+}
+.th .th-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.th .th-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--th-field-border);
+  background: var(--th-card);
+  color: var(--th-title);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.th .th-secondary:hover:not(:disabled) {
+  background: var(--th-hover);
+}
+.th .th-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.th .th-tile {
+  background: var(--th-sky-bg);
+  color: var(--th-sky);
+}
+
+.th .th-scroll {
+  scrollbar-width: none;
+}
+.th .th-scroll::-webkit-scrollbar {
+  display: none;
+}

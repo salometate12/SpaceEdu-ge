@@ -41,3 +41,34 @@ export function hasHandoff(target: HandoffTarget): boolean {
     return false;
   }
 }
+
+/** A new presentation's first step, filled in by the page that opens it (the task helper's structure). */
+export interface PresentationHandoff {
+  topic: string;
+  subject?: string;
+  slideCount?: number;
+  extraInstructions?: string;
+}
+
+const PRESENTATION_KEY = "spaceedu-handoff:presentation";
+
+export function handOffPresentation(value: PresentationHandoff): void {
+  try {
+    window.sessionStorage.setItem(PRESENTATION_KEY, JSON.stringify(value));
+  } catch {
+    // storage blocked: the wizard simply opens empty
+  }
+}
+
+/** The handed-over form, once. */
+export function takePresentationHandoff(): PresentationHandoff | null {
+  try {
+    const raw = window.sessionStorage.getItem(PRESENTATION_KEY);
+    if (!raw) return null;
+    window.sessionStorage.removeItem(PRESENTATION_KEY);
+    const parsed = JSON.parse(raw) as Partial<PresentationHandoff>;
+    return typeof parsed.topic === "string" ? (parsed as PresentationHandoff) : null;
+  } catch {
+    return null;
+  }
+}

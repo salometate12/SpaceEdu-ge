@@ -9,8 +9,9 @@ import type { Conspectus } from "@/lib/conspectus-storage";
 import type { FlashcardSession } from "@/lib/flashcard-session";
 import type { QuizAttempt, SavedQuiz } from "@/lib/quiz-library";
 import type { Deck, DeckStatus } from "@/lib/types";
+import type { TaskHelper } from "@/lib/task-helper-store";
 
-export type MaterialKind = "deck" | "quiz" | "conspectus";
+export type MaterialKind = "deck" | "quiz" | "conspectus" | "task";
 export type MaterialSource = "file" | "youtube" | "presentation" | "audio" | "video" | "text";
 
 export interface MaterialItem {
@@ -41,6 +42,8 @@ export interface MaterialItem {
   };
   /** Conspectus: the first lines, without markdown. */
   excerpt?: string;
+  /** An assignment (the task helper): steps done of all, and when it's due. */
+  task?: { done: number; steps: number; dueDate?: string };
 }
 
 const SOURCES: MaterialSource[] = ["file", "youtube", "presentation", "audio", "video", "text"];
@@ -144,6 +147,26 @@ export function conspectusItem(conspectus: Conspectus): MaterialItem {
   };
 }
 
+/** An assignment from the task helper: started once a step is ticked, done when all are. */
+export function taskItem(task: TaskHelper): MaterialItem {
+  const steps = task.result.steps?.length ?? 0;
+  const done = task.doneSteps.filter((index) => index < steps).length;
+  return {
+    key: `task:${task.id}`,
+    kind: "task",
+    id: task.id,
+    title: task.title,
+    source: task.fileName ? sourceOf(undefined, task.fileName) : "text",
+    sourceName: task.subjectName ?? task.fileName ?? "",
+    status: "ready",
+    createdAt: task.createdAt,
+    openedAt: task.lastOpenedAt ?? task.createdAt,
+    unfinished: steps > 0 && done > 0 && done < steps,
+    done: steps > 0 && done === steps,
+    task: { done, steps, ...(task.dueDate ? { dueDate: task.dueDate } : {}) },
+  };
+}
+
 export type MaterialFilter = "all" | "unfinished" | "done";
 export type MaterialSort = "opened" | "newest";
 
@@ -181,6 +204,7 @@ export function continueItems(items: MaterialItem[], limit = 3): MaterialItem[] 
 export function materialHref(item: MaterialItem, mode?: "restart" | "mistakes"): string {
   if (item.kind === "deck") return `/deck/${item.id}`;
   if (item.kind === "conspectus") return `/conspectus/${item.id}`;
+  if (item.kind === "task") return `/task-helper?id=${encodeURIComponent(item.id)}`;
   return `/quiz?quiz=${encodeURIComponent(item.id)}${mode ? `&mode=${mode}` : ""}`;
 }
 

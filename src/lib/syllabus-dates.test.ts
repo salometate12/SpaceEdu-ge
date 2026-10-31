@@ -102,6 +102,12 @@ describe("syllabus: which subject", () => {
     ]);
   });
 
+  it("a new analysis keeps the task helper's due dates", () => {
+    const stored = [m({ id: "old", subject: "სტატისტიკა" }), m({ id: "task-abc-due", subject: "სტატისტიკა" }), m({ id: "task-xyz-due" })];
+    expect(replaceSubjectMilestones(stored, "სტატისტიკა", [m({ id: "new" })]).map((item) => item.id)).toEqual(["task-abc-due", "task-xyz-due", "new"]);
+    expect(replaceSubjectMilestones(stored, null, []).map((item) => item.id)).toEqual(["old", "task-abc-due", "task-xyz-due"]);
+  });
+
   it("collects the syllabus topics once each", () => {
     expect(syllabusTopics([m({ topic: "ელასტიურობა" }), m({ topic: " ელასტიურობა " }), m({ topic: "ბაზრის წონასწორობა" }), m({})])).toEqual([
       "ელასტიურობა",

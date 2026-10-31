@@ -23,6 +23,7 @@ const DONE_LABEL: Record<MaterialKind, string | null> = {
   deck: "ნასწავლი",
   quiz: "დასრულებული",
   conspectus: null,
+  task: "დასრულებული",
 };
 
 const LATER_KEY = "spaceedu-resume-later";

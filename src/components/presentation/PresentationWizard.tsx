@@ -32,6 +32,7 @@ import { Step2Templates } from "./Step2Templates";
 import { normalizeAudience, Step3PhotosQA } from "./Step3PhotosQA";
 import { Step4Result } from "./Step4Result";
 import { PresentationSummary } from "./PresentationSummary";
+import { takePresentationHandoff } from "@/lib/tool-handoff";
 
 export type { GeneratedSlide, PresentationForm, PresentationTemplate, QAAnswers } from "@/lib/presentation-types";
 
@@ -116,6 +117,18 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
             setStep(4);
           } else {
             setStep(Math.min(presentation.step, 3) as SavedPresentation["step"]);
+          }
+        } else {
+          // A new one opened from another tool (the task helper): its first step filled in.
+          const handed = takePresentationHandoff();
+          if (handed) {
+            setForm({
+              ...DEFAULT_FORM,
+              topic: handed.topic,
+              subject: handed.subject ?? "",
+              slideCount: handed.slideCount ?? DEFAULT_FORM.slideCount,
+              extraInstructions: handed.extraInstructions ?? "",
+            });
           }
         }
         setLoaded(true);

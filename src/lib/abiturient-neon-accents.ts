@@ -85,6 +85,7 @@ export const STUDENT_TOOL_ACCENTS = {
   eli5: NEON_SUBJECT_ACCENTS.civics,
   lectureNotes: NEON_SUBJECT_ACCENTS.english,
   journal: NEON_SUBJECT_ACCENTS.georgian,
+  taskHelper: NEON_SUBJECT_ACCENTS.geography,
 } as const satisfies Record<string, NeonSubjectAccent>;
 
 export const DASHBOARD_LIBRARY_ACCENTS = {

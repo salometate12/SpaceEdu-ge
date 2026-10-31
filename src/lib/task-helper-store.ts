@@ -104,11 +104,17 @@ export function chooseTaskIdea(id: string, idea: number | null, now: number = Da
   return updateTaskHelper(id, { chosenIdea: idea }, now);
 }
 
-export function addTaskMessages(id: string, messages: TaskChatMessage[], now: number = Date.now()): TaskHelper | undefined {
+/** Adds a question and its answer (stamped now, unless they carry their own time). */
+export function addTaskMessages(
+  id: string,
+  messages: (Omit<TaskChatMessage, "at"> & { at?: number })[],
+  now: number = Date.now(),
+): TaskHelper | undefined {
   const item = getTaskHelper(id);
   if (!item) return undefined;
+  const stamped = messages.map((message) => ({ ...message, at: message.at ?? now }));
   // The last 40 turns: plenty for one assignment, kept inside the row.
-  return updateTaskHelper(id, { messages: [...item.messages, ...messages].slice(-40) }, now);
+  return updateTaskHelper(id, { messages: [...item.messages, ...stamped].slice(-40) }, now);
 }
 
 export function renameTaskHelper(id: string, title: string): void {
