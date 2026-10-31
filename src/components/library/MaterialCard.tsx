@@ -9,6 +9,7 @@ import {
   AudioLines,
   Brain,
   Check,
+  Compass,
   FileText,
   Film,
   Loader2,
@@ -28,6 +29,7 @@ import { saveSession, startSession } from "@/lib/flashcard-session";
 import { retryDeckGeneration } from "@/lib/library/generation";
 import { deckAsQuizText, materialHref, type MaterialItem, type MaterialSource } from "@/lib/library/materials";
 import { deleteQuiz, renameQuiz } from "@/lib/quiz-library";
+import { deleteTaskHelper, renameTaskHelper } from "@/lib/task-helper-store";
 import { handOff } from "@/lib/tool-handoff";
 
 const SOURCE_ICONS: Record<MaterialSource, LucideIcon> = {
@@ -47,12 +49,13 @@ export function shortDate(ms: number): string {
   return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
 }
 
-/** The 38px tile with the kind of material (a quiz shows its own icon). */
+/** The 38px tile with the kind of material (a quiz and an assignment show their own icon). */
 export function SourceTile({ item, size = 38 }: { item: MaterialItem; size?: number }) {
-  const Icon = item.kind === "quiz" ? Brain : SOURCE_ICONS[item.source];
+  const Icon = item.kind === "quiz" ? Brain : item.kind === "task" ? Compass : SOURCE_ICONS[item.source];
+  const tone = item.kind === "quiz" ? "file" : item.kind === "task" ? "task" : item.source;
   return (
     <span
-      className={`lib-tile src-${item.kind === "quiz" ? "file" : item.source} flex shrink-0 items-center justify-center rounded-[11px]`}
+      className={`lib-tile src-${tone} flex shrink-0 items-center justify-center rounded-[11px]`}
       style={{ width: size, height: size }}
       aria-hidden
     >
@@ -122,6 +125,7 @@ function CardMenu({ item, onRename }: { item: MaterialItem; onRename: () => void
   const remove = () => {
     if (item.kind === "deck") deleteCustomDeck(item.id);
     else if (item.kind === "quiz") deleteQuiz(item.id);
+    else if (item.kind === "task") deleteTaskHelper(item.id);
     else deleteConspectus(item.id);
     setOpen(false);
   };
@@ -175,7 +179,7 @@ function CardMenu({ item, onRename }: { item: MaterialItem; onRename: () => void
                 <Pencil className="h-4 w-4" aria-hidden />
                 გადარქმევა
               </button>
-              {item.kind !== "quiz" && item.status === "ready" ? (
+              {(item.kind === "deck" || item.kind === "conspectus") && item.status === "ready" ? (
                 <button type="button" role="menuitem" onClick={toQuiz} className={row}>
                   <Brain className="h-4 w-4" aria-hidden />
                   ქვიზად გადაქცევა
@@ -198,6 +202,7 @@ function RenameField({ item, onDone }: { item: MaterialItem; onDone: () => void 
   const save = () => {
     if (item.kind === "deck") renameCustomDeck(item.id, value);
     else if (item.kind === "quiz") renameQuiz(item.id, value);
+    else if (item.kind === "task") renameTaskHelper(item.id, value);
     else renameConspectus(item.id, value);
     onDone();
   };
@@ -352,6 +357,26 @@ export function MaterialCard({ item }: { item: MaterialItem }) {
         </Link>
       );
     }
+  } else if (item.kind === "task" && item.task) {
+    const { done, steps, dueDate } = item.task;
+    body = (
+      <div className="flex flex-col gap-2">
+        <p className="text-[13.5px] text-[var(--lib-text)]">
+          {[steps > 0 ? `${done}/${steps} ნაბიჯი` : null, dueDate ? `ჩაბარება ${shortDate(Date.parse(`${dueDate}T12:00:00`))}` : null].filter(Boolean).join(" · ") || "გეგმა"}
+        </p>
+        {steps > 0 ? (
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--lib-track)] sm:h-2" aria-hidden>
+            <div className="h-full rounded-full bg-[#0284c7] dark:bg-[#38bdf8]" style={{ width: `${(done / steps) * 100}%` }} />
+          </div>
+        ) : null}
+      </div>
+    );
+    actions = (
+      <Link href={materialHref(item)} className={`lib-primary ${BUTTON}`}>
+        {done > 0 && done < steps ? "გაგრძელება" : "გახსნა"}
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      </Link>
+    );
   } else if (item.kind === "conspectus") {
     body = <p className="line-clamp-2 text-[13.5px] leading-relaxed text-[var(--lib-text)]">{item.excerpt}</p>;
     actions = (

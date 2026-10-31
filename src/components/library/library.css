@@ -78,12 +78,14 @@ html.dark .lib {
 .lib .src-audio { --tile-bg: #f0fdf4; --tile: #15803d; }
 .lib .src-video { --tile-bg: #eff6ff; --tile: #1d4ed8; }
 .lib .src-text { --tile-bg: #f5f4f0; --tile: #57534e; }
+.lib .src-task { --tile-bg: #f0f9ff; --tile: #0369a1; }
 html.dark .lib .src-file { --tile-bg: rgba(236, 72, 153, 0.14); --tile: #f472b6; }
 html.dark .lib .src-youtube { --tile-bg: rgba(244, 63, 94, 0.14); --tile: #fb7185; }
 html.dark .lib .src-presentation { --tile-bg: rgba(249, 115, 22, 0.14); --tile: #fdba74; }
 html.dark .lib .src-audio { --tile-bg: rgba(74, 222, 128, 0.12); --tile: #86efac; }
 html.dark .lib .src-video { --tile-bg: rgba(59, 130, 246, 0.14); --tile: #93c5fd; }
 html.dark .lib .src-text { --tile-bg: #1f1f27; --tile: #d4d4d8; }
+html.dark .lib .src-task { --tile-bg: rgba(56, 189, 248, 0.12); --tile: #7dd3fc; }
 
 /* Chips (filters, tabs): picked is solid dark. */
 .lib .lib-chip {

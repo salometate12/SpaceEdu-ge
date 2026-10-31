@@ -2,25 +2,28 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
-import { Brain, ChevronDown, Layers, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Brain, ChevronDown, Compass, Layers, Plus } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useBackHref } from "@/components/Quiz/QuizRun";
+import { readSpaceeduSpace } from "@/lib/space-back-navigation";
 import { MaterialsList, ResumeStrip } from "./MaterialsList";
 import { useMaterials } from "./useMaterials";
 import "./library.css";
 
-type LibraryType = "decks" | "quizzes" | "conspectus";
+type LibraryType = "decks" | "quizzes" | "conspectus" | "tasks";
 
-const TYPES: { id: LibraryType; label: string }[] = [
+const TYPES: { id: LibraryType; label: string; studentOnly?: boolean }[] = [
   { id: "decks", label: "ფლეშბარათები" },
   { id: "quizzes", label: "ქვიზები" },
   { id: "conspectus", label: "კონსპექტები" },
+  // The task helper is the student space's.
+  { id: "tasks", label: "დავალებები", studentOnly: true },
 ];
 
 /** „ახლის შექმნა“: which tool to open. */
-function CreateMenu() {
+function CreateMenu({ student }: { student: boolean }) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -58,6 +61,14 @@ function CreateMenu() {
             </span>
             ქვიზი
           </Link>
+          {student ? (
+            <Link href="/task-helper" role="menuitem" className={row}>
+              <span className="lib-tile src-task flex h-8 w-8 items-center justify-center rounded-[9px]" aria-hidden>
+                <Compass className="h-4 w-4" />
+              </span>
+              დავალების გეგმა
+            </Link>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -65,7 +76,7 @@ function CreateMenu() {
 }
 
 /**
- * „ჩემი მასალები“: every deck, quiz and conspectus the student made, one
+ * „ჩემი მასალები“: every deck, quiz, conspectus and assignment the student made, one
  * kind at a time (`?type=`), with the same list as the tools' library tabs.
  */
 export function LibraryPage() {
@@ -74,10 +85,16 @@ export function LibraryPage() {
   const materials = useMaterials();
   const backHref = useBackHref();
   const asked = params.get("type");
-  const type: LibraryType = asked === "quizzes" || asked === "conspectus" ? asked : "decks";
+  const type: LibraryType = asked === "quizzes" || asked === "conspectus" || asked === "tasks" ? asked : "decks";
 
-  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus };
-  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new" };
+  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus, tasks: materials.tasks };
+  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new", tasks: "/task-helper" };
+  // „დავალებები“: in the student space, or wherever there are some.
+  const [student, setStudent] = useState(false);
+  useEffect(() => {
+    void Promise.resolve().then(() => setStudent(readSpaceeduSpace() !== "abiturient"));
+  }, []);
+  const types = TYPES.filter((item) => !item.studentOnly || student || items[item.id].length > 0 || type === item.id);
 
   return (
     <div className="lib under-site-header min-h-dvh max-md:-mt-[var(--safe-top)] max-md:-mb-36 max-md:pb-36">
@@ -88,11 +105,11 @@ export function LibraryPage() {
             <h1 className="text-[24px] font-bold leading-tight tracking-tight text-[var(--lib-title)] sm:text-[30px]">ჩემი მასალები</h1>
             <p className="mt-1 text-[14.5px] text-[var(--lib-muted)] sm:text-[15.5px]">ყველაფერი, რაც შექმენი, ინახება აქ</p>
           </div>
-          <CreateMenu />
+          <CreateMenu student={student} />
         </header>
 
         <div role="tablist" aria-label="მასალის ტიპი" className="lib-scroll -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {TYPES.map((item) => (
+          {types.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -102,7 +119,8 @@ export function LibraryPage() {
               className="lib-chip lib-focus h-10"
             >
               {item.label}
-              <span className="lib-count">{items[item.id].length}</span>
+              {/* Not „0“ before the browser's copy has been read. */}
+              {materials.ready ? <span className="lib-count">{items[item.id].length}</span> : null}
             </button>
           ))}
         </div>
@@ -114,7 +132,7 @@ export function LibraryPage() {
             <MaterialsList
               key={type}
               items={items[type]}
-              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : "conspectus"}
+              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : "conspectus"}
               createHref={create[type]}
             />
           </div>

@@ -2,6 +2,7 @@ import {
   BookOpen,
   Brain,
   CalendarClock,
+  Compass,
   FileSearch,
   Layers,
   ListChecks,
@@ -51,6 +52,15 @@ export const STUDENT_TOOLS: StudentTool[] = [
     icon: Layers,
     accent: STUDENT_TOOL_ACCENTS.flashcards,
     tile: { bg: "#fffbeb", fg: "#b45309", darkBg: "rgba(245,158,11,.12)", darkFg: "#fcd34d" },
+  },
+  {
+    id: "task-helper",
+    title: "დავალების დამხმარე",
+    description: "ატვირთე დავალება და მიიღე ნაბიჯები, იდეები და პრეზენტაციის გეგმა",
+    href: "/task-helper",
+    icon: Compass,
+    accent: STUDENT_TOOL_ACCENTS.taskHelper,
+    tile: { bg: "#f0f9ff", fg: "#0369a1", darkBg: "rgba(56,189,248,.12)", darkFg: "#7dd3fc" },
   },
   {
     id: "ai-teacher",

@@ -191,8 +191,10 @@ export function replaceSubjectMilestones(
   subject: string | null,
   next: SyllabusMilestone[],
 ): SyllabusMilestone[] {
+  // A task helper's due date (lib/task-helper-actions) isn't the syllabus's: a new analysis keeps it.
   const same = (milestone: SyllabusMilestone) =>
-    subject ? !!milestone.subject && simplify(milestone.subject) === simplify(subject) : !milestone.subject;
+    !milestone.id.startsWith("task-") &&
+    (subject ? !!milestone.subject && simplify(milestone.subject) === simplify(subject) : !milestone.subject);
   const tagged = next.map((milestone) => ({ ...milestone, subject: subject ?? undefined }));
   return [...stored.filter((milestone) => !same(milestone)), ...tagged];
 }
