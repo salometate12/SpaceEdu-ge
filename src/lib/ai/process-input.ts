@@ -16,6 +16,14 @@ const AUDIO_MIME = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audi
 const VIDEO_MIME = ["video/mp4", "video/webm"];
 const PPTX_MIME = ["application/vnd.openxmlformats-officedocument.presentationml.presentation"];
 
+/** The summary request's opening, with the topic the student gave. */
+export function summaryPreamble(topic?: string): string {
+  const topicHint = topic?.trim() ? `მომხმარებლის მითითებული თემა/კონტექსტი: ${topic.trim()}` : "";
+  return ["გააანალიზე შემდეგი სასწავლო მასალა და შექმენი სტრუქტურირებული კონსპექტი Markdown ფორმატში.", topicHint]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export const PPTX_NO_TEXT_ERROR = "ამ პრეზენტაციაში ტექსტი ვერ ვიპოვე. სცადე PDF ან ჩასვი ტექსტი.";
 
 export async function buildUserMessage(
@@ -41,12 +49,7 @@ export async function buildUserMessage(
 
   const preamble =
     mode === "summary"
-      ? [
-          "გააანალიზე შემდეგი სასწავლო მასალა და შექმენი სტრუქტურირებული კონსპექტი Markdown ფორმატში.",
-          topicHint,
-        ]
-          .filter(Boolean)
-          .join("\n")
+      ? summaryPreamble(topic)
       : [
           "გააანალიზე შემდეგი სასწავლო მასალა და შექმენი ფლეშბარათები.",
           cardCount
