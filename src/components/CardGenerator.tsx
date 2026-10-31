@@ -40,6 +40,8 @@ import { loadPresentation } from "@/lib/presentation-store";
 import { savedPresentationText } from "@/lib/pptx/saved-presentation-text";
 import { AudioRecorder } from "./generate/AudioRecorder";
 import { GenerationProgress } from "./generate/GenerationProgress";
+import { KeepOneFileDialog, SummaryFiles } from "./generate/SummaryFiles";
+import { addFiles, SUMMARY_MAX_FILES } from "@/lib/summary-files";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
 import { useYouTubePreview, YouTubeSource, type YouTubeMode } from "./generate/YouTubeSource";
 import { MaterialsList, ResumeStrip } from "./library/MaterialsList";
@@ -127,7 +129,11 @@ export function CardGenerator() {
   const params = useSearchParams();
 
   const [source, setSource] = useState<InputType>("file");
-  const [files, setFiles] = useState<Record<FileSource, File | null>>({ file: null, audio: null, video: null });
+  const [files, setFiles] = useState<Record<"audio" | "video", File | null>>({ audio: null, video: null });
+  // The „ფაილი“ source: one file for flashcards, up to five for a conspectus.
+  const [docs, setDocs] = useState<File[]>([]);
+  // Switching to flashcards with several files: which one stays.
+  const [keepOne, setKeepOne] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -206,7 +212,31 @@ export function CardGenerator() {
       return;
     }
     setFileError(null);
-    setFiles((current) => ({ ...current, [kindOf]: file }));
+    if (kindOf === "file") setDocs(file ? [file] : []);
+    else setFiles((current) => ({ ...current, [kindOf]: file }));
+  };
+
+  const fileOf = (kindOf: FileSource): File | null => (kindOf === "file" ? (docs[0] ?? null) : files[kindOf]);
+
+  /** Files for a conspectus: added up to five, 20 MB each, 50 MB in all. */
+  const addDocs = (picked: File[]) => {
+    const result = addFiles(docs, picked, SUMMARY_MAX_FILES);
+    setDocs(result.files);
+    setFileError(result.error);
+  };
+
+  const removeDoc = (index: number) => {
+    setDocs((current) => current.filter((_, at) => at !== index));
+    setFileError(null);
+  };
+
+  const chooseKind = (next: GenerationKind) => {
+    // Flashcards take one file: ask which, never drop the others silently.
+    if (next === "flashcards" && docs.length > 1) {
+      setKeepOne(true);
+      return;
+    }
+    setKind(next);
   };
 
   const pickPptx = (file: File | null) => {
@@ -237,7 +267,7 @@ export function CardGenerator() {
   /** What's still missing before anything can be made, or null. */
   const missing = (() => {
     if (source === "file" || source === "audio" || source === "video") {
-      if (!files[source]) return source === "audio" ? "ჩაწერე ლექცია ან ატვირთე აუდიო." : "ატვირთე ფაილი.";
+      if (!fileOf(source)) return source === "audio" ? "ჩაწერე ლექცია ან ატვირთე აუდიო." : "ატვირთე ფაილი.";
     }
     if (source === "text" && !text.trim()) return "ჩასვი ან ჩაწერე ტექსტი.";
     if (source === "youtube") {
@@ -261,7 +291,8 @@ export function CardGenerator() {
       return title ? `პრეზენტაცია: ${title}` : "პრეზენტაცია";
     }
     if (source === "youtube" && ytPreview.status === "ready") return `YouTube: ${ytPreview.preview.title}`;
-    if (source === "file" || source === "audio" || source === "video") return files[source]?.name;
+    if (source === "file" && docs.length > 1) return `${docs.length} ფაილი`;
+    if (source === "file" || source === "audio" || source === "video") return fileOf(source)?.name;
     return source === "text" ? "ტექსტი" : undefined;
   };
 
@@ -272,9 +303,12 @@ export function CardGenerator() {
         ? presentationMode === "pptx"
           ? pptxFile
           : null
-        : source === "file" || source === "audio" || source === "video"
-          ? files[source]
-          : null,
+        : source === "file" && kind === "summary"
+          ? null
+          : source === "file" || source === "audio" || source === "video"
+            ? fileOf(source)
+            : null,
+    files: source === "file" && kind === "summary" ? docs : undefined,
     text: source === "presentation" ? (presentationMode === "saved" ? (presentation?.text ?? "") : "") : text,
     youtubeUrl,
     topic,
@@ -408,9 +442,11 @@ export function CardGenerator() {
             </div>
 
             <div>
-              {fileSource === "file" || fileSource === "video" ? (
-                files[fileSource] ? (
-                  <FileRow file={files[fileSource] as File} kind={fileSource} onClear={() => pickFile(fileSource, null)} />
+              {fileSource === "file" && kind === "summary" ? (
+                <SummaryFiles files={docs} onAdd={addDocs} onRemove={removeDoc} />
+              ) : fileSource === "file" || fileSource === "video" ? (
+                fileOf(fileSource) ? (
+                  <FileRow file={fileOf(fileSource) as File} kind={fileSource} onClear={() => pickFile(fileSource, null)} />
                 ) : (
                   <UploadDropzone
                     accept={FILE_RULES[fileSource].accept}
@@ -518,7 +554,7 @@ export function CardGenerator() {
                     type="button"
                     role="radio"
                     aria-checked={kind === id}
-                    onClick={() => setKind(id)}
+                    onClick={() => chooseKind(id)}
                     className="gen-option gen-focus relative flex flex-col items-start gap-1 rounded-[18px] p-4 text-left max-sm:p-3"
                   >
                     <span className="pr-6 text-[15px] font-bold text-[var(--gen-title)]">{label}</span>
@@ -613,6 +649,17 @@ export function CardGenerator() {
         </div>
         ) : null}
       </div>
+      {keepOne ? (
+        <KeepOneFileDialog
+          files={docs}
+          onCancel={() => setKeepOne(false)}
+          onKeep={(index) => {
+            setDocs((current) => current.slice(index, index + 1));
+            setKeepOne(false);
+            setKind("flashcards");
+          }}
+        />
+      ) : null}
     </div>
   );
 }

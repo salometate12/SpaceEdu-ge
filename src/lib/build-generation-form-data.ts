@@ -28,6 +28,8 @@ export function buildGenerationFormData(
     // A saved presentation is sent as its slides' text, a .pptx as the file.
     if (input.file) formData.append("file", input.file);
     else formData.append("text", input.text);
+  } else if (input.files?.length) {
+    for (const file of input.files) formData.append("files", file);
   } else if (input.file) {
     formData.append("file", input.file);
   }

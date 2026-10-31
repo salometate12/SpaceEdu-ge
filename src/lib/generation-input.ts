@@ -4,6 +4,8 @@ import type { Difficulty } from "@/lib/generation-options";
 export interface UploadedData {
   inputType: InputType;
   file: File | null;
+  /** A conspectus from several files (up to five); `file` is then null. */
+  files?: File[];
   text: string;
   youtubeUrl: string;
   topic: string;
