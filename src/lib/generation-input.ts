@@ -15,4 +15,6 @@ export interface UploadedData {
   youtubeRange?: { start: number; end: number } | null;
   /** What the deck says it was made from, e.g. „პრეზენტაცია: უჯრედი“. */
   sourceLabel?: string;
+  /** „ჩემი საგნები“: the subject and topic it's made for (put on what's made). */
+  link?: { subjectId: string; topicId: string };
 }

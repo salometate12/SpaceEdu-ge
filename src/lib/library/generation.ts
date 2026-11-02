@@ -161,6 +161,7 @@ export function startDeckGeneration(data: UploadedData, existingId?: string): { 
       createdAt: previous?.createdAt ?? now,
       jobId,
       retry: retryOf(data),
+      ...(data.link ?? {}),
     },
     now,
   );
@@ -255,8 +256,12 @@ function quizReady(quiz: SavedQuiz, notify: boolean) {
 }
 
 /** Saves a „generating“ quiz and asks for it; `done` settles with the saved quiz. */
-export function startQuizGeneration(file: File, questionCount: number): { quizId: string; done: Promise<SavedQuiz> } {
-  const record = newQuizRecord(file.name.replace(/\.[^.]+$/, ""), questionCount);
+export function startQuizGeneration(
+  file: File,
+  questionCount: number,
+  link?: { subjectId: string; topicId: string },
+): { quizId: string; done: Promise<SavedQuiz> } {
+  const record = { ...newQuizRecord(file.name.replace(/\.[^.]+$/, ""), questionCount), ...(link ?? {}) };
   saveQuiz(record);
   running.add(record.id);
 

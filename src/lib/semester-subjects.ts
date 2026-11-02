@@ -42,6 +42,15 @@ export function readSemesterSubjects(): SemesterSubjectsData {
   };
 }
 
+/**
+ * Only the subjects the student saved: none until then (readSemesterSubjects
+ * shows sample ones on the dashboard; „ჩემი საგნები“ uses real ones only).
+ */
+export function readSavedSemesterSubjects(): SemesterSubject[] {
+  const parsed = userStore.get<Partial<SemesterSubjectsData> | null>(SEMESTER_SUBJECTS_STORAGE_KEY, null);
+  return parsed && Array.isArray(parsed.subjects) ? parsed.subjects : [];
+}
+
 /** Saves on this device and on the account. */
 export function saveSemesterSubjects(data: SemesterSubjectsData) {
   userStore.set(SEMESTER_SUBJECTS_STORAGE_KEY, data);

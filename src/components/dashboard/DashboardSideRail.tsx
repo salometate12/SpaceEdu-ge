@@ -6,6 +6,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3,
+  BookOpenCheck,
   BriefcaseBusiness,
   Brain,
   CalendarClock,
@@ -47,6 +48,7 @@ export interface RailItem {
 
 export const GENERAL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "dashboard", label: "დეშბორდი", href: "/dashboard-student", icon: LayoutDashboard },
+  { id: "my-subjects", label: "ჩემი საგნები", href: "/subjects", icon: BookOpenCheck },
   { id: "study-plan", label: "სასწავლო გეგმა", href: "/study-plan", icon: CalendarClock },
   { id: "quiz", label: "ვიქტორინა", href: "/quiz", icon: Brain },
   { id: "flashcards", label: "AI ფლეშბარათები", href: "/generate", icon: Layers },

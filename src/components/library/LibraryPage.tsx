@@ -8,6 +8,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useBackHref } from "@/components/Quiz/QuizRun";
 import { readSpaceeduSpace } from "@/lib/space-back-navigation";
+import { readSavedSemesterSubjects, type SemesterSubject } from "@/lib/semester-subjects";
 import { MaterialsList, ResumeStrip } from "./MaterialsList";
 import { useMaterials } from "./useMaterials";
 import "./library.css";
@@ -94,6 +95,22 @@ export function LibraryPage() {
   useEffect(() => {
     void Promise.resolve().then(() => setStudent(readSpaceeduSpace() !== "abiturient"));
   }, []);
+  // `?subject=`: one subject's materials („ჩემი საგნები“ tags what's made for a topic).
+  const subjectFilter = params.get("subject");
+  const [subjects, setSubjects] = useState<SemesterSubject[]>([]);
+  useEffect(() => {
+    void Promise.resolve().then(() => setSubjects(readSavedSemesterSubjects()));
+  }, []);
+  const tagged = new Set(Object.values(items).flatMap((list) => list.map((item) => item.subjectId).filter(Boolean)));
+  const subjectOptions = subjects.filter((subject) => tagged.has(subject.id) || subject.id === subjectFilter);
+  const shown = subjectFilter ? items[type].filter((item) => item.subjectId === subjectFilter) : items[type];
+  const setSubjectFilter = (id: string) => {
+    const next = new URLSearchParams(params.toString());
+    if (id) next.set("subject", id);
+    else next.delete("subject");
+    router.replace(`/library?${next.toString()}`, { scroll: false });
+  };
+
   const types = TYPES.filter((item) => !item.studentOnly || student || items[item.id].length > 0 || type === item.id);
 
   return (
@@ -115,7 +132,7 @@ export function LibraryPage() {
               type="button"
               role="tab"
               aria-selected={type === item.id}
-              onClick={() => router.replace(`/library?type=${item.id}`, { scroll: false })}
+              onClick={() => router.replace(`/library?type=${item.id}${subjectFilter ? `&subject=${encodeURIComponent(subjectFilter)}` : ""}`, { scroll: false })}
               className="lib-chip lib-focus h-10"
             >
               {item.label}
@@ -123,6 +140,25 @@ export function LibraryPage() {
               {materials.ready ? <span className="lib-count">{items[item.id].length}</span> : null}
             </button>
           ))}
+          {subjectOptions.length > 0 ? (
+            <label className="relative ml-auto flex shrink-0 items-center">
+              <span className="sr-only">საგანი</span>
+              <select
+                value={subjectFilter ?? ""}
+                onChange={(event) => setSubjectFilter(event.target.value)}
+                style={{ paddingRight: 38 }}
+                className="lib-chip lib-focus h-10 cursor-pointer appearance-none"
+              >
+                <option value="">ყველა საგანი</option>
+                {subjectOptions.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-[var(--lib-muted)]" aria-hidden />
+            </label>
+          ) : null}
         </div>
 
         {materials.ready ? (
@@ -130,8 +166,8 @@ export function LibraryPage() {
             {type === "decks" ? <ResumeStrip items={materials.decks} kind="deck" /> : null}
             {type === "quizzes" ? <ResumeStrip items={materials.quizzes} kind="quiz" /> : null}
             <MaterialsList
-              key={type}
-              items={items[type]}
+              key={`${type}-${subjectFilter ?? ""}`}
+              items={shown}
               kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : "conspectus"}
               createHref={create[type]}
             />

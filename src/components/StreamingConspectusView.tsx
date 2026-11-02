@@ -38,6 +38,8 @@ function saveAndRedirect(
   const topic = pending.topic;
   const inputType = pending.formData.get("inputType");
   const sourceLabel = pending.formData.get("sourceLabel");
+  const subjectId = pending.formData.get("subjectId");
+  const topicId = pending.formData.get("topicId");
   if (savedRef.current || !body.trim()) return false;
 
   savedRef.current = true;
@@ -52,6 +54,7 @@ function saveAndRedirect(
     status: "ready",
     ...(typeof inputType === "string" && inputType ? { sourceType: inputType } : {}),
     ...(typeof sourceLabel === "string" && sourceLabel ? { sourceLabel } : {}),
+    ...(typeof subjectId === "string" && typeof topicId === "string" && subjectId && topicId ? { subjectId, topicId } : {}),
   });
 
   router.replace(`/conspectus/${id}`);

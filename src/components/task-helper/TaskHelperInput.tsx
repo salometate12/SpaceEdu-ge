@@ -11,6 +11,8 @@ import { localDay } from "@/lib/task-helper";
 import { newTaskHelperId, saveTaskHelper } from "@/lib/task-helper-store";
 import { readSemesterSubjects, type SemesterSubject } from "@/lib/semester-subjects";
 import { logActivity } from "@/lib/activity-log";
+import { getFile as getSubjectFile } from "@/lib/subject-store";
+import { getSubjectFileBlob } from "@/lib/subject-files-client";
 
 const SECTIONS: { id: TaskSection; label: string }[] = [
   { id: "steps", label: "ნაბიჯები" },
@@ -113,6 +115,29 @@ export function TaskHelperInput() {
     });
   }, [wanted]);
 
+  // `?file=` (a subject's assignment, from „ჩემი საგნები“): that file, its
+  // subject, due date and topic; the plan is tied to the subject.
+  const wantedFile = params.get("file");
+  const [fileTopic, setFileTopic] = useState<string | null>(null);
+  useEffect(() => {
+    if (!wantedFile) return;
+    const record = getSubjectFile(wantedFile);
+    if (!record) return;
+    let active = true;
+    void getSubjectFileBlob(record).then((blob) => {
+      if (!active || !blob) return;
+      setMode("file");
+      setFile(blob);
+      setSubjectId(record.subjectId);
+      if (record.dueDate) setDueDate(record.dueDate);
+      if (record.topicIds[0]) setFileTopic(record.topicIds[0]);
+      if (record.kind === "presentation") setTaskType("presentation");
+    });
+    return () => {
+      active = false;
+    };
+  }, [wantedFile]);
+
   const pickFile = (next: File) => {
     if (next.size > MAX_FILE_BYTES) {
       setError("ფაილი ძალიან დიდია. მაქსიმუმ 20 MB.");
@@ -167,6 +192,7 @@ export function TaskHelperInput() {
         taskType,
         sections: data.sections ?? sections,
         ...(subject ? { subjectId: subject.id, subjectName: subject.name } : {}),
+        ...(subject && fileTopic ? { topicId: fileTopic } : {}),
         ...(dueDate ? { dueDate } : {}),
         inputText: data.inputText ?? (mode === "text" ? text : ""),
         ...(note.trim() ? { note: note.trim() } : {}),

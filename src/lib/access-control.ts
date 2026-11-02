@@ -174,6 +174,7 @@ const SPACE_DISPLAY_ROUTES: { path: string; space: SpaceeduSpace; match: "exact"
   // link — while standing on a student-only tool.
   { path: "/presentation", space: "student", match: "prefix" },
   { path: "/task-helper", space: "student", match: "prefix" },
+  { path: "/subjects", space: "student", match: "prefix" },
   { path: "/syllabus", space: "student", match: "prefix" },
   { path: "/cv", space: "student", match: "prefix" },
 ];

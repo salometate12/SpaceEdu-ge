@@ -158,8 +158,12 @@ export function SyllabusAnalyzer() {
     void Promise.resolve().then(() => {
       clearLegacySyllabusMockData();
       setToday(localToday());
-      setSubjects(readSemesterSubjects().subjects.map((item) => item.name.trim()).filter(Boolean));
+      const names = readSemesterSubjects().subjects.map((item) => item.name.trim()).filter(Boolean);
+      setSubjects(names);
       setStored(getGeneratedMilestones());
+      // Opened from a subject's page („სილაბუსის ატვირთვა“): that subject picked.
+      const wanted = new URLSearchParams(window.location.search).get("subject")?.trim();
+      if (wanted && names.includes(wanted)) setSubject(wanted);
     });
   }, []);
 

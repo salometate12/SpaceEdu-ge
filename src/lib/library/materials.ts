@@ -42,6 +42,8 @@ export interface MaterialItem {
   };
   /** Conspectus: the first lines, without markdown. */
   excerpt?: string;
+  /** „ჩემი საგნები“: the subject it was made for. */
+  subjectId?: string;
   /** An assignment (the task helper): steps done of all, and when it's due. */
   task?: { done: number; steps: number; dueDate?: string };
 }
@@ -83,6 +85,7 @@ export function deckItem(deck: Deck, session: FlashcardSession | null): Material
     openedAt: deck.lastOpenedAt ?? createdAt,
     unfinished: status === "ready" && started && !done,
     done,
+    ...(deck.subjectId ? { subjectId: deck.subjectId } : {}),
     deck: { cards: deck.cards.length, target: deck.cardTarget ?? deck.cards.length, known, unknown, started },
   };
 }
@@ -110,6 +113,7 @@ export function quizItem(quiz: SavedQuiz, attempts: QuizAttempt[]): MaterialItem
     openedAt: quiz.lastOpenedAt ?? quiz.createdAt,
     unfinished: quiz.status === "ready" && Boolean(last) && !finished,
     done: finished,
+    ...(quiz.subjectId ? { subjectId: quiz.subjectId } : {}),
     quiz: {
       questions: quiz.questions.length || quiz.questionCount,
       answered,
@@ -144,6 +148,7 @@ export function conspectusItem(conspectus: Conspectus): MaterialItem {
     unfinished: false,
     done: false,
     excerpt: excerptOf(conspectus.content, conspectus.title),
+    ...(conspectus.subjectId ? { subjectId: conspectus.subjectId } : {}),
   };
 }
 
@@ -163,6 +168,7 @@ export function taskItem(task: TaskHelper): MaterialItem {
     openedAt: task.lastOpenedAt ?? task.createdAt,
     unfinished: steps > 0 && done > 0 && done < steps,
     done: steps > 0 && done === steps,
+    ...(task.subjectId ? { subjectId: task.subjectId } : {}),
     task: { done, steps, ...(task.dueDate ? { dueDate: task.dueDate } : {}) },
   };
 }

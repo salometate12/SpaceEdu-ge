@@ -42,6 +42,7 @@ import { AudioRecorder } from "./generate/AudioRecorder";
 import { GenerationProgress } from "./generate/GenerationProgress";
 import { KeepOneFileDialog, SummaryFiles } from "./generate/SummaryFiles";
 import { addFiles, SUMMARY_MAX_FILES } from "@/lib/summary-files";
+import { topicSources } from "@/lib/subject-actions";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
 import { useYouTubePreview, YouTubeSource, type YouTubeMode } from "./generate/YouTubeSource";
 import { MaterialsList, ResumeStrip } from "./library/MaterialsList";
@@ -193,11 +194,41 @@ export function CardGenerator() {
     };
   }, [presetId]);
 
+  // Opened on a topic from „ჩემი საგნები“ (`?mode=cards|summary&subject=&topic=`):
+  // its files picked (the first for cards, up to five for a conspectus), and
+  // what's made tagged with the subject and topic.
+  const linkSubject = params.get("subject");
+  const linkTopic = params.get("topic");
+  const linkMode = params.get("mode");
+  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
+  const [topicChoices, setTopicChoices] = useState<File[]>([]);
+  useEffect(() => {
+    if (!linkSubject || !linkTopic) return;
+    let active = true;
+    void topicSources(linkSubject, linkTopic).then((sources) => {
+      if (!active || !sources) return;
+      setTopicLink(sources.link);
+      setTopic(sources.topic.title);
+      setSource("file");
+      if (linkMode === "summary") {
+        setKind("summary");
+        setDocs(sources.files.slice(0, SUMMARY_MAX_FILES));
+      } else {
+        setKind("flashcards");
+        setDocs(sources.files.slice(0, 1));
+      }
+      setTopicChoices(sources.files);
+    });
+    return () => {
+      active = false;
+    };
+  }, [linkSubject, linkTopic, linkMode]);
+
   const [tab, setTab] = useToolTab({
     ready: materials.ready,
     hasItems: libraryItems.length > 0,
     // Opened with material to use: straight to „ახალი“.
-    forceNew: handed || Boolean(presetId),
+    forceNew: handed || Boolean(presetId) || Boolean(linkTopic),
   });
 
   const setCountValue = (value: number) => {
@@ -316,6 +347,7 @@ export function CardGenerator() {
     difficulty,
     youtubeRange: segment.range,
     sourceLabel: sourceLabel(),
+    ...(topicLink ? { link: topicLink } : {}),
   });
 
   // The deck being made, saved in „ჩემი მასალები“ from the start: leaving
@@ -456,6 +488,24 @@ export function CardGenerator() {
                     className="min-h-[200px]"
                   />
                 )
+              ) : null}
+              {fileSource === "file" && kind === "flashcards" && topicChoices.length > 1 ? (
+                <div className="mt-3">
+                  <p className="text-[13px] font-semibold text-[var(--gen-muted)]">თემის სხვა ფაილი:</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {topicChoices.map((choice) => (
+                      <button
+                        key={choice.name}
+                        type="button"
+                        aria-pressed={docs[0]?.name === choice.name}
+                        onClick={() => setDocs([choice])}
+                        className="gen-chip gen-focus max-w-full truncate"
+                      >
+                        {choice.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : null}
               {fileSource === "video" ? <p className="mt-3 text-[13px] text-[var(--gen-muted)]">ხმას ტექსტად ვაქცევთ და მერე ვქმნით ბარათებს.</p> : null}
 

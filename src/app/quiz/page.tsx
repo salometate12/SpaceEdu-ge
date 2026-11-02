@@ -54,6 +54,8 @@ import {
 } from "@/lib/quiz-library";
 import { startQuizGeneration, watchGeneration } from "@/lib/library/generation";
 import { firstTryMistakes } from "@/lib/library/materials";
+import { fetchExcerpts, joinExcerpts, topicFiles, topicSources } from "@/lib/subject-actions";
+import { recordTopicQuiz } from "@/lib/subject-store";
 import "./quiz-theme.css";
 
 export type { QuizQuestion };
@@ -86,6 +88,31 @@ export default function QuizPage() {
       const name = `${(handed.title || "ჩანაწერი").replace(/[\\/:*?"<>|]+/g, " ").trim()}.txt`;
       setFile(new File([handed.text], name, { type: "text/plain" }));
     });
+  }, []);
+  // Opened on a topic from „ჩემი საგნები“ (`?subject=&topic=`): its files as
+  // the source (one PDF or text file as it is, otherwise their text as one
+  // file), and the quiz tagged with the subject and topic.
+  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
+  const [handedTopic] = useState(() => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("topic") : null));
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let active = true;
+    void topicSources(params.get("subject"), params.get("topic")).then(async (sources) => {
+      if (!active || !sources) return;
+      setTopicLink(sources.link);
+      const direct = sources.files.length === 1 && /\.(pdf|txt|md)$/i.test(sources.files[0].name) ? sources.files[0] : null;
+      if (direct) {
+        setFile(direct);
+        return;
+      }
+      const text = joinExcerpts(await fetchExcerpts(topicFiles(sources.topic), 60_000));
+      if (!active || !text.trim()) return;
+      const name = `${sources.topic.title.replace(/[\\/:*?"<>|]+/g, " ").trim() || "თემა"}.txt`;
+      setFile(new File([text], name, { type: "text/plain" }));
+    });
+    return () => {
+      active = false;
+    };
   }, []);
   const [isDragActive, setIsDragActive] = useState(false);
   const [questionCount, setQuestionCount] = useState(5);
@@ -180,7 +207,7 @@ export default function QuizPage() {
   // „ახალი“ · „ჩემი მასალები“: the saved quizzes, on this page.
   const materials = useMaterials();
   const [handed] = useState(() => typeof window !== "undefined" && hasHandoff("quiz"));
-  const [tab, setTab] = useToolTab({ ready: materials.ready, hasItems: materials.quizzes.length > 0, forceNew: handed });
+  const [tab, setTab] = useToolTab({ ready: materials.ready, hasItems: materials.quizzes.length > 0, forceNew: handed || Boolean(handedTopic) });
   const [savedToast, setSavedToast] = useState(false);
   const closeToast = useCallback(() => setSavedToast(false), []);
   const backHref = useBackHref();
@@ -240,7 +267,7 @@ export default function QuizPage() {
     setIsSubmitted(false);
 
     // Saved in „ჩემი მასალები“ from the start; finished even if this page closes.
-    const started = startQuizGeneration(file, questionCount);
+    const started = startQuizGeneration(file, questionCount, topicLink ?? undefined);
     const release = watchGeneration(started.quizId);
     let here = true;
     leave.current = () => {
@@ -271,6 +298,9 @@ export default function QuizPage() {
     if (isQuizOver(next) && !repeatingMistakes) {
       recordDailyActivity();
       recordQuizResult(quizTotals(next).firstTry, questions.length, getActiveSubject());
+      // A quiz on a subject's topic: its result on the topic (80% or more marks it learned).
+      const topicId = attempt ? getQuiz(attempt.quizId)?.topicId : undefined;
+      if (topicId && questions.length) recordTopicQuiz(topicId, (quizTotals(next).firstTry / questions.length) * 100);
       logActivity({
         type: "quiz_completed",
         tool: "quiz",
