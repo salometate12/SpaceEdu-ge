@@ -4,10 +4,13 @@
  * the last analyses (reopened without calling the AI).
  */
 import type { ResearchResponse, ResearchSectionKey } from "@/lib/ai/research-platform-schema";
+import { RESEARCH_HISTORY_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 export const RESEARCH_MAX_BYTES = 15 * 1024 * 1024;
-export const RESEARCH_HISTORY_KEY = "spaceedu:research:history";
-export const RESEARCH_HISTORY_LIMIT = 20;
+export { RESEARCH_HISTORY_KEY };
+/** Analyses kept (on the account, one row each): reopened without asking the AI again. */
+export const RESEARCH_HISTORY_LIMIT = 50;
 
 export type ResearchFileKind = "pdf" | "audio" | "image" | "text";
 
@@ -85,20 +88,15 @@ export function parseResearchHistory(raw: string | null): ResearchHistoryItem[] 
   }
 }
 
+/** On the account (lib/user-data), so every device has the analyses. */
 export function readResearchHistory(): ResearchHistoryItem[] {
-  try {
-    return parseResearchHistory(window.localStorage.getItem(RESEARCH_HISTORY_KEY));
-  } catch {
-    return [];
-  }
+  if (typeof window === "undefined") return [];
+  const value = userStore.get<unknown>(RESEARCH_HISTORY_KEY, []);
+  return Array.isArray(value) ? value.filter(isHistoryItem).slice(0, RESEARCH_HISTORY_LIMIT) : [];
 }
 
 export function writeResearchHistory(history: ResearchHistoryItem[]): void {
-  try {
-    window.localStorage.setItem(RESEARCH_HISTORY_KEY, JSON.stringify(history));
-  } catch {
-    // kept for this visit only
-  }
+  if (typeof window !== "undefined") userStore.set(RESEARCH_HISTORY_KEY, history);
 }
 
 /** A history entry for an analysis just made, stamped now. */

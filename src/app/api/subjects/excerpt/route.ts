@@ -3,6 +3,7 @@ import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { createClient as createServerSupabaseClient } from "@/utils/supabase/server";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { SUBJECT_FILE_MAX_BYTES } from "@/lib/subjects";
+import { bucketFor, isOwnPath } from "@/lib/user-files-path";
 import { shareBudget } from "@/lib/summary-files";
 
 export const runtime = "nodejs";
@@ -42,8 +43,8 @@ export async function POST(request: Request) {
     const name = names[index].slice(0, 200);
     const path = paths[index];
     let buffer: Buffer | null = null;
-    if (path && supabase && userId && path.startsWith(`${userId}/`)) {
-      const download = await supabase.storage.from("subject-files").download(path);
+    if (path && supabase && userId && isOwnPath(path, userId)) {
+      const download = await supabase.storage.from(bucketFor(path)).download(path);
       if (download.data) buffer = Buffer.from(await download.data.arrayBuffer());
     } else if (!path) {
       const file = sent[sentIndex];

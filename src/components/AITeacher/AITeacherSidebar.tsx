@@ -229,7 +229,27 @@ export function AITeacherSidebar({
             აქ გამოჩნდება შენი საუბრები
           </div>
         ) : (
-          groups.map((group) => (
+          groups.map((group) =>
+            group.label === "ძველი საუბრები" ? (
+              // Folded: kept (up to 200 in all), out of the way.
+              <details key={group.label} className="mb-3">
+                <summary className="cursor-pointer select-none px-2.5 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                  {group.label} · {group.items.length}
+                </summary>
+                <div className="space-y-0.5">
+                  {group.items.map((conversation) => (
+                    <ConversationRow
+                      key={conversation.id}
+                      conversation={conversation}
+                      active={conversation.id === activeId}
+                      onOpen={() => onOpen(conversation)}
+                      onRename={(name) => onRename(conversation.id, name)}
+                      onDelete={() => onDelete(conversation.id)}
+                    />
+                  ))}
+                </div>
+              </details>
+            ) : (
             <section key={group.label} className="mb-3">
               <h3 className="px-2.5 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
                 {group.label}
@@ -247,7 +267,8 @@ export function AITeacherSidebar({
                 ))}
               </div>
             </section>
-          ))
+            ),
+          )
         )}
       </nav>
   );

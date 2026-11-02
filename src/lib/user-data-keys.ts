@@ -50,10 +50,10 @@ export const CUSTOM_DECKS_STORAGE_KEY = "flashcards-custom-decks";
 export const QUIZZES_KEY = "spaceedu-quizzes";
 /** Every pass through a saved quiz, finished or not. */
 export const QUIZ_ATTEMPTS_KEY = "spaceedu-quiz-attempts";
-export const QUIZ_ATTEMPTS_LIMIT = 80;
+
 /** „დავალების დამხმარე“ (lib/task-helper-store): each assignment with its plan and chat. */
 export const TASK_HELPERS_KEY = "spaceedu-task-helpers";
-export const TASK_HELPERS_LIMIT = 20;
+
 /** „ჩემი საგნები“ (lib/subject-store): each subject's topics, and what's known about its files (the files are in storage). */
 export const SUBJECT_TOPICS_KEY = "spaceedu-subject-topics";
 export const SUBJECT_FILES_KEY = "spaceedu-subject-files";
@@ -79,7 +79,7 @@ export const ACTIVITY_LOG_UPDATED_EVENT = "spaceedu-activity-log-updated";
 export const ACTIVITY_LOG_LIMIT = 2500;
 /** Where the student is in each flashcard deck (lib/flashcard-session). */
 export const FLASHCARD_SESSIONS_KEY = "spaceedu-flashcard-sessions";
-export const FLASHCARD_SESSIONS_LIMIT = 40;
+
 export const ACTIVE_SUBJECT_KEY = "spaceedu-active-subject";
 export const JOURNAL_PROGRESS_KEY = "spaceedu-journal-progress";
 /** Read as is by the first-paint script in layout.tsx: "light" | "dark" | "system". */
@@ -88,6 +88,22 @@ export const LANGUAGE_KEY = "spaceedu-language";
 export const ANIMATIONS_KEY = "spaceedu-animations";
 export const DASHBOARD_GOALS_KEY = "spaceedu-dashboard-goals-enabled";
 export const NOTIFICATIONS_KEY = "spaceedu-notifications";
+/** AI teacher conversations kept per space; older ones show under „ძველი საუბრები“. */
+export const AI_TEACHER_HISTORY_LIMIT = 200;
+/** Past questions kept per assistant. */
+export const ASSISTANT_HISTORY_LIMIT = 200;
+/** ELI5: the explanations kept (reopened without asking the AI again), and the chosen level. */
+export const ELI5_HISTORY_KEY = "spaceedu:eli5:history";
+export const ELI5_LEVEL_KEY = "spaceedu:eli5:level";
+export const ELI5_HISTORY_LIMIT = 50;
+export const ELI5_HISTORY_UPDATED_EVENT = "spaceedu-eli5-history-updated";
+/** The dashboard's important documents: what's known of each (the files are in storage). */
+export const DOCUMENTS_KEY = "spaceedu-documents";
+export const DOCUMENTS_UPDATED_EVENT = "spaceedu-documents-updated";
+/** The material analyses (lib/research-files), the board study plan (lib/study-plan-board) and the AI teacher's tips learned today. */
+export const RESEARCH_HISTORY_KEY = "spaceedu:research:history";
+export const STUDY_PLAN_BOARD_KEY = "spaceedu:study-plan:student";
+export const AI_TEACHER_TIPS_LEARNED_KEY = "spaceedu-ai-teacher-tips-learned";
 
 /** { subjects: [{ id, name }], semesterLabel }: both sides' subjects; the
  * newer label. */
@@ -116,7 +132,7 @@ export const mergeStudyPlan: Merge = (local, remote, context) => {
  * sides; for an id on both, the copy with the later `field` (an edited
  * note, a continued chat). `limit` keeps the newest that many, newest first.
  */
-export function mergeNewestById(field: "updatedAt" | "createdAt", limit?: number): Merge {
+export function mergeNewestById(field: "updatedAt" | "createdAt" | "at", limit?: number): Merge {
   return (local, remote, context) => {
     if (!Array.isArray(local) || !Array.isArray(remote)) return newerWins(local, remote, context);
     type Item = { id?: unknown } & Record<string, unknown>;
@@ -267,20 +283,30 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: STUDY_PLAN_KEYS.student, merge: mergeStudyPlan, event: STUDY_PLAN_CALENDAR_UPDATED_EVENT },
   { key: EXAM_COUNTDOWN_KEY, merge: keepRemote, event: EXAM_COUNTDOWN_UPDATED_EVENT },
   // Content (PR 2).
-  { key: LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: LECTURE_NOTES_UPDATED_EVENT },
-  { key: ABIT_LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: ABIT_LECTURE_NOTES_UPDATED_EVENT },
+  // `rows`: a growing list, one user_items row per item (no 1 MB ceiling).
+  { key: LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: LECTURE_NOTES_UPDATED_EVENT, rows: true },
+  { key: ABIT_LECTURE_NOTES_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: ABIT_LECTURE_NOTES_UPDATED_EVENT, rows: true },
   // Renamed or deleted on one device: the later edit wins (saveConspectus keeps 20).
-  { key: CONSPECTUS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CONSPECTUS_UPDATED_EVENT },
-  { key: QUIZZES_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT },
-  { key: QUIZ_ATTEMPTS_KEY, merge: mergeNewestById("updatedAt", QUIZ_ATTEMPTS_LIMIT), event: QUIZZES_UPDATED_EVENT },
-  { key: TASK_HELPERS_KEY, merge: mergeNewestById("updatedAt", TASK_HELPERS_LIMIT), event: TASK_HELPERS_UPDATED_EVENT },
-  { key: SUBJECT_TOPICS_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT },
-  { key: SUBJECT_FILES_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT },
+  { key: CONSPECTUS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CONSPECTUS_UPDATED_EVENT, rows: true },
+  { key: QUIZZES_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT, rows: true },
+  // Every attempt stays; a quiz's attempts go with the quiz.
+  { key: QUIZ_ATTEMPTS_KEY, merge: mergeNewestById("updatedAt"), event: QUIZZES_UPDATED_EVENT, rows: true },
+  { key: TASK_HELPERS_KEY, merge: mergeNewestById("updatedAt"), event: TASK_HELPERS_UPDATED_EVENT, rows: true },
+  { key: SUBJECT_TOPICS_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT, rows: true },
+  { key: SUBJECT_FILES_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT, rows: true },
+  { key: DOCUMENTS_KEY, merge: mergeNewestById("updatedAt"), event: DOCUMENTS_UPDATED_EVENT },
+  { key: ELI5_HISTORY_KEY, merge: mergeNewestById("createdAt", ELI5_HISTORY_LIMIT), event: ELI5_HISTORY_UPDATED_EVENT, rows: true },
+  // The chosen level: a preference, kept on the device after sign-out.
+  { key: ELI5_LEVEL_KEY, raw: true, keepOnSignOut: true },
+  { key: RESEARCH_HISTORY_KEY, merge: mergeNewestById("at"), rows: true },
+  // The board plan: the newer copy wins.
+  { key: STUDY_PLAN_BOARD_KEY },
+  { key: AI_TEACHER_TIPS_LEARNED_KEY },
   // A deck generating on one device, renamed or deleted on another: the later edit wins.
-  { key: CUSTOM_DECKS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CUSTOM_DECKS_UPDATED_EVENT },
-  { key: AI_TEACHER_HISTORY_KEYS.student, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },
-  { key: AI_TEACHER_HISTORY_KEYS.abiturient, merge: mergeNewestById("updatedAt", 50), event: AI_TEACHER_HISTORY_UPDATED_EVENT },
-  { key: ASSISTANT_HISTORY_KEY_BASE, variants: true, merge: mergeNewestById("createdAt", 24), event: ASSISTANT_HISTORY_UPDATED_EVENT },
+  { key: CUSTOM_DECKS_STORAGE_KEY, merge: mergeNewestById("updatedAt"), event: CUSTOM_DECKS_UPDATED_EVENT, rows: true },
+  { key: AI_TEACHER_HISTORY_KEYS.student, merge: mergeNewestById("updatedAt", AI_TEACHER_HISTORY_LIMIT), event: AI_TEACHER_HISTORY_UPDATED_EVENT, rows: true },
+  { key: AI_TEACHER_HISTORY_KEYS.abiturient, merge: mergeNewestById("updatedAt", AI_TEACHER_HISTORY_LIMIT), event: AI_TEACHER_HISTORY_UPDATED_EVENT, rows: true },
+  { key: ASSISTANT_HISTORY_KEY_BASE, variants: true, merge: mergeNewestById("createdAt", ASSISTANT_HISTORY_LIMIT), event: ASSISTANT_HISTORY_UPDATED_EVENT },
   { key: CV_PREFS_KEY, event: CV_PREFS_UPDATED_EVENT },
   // Progress (PR 3).
   { key: DAILY_GOALS_KEY, merge: mergeDailyGoals, event: DAILY_GOALS_UPDATED_EVENT },
@@ -291,8 +317,9 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: QUIZ_STATS_KEY, merge: mergeQuizAttempts, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: CV_UPDATED_KEY, merge: later, event: DASHBOARD_METRICS_UPDATED_EVENT },
   { key: TOOL_USAGE_KEY, merge: mergeToolUsage, event: DASHBOARD_METRICS_UPDATED_EVENT },
-  { key: ACTIVITY_LOG_KEY, merge: mergeNewestById("createdAt", ACTIVITY_LOG_LIMIT), event: ACTIVITY_LOG_UPDATED_EVENT },
-  { key: FLASHCARD_SESSIONS_KEY, merge: mergeNewestById("updatedAt", FLASHCARD_SESSIONS_LIMIT) },
+  { key: ACTIVITY_LOG_KEY, merge: mergeNewestById("createdAt", ACTIVITY_LOG_LIMIT), event: ACTIVITY_LOG_UPDATED_EVENT, rows: true },
+  // Every deck's progress stays; a deck's session goes with the deck.
+  { key: FLASHCARD_SESSIONS_KEY, merge: mergeNewestById("updatedAt"), rows: true },
   { key: ACTIVE_SUBJECT_KEY, event: SEMESTER_SUBJECTS_UPDATED_EVENT },
   // The dashboard's journal widget shows the XP and re-reads on this event.
   { key: JOURNAL_PROGRESS_KEY, merge: mergeJournalProgress, event: LECTURE_NOTES_UPDATED_EVENT },

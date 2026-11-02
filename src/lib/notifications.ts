@@ -9,7 +9,7 @@ import {
 } from "./notification-feed";
 import { getSavedStudyPlan, toggleStudyPlanDayDone, type StudyPlanSpace } from "./study-plan-calendar";
 import { getDashboardCalendarEvents, getGeneratedMilestones } from "./syllabus-calendar";
-import { STUDY_PLAN_BOARD_KEY, parseSavedPlan, toggleDone as toggleBoardDay } from "./study-plan-board";
+import { readSavedPlan, toggleDone as toggleBoardDay, writeSavedPlan } from "./study-plan-board";
 import { NOTIFICATIONS_KEY, NOTIFICATIONS_UPDATED_EVENT } from "./user-data-keys";
 import { userStore } from "./user-data";
 
@@ -222,9 +222,9 @@ export function markPlanDayDone(notification: AppNotification): boolean {
   const plan = getSavedStudyPlan(space);
   if (plan && !plan.doneDates.includes(date)) toggleStudyPlanDayDone(space, date);
   try {
-    const board = parseSavedPlan(window.localStorage.getItem(STUDY_PLAN_BOARD_KEY));
+    const board = readSavedPlan();
     if (board && board.plan.some((day) => day.date === date) && !board.done.includes(date)) {
-      window.localStorage.setItem(STUDY_PLAN_BOARD_KEY, JSON.stringify({ ...board, done: toggleBoardDay(board.done, date) }));
+      writeSavedPlan({ ...board, done: toggleBoardDay(board.done, date) });
     }
   } catch {
     // the study-plan page's copy stays as it was

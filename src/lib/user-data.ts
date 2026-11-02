@@ -6,7 +6,8 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SYNCED_KEYS, USER_DATA_REMOTE_EVENT } from "./user-data-keys";
-import { createUserStore, type KeyValueStorage, type RemoteRow, type UserDataRemote, type UserStore } from "./user-store";
+import { createUserStore, specFor, type KeyValueStorage, type RemoteRow, type UserDataRemote, type UserStore } from "./user-store";
+import { itemRowsRemote } from "./user-items-remote";
 
 /** Server rendering (and tests) get a store that keeps nothing. */
 const memoryStorage = (): KeyValueStorage => {
@@ -57,25 +58,75 @@ export const userStore = {
   subscribe: (key: string, listener: () => void) => getUserStore().subscribe(key, listener),
 };
 
-/** The account's rows in Supabase. */
+/**
+ * The account's rows in Supabase: `user_data` (one row per key), and for
+ * the growing lists (`rows: true` in SYNCED_KEYS) one `user_items` row per
+ * item (lib/user-items-remote), assembled back into the list. A list still
+ * in its old single row moves to items the first time it's pulled.
+ */
 export function supabaseUserData(client: SupabaseClient, userId: string): UserDataRemote {
+  const items = itemRowsRemote(client, userId);
+  const isList = (key: string) => Boolean(specFor(SYNCED_KEYS, key)?.rows);
+
+  async function upsertRows(rows: { key: string; value: unknown }[]): Promise<RemoteRow[]> {
+    if (rows.length === 0) return [];
+    const { data, error } = await client
+      .from("user_data")
+      .upsert(rows.map((row) => ({ user_id: userId, key: row.key, value: row.value })), { onConflict: "user_id,key" })
+      .select("key, value, updated_at");
+    if (error) throw error;
+    return (data ?? []) as RemoteRow[];
+  }
+
+  async function removeRows(keys: string[]): Promise<void> {
+    if (keys.length === 0) return;
+    const { error } = await client.from("user_data").delete().eq("user_id", userId).in("key", keys);
+    if (error) throw error;
+  }
+
   return {
     async pull() {
       const { data, error } = await client.from("user_data").select("key, value, updated_at").eq("user_id", userId);
       if (error) throw error;
-      return (data ?? []) as RemoteRow[];
+      const rows = (data ?? []) as RemoteRow[];
+      const lists = await items.pull();
+      const result: RemoteRow[] = [];
+      const moved: string[] = [];
+      for (const row of rows) {
+        if (!items.available || !isList(row.key)) {
+          result.push(row);
+          continue;
+        }
+        // Already in items: the old row is left over.
+        if (lists.has(row.key)) {
+          moved.push(row.key);
+          continue;
+        }
+        // Still a single row: moved to items now.
+        const pushed = await items.push(row.key, row.value);
+        if (pushed) {
+          lists.set(row.key, pushed);
+          moved.push(row.key);
+        } else {
+          result.push(row);
+        }
+      }
+      await removeRows(moved);
+      return [...result, ...lists.values()];
     },
     async upsert(rows) {
-      const { data, error } = await client
-        .from("user_data")
-        .upsert(rows.map((row) => ({ user_id: userId, key: row.key, value: row.value })), { onConflict: "user_id,key" })
-        .select("key, value, updated_at");
-      if (error) throw error;
-      return (data ?? []) as RemoteRow[];
+      const whole: { key: string; value: unknown }[] = [];
+      const result: RemoteRow[] = [];
+      for (const row of rows) {
+        const pushed = isList(row.key) ? await items.push(row.key, row.value) : null;
+        if (pushed) result.push(pushed);
+        else whole.push(row);
+      }
+      return [...result, ...(await upsertRows(whole))];
     },
     async remove(keys) {
-      const { error } = await client.from("user_data").delete().eq("user_id", userId).in("key", keys);
-      if (error) throw error;
+      await items.remove(keys.filter(isList));
+      await removeRows(keys);
     },
   };
 }

@@ -1,13 +1,13 @@
 import type { PremiumAssistantPath } from "./assistant-routes";
 import { getAssistantSidebarConfig } from "./assistant-sidebar-config";
 
-import { ASSISTANT_HISTORY_KEY_BASE, ASSISTANT_HISTORY_UPDATED_EVENT } from "./user-data-keys";
+import { ASSISTANT_HISTORY_KEY_BASE, ASSISTANT_HISTORY_LIMIT, ASSISTANT_HISTORY_UPDATED_EVENT } from "./user-data-keys";
 import { userStore } from "./user-data";
 
 export { ASSISTANT_HISTORY_UPDATED_EVENT };
 
 const STORAGE_PREFIX = `${ASSISTANT_HISTORY_KEY_BASE}:`;
-const MAX_ENTRIES = 24;
+const MAX_ENTRIES = ASSISTANT_HISTORY_LIMIT;
 
 export interface AssistantHistoryEntry {
   id: string;

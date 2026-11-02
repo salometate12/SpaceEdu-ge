@@ -1,5 +1,5 @@
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
-import { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_UPDATED_EVENT } from "@/lib/user-data-keys";
+import { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_LIMIT, AI_TEACHER_HISTORY_UPDATED_EVENT } from "@/lib/user-data-keys";
 import { userStore } from "@/lib/user-data";
 
 export { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_UPDATED_EVENT };
@@ -27,7 +27,8 @@ export interface AiTeacherConversation {
 /** The single shared key from before the split. /ai-teacher was the
  * student page then, so its chats move to the student key. */
 export const LEGACY_AI_TEACHER_HISTORY_KEY = "spaceedu-ai-teacher-conversations";
-const MAX_CONVERSATIONS = 50;
+/** Up to 200 per space (one account row each); older ones show under „ძველი საუბრები“. */
+const MAX_CONVERSATIONS = AI_TEACHER_HISTORY_LIMIT;
 export const TITLE_MAX_LENGTH = 40;
 
 /** A one-line title from the first question: markdown and extra spaces
@@ -45,7 +46,10 @@ export function conversationTitleFrom(messages: AiTeacherMessage[]): string {
   return `${(lastSpace > TITLE_MAX_LENGTH * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:–-]+$/, "")}…`;
 }
 
-export type ConversationGroupLabel = "დღეს" | "გუშინ" | "ბოლო 7 დღე" | "ადრე";
+export type ConversationGroupLabel = "დღეს" | "გუშინ" | "ბოლო 7 დღე" | "ადრე" | "ძველი საუბრები";
+
+/** Conversations older than this many days go under „ძველი საუბრები“ (folded in the list). */
+export const OLD_CONVERSATION_DAYS = 30;
 
 /** Conversations bucketed by their last update, newest first. */
 export function groupConversationsByDate(
@@ -59,13 +63,15 @@ export function groupConversationsByDate(
     "გუშინ": [],
     "ბოლო 7 დღე": [],
     "ადრე": [],
+    "ძველი საუბრები": [],
   };
   for (const conversation of [...conversations].sort((a, b) => b.updatedAt - a.updatedAt)) {
     const at = conversation.updatedAt;
     if (at >= startOfToday) groups["დღეს"].push(conversation);
     else if (at >= startOfToday - day) groups["გუშინ"].push(conversation);
     else if (at >= startOfToday - 7 * day) groups["ბოლო 7 დღე"].push(conversation);
-    else groups["ადრე"].push(conversation);
+    else if (at >= startOfToday - OLD_CONVERSATION_DAYS * day) groups["ადრე"].push(conversation);
+    else groups["ძველი საუბრები"].push(conversation);
   }
   return (Object.keys(groups) as ConversationGroupLabel[])
     .filter((label) => groups[label].length > 0)

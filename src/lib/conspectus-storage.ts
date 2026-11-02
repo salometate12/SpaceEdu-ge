@@ -24,8 +24,6 @@ export interface Conspectus {
   topicId?: string;
 }
 
-/** How many are kept (deleted ones aside). */
-const LIMIT = 20;
 const TOMBSTONE_DAYS = 60;
 
 /** Every stored record, deleted ones included. */
@@ -44,9 +42,8 @@ function readAll(): Conspectus[] {
 /** `notify`: tell open lists to re-read (not the page that's open, on its own visit). */
 function writeAll(list: Conspectus[], now: number, notify = true): void {
   const cutoff = now - TOMBSTONE_DAYS * 86_400_000;
-  const kept = list.filter((c) => !c.deletedAt || c.deletedAt > cutoff);
-  const live = kept.filter((c) => !c.deletedAt).slice(0, LIMIT);
-  userStore.set(STORAGE_KEY, kept.filter((c) => c.deletedAt || live.includes(c)));
+  // Every conspectus stays until the student deletes it (one account row each, no ceiling).
+  userStore.set(STORAGE_KEY, list.filter((c) => !c.deletedAt || c.deletedAt > cutoff));
   if (notify && typeof window !== "undefined") window.dispatchEvent(new Event(CONSPECTUS_UPDATED_EVENT));
 }
 

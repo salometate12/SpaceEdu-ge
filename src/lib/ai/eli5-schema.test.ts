@@ -44,17 +44,19 @@ describe("ELI5 levels", () => {
 
 describe("ELI5 history", () => {
   const item = (query: string, at: number, level: Eli5HistoryItem["level"] = "kid"): Eli5HistoryItem => ({
+    id: `${level}:${query.toLowerCase()}`,
+    createdAt: at,
     query,
     level,
     result: { ...ANSWER, title: query },
     at,
   });
 
-  it("keeps the newest first, replaces the same topic and level, and caps at 20", () => {
+  it("keeps the newest first, replaces the same topic and level, and caps at 50", () => {
     let history: Eli5HistoryItem[] = [];
-    for (let index = 0; index < 25; index += 1) history = addToHistory(history, item(`თემა ${index}`, index));
-    expect(history).toHaveLength(20);
-    expect(history[0].query).toBe("თემა 24");
+    for (let index = 0; index < 55; index += 1) history = addToHistory(history, item(`თემა ${index}`, index));
+    expect(history).toHaveLength(50);
+    expect(history[0].query).toBe("თემა 54");
     history = addToHistory(history, item("თემა 20", 99));
     expect(history.filter((entry) => entry.query === "თემა 20")).toHaveLength(1);
     expect(history[0].at).toBe(99);
@@ -62,9 +64,13 @@ describe("ELI5 history", () => {
     expect(history.filter((entry) => entry.query === "თემა 20")).toHaveLength(2);
   });
 
-  it("ignores broken stored data", () => {
+  it("ignores broken stored data, and gives entries saved before ids theirs", () => {
     expect(parseHistory("not json")).toEqual([]);
     expect(parseHistory(JSON.stringify([{ query: 1 }, item("ok", 1)]))).toHaveLength(1);
+    const old: Partial<Eli5HistoryItem> = item("ძველი", 7, "school");
+    delete old.id;
+    delete old.createdAt;
+    expect(parseHistory(JSON.stringify([old]))[0]).toMatchObject({ id: "school:ძველი", createdAt: 7 });
   });
 
   it("writes the journal entry in four parts, skipping a missing example", () => {
