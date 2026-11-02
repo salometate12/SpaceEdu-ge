@@ -30,6 +30,7 @@ const TOOL_COLORS: Record<string, string> = {
   flashcards: "#f59e0b",
   "my-materials": "#f472b6",
   "task-helper": "#7dd3fc",
+  "my-subjects": "#a78bfa",
   calculator: "#2dd4bf",
   library: "#4ade80",
   "summer-reading": "#facc15",
@@ -49,6 +50,7 @@ const KEYWORDS: Record<string, string[]> = {
   quiz: ["ქვიზი", "ტესტი", "quiz", "test"],
   "quiz-tool": ["ქვიზი", "ტესტი", "quiz", "test"],
   flashcards: ["ბარათები", "ფლეშბარათები", "flashcards", "გამეორება"],
+  "my-subjects": ["საგნები", "საგანი", "თემები", "ლექციები", "subjects"],
   "task-helper": ["დავალება", "ბრიფი", "გეგმა", "იდეები", "assignment", "task"],
   "my-materials": ["მასალები", "ბიბლიოთეკა", "დასტები", "ქვიზები", "კონსპექტები", "library"],
   "study-plan": ["გეგმა", "კალენდარი", "plan"],
@@ -64,6 +66,7 @@ const KEYWORDS: Record<string, string[]> = {
 const ORDER = [
   "ai-teacher",
   "ai-chat",
+  "my-subjects",
   "task-helper",
   "presentation",
   "cv",

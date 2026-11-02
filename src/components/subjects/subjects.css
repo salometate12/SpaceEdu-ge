@@ -1,0 +1,236 @@
+/*
+ * „ჩემი საგნები“ (/subjects), both themes: white cards with a thin border,
+ * pill buttons, the tools' own colours on the „ამ თემაზე შექმენი“ buttons.
+ * `.sj` is the root.
+ */
+.sj {
+  --sj-card: #ffffff;
+  --sj-border: #ece9e4;
+  --sj-field-border: #e7e5e4;
+  --sj-title: #1c1a17;
+  --sj-text: #57534e;
+  --sj-muted: #78716c;
+  --sj-soft: #f5f4f0;
+  --sj-open: #fafaf9;
+  --sj-hover: #f5f4f0;
+  --sj-track: #f1efeb;
+  --sj-strong: #1c1a17;
+  --sj-on-strong: #ffffff;
+  --sj-green: #22c55e;
+  --sj-exam-bg: #fefce8;
+  --sj-exam: #854d0e;
+  color: var(--sj-text);
+}
+
+html.dark .sj {
+  --sj-card: #15151b;
+  --sj-border: #26262e;
+  --sj-field-border: #2e2e38;
+  --sj-title: #fafaf9;
+  --sj-text: #d4d4d8;
+  --sj-muted: #a1a1aa;
+  --sj-soft: #1f1f27;
+  --sj-open: #1b1b22;
+  --sj-hover: #1f1f27;
+  --sj-track: #26262e;
+  --sj-strong: #fafaf9;
+  --sj-on-strong: #15151b;
+  --sj-green: #4ade80;
+  --sj-exam-bg: rgba(250, 204, 21, 0.1);
+  --sj-exam: #fde68a;
+}
+
+.sj .sj-card {
+  background: var(--sj-card);
+  border: 1px solid var(--sj-border);
+  border-radius: 24px;
+}
+
+.sj .sj-focus:focus-visible {
+  outline: 2px solid #e11d74;
+  outline-offset: 2px;
+}
+
+/* Subject chips: 42px pills, the open one solid dark. */
+.sj .sj-chip {
+  display: inline-flex;
+  height: 42px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  background: var(--sj-card);
+  padding: 0 16px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--sj-title);
+  white-space: nowrap;
+}
+.sj .sj-chip:hover {
+  border-color: var(--sj-muted);
+}
+.sj .sj-chip[aria-current="page"],
+.sj .sj-chip[aria-selected="true"],
+.sj .sj-chip[aria-pressed="true"],
+.sj .sj-chip[aria-checked="true"] {
+  border-color: var(--sj-strong);
+  background: var(--sj-strong);
+  color: var(--sj-on-strong);
+}
+/* The small chips in a file's „თემის შეცვლა“ / „ტიპის შეცვლა“. */
+.sj .sj-chip.sj-chip-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.sj .sj-chip-add {
+  border-style: dashed;
+  color: var(--sj-muted);
+}
+
+.sj .sj-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 9999px;
+  background: #e11d74;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sj .sj-primary:hover:not(:disabled) {
+  background: #cf1769;
+}
+.sj .sj-primary:disabled,
+.sj .sj-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sj .sj-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  background: var(--sj-card);
+  color: var(--sj-title);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sj .sj-secondary:hover:not(:disabled) {
+  background: var(--sj-hover);
+}
+
+.sj .sj-input {
+  height: 42px;
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  background: var(--sj-card);
+  padding: 0 16px;
+  font-size: 14.5px;
+  color: var(--sj-title);
+  outline: none;
+}
+.sj .sj-input::placeholder {
+  color: var(--sj-muted);
+}
+.sj .sj-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #e11d74;
+}
+
+/* Status chips on a topic. */
+.sj .sj-status {
+  display: inline-flex;
+  height: 26px;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--st-bg);
+  color: var(--st);
+}
+.sj .st-done { --st-bg: #dcfce7; --st: #166534; }
+.sj .st-current { --st-bg: #fdf2f8; --st: #9d174d; }
+.sj .st-quiz { --st-bg: #f0fdfa; --st: #0f766e; }
+.sj .st-new { --st-bg: #f5f4f0; --st: #78716c; }
+html.dark .sj .st-done { --st-bg: rgba(74, 222, 128, 0.14); --st: #86efac; }
+html.dark .sj .st-current { --st-bg: rgba(236, 72, 153, 0.14); --st: #f9a8d4; }
+html.dark .sj .st-quiz { --st-bg: rgba(45, 212, 191, 0.12); --st: #5eead4; }
+html.dark .sj .st-new { --st-bg: #1f1f27; --st: #a1a1aa; }
+
+/* „ამ თემაზე შექმენი“: each tool in its colour. */
+.sj .sj-tool {
+  display: inline-flex;
+  height: 38px;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  padding: 0 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  background: var(--tool-bg);
+  color: var(--tool);
+  white-space: nowrap;
+}
+.sj .sj-tool:hover {
+  filter: brightness(0.97);
+}
+.sj .tool-quiz { --tool-bg: #f0fdfa; --tool: #0f766e; }
+.sj .tool-cards { --tool-bg: #fffbeb; --tool: #b45309; }
+.sj .tool-presentation { --tool-bg: #fff7ed; --tool: #c2410c; }
+.sj .tool-summary { --tool-bg: #eff6ff; --tool: #1d4ed8; }
+html.dark .sj .tool-quiz { --tool-bg: rgba(45, 212, 191, 0.12); --tool: #5eead4; }
+html.dark .sj .tool-cards { --tool-bg: rgba(245, 158, 11, 0.12); --tool: #fcd34d; }
+html.dark .sj .tool-presentation { --tool-bg: rgba(251, 146, 60, 0.12); --tool: #fdba74; }
+html.dark .sj .tool-summary { --tool-bg: rgba(96, 165, 250, 0.12); --tool: #93c5fd; }
+
+/* A file kind's tile. */
+.sj .sj-kind {
+  background: var(--kind-bg);
+  color: var(--kind);
+}
+.sj .kind-lecture { --kind-bg: #fdf2f8; --kind: #db2777; }
+.sj .kind-reading { --kind-bg: #eff6ff; --kind: #1d4ed8; }
+.sj .kind-assignment { --kind-bg: #f0f9ff; --kind: #0369a1; }
+.sj .kind-presentation { --kind-bg: #fff7ed; --kind: #c2410c; }
+.sj .kind-other { --kind-bg: #f5f4f0; --kind: #57534e; }
+html.dark .sj .kind-lecture { --kind-bg: rgba(236, 72, 153, 0.14); --kind: #f472b6; }
+html.dark .sj .kind-reading { --kind-bg: rgba(96, 165, 250, 0.12); --kind: #93c5fd; }
+html.dark .sj .kind-assignment { --kind-bg: rgba(56, 189, 248, 0.12); --kind: #7dd3fc; }
+html.dark .sj .kind-presentation { --kind-bg: rgba(251, 146, 60, 0.12); --kind: #fdba74; }
+html.dark .sj .kind-other { --kind-bg: #1f1f27; --kind: #d4d4d8; }
+
+.sj .sj-menu {
+  background: var(--sj-card);
+  border: 1px solid var(--sj-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -12px rgb(15 23 42 / 0.3);
+}
+.sj .sj-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border-radius: 11px;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sj-title);
+}
+.sj .sj-menu-item:hover {
+  background: var(--sj-hover);
+}
+
+.sj .sj-scroll {
+  scrollbar-width: none;
+}
+.sj .sj-scroll::-webkit-scrollbar {
+  display: none;
+}

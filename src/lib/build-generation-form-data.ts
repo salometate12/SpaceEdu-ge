@@ -15,6 +15,10 @@ export function buildGenerationFormData(
   if (input.difficulty) formData.append("difficulty", input.difficulty);
   // Not read by the model: kept with what's saved (the conspectus).
   if (input.sourceLabel) formData.append("sourceLabel", input.sourceLabel);
+  if (input.link) {
+    formData.append("subjectId", input.link.subjectId);
+    formData.append("topicId", input.link.topicId);
+  }
 
   if (input.inputType === "text") {
     formData.append("text", input.text);

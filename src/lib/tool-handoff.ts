@@ -48,6 +48,9 @@ export interface PresentationHandoff {
   subject?: string;
   slideCount?: number;
   extraInstructions?: string;
+  /** „ჩემი საგნები“: what the presentation is for. */
+  subjectId?: string;
+  topicId?: string;
 }
 
 const PRESENTATION_KEY = "spaceedu-handoff:presentation";

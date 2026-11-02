@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Layers, Plus, X } from "lucide-react";
 import {
   DEFAULT_SEMESTER_SUBJECTS,
   SEMESTER_SUBJECTS_UPDATED_EVENT,
+  readSavedSemesterSubjects,
   readSemesterSubjects,
   saveSemesterSubjects,
   type SemesterSubject,
@@ -18,6 +20,7 @@ export function SemesterSubjects() {
   const [newSubject, setNewSubject] = useState("");
   const [activeSubject, setActiveSubjectState] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const router = useRouter();
 
   // Read on mount, and again when the account's copy arrives (UserDataSync).
   useEffect(() => {
@@ -62,6 +65,18 @@ export function SemesterSubjects() {
   };
 
   const openAdder = () => setAdding(true);
+
+  // A saved subject opens its page („ჩემი საგნები“) and becomes the one
+  // being studied; the sample ones (never saved) only toggle, as before.
+  const openSubject = (subject: SemesterSubject) => {
+    if (!readSavedSemesterSubjects().some((item) => item.id === subject.id)) {
+      toggleActive(subject.name);
+      return;
+    }
+    setActiveSubject(subject.name);
+    setActiveSubjectState(subject.name);
+    router.push(`/subjects/${encodeURIComponent(subject.id)}`);
+  };
 
   const hasSubjects = subjects.length > 0;
 
@@ -122,7 +137,7 @@ export function SemesterSubjects() {
                 >
                   <button
                     type="button"
-                    onClick={() => toggleActive(subject.name)}
+                    onClick={() => openSubject(subject)}
                     aria-pressed={isActive}
                     title={subject.name}
                     className="flex min-w-0 items-center gap-1.5 self-stretch rounded-[18px] py-1.5 pl-3 text-left font-medium leading-snug focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50"

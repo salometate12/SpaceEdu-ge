@@ -30,7 +30,7 @@ import {
   type AiTeacherConversation,
 } from "@/lib/ai-teacher-history";
 import { AI_TEACHER_CONTENT, type AiTeacherSpace } from "@/lib/ai-teacher-content";
-import { AI_TEACHER_PROMPT_KEY, AI_TEACHER_TITLE_KEY } from "@/lib/syllabus-calendar";
+import { AI_TEACHER_PROMPT_KEY, AI_TEACHER_TITLE_KEY, AI_TEACHER_CONTEXT_KEY } from "@/lib/syllabus-calendar";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
 import { dashboardHrefForSpace } from "@/lib/dashboard-routes";
 import { buildSuggestions, type SuggestionKind } from "@/lib/ai-teacher-suggestions";
@@ -304,11 +304,15 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   useEffect(() => {
     if (typeof window === "undefined" || initialPromptConsumed.current) return;
     let pending: string | null = null;
+    // Reference material for it (a topic's files from „ჩემი საგნები“).
+    let handedContext: string | undefined;
     try {
       pending = window.sessionStorage.getItem(AI_TEACHER_PROMPT_KEY);
       if (pending) window.sessionStorage.removeItem(AI_TEACHER_PROMPT_KEY);
       const title = window.sessionStorage.getItem(AI_TEACHER_TITLE_KEY);
       window.sessionStorage.removeItem(AI_TEACHER_TITLE_KEY);
+      handedContext = window.sessionStorage.getItem(AI_TEACHER_CONTEXT_KEY)?.trim() || undefined;
+      window.sessionStorage.removeItem(AI_TEACHER_CONTEXT_KEY);
       if (pending && title?.trim()) handoffTitleRef.current = title.trim().slice(0, 80);
     } catch {
       pending = null;
@@ -324,7 +328,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     initialPromptConsumed.current = true;
     const message = pending;
     window.setTimeout(() => {
-      void sendMessage(message);
+      void sendMessage(message, handedContext);
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

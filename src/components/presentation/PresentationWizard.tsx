@@ -96,6 +96,8 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
 
   // ---- loading a saved presentation ----
   const createdAt = useRef<number | null>(null);
+  // „ჩემი საგნები“: the subject and topic it was made for (opened from a topic, or saved with one).
+  const link = useRef<{ subjectId: string; topicId: string } | null>(null);
   const [storageProblem, setStorageProblem] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -105,6 +107,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         if (saved) {
           const { presentation } = saved;
           createdAt.current = presentation.createdAt;
+          if (presentation.subjectId && presentation.topicId) link.current = { subjectId: presentation.subjectId, topicId: presentation.topicId };
           setForm({ ...DEFAULT_FORM, ...presentation.form });
           setQa({ ...DEFAULT_QA, ...presentation.qa, audience: normalizeAudience(presentation.qa?.audience ?? DEFAULT_QA.audience) });
           setSelectedTemplateId(presentation.templateId);
@@ -121,6 +124,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         } else {
           // A new one opened from another tool (the task helper): its first step filled in.
           const handed = takePresentationHandoff();
+          if (handed?.subjectId && handed.topicId) link.current = { subjectId: handed.subjectId, topicId: handed.topicId };
           if (handed) {
             setForm({
               ...DEFAULT_FORM,
@@ -190,6 +194,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
             qa: current.qa,
             slides: current.deck?.slides ?? null,
             photoIds: current.photos.map((photo) => photo.id),
+            ...(link.current ?? {}),
           },
           current.photos,
         );

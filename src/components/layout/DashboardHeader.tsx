@@ -72,6 +72,7 @@ export function DashboardHeader({
     effectiveSpace === "student"
       ? [
           { label: "დეშბორდი", href: dashboardHrefForSpace(effectiveSpace) },
+          { label: "ჩემი საგნები", href: "/subjects" },
           { label: "ჟურნალი", href: "/journal" },
           { label: "ლექციები", href: "/lecture-notes" },
           { label: "პრეზენტაცია", href: "/presentation" },
