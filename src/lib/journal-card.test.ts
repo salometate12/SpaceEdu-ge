@@ -20,7 +20,6 @@ describe("journal categories", () => {
   it("one entry per kind of note, with the agreed colours", () => {
     expect(JOURNAL_CATEGORIES.map((category) => category.id)).toEqual([...JOURNAL_SECTION_IDS]);
     expect(Object.fromEntries(JOURNAL_CATEGORIES.map((category) => [category.id, category.color]))).toEqual({
-      lectures: "#ec4899",
       assignments: "#38bdf8",
       "ai-notes": "#eab308",
       ideas: "#14b8a6",

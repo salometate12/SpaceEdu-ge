@@ -49,7 +49,7 @@ export function JournalPage() {
     );
   }, []);
 
-  // `?new=lectures` → a blank entry of that kind, then its own `?id=`.
+  // `?new=ideas` → a blank entry of that kind, then its own `?id=`.
   useEffect(() => {
     if (!isJournalSection(newParam)) return;
     const blank = createBlankLectureNote(newParam);

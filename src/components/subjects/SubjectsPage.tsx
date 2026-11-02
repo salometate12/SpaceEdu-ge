@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BookOpenCheck, FolderOpen, Loader2, Play, Plus, UploadCloud } from "lucide-react";
+import { BookOpenCheck, FolderOpen, Loader2, NotebookPen, Play, Plus, UploadCloud } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { readSavedSemesterSubjects, readSemesterSubjects, saveSemesterSubjects } from "@/lib/semester-subjects";
 import { prepareStudy, toolHref, type TopicTool } from "@/lib/subject-actions";
 import { addSubjectFiles, getSubjectFileBlob } from "@/lib/subject-files-client";
+import { getNoteByLegacyId, newNoteHref, NO_SUBJECT, noteHref } from "@/lib/subject-notes";
 import { syncSyllabusTopics } from "@/lib/subject-store";
 import { nextExam, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectTopic } from "@/lib/subjects";
 import { localDay } from "@/lib/task-helper";
+import { LectureNotesMovedToast } from "./LectureNotesMovedToast";
 import { MaterialsPanel } from "./MaterialsPanel";
+import { NoteRows } from "./NoteRows";
 import { TopicsPanel } from "./TopicsPanel";
 import { useSubjectsData } from "./useSubjectsData";
 import "./subjects.css";
@@ -50,6 +53,7 @@ function addSemesterSubject(name: string): string | null {
 export function SubjectsPage() {
   const router = useRouter();
   const params = useParams<{ id?: string[] }>();
+  const search = useSearchParams();
   const data = useSubjectsData();
   const [currentId, setCurrentId] = useState<string | null>(params.id?.[0] ?? null);
   const [addingSubject, setAddingSubject] = useState(false);
@@ -66,12 +70,29 @@ export function SubjectsPage() {
   // /subjects: the subject seen last, else the first.
   const subjects = data.subjects;
   const subject = subjects.find((item) => item.id === currentId) ?? null;
+  // „საგნის გარეშე“: notes without a subject (or whose subject is gone); a chip only while there are some.
+  const subjectIds = new Set(subjects.map((item) => item.id));
+  const unsorted = data.notes.filter((note) => !note.subjectId || !subjectIds.has(note.subjectId));
+  const viewingUnsorted = currentId === NO_SUBJECT && unsorted.length > 0;
   useEffect(() => {
-    if (!data.ready || subject || subjects.length === 0) return;
+    if (!data.ready || subject || viewingUnsorted) return;
+    if (subjects.length === 0) {
+      if (unsorted.length > 0) void Promise.resolve().then(() => setCurrentId(NO_SUBJECT));
+      return;
+    }
     const last = readLast();
     const pick = subjects.find((item) => item.id === last) ?? subjects[0];
     void Promise.resolve().then(() => setCurrentId(pick.id));
-  }, [data.ready, subject, subjects]);
+  }, [data.ready, subject, subjects, viewingUnsorted, unsorted.length]);
+
+  // /lecture-notes?id=… (redirected here): the note it moved to, once it's here.
+  const legacyId = search.get("id");
+  const notesCount = data.notes.length;
+  useEffect(() => {
+    if (!legacyId || !data.ready) return;
+    const moved = getNoteByLegacyId(legacyId);
+    if (moved) router.replace(noteHref(moved));
+  }, [legacyId, data.ready, notesCount, router]);
 
   const choose = (id: string) => {
     setCurrentId(id);
@@ -97,6 +118,7 @@ export function SubjectsPage() {
   const topics = subject ? data.topics.filter((topic) => topic.subjectId === subject.id) : [];
   const files = subject ? data.files.filter((file) => file.subjectId === subject.id) : [];
   const made = subject ? data.made.filter((item) => item.subjectId === subject.id) : [];
+  const notes = subject ? data.notes.filter((note) => note.subjectId === subject.id) : [];
   const done = topics.filter((topic) => topic.status === "done").length;
   const exam = subject ? nextExam(data.milestones, subject.name, today) : null;
   const firstOpen = topics.find((topic) => topic.status !== "done");
@@ -143,8 +165,10 @@ export function SubjectsPage() {
   };
 
   const subtitle = [data.semesterLabel, `${subjects.length} საგანი`].filter(Boolean).join(" · ");
-  const meta = [subject?.credits ? `${subject.credits} კრედიტი` : null, `${files.length} ფაილი`, `${quizzes} ქვიზი`].filter(Boolean).join(" · ");
-  const empty = topics.length === 0 && files.length === 0 && !addingTopic;
+  const meta = [subject?.credits ? `${subject.credits} კრედიტი` : null, notes.length ? `${notes.length} ჩანაწერი` : null, `${files.length} ფაილი`, `${quizzes} ქვიზი`]
+    .filter(Boolean)
+    .join(" · ");
+  const empty = topics.length === 0 && files.length === 0 && notes.length === 0 && !addingTopic;
 
   const addSubjectForm = addingSubject ? (
     <form
@@ -179,7 +203,7 @@ export function SubjectsPage() {
           </Link>
         </header>
 
-        {!data.ready ? null : subjects.length === 0 ? (
+        {!data.ready ? null : subjects.length === 0 && unsorted.length === 0 ? (
           <section className="sj-card mt-6 flex flex-col items-center gap-3 px-6 py-12 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--sj-soft)] text-[var(--sj-muted)]" aria-hidden>
               <BookOpenCheck className="h-5 w-5" />
@@ -210,7 +234,22 @@ export function SubjectsPage() {
                   საგანი
                 </button>
               )}
+              {unsorted.length > 0 ? (
+                <button type="button" aria-current={viewingUnsorted ? "page" : undefined} onClick={() => choose(NO_SUBJECT)} className="sj-chip sj-focus">
+                  საგნის გარეშე
+                </button>
+              ) : null}
             </nav>
+
+            {viewingUnsorted ? (
+              <section aria-label="საგნის გარეშე" className="sj-card mt-5 p-4 sm:p-6">
+                <h2 className="text-[22px] font-bold leading-tight text-[var(--sj-title)] sm:text-[24px]">საგნის გარეშე</h2>
+                <p className="mt-1 text-[14px] text-[var(--sj-muted)]">{unsorted.length} ჩანაწერი · საგანს ჩანაწერის გახსნისას მიაბამ</p>
+                <div className="mt-4">
+                  <NoteRows notes={unsorted} />
+                </div>
+              </section>
+            ) : null}
 
             {subject ? (
               <>
@@ -269,6 +308,10 @@ export function SubjectsPage() {
                       <button type="button" onClick={() => setAddingTopic(true)} className="sj-secondary sj-focus h-11 px-5 text-[14.5px]">
                         თემის ხელით დამატება
                       </button>
+                      <Link href={newNoteHref(subject.id)} className="sj-secondary sj-focus h-11 px-5 text-[14.5px]">
+                        <NotebookPen className="h-4 w-4" aria-hidden />
+                        ჩანაწერის დამატება
+                      </Link>
                     </div>
                     <input
                       ref={uploadInput}
@@ -318,6 +361,8 @@ export function SubjectsPage() {
                           subjectId={subject.id}
                           topics={topics}
                           files={files}
+                          notes={notes}
+                          initialOpen={search.get("topic")}
                           onStudy={(topic) => void study(topic)}
                           onTool={(tool, topic) => void openTool(tool, topic)}
                           onOpenFile={(file) => void openFile(file)}
@@ -346,6 +391,7 @@ export function SubjectsPage() {
           </>
         )}
       </div>
+      <LectureNotesMovedToast link={false} />
     </div>
   );
 }

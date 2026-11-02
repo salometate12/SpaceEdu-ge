@@ -23,7 +23,6 @@ import {
   Shield,
   Sparkles,
   BookOpen,
-  StickyNote,
   User,
 } from "lucide-react";
 import {
@@ -65,7 +64,6 @@ export const ACCOUNT_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
 export const TOOL_ITEMS: Omit<RailItem, "onClick" | "active">[] = [
   { id: "ai-teacher", label: "AI მასწავლებელი", href: "/ai-teacher", icon: MessageSquareText },
   { id: "task-helper", label: "დავალების დამხმარე", href: "/task-helper", icon: Compass },
-  { id: "lecture-notes", label: "ლექციის ნოტები", href: "/lecture-notes", icon: StickyNote },
   { id: "journal", label: "ჟურნალი", href: "/journal", icon: BookOpen },
   { id: "research", label: "მასალა → ანალიზი", href: researchPlatformHref("student"), icon: FileSearch },
   { id: "presentation", label: "AI პრეზენტაცია", href: "/presentation", icon: Sparkles },

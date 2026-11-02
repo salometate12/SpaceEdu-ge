@@ -7,6 +7,7 @@
 import { SUBJECT_HUB_REGISTRY } from "@/lib/abiturient-subject-hub";
 import type { SuggestionEvent, SuggestionNote, SuggestionSubject } from "@/lib/ai-teacher-suggestions";
 import { loadLectureNotes } from "@/lib/lecture-notes";
+import { getNotes } from "@/lib/subject-notes";
 import { SEMESTER_SUBJECTS_STORAGE_KEY, type SemesterSubjectsData } from "@/lib/semester-subjects";
 import { getDashboardCalendarEvents, getGeneratedMilestones } from "@/lib/syllabus-calendar";
 import { userStore } from "@/lib/user-data";
@@ -43,12 +44,22 @@ export function readSuggestionData(space: "student" | "abiturient"): SuggestionD
     .filter((subject) => subject?.name?.trim())
     .map((subject, index) => ({ name: subject.name.trim(), color: color(index) }));
 
-  const notes = loadLectureNotes().map((note) => ({
-    title: note.title,
-    subject: note.subject,
-    date: note.date,
-    updatedAt: note.updatedAt,
-  }));
+  // Lecture notes („ჩემი საგნები“) and the journal's entries.
+  const names = new Map((Array.isArray(saved?.subjects) ? saved.subjects : []).map((subject) => [subject.id, subject.name]));
+  const notes = [
+    ...getNotes().map((note) => ({
+      title: note.title,
+      subject: (note.subjectId && names.get(note.subjectId)) || undefined,
+      date: note.lectureDate,
+      updatedAt: note.updatedAt,
+    })),
+    ...loadLectureNotes().map((note) => ({
+      title: note.title,
+      subject: note.subject,
+      date: note.date,
+      updatedAt: note.updatedAt,
+    })),
+  ];
 
   const seen = new Set<string>();
   const events: SuggestionEvent[] = [];

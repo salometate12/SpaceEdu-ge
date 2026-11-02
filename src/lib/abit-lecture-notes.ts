@@ -71,7 +71,6 @@ export function loadAbitLectureNotes(): AbitLectureNote[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(isLectureNote).map((note) => ({
       ...note,
-      section: "lectures" as const,
       pinned: false,
       aiKeywords: note.aiKeywords.filter(
         (tag) => typeof tag === "string" && tag.trim(),

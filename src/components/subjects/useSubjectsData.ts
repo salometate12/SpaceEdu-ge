@@ -8,6 +8,7 @@ import { PRESENTATIONS_UPDATED_EVENT } from "@/lib/presentation-sync-client";
 import { getQuizzes, QUIZZES_UPDATED_EVENT } from "@/lib/quiz-library";
 import { readSavedSemesterSubjects, readSemesterSubjects, SEMESTER_SUBJECTS_UPDATED_EVENT, type SemesterSubject } from "@/lib/semester-subjects";
 import { getFiles, getTopics, SUBJECTS_UPDATED_EVENT } from "@/lib/subject-store";
+import { getNotes, SUBJECT_NOTES_UPDATED_EVENT, type SubjectNote } from "@/lib/subject-notes";
 import { CALENDAR_UPDATED_EVENT, getGeneratedMilestones, type SyllabusMilestone } from "@/lib/syllabus-calendar";
 import { getTaskHelpers, TASK_HELPERS_UPDATED_EVENT } from "@/lib/task-helper-store";
 import type { SubjectFile, SubjectTopic } from "@/lib/subjects";
@@ -27,6 +28,8 @@ export interface SubjectsData {
   semesterLabel: string;
   topics: SubjectTopic[];
   files: SubjectFile[];
+  /** Lecture notes, newest lecture first (subjectId null: „საგნის გარეშე“). */
+  notes: SubjectNote[];
   milestones: SyllabusMilestone[];
   made: MadeItem[];
   ready: boolean;
@@ -48,10 +51,10 @@ function readSync(): Omit<SubjectsData, "ready" | "made"> & { made: MadeItem[] }
       task.subjectId ? [{ key: `task:${task.id}`, kind: "task", title: task.title, href: `/task-helper?id=${encodeURIComponent(task.id)}`, subjectId: task.subjectId, topicId: task.topicId }] : [],
     ),
   ];
-  return { subjects, semesterLabel: subjects.length ? readSemesterSubjects().semesterLabel : "", topics: getTopics(), files: getFiles(), milestones: getGeneratedMilestones(), made };
+  return { subjects, semesterLabel: subjects.length ? readSemesterSubjects().semesterLabel : "", topics: getTopics(), files: getFiles(), notes: getNotes(), milestones: getGeneratedMilestones(), made };
 }
 
-const EMPTY: SubjectsData = { subjects: [], semesterLabel: "", topics: [], files: [], milestones: [], made: [], ready: false };
+const EMPTY: SubjectsData = { subjects: [], semesterLabel: "", topics: [], files: [], notes: [], milestones: [], made: [], ready: false };
 
 /** Everything the subject page shows, kept current (this tab, other tabs, the account). */
 export function useSubjectsData(): SubjectsData {
@@ -79,6 +82,7 @@ export function useSubjectsData(): SubjectsData {
     });
     const events = [
       SUBJECTS_UPDATED_EVENT,
+      SUBJECT_NOTES_UPDATED_EVENT,
       SEMESTER_SUBJECTS_UPDATED_EVENT,
       CALENDAR_UPDATED_EVENT,
       CUSTOM_DECKS_UPDATED_EVENT,

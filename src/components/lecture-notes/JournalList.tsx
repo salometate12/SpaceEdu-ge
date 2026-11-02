@@ -83,7 +83,7 @@ export function JournalList({
   const all = filterNotes(notes, { category: "all", query: "" });
   const shown = filterNotes(notes, { category: tab, query });
   const groups = groupNotesByDay(shown);
-  const newHref = journalNewHref(tab === "all" ? "lectures" : tab);
+  const newHref = journalNewHref(tab === "all" ? JOURNAL_CATEGORIES[0].id : tab);
 
   const chips: { id: JournalSection | "all"; label: string }[] = [
     { id: "all", label: `ყველა · ${all.length}` },
@@ -162,7 +162,7 @@ export function JournalList({
               {query
                 ? "ვერაფერი მოიძებნა."
                 : tab === "all"
-                  ? "აქ გამოჩნდება შენი ჩანაწერები ლექციებზე, დავალებებსა და იდეებზე."
+                  ? "აქ გამოჩნდება შენი დავალებები, AI ნოტები და იდეები."
                   : `${journalCategory(tab).plural} ჯერ არ გაქვს.`}
             </p>
             {query ? null : (
