@@ -5,7 +5,7 @@
  * „generating“) so a closed tab can still pick it up (lib/generation-jobs).
  */
 import { userStore } from "./user-data";
-import { QUIZ_ATTEMPTS_KEY, QUIZ_ATTEMPTS_LIMIT, QUIZZES_KEY, QUIZZES_UPDATED_EVENT } from "./user-data-keys";
+import { QUIZ_ATTEMPTS_KEY, QUIZZES_KEY, QUIZZES_UPDATED_EVENT } from "./user-data-keys";
 import { createQuizRun, isQuizOver, quizTotals, type QuizRunState } from "./quiz-run";
 import type { DeckStatus } from "./types";
 
@@ -197,7 +197,8 @@ export function saveAttempt(attempt: QuizAttempt): void {
   const rest = readList<QuizAttempt>(QUIZ_ATTEMPTS_KEY).filter((item) => item.id !== attempt.id);
   userStore.set(
     QUIZ_ATTEMPTS_KEY,
-    [attempt, ...rest].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, QUIZ_ATTEMPTS_LIMIT),
+    // Every attempt stays; they go with their quiz (deleteQuiz).
+    [attempt, ...rest].sort((a, b) => b.updatedAt - a.updatedAt),
   );
   notify();
 }

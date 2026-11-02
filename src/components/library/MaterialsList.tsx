@@ -14,6 +14,7 @@ import {
   type MaterialSort,
 } from "@/lib/library/materials";
 import { MaterialCard, SourceTile } from "./MaterialCard";
+import { useUserDataStatus } from "@/hooks/useUserDataStatus";
 import "./library.css";
 
 /** Cards shown before „მეტის ჩვენება“. */
@@ -109,12 +110,33 @@ export function MaterialsList({
   onCreate?: () => void;
   createLabel?: string;
 }) {
+  const status = useUserDataStatus();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<MaterialFilter>("all");
   const [sort, setSort] = useState<MaterialSort>("opened");
   const [shown, setShown] = useState(PAGE);
 
   const visible = useMemo(() => sortMaterials(filterMaterials(items, { query, filter }), sort), [items, query, filter, sort]);
+
+  // Signed in on this device for the first time: the account's materials are
+  // on their way, so placeholders rather than „ჯერ არაფერი შეგიქმნია“.
+  if (items.length === 0 && status === "syncing") {
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3" aria-busy="true" aria-label="მასალები იტვირთება">
+        {[0, 1, 2].map((index) => (
+          <div key={index} className="lib-card flex animate-pulse flex-col gap-4 p-4 sm:p-5 motion-reduce:animate-none">
+            <div className="flex items-center gap-3">
+              <span className="h-[38px] w-[38px] rounded-[11px] bg-[var(--lib-soft)]" />
+              <span className="h-4 flex-1 rounded-full bg-[var(--lib-soft)]" />
+            </div>
+            <span className="h-3 w-2/3 rounded-full bg-[var(--lib-soft)]" />
+            <span className="h-2 rounded-full bg-[var(--lib-soft)]" />
+            <span className="h-10 w-28 rounded-full bg-[var(--lib-soft)]" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

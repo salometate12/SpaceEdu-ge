@@ -1,6 +1,7 @@
 import type { Deck } from "./types";
 import { CUSTOM_DECKS_STORAGE_KEY as STORAGE_KEY, CUSTOM_DECKS_UPDATED_EVENT } from "./user-data-keys";
 import { userStore } from "./user-data";
+import { removeSession } from "./flashcard-session";
 
 export { CUSTOM_DECKS_UPDATED_EVENT };
 
@@ -73,6 +74,7 @@ export function deleteCustomDeck(id: string, now: number = Date.now()): void {
       : deck,
   );
   writeAll(decks, now);
+  removeSession(id);
 }
 
 /** For „ბოლოს გახსნილი“. Quiet: the open deck mustn't reload over it. */

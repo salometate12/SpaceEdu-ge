@@ -49,10 +49,10 @@ describe("research history", () => {
     at,
   });
 
-  it("keeps newest first, one per file, at most 20", () => {
+  it("keeps newest first, one per file, at most 50", () => {
     let history: ResearchHistoryItem[] = [];
-    for (let index = 0; index < 25; index += 1) history = addResearchHistory(history, item(`f${index}.pdf`, index));
-    expect(history).toHaveLength(20);
+    for (let index = 0; index < 55; index += 1) history = addResearchHistory(history, item(`f${index}.pdf`, index));
+    expect(history).toHaveLength(50);
     history = addResearchHistory(history, item("f20.pdf", 99));
     expect(history[0].at).toBe(99);
     expect(history.filter((entry) => entry.name === "f20.pdf")).toHaveLength(1);

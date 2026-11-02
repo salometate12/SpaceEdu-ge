@@ -5,10 +5,12 @@
  */
 import { MAX_STUDY_PLAN_DAYS } from "@/lib/ai/study-plan-days";
 import type { StudyPlanResponse } from "@/lib/ai/study-plan-schema";
+import { STUDY_PLAN_BOARD_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 export type StudyPlanDay = StudyPlanResponse["plan"][number];
 
-export const STUDY_PLAN_BOARD_KEY = "spaceedu:study-plan:student";
+export { STUDY_PLAN_BOARD_KEY };
 
 export interface SavedStudyPlan {
   subject: string;
@@ -108,20 +110,15 @@ export function parseSavedPlan(raw: string | null): SavedStudyPlan | null {
   }
 }
 
+/** On the account (lib/user-data), so the plan and its days done are on every device. */
 export function readSavedPlan(): SavedStudyPlan | null {
-  try {
-    return parseSavedPlan(window.localStorage.getItem(STUDY_PLAN_BOARD_KEY));
-  } catch {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
+  const value = userStore.get<unknown>(STUDY_PLAN_BOARD_KEY, null);
+  return value ? parseSavedPlan(JSON.stringify(value)) : null;
 }
 
 export function writeSavedPlan(plan: SavedStudyPlan): void {
-  try {
-    window.localStorage.setItem(STUDY_PLAN_BOARD_KEY, JSON.stringify(plan));
-  } catch {
-    // kept for this visit only
-  }
+  if (typeof window !== "undefined") userStore.set(STUDY_PLAN_BOARD_KEY, plan);
 }
 
 /** Today, YYYY-MM-DD, in local time. */

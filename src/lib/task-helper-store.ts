@@ -7,7 +7,7 @@
 import type { TaskHelperResult, TaskSection, TaskType } from "@/lib/ai/task-helper-schema";
 import { TASK_INPUT_MAX_CHARS } from "./task-helper";
 import { userStore } from "./user-data";
-import { TASK_HELPERS_KEY, TASK_HELPERS_LIMIT, TASK_HELPERS_UPDATED_EVENT } from "./user-data-keys";
+import { TASK_HELPERS_KEY, TASK_HELPERS_UPDATED_EVENT } from "./user-data-keys";
 
 export { TASK_HELPERS_UPDATED_EVENT };
 
@@ -61,7 +61,7 @@ function writeAll(list: TaskHelper[], now: number): void {
   const cutoff = now - TOMBSTONE_DAYS * 86_400_000;
   userStore.set(
     TASK_HELPERS_KEY,
-    list.filter((item) => !item.deletedAt || item.deletedAt > cutoff).slice(0, TASK_HELPERS_LIMIT),
+    list.filter((item) => !item.deletedAt || item.deletedAt > cutoff),
   );
   if (typeof window !== "undefined") window.dispatchEvent(new Event(TASK_HELPERS_UPDATED_EVENT));
 }

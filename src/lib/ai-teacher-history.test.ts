@@ -95,12 +95,13 @@ describe("sidebar helpers", () => {
     expect(title).not.toContain("*");
   });
 
-  it("groups conversations into today / yesterday / last 7 days / earlier", () => {
+  it("groups conversations into today / yesterday / last 7 days / earlier / old", () => {
     const now = new Date(2026, 9, 4, 15, 0);
     const at = (daysAgo: number, hour = 10) => new Date(2026, 9, 4 - daysAgo, hour).getTime();
     const groups = groupConversationsByDate(
       [
         { ...conversation("old", at(20)) },
+        { ...conversation("older", at(45)) },
         { ...conversation("today", at(0)) },
         { ...conversation("yesterday", at(1, 23)) },
         { ...conversation("week", at(5)) },
@@ -112,6 +113,7 @@ describe("sidebar helpers", () => {
       ["გუშინ", ["yesterday"]],
       ["ბოლო 7 დღე", ["week"]],
       ["ადრე", ["old"]],
+      ["ძველი საუბრები", ["older"]],
     ]);
   });
 

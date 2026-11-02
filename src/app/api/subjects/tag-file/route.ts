@@ -6,6 +6,7 @@ import { generateGeminiObject } from "@/lib/gemini";
 import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { createClient as createServerSupabaseClient } from "@/utils/supabase/server";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
+import { bucketFor, isOwnPath } from "@/lib/user-files-path";
 import { cleanTopicIds, guessKindFromName, SUBJECT_FILE_MAX_BYTES, type SubjectFileKind } from "@/lib/subjects";
 
 export const runtime = "nodejs";
@@ -36,8 +37,8 @@ async function readFile(form: FormData): Promise<{ name: string; buffer: Buffer 
     const supabase = await createServerSupabaseClient();
     const { data } = await supabase.auth.getUser();
     const userId = data.user?.id;
-    if (userId && path.startsWith(`${userId}/`)) {
-      const download = await supabase.storage.from("subject-files").download(path);
+    if (userId && isOwnPath(path, userId)) {
+      const download = await supabase.storage.from(bucketFor(path)).download(path);
       if (download.data) return { name, buffer: Buffer.from(await download.data.arrayBuffer()) };
     }
   }

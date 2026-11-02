@@ -1,4 +1,6 @@
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
+import { AI_TEACHER_TIPS_LEARNED_KEY } from "./user-data-keys";
+import { userStore } from "./user-data";
 
 /**
  * Flip cards shown while the AI teacher is thinking. Mostly study
@@ -256,7 +258,7 @@ export function nextWaitingCard(space: AiTeacherSpace, random: () => number = Ma
   return card;
 }
 
-const LEARNED_KEY = "spaceedu-ai-teacher-tips-learned";
+const LEARNED_KEY = AI_TEACHER_TIPS_LEARNED_KEY;
 
 /** Today's date as YYYY-MM-DD in local time. */
 function today(now: Date = new Date()): string {
@@ -266,20 +268,13 @@ function today(now: Date = new Date()): string {
 
 /** How many tips the student flipped today (resets each day). */
 export function readTipsLearnedToday(now: Date = new Date()): number {
-  try {
-    const stored = JSON.parse(window.localStorage.getItem(LEARNED_KEY) ?? "null") as { date: string; count: number } | null;
-    return stored && stored.date === today(now) ? stored.count : 0;
-  } catch {
-    return 0;
-  }
+  if (typeof window === "undefined") return 0;
+  const stored = userStore.get<{ date?: string; count?: number } | null>(LEARNED_KEY, null);
+  return stored && stored.date === today(now) && typeof stored.count === "number" ? stored.count : 0;
 }
 
 export function addTipLearnedToday(now: Date = new Date()): number {
   const count = readTipsLearnedToday(now) + 1;
-  try {
-    window.localStorage.setItem(LEARNED_KEY, JSON.stringify({ date: today(now), count }));
-  } catch {
-    // ignore
-  }
+  if (typeof window !== "undefined") userStore.set(LEARNED_KEY, { date: today(now), count });
   return count;
 }

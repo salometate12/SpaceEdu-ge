@@ -6,7 +6,7 @@
  * reload or another device carries on where the student stopped.
  */
 import { userStore } from "./user-data";
-import { FLASHCARD_SESSIONS_KEY, FLASHCARD_SESSIONS_LIMIT } from "./user-data-keys";
+import { FLASHCARD_SESSIONS_KEY } from "./user-data-keys";
 
 export type CardStatus = "known" | "unknown";
 
@@ -98,5 +98,13 @@ export function loadSession(deckId: string): FlashcardSession | null {
 export function saveSession(session: FlashcardSession): void {
   if (typeof window === "undefined") return;
   const others = readAll().filter((item) => item?.id !== session.id);
-  userStore.set(FLASHCARD_SESSIONS_KEY, [session, ...others].slice(0, FLASHCARD_SESSIONS_LIMIT));
+  // Every deck's progress stays; it goes only with its deck (removeSession).
+  userStore.set(FLASHCARD_SESSIONS_KEY, [session, ...others]);
+}
+
+/** A deleted deck's progress, gone with it. */
+export function removeSession(deckId: string): void {
+  if (typeof window === "undefined") return;
+  const all = readAll();
+  if (all.some((item) => item?.id === deckId)) userStore.set(FLASHCARD_SESSIONS_KEY, all.filter((item) => item?.id !== deckId));
 }

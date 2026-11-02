@@ -1,15 +1,22 @@
 /**
- * A subject's files in the browser: kept in IndexedDB on this device (so
- * they open offline and signed out) and, signed in, in the private
- * subject-files bucket (<user_id>/<subject_id>/<file_id>), where other
- * devices fetch them from. Adding a file also guesses its kind and topics
- * (/api/subjects/tag-file; no credit is spent).
+ * A subject's files in the browser: kept in IndexedDB on this device as a
+ * cache (so they open offline) and, signed in, in the account's private
+ * storage (lib/user-files: user-files/<user_id>/subjects/<subject>/<file>;
+ * older ones in subject-files), where other devices fetch them from.
+ * Adding a file also guesses its kind and topics (/api/subjects/tag-file;
+ * no credit is spent).
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  downloadUserFile,
+  isUserFilesConnected,
+  onUserFilesConnected,
+  pathForSubjectFile,
+  removeUserFile,
+  uploadUserFile,
+} from "./user-files";
 import { fileProblem, guessKindFromName, subjectBytes, type SubjectFile } from "./subjects";
 import { getFile, getFiles, getTopics, markFileDeleted, saveFileRecord, updateFileRecord } from "./subject-store";
 
-const BUCKET = "subject-files";
 const DB_NAME = "spaceedu-subject-files";
 const STORE = "blobs";
 /** Sent along for tagging when the file isn't in storage yet (the request size the server takes). */
@@ -61,26 +68,15 @@ const removeLocal = (id: string) => withStore("readwrite", (store) => store.dele
 
 /* --- The account's copies --------------------------------------------------- */
 
-let remote: { client: SupabaseClient; userId: string } | null = null;
-
-/** Signed in (UserDataSync): files can go to storage; ones added while signed out go now. */
-export function connectSubjectFiles(client: SupabaseClient, userId: string): void {
-  remote = { client, userId };
-  void uploadPending();
+/** On sign-out this device's copies go too, like the account's other data. */
+export function clearSubjectFilesCache(): void {
+  void withStore("readwrite", (store) => store.clear()).catch(() => undefined);
 }
 
-/** Not signed in now; on sign-out (`clear`) this device's copies go too, like the account's other data. */
-export function disconnectSubjectFiles({ clear = false }: { clear?: boolean } = {}): void {
-  remote = null;
-  if (clear) void withStore("readwrite", (store) => store.clear()).catch(() => undefined);
-}
+const upload = (file: SubjectFile, blob: Blob) => uploadUserFile(pathForSubjectFile(file.subjectId, file.id), blob, file.mime);
 
-async function upload(file: SubjectFile, blob: Blob): Promise<string | null> {
-  if (!remote) return null;
-  const path = `${remote.userId}/${file.subjectId}/${file.id}`;
-  const { error } = await remote.client.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: file.mime || "application/octet-stream" });
-  return error ? null : path;
-}
+// Signed in: files added while signed out (or offline) go up now.
+if (typeof window !== "undefined") onUserFilesConnected(() => void uploadPending());
 
 async function uploadPending(): Promise<void> {
   for (const file of getFiles().filter((item) => !item.storagePath)) {
@@ -156,9 +152,9 @@ export async function addSubjectFiles(subjectId: string, picked: File[]): Promis
 export async function getSubjectFileBlob(file: SubjectFile): Promise<File | null> {
   const local = await getLocal(file.id);
   if (local) return new File([local], file.name, { type: file.mime || local.type });
-  if (!remote || !file.storagePath) return null;
-  const { data, error } = await remote.client.storage.from(BUCKET).download(file.storagePath);
-  if (error || !data) return null;
+  if (!isUserFilesConnected() || !file.storagePath) return null;
+  const data = await downloadUserFile(file.storagePath);
+  if (!data) return null;
   await putLocal(file.id, data);
   return new File([data], file.name, { type: file.mime || data.type });
 }
@@ -166,5 +162,5 @@ export async function getSubjectFileBlob(file: SubjectFile): Promise<File | null
 export async function removeSubjectFile(file: SubjectFile): Promise<void> {
   markFileDeleted(file.id);
   await removeLocal(file.id);
-  if (remote && file.storagePath) await remote.client.storage.from(BUCKET).remove([file.storagePath]);
+  if (file.storagePath) await removeUserFile(file.storagePath);
 }

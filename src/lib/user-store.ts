@@ -45,6 +45,9 @@ export interface SyncSpec {
   raw?: boolean;
   /** A preference, not personal data: stays on the device after sign-out. */
   keepOnSignOut?: boolean;
+  /** A growing list of `{ id }` items: on the account one row per item
+   * (lib/user-items-remote), so it has no 1 MB ceiling. */
+  rows?: boolean;
 }
 
 export interface RemoteRow {
@@ -82,6 +85,15 @@ interface SyncMeta {
   /** Keys changed locally and not yet on the server: when, and a counter so
    * a change made during an upload isn't lost. */
   dirty: Record<string, { at: number; n: number }>;
+}
+
+/**
+ * Whether a value fits one user_data row: the database checks its size in
+ * bytes as jsonb text (which adds a space after each comma and colon), so
+ * a tenth is kept in hand.
+ */
+export function fitsOneRow(raw: string): boolean {
+  return new TextEncoder().encode(raw).length <= MAX_VALUE_BYTES * 0.9;
 }
 
 /** The newer copy wins. */
@@ -227,9 +239,11 @@ export function createUserStore({
         removals.push(key);
         continue;
       }
-      const parsed = readValue(specFor(specs, key), raw);
-      // Not JSON, or too big for one row: stays on this device only.
-      if (parsed.ok && raw.length <= MAX_VALUE_BYTES) upserts.push({ key, value: parsed.value });
+      const spec = specFor(specs, key);
+      const parsed = readValue(spec, raw);
+      // Not JSON, or too big for one row: stays on this device only. The
+      // database counts bytes (a Georgian letter is three), not characters.
+      if (parsed.ok && (spec?.rows || fitsOneRow(raw))) upserts.push({ key, value: parsed.value });
     }
     setStatus("syncing");
     try {
