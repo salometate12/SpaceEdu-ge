@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  cleanFileTitle,
   cleanTopicIds,
+  fileTitle,
   fileProblem,
   guessKindFromName,
   nextExam,
@@ -9,6 +11,7 @@ import {
   subjectStorageLimitBytes,
   SUBJECT_FILE_TOO_BIG,
   SUBJECT_STORAGE_FULL,
+  replaceSyllabusTopicsPlan,
   syllabusTopicsToAdd,
   type SubjectFile,
   type SubjectTopic,
@@ -45,14 +48,24 @@ const file = (size: number, extra: Partial<SubjectFile> = {}): SubjectFile => ({
 
 describe("subject topics from the syllabus", () => {
   it("adds the syllabus's topics it doesn't have, in order, after the existing ones", () => {
-    const milestones = [
-      milestone({ topic: "ელასტიურობა" }),
-      milestone({ topic: "ბაზრის წონასწორობა" }),
-      milestone({ topic: "ელასტიურობა" }),
-      milestone({ topic: "მონოპოლია", subject: "სტატისტიკა" }),
-    ];
-    const fresh = syllabusTopicsToAdd([topic("ბაზრის  წონასწორობა.", 1)], milestones, subject, 5);
+    const fresh = syllabusTopicsToAdd([topic("ბაზრის  წონასწორობა.", 1)], ["ელასტიურობა", "ბაზრის წონასწორობა", "ელასტიურობა"], subject, 5);
     expect(fresh.map((item) => [item.title, item.order, item.source, item.status])).toEqual([["ელასტიურობა", 2, "syllabus", "new"]]);
+  });
+
+  it("taking the topics again: same titles stay with their progress, old ones go, hand-added stay last", () => {
+    const existing = [
+      topic("I-VII კვირის მასალა", 1, { source: "syllabus", id: "scope" }),
+      topic("ელასტიურობა", 2, { source: "syllabus", id: "el", status: "done" }),
+      topic("ჩემი თემა", 3, { id: "mine" }),
+      topic("სხვა საგანი", 1, { source: "syllabus", id: "other", subjectId: "s2" }),
+    ];
+    const plan = replaceSyllabusTopicsPlan(existing, ["მოთხოვნა და მიწოდება", "ელასტიურობა"], "s1", 9);
+    expect(plan.remove).toEqual(["scope"]);
+    expect(plan.add.map((item) => [item.title, item.order])).toEqual([["მოთხოვნა და მიწოდება", 1]]);
+    expect(plan.update.map((item) => [item.id, item.order, item.status])).toEqual([
+      ["el", 2, "done"],
+      ["mine", 3, "new"],
+    ]);
   });
 
   it("finds the next exam of this subject, not a past one or another subject's", () => {
@@ -94,3 +107,18 @@ describe("subject files", () => {
     expect(statusAfterQuiz("done", 40)).toBe("done");
   });
 });
+
+describe("a file's title from its contents", () => {
+  it("the list shows the title, else the file's name", () => {
+    expect(fileTitle({ name: "72975.pptx", displayTitle: "ლექცია 2: პროცესები" })).toBe("ლექცია 2: პროცესები");
+    expect(fileTitle({ name: "72975.pptx", displayTitle: "  " })).toBe("72975.pptx");
+  });
+
+  it("a model's title: one line, no quotes or dashes, at most 80 characters", () => {
+    expect(cleanFileTitle(' „ლექცია 2 - პროცესები“. ')).toBe("ლექცია 2: პროცესები");
+    expect(cleanFileTitle("x")).toBeNull();
+    expect(cleanFileTitle(null)).toBeNull();
+    expect(cleanFileTitle("ა".repeat(100))).toHaveLength(80);
+  });
+});
+

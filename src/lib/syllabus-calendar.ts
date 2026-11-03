@@ -1,6 +1,6 @@
-import { CALENDAR_UPDATED_EVENT, DASHBOARD_CALENDAR_KEY_BASE, SYLLABUS_MILESTONES_KEY } from "./user-data-keys";
+import { CALENDAR_UPDATED_EVENT, DASHBOARD_CALENDAR_KEY_BASE, SYLLABUS_MILESTONES_KEY, SYLLABUS_TOPICS_KEY } from "./user-data-keys";
 import { userStore } from "./user-data";
-import { bindUnbound, replaceSubjectMilestones, retagMilestones } from "./syllabus-dates";
+import { bindUnbound, milestonesForSubject, replaceSubjectMilestones, retagMilestones, syllabusTopics } from "./syllabus-dates";
 
 /** What a dated entry on the dashboard calendar is.
  *  `study` covers the days of a saved study plan, which are neither an
@@ -22,6 +22,8 @@ export interface SyllabusMilestone {
   week?: string;
   /** Short topic/chapter this milestone covers, if the syllabus states one. */
   topic?: string;
+  /** What an exam covers („I-VII კვირის მასალა“), when stated. */
+  scope?: string;
   type: SyllabusMilestoneType;
   /** The semester subject this syllabus belongs to; missing on ones saved before that. */
   subject?: string;
@@ -70,19 +72,70 @@ export function setGeneratedMilestones(milestones: SyllabusMilestone[]) {
   userStore.set(SYLLABUS_MILESTONES_KEY, milestones);
 }
 
+/* --- The schedule's topics, per subject ----------------------------------- */
+
+export interface SyllabusTopic {
+  week: string | null;
+  title: string;
+}
+
+/** One subject's topics; `id` is the subject's name, "" while the syllabus has none. */
+interface SyllabusTopicsEntry {
+  id: string;
+  topics: SyllabusTopic[];
+  updatedAt: number;
+}
+
+function readTopicEntries(): SyllabusTopicsEntry[] {
+  const stored = userStore.get<unknown>(SYLLABUS_TOPICS_KEY, []);
+  return Array.isArray(stored) ? (stored as SyllabusTopicsEntry[]).filter((entry) => typeof entry?.id === "string" && Array.isArray(entry.topics)) : [];
+}
+
+function writeTopics(subject: string | null, topics: SyllabusTopic[] | null, now: number = Date.now()) {
+  const id = subject ?? "";
+  const rest = readTopicEntries().filter((entry) => entry.id !== id);
+  userStore.set(SYLLABUS_TOPICS_KEY, topics ? [...rest, { id, topics, updatedAt: now }] : rest);
+}
+
+/** The subject's topics as its last analysis listed them; null when that analysis didn't (an older one). */
+export function getSyllabusTopicList(subject: string): SyllabusTopic[] | null {
+  return readTopicEntries().find((entry) => entry.id === subject)?.topics ?? null;
+}
+
+/**
+ * The topic titles „ჩემი საგნები“ takes from a subject's syllabus: the
+ * schedule's, else (an older analysis) the events' topics without an
+ * exam's scope.
+ */
+export function subjectSyllabusTopics(subject: string): string[] {
+  const list = getSyllabusTopicList(subject);
+  return list ? list.map((topic) => topic.title) : syllabusTopics(milestonesForSubject(getGeneratedMilestones(), subject));
+}
+
+function moveTopics(from: string | null, to: string | null) {
+  if ((from ?? "") === (to ?? "")) return;
+  const entry = readTopicEntries().find((item) => item.id === (from ?? ""));
+  if (!entry) return;
+  writeTopics(from, null);
+  writeTopics(to, entry.topics);
+}
+
 /** Saves a new analysis for `subject` (null: not bound yet), keeping the other subjects' syllabi. */
-export function saveSubjectSyllabus(subject: string | null, milestones: SyllabusMilestone[]) {
+export function saveSubjectSyllabus(subject: string | null, milestones: SyllabusMilestone[], topics?: SyllabusTopic[]) {
   setGeneratedMilestones(replaceSubjectMilestones(getGeneratedMilestones(), subject, milestones));
+  if (topics) writeTopics(subject, topics);
 }
 
 /** The analysis on screen now belongs to another subject (or none). */
-export function moveSyllabusToSubject(ids: Set<string>, subject: string | null) {
+export function moveSyllabusToSubject(ids: Set<string>, subject: string | null, from: string | null = null) {
   setGeneratedMilestones(retagMilestones(getGeneratedMilestones(), ids, subject));
+  moveTopics(from, subject);
 }
 
 /** „მიაბი საგანს“: an older syllabus saved without a subject now belongs to one. */
 export function bindSyllabusToSubject(subject: string) {
   setGeneratedMilestones(bindUnbound(getGeneratedMilestones(), subject));
+  moveTopics(null, subject);
 }
 
 export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {
@@ -96,7 +149,7 @@ export function getDashboardCalendarEvents(): DashboardCalendarEvent[] {
 function describeMilestone(milestone: SyllabusMilestone): string | undefined {
   const parts: string[] = [];
   if (milestone.week) parts.push(`კვირა ${milestone.week}`);
-  if (milestone.topic) parts.push(milestone.topic);
+  if (milestone.topic || milestone.scope) parts.push((milestone.topic ?? milestone.scope) as string);
   return parts.length > 0 ? parts.join(" — ") : undefined;
 }
 

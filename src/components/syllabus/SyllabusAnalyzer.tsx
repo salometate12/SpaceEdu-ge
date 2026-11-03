@@ -22,7 +22,8 @@ import { FetchAiError, fetchAiMultipartJson } from "@/lib/ai/fetch-ai";
 import type { SyllabusResponse } from "@/lib/ai/syllabus-schema";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 import { formatBytes } from "@/lib/research-files";
-import { readSemesterSubjects } from "@/lib/semester-subjects";
+import { readSavedSemesterSubjects, readSemesterSubjects } from "@/lib/semester-subjects";
+import { resyncSyllabusTopics } from "@/lib/subject-store";
 import {
   addMilestonesToDashboardCalendar,
   addMilestoneToDashboardCalendar,
@@ -218,6 +219,7 @@ export function SyllabusAnalyzer() {
           dateStatus: manualDate ? "manual" : item.dateStatus,
           week: item.week ?? undefined,
           topic: item.topic ?? undefined,
+          scope: item.scope ?? undefined,
           type: item.type,
           semesterStart: data.semesterStartDate ?? undefined,
           weight: item.weight ?? undefined,
@@ -226,7 +228,10 @@ export function SyllabusAnalyzer() {
       if (next.length === 0) throw new Error("სილაბუსიდან თარიღები ვერ მოიძებნა. სცადე სხვა PDF ან უფრო ტექსტური ფაილი.");
       // The course named in the syllabus picks the semester subject, unless one is chosen.
       const owner = subject || matchSemesterSubject(data.courseName, subjects) || "";
-      saveSubjectSyllabus(owner || null, next);
+      saveSubjectSyllabus(owner || null, next, data.topics ?? []);
+      // „თემების თავიდან ამოღება სილაბუსიდან“ sent the student here: the subject's topics are replaced.
+      const subjectRecord = owner && new URLSearchParams(window.location.search).get("retopics") === "1" ? readSavedSemesterSubjects().find((item) => item.name.trim() === owner) : undefined;
+      if (subjectRecord) resyncSyllabusTopics(subjectRecord);
       setStored(getGeneratedMilestones());
       setSubject(owner);
       if (!semesterStart && data.semesterStartDate) {
@@ -270,7 +275,7 @@ export function SyllabusAnalyzer() {
   const chooseSubject = (next: string) => {
     setSubject(next);
     if (shown) {
-      moveSyllabusToSubject(shown.ids, next || null);
+      moveSyllabusToSubject(shown.ids, next || null, shown.subject);
       setStored(getGeneratedMilestones());
       setShown({ ...shown, subject: next || null });
     }

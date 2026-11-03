@@ -19,7 +19,7 @@ import {
 import { addTopic, deleteTopic, renameTopic, setTopicStatus } from "@/lib/subject-store";
 import type { TopicTool } from "@/lib/subject-actions";
 import type { SubjectNote } from "@/lib/subject-notes";
-import { FILE_KINDS, type SubjectFile, type SubjectTopic } from "@/lib/subjects";
+import { FILE_KINDS, fileTitle, type SubjectFile, type SubjectTopic } from "@/lib/subjects";
 import { MoreMenu } from "./MoreMenu";
 import { NotesBlock } from "./NoteRows";
 
@@ -160,7 +160,10 @@ function TopicRow({
                       <span className={`sj-kind kind-${file.kind} flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px]`} aria-hidden>
                         <Icon className="h-4 w-4" />
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--sj-title)]">{file.name}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14px] font-medium text-[var(--sj-title)]">{fileTitle(file)}</span>
+                        {fileTitle(file) !== file.name ? <span className="sj-file-name block truncate text-[12px]">{file.name}</span> : null}
+                      </span>
                       <span className="shrink-0 text-[12.5px] text-[var(--sj-muted)]">{kindLabel(file.kind)}</span>
                     </button>
                   </li>

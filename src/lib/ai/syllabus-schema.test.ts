@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   countQuizMentions,
   normalizeSyllabusMilestones,
+  normalizeSyllabusTopics,
   SyllabusAiResponseSchema,
   type SyllabusAiMilestone,
   type SyllabusAiResponse,
@@ -19,6 +20,7 @@ function milestone(overrides: Partial<SyllabusAiMilestone>): SyllabusAiMilestone
     weekday: null,
     date: null,
     topic: null,
+    scope: null,
     points: null,
     weight: null,
     sourceText: null,
@@ -35,6 +37,7 @@ function response(
     courseName: null,
     semesterStartDate: null,
     milestones,
+    topics: [],
     expectedCounts: { quiz: null, midterm: null, final: null },
     warnings: [],
     ...overrides,
@@ -173,6 +176,7 @@ describe("SyllabusAiResponseSchema", () => {
         courseName: null,
         semesterStartDate: null,
         milestones: [],
+        topics: [],
         expectedCounts: { quiz: null, midterm: null, final: null },
         warnings: [],
       }).success,
@@ -185,3 +189,28 @@ describe("SyllabusAiResponseSchema", () => {
     ).toBe(true);
   });
 });
+
+describe("the schedule's topics", () => {
+  it("one per week, in order, once each, without a week number, an exam or a scope", () => {
+    expect(
+      normalizeSyllabusTopics([
+        { week: "1", title: "შესავალი ოპერაციულ სისტემებში" },
+        { week: "2", title: "კვირა 2: პროცესები და ნაკადები" },
+        { week: "3", title: "  პროცესები   და ნაკადები " },
+        { week: "8", title: "შუალედური გამოცდა" },
+        { week: null, title: "I-VII კვირის მასალა" },
+        { week: "9", title: "მეხსიერების მართვა" },
+      ]),
+    ).toEqual([
+      { week: "1", title: "შესავალი ოპერაციულ სისტემებში" },
+      { week: "2", title: "პროცესები და ნაკადები" },
+      { week: "9", title: "მეხსიერების მართვა" },
+    ]);
+  });
+
+  it("an exam's scope sent as its topic moves to scope", () => {
+    const [exam] = normalizeSyllabusMilestones(response([milestone({ type: "midterm", title: "შუალედური", topic: "I-VII კვირის მასალა" })])).milestones;
+    expect([exam.topic, exam.scope]).toEqual([null, "I-VII კვირის მასალა"]);
+  });
+});
+

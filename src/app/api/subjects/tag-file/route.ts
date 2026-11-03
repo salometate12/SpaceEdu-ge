@@ -7,7 +7,7 @@ import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { createClient as createServerSupabaseClient } from "@/utils/supabase/server";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 import { bucketFor, isOwnPath } from "@/lib/user-files-path";
-import { cleanTopicIds, guessKindFromName, SUBJECT_FILE_MAX_BYTES, type SubjectFileKind } from "@/lib/subjects";
+import { cleanFileTitle, cleanTopicIds, guessKindFromName, SUBJECT_FILE_MAX_BYTES, type SubjectFileKind } from "@/lib/subjects";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -22,11 +22,13 @@ const TopicsSchema = z.array(z.object({ id: z.string().max(120), title: z.string
 const AnswerSchema = z.object({
   kind: z.enum(KINDS),
   topicIds: z.array(z.string()),
+  title: z.string(),
 });
 
-const SYSTEM = `You sort a university student's course files. From the file's name and the start of its text, decide what kind of file it is and which of the course's topics it covers.
+const SYSTEM = `You sort a university student's course files. From the file's name and the start of its text, decide what kind of file it is, which of the course's topics it covers, and give it a short title.
 kind: "lecture" (lecture notes or slides from class), "reading" (a book chapter, article or other reading), "assignment" (homework, a brief, a task to hand in), "presentation" (a slide deck that isn't a lecture), "other".
 topicIds: the ids of the one or two topics from the list that the file is mainly about; an empty list when none fits. Use only ids from the list.
+title: a short title from the file's contents, in the file's language (Georgian for a Georgian file), at most 8 words, the way a student would name it in a list: "ლექცია 2: პროცესები", "დავალება 3: რეგრესია", "თავი 4: ბაზრის წონასწორობა". Use the lecture, week or assignment number when the text states one. No file extension, no quotes, no dashes. When the text can't be read, make it from the file's name.
 Return ONLY valid JSON matching the schema.`;
 
 /** The file's contents: from the account's storage (only the student's own folder), or as sent. */
@@ -48,9 +50,10 @@ async function readFile(form: FormData): Promise<{ name: string; buffer: Buffer 
 }
 
 /**
- * A subject file's kind and its one or two topics, guessed by a short, cheap
- * model call on the file's name and the start of its text. No credit is
- * spent. Without an answer (no AI, a failure) the kind comes from the name.
+ * A subject file's kind, its one or two topics and a short title from its
+ * contents, guessed by one short, cheap model call on the file's name and
+ * the start of its text. No credit is spent. Without an answer (no AI, a
+ * failure) the kind comes from the name and there's no title.
  */
 export async function POST(request: Request) {
   const limited = await enforceRateLimit(request, "ai");
@@ -64,7 +67,7 @@ export async function POST(request: Request) {
   } catch {
     topics = [];
   }
-  const fallback = (): Response => Response.json({ kind: guessKindFromName(name), topicIds: [], guessed: true });
+  const fallback = (): Response => Response.json({ kind: guessKindFromName(name), topicIds: [], displayTitle: null, guessed: true });
 
   try {
     requireApiKey("subjects-tag-file");
@@ -94,7 +97,11 @@ export async function POST(request: Request) {
         temperature: 0,
       }),
     );
-    return Response.json({ kind: answer.kind satisfies SubjectFileKind, topicIds: cleanTopicIds(answer.topicIds, topics) });
+    return Response.json({
+      kind: answer.kind satisfies SubjectFileKind,
+      topicIds: cleanTopicIds(answer.topicIds, topics),
+      displayTitle: cleanFileTitle(answer.title),
+    });
   } catch (error) {
     console.error("[subjects/tag-file]", error instanceof Error ? error.message : error);
     return fallback();

@@ -3,17 +3,20 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BookOpenCheck, FolderOpen, Loader2, NotebookPen, Play, Plus, UploadCloud } from "lucide-react";
+import { BookOpenCheck, FolderOpen, ListRestart, Loader2, NotebookPen, Play, Plus, UploadCloud } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { readSavedSemesterSubjects, readSemesterSubjects, saveSemesterSubjects } from "@/lib/semester-subjects";
 import { prepareStudy, toolHref, type TopicTool } from "@/lib/subject-actions";
-import { addSubjectFiles, getSubjectFileBlob } from "@/lib/subject-files-client";
+import { addSubjectFiles, fillMissingFileTitles, getSubjectFileBlob } from "@/lib/subject-files-client";
 import { getNoteByLegacyId, newNoteHref, NO_SUBJECT, noteHref } from "@/lib/subject-notes";
-import { syncSyllabusTopics } from "@/lib/subject-store";
+import { resyncSyllabusTopics, syncSyllabusTopics } from "@/lib/subject-store";
+import { getSyllabusTopicList } from "@/lib/syllabus-calendar";
+import { milestonesForSubject } from "@/lib/syllabus-dates";
 import { nextExam, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectTopic } from "@/lib/subjects";
 import { localDay } from "@/lib/task-helper";
 import { LectureNotesMovedToast } from "./LectureNotesMovedToast";
 import { MaterialsPanel } from "./MaterialsPanel";
+import { MoreMenu } from "./MoreMenu";
 import { NoteRows } from "./NoteRows";
 import { TopicsPanel } from "./TopicsPanel";
 import { useSubjectsData } from "./useSubjectsData";
@@ -64,6 +67,8 @@ export function SubjectsPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [today] = useState(() => localDay());
+  /** „თემების თავიდან ამოღება სილაბუსიდან“: asking first, then what it did. */
+  const [retopics, setRetopics] = useState<{ subjectId: string; step: "confirm" | "old" | "done"; count?: number } | null>(null);
   const uploadInputId = useId();
   const uploadInput = useRef<HTMLInputElement>(null);
 
@@ -84,6 +89,11 @@ export function SubjectsPage() {
     const pick = subjects.find((item) => item.id === last) ?? subjects[0];
     void Promise.resolve().then(() => setCurrentId(pick.id));
   }, [data.ready, subject, subjects, viewingUnsorted, unsorted.length]);
+
+  // Older files get a title from their contents, once, in the background.
+  useEffect(() => {
+    if (data.ready && data.files.length > 0) void fillMissingFileTitles();
+  }, [data.ready, data.files.length]);
 
   // /lecture-notes?id=… (redirected here): the note it moved to, once it's here.
   const legacyId = search.get("id");
@@ -121,6 +131,17 @@ export function SubjectsPage() {
   const notes = subject ? data.notes.filter((note) => note.subjectId === subject.id) : [];
   const done = topics.filter((topic) => topic.status === "done").length;
   const exam = subject ? nextExam(data.milestones, subject.name, today) : null;
+  const hasSyllabus = subject ? milestonesForSubject(data.milestones, subject.name).length > 0 : false;
+  const retopicsHere = retopics && retopics.subjectId === subject?.id ? retopics : null;
+  const askRetopics = () => {
+    if (!subject) return;
+    // An analysis from before topics were kept: the syllabus has to be read again.
+    setRetopics({ subjectId: subject.id, step: getSyllabusTopicList(subject.name) ? "confirm" : "old" });
+  };
+  const runRetopics = () => {
+    if (!subject) return;
+    setRetopics({ subjectId: subject.id, step: "done", count: resyncSyllabusTopics(subject) });
+  };
   const firstOpen = topics.find((topic) => topic.status !== "done");
   const quizzes = made.filter((item) => item.kind === "quiz").length;
 
@@ -260,6 +281,13 @@ export function SubjectsPage() {
                       <p className="mt-1 text-[14px] text-[var(--sj-muted)] max-sm:hidden">{meta}</p>
                       {exam ? <p className="mt-1 text-[14px] font-semibold text-[var(--sj-exam)] sm:hidden">გამოცდამდე {exam.days} დღე</p> : null}
                     </div>
+                    {hasSyllabus ? (
+                      <MoreMenu
+                        label={`${subject.name}: მეტი`}
+                        className="order-last sm:order-none"
+                        items={[{ label: "თემების თავიდან ამოღება სილაბუსიდან", icon: <ListRestart className="h-4 w-4" aria-hidden />, onSelect: askRetopics }]}
+                      />
+                    ) : null}
                     {topics.length > 0 ? (
                     <button
                       type="button"
@@ -273,6 +301,50 @@ export function SubjectsPage() {
                     </button>
                     ) : null}
                   </div>
+                  {retopicsHere ? (
+                    <div role={retopicsHere.step === "done" ? "status" : "alertdialog"} aria-label="თემების თავიდან ამოღება" className="mt-4 rounded-[18px] border border-[var(--sj-border)] bg-[var(--sj-open)] p-4">
+                      {retopicsHere.step === "confirm" ? (
+                        <>
+                          <p className="text-[14px] font-semibold text-[var(--sj-title)]">თემები თავიდან ამოვიღოთ სილაბუსიდან?</p>
+                          <p className="mt-1 text-[13.5px] text-[var(--sj-muted)]">
+                            სილაბუსიდან აღებული თემები შეიცვლება კვირების ცხრილის თემებით. იგივე სახელის თემა დარჩება თავისი პროგრესით, ხელით დამატებული თემებიც დარჩება.
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <button type="button" onClick={runRetopics} className="sj-primary sj-focus h-10 px-4 text-[14px]">
+                              თავიდან ამოღება
+                            </button>
+                            <button type="button" onClick={() => setRetopics(null)} className="sj-secondary sj-focus h-10 px-4 text-[14px]">
+                              გაუქმება
+                            </button>
+                          </div>
+                        </>
+                      ) : retopicsHere.step === "old" ? (
+                        <>
+                          <p className="text-[14px] font-semibold text-[var(--sj-title)]">სილაბუსი თავიდან უნდა ატვირთო</p>
+                          <p className="mt-1 text-[13.5px] text-[var(--sj-muted)]">
+                            ეს სილაბუსი ადრე გაანალიზდა და კვირების თემები არ შეინახა. ატვირთე ისევ და თემებს ცხრილიდან ამოვიღებთ. ხელით დამატებული თემები დარჩება.
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Link href={`/syllabus?subject=${encodeURIComponent(subject.name)}&retopics=1`} className="sj-primary sj-focus h-10 px-4 text-[14px]">
+                              სილაბუსის ატვირთვა
+                            </Link>
+                            <button type="button" onClick={() => setRetopics(null)} className="sj-secondary sj-focus h-10 px-4 text-[14px]">
+                              გაუქმება
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <p className="min-w-0 flex-1 text-[14px] font-semibold text-[var(--sj-title)]">
+                            {retopicsHere.count ? `სილაბუსიდან ${retopicsHere.count} თემა` : "სილაბუსის ცხრილში თემები ვერ ვიპოვეთ"}
+                          </p>
+                          <button type="button" onClick={() => setRetopics(null)} className="sj-secondary sj-focus h-9 px-3.5 text-[13.5px]">
+                            კარგი
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                   {topics.length > 0 ? (
                     <div className="mt-4">
                       <p className="text-[13.5px] font-semibold text-[var(--sj-title)]">

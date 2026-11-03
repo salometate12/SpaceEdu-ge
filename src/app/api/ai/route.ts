@@ -130,6 +130,7 @@ import {
   SyllabusOptionsSchema,
   SyllabusRequestSchema,
   normalizeSyllabusMilestones,
+  normalizeSyllabusTopics,
   type SyllabusAiResponse,
   type SyllabusResponse,
 } from "@/lib/ai/syllabus-schema";
@@ -196,11 +197,15 @@ Return ONLY valid JSON (all human-readable text in Georgian):
       "week": "week number exactly as written, e.g. \"6\" or \"VIII\" — or null",
       "weekday": "weekday exactly as written, e.g. \"ხუთშაბათი\" — or null",
       "date": "YYYY-MM-DD only if the text states an explicit calendar date, otherwise null",
-      "topic": "the topic/chapter covered, if stated — or null",
+      "topic": "the ONE lecture topic this event is about, if the syllabus names one — or null",
+      "scope": "what an exam covers as written, e.g. \"I-VII კვირის მასალა\" — or null",
       "points": 5,
       "weight": 10,
       "sourceText": "the table row or sentence this was read from, copied verbatim"
     }
+  ],
+  "topics": [
+    { "week": "the week or lecture number exactly as written, e.g. \"3\" or \"III\" — or null", "title": "the topic of that week or lecture, e.g. \"პროცესები და ნაკადები\"" }
   ]
 }
 
@@ -218,7 +223,12 @@ Rules:
 - Never invent a date. If the text gives no date and no week for an event, set rawDateText, week, weekday and date to null.
 - List each event once: the same quiz mentioned in the grading section and in the schedule is ONE milestone.
 - "points" is the points it is worth, "weight" its percentage of the final grade; null when not stated.
-- Add a Georgian warning for anything ambiguous (e.g. two different dates for the same quiz).`;
+- Add a Georgian warning for anything ambiguous (e.g. two different dates for the same quiz).
+
+Topics:
+- თემები აიღე კვირების / ლექციების ცხრილიდან: თითო კვირის ან ლექციის სათაური ერთი თემაა, ცხრილის რიგით.
+- „X კვირის მასალა“ ტიპის ფრაზა (მაგ. „I-VII კვირის მასალა“, „სილაბუსით გათვალისწინებული 16 კვირის მასალა“) გამოცდის მოცულობაა და თემა არ არის: ის გამოცდის "scope" ველში ჩაწერე, არც "topics"-ში და არც "topic"-ში.
+- Exams, quizzes and holidays are not topics. Copy each topic's title as the syllabus words it, without the week number. An empty list when the syllabus has no schedule.`;
 
 const PRESENTATION_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON, all text in the requested language:
@@ -406,6 +416,7 @@ async function generateSyllabusFromText(
     courseName: raw.courseName?.trim() || null,
     semesterStartDate: semesterStart ?? null,
     milestones: normalized.milestones,
+    topics: normalizeSyllabusTopics(raw.topics ?? []),
     expectedCounts: raw.expectedCounts,
     warnings: normalized.warnings,
   };
