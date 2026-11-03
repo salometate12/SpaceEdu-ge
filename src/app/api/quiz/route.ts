@@ -5,6 +5,10 @@ import { extractTextFromPdfFile, PdfExtractError } from "@/lib/ai/extract-pdf-te
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
 import { buildQuizResponseSchema } from "@/lib/ai/quiz-schema";
+import { extractFileContent } from "@/lib/ai/extract-file-text";
+import { AI_FILE_TEXT_MESSAGE } from "@/lib/ai/ai-messages";
+import { GenerationInputError } from "@/lib/generation-options";
+import { attachStoredFiles } from "@/lib/stored-files-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -62,6 +66,23 @@ function isTextFile(file: File): boolean {
   );
 }
 
+const MAX_QUIZ_TEXT_CHARS = 120_000;
+
+/** A PPTX or DOCX (a topic's file from storage): its text, or why there's none. */
+async function extractTextFromOtherFile(file: File): Promise<string> {
+  let text = "";
+  try {
+    const content = await extractFileContent(file.name, Buffer.from(await file.arrayBuffer()));
+    if ("text" in content) text = content.text.replace(/\s+/g, " ").trim();
+  } catch (error) {
+    console.error("[quiz] reading the file failed", error instanceof Error ? error.message : error);
+  }
+  if (text.length < MIN_TEXT_CHARS) throw new PdfExtractError(AI_FILE_TEXT_MESSAGE);
+  return text.slice(0, MAX_QUIZ_TEXT_CHARS);
+}
+
+const isPdf = (file: File) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+
 async function extractTextFromTextFile(file: File): Promise<string> {
   if (file.size > MAX_TEXT_FILE_BYTES) {
     throw new PdfExtractError("ტექსტური ფაილი ძალიან დიდია. მაქსიმუმ 2 MB.");
@@ -100,6 +121,8 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
+    // A file in the account's storage comes as its path: read here.
+    await attachStoredFiles(formData);
     const fileEntry = formData.get("file");
     jobId = String(formData.get("jobId") ?? "");
     store = await jobStoreForRequest(jobId);
@@ -116,7 +139,9 @@ export async function POST(request: Request) {
 
     const extractedText = isTextFile(fileEntry)
       ? await extractTextFromTextFile(fileEntry)
-      : await extractTextFromPdfFile(fileEntry);
+      : isPdf(fileEntry)
+        ? await extractTextFromPdfFile(fileEntry)
+        : await extractTextFromOtherFile(fileEntry);
 
     const questionCount = parseQuestionCount(formData.get("questionCount"));
 
@@ -141,7 +166,7 @@ export async function POST(request: Request) {
       const message = error instanceof Error ? error.message.slice(0, 300) : "";
       after(() => jobs.write({ id: jobId, kind: "quiz", status: "failed", error: message, updatedAt: Date.now() }));
     }
-    if (error instanceof PdfExtractError) {
+    if (error instanceof PdfExtractError || error instanceof GenerationInputError) {
       return Response.json(
         { error: true, message: error.message },
         { status: 400 },

@@ -8,6 +8,7 @@ import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import { GenerationInputError } from "@/lib/generation-options";
 import { buildMultiFileSummaryMessage } from "@/lib/ai/multi-file-summary";
 import { summaryCreditCost, summaryFilesSchema } from "@/lib/summary-files";
+import { attachStoredFiles } from "@/lib/stored-files-server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     requireApiKey("generate-summary");
 
     const formData = await request.formData();
+    // Files in the account's storage come as paths: read here, not sent by the browser.
+    await attachStoredFiles(formData);
 
     // Files (up to five): one conspectus from all of them.
     const files = formData.getAll("files");

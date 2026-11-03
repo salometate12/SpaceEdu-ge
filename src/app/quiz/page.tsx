@@ -90,7 +90,8 @@ export default function QuizPage() {
     });
   }, []);
   // Opened on a topic from „ჩემი საგნები“ (`?subject=&topic=`): its files as
-  // the source (one PDF or text file as it is, otherwise their text as one
+  // the source (one PDF, PPTX, DOCX or text file as it is, read by the server
+  // from storage; otherwise their text as one
   // file), and the quiz tagged with the subject and topic.
   const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
   const [handedTopic] = useState(() => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("topic") : null));
@@ -100,7 +101,7 @@ export default function QuizPage() {
     void topicSources(params.get("subject"), params.get("topic")).then(async (sources) => {
       if (!active || !sources) return;
       setTopicLink(sources.link);
-      const direct = sources.files.length === 1 && /\.(pdf|txt|md)$/i.test(sources.files[0].name) ? sources.files[0] : null;
+      const direct = sources.files.length === 1 && /\.(pdf|txt|md|pptx|docx)$/i.test(sources.files[0].name) ? sources.files[0] : null;
       if (direct) {
         setFile(direct);
         return;
@@ -229,9 +230,14 @@ export default function QuizPage() {
     const isPdf = nextFile.type === "application/pdf" || lower.endsWith(".pdf");
     const isText =
       nextFile.type.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md");
+    const isOffice = lower.endsWith(".pptx") || lower.endsWith(".docx");
 
-    if (!isPdf && !isText) {
-      setError("მხოლოდ PDF, TXT ან MD ფორმატის ფაილია დაშვებული.");
+    if (!isPdf && !isText && !isOffice) {
+      setError("მხოლოდ PDF, PPTX, DOCX, TXT ან MD ფორმატის ფაილია დაშვებული.");
+      return;
+    }
+    if (nextFile.size > 20 * 1024 * 1024) {
+      setError("ფაილი ძალიან დიდია. მაქსიმუმ 20 MB.");
       return;
     }
 
@@ -450,7 +456,7 @@ export default function QuizPage() {
                 ref={fileInputRef}
                 id="quiz-file"
                 type="file"
-                accept=".pdf,application/pdf,.txt,.md,text/plain,text/markdown"
+                accept=".pdf,application/pdf,.pptx,.docx,.txt,.md,text/plain,text/markdown"
                 className="sr-only"
                 onChange={onFileInputChange}
               />
@@ -490,7 +496,7 @@ export default function QuizPage() {
                   <label htmlFor="quiz-file" className="flex cursor-pointer flex-col items-center after:absolute after:inset-0 after:rounded-[18px] after:content-['']">
                     <UploadIconBadge />
                     <span className="mt-3 text-[16px] font-semibold text-[var(--quiz-strong)]">ჩააგდე ფაილი ან დააწკაპუნე ასარჩევად</span>
-                    <span className="mt-1 text-[13px] text-[var(--quiz-muted)]">PDF (მაქს. 15 MB) · TXT / MD (მაქს. 2 MB)</span>
+                    <span className="mt-1 text-[13px] text-[var(--quiz-muted)]">PDF (მაქს. 15 MB) · PPTX, DOCX (მაქს. 20 MB) · TXT / MD (მაქს. 2 MB)</span>
                   </label>
                 )}
               </div>

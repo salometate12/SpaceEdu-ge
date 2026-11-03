@@ -1,6 +1,7 @@
 import type { UserModelMessage } from "ai";
 import { buildUserMessage, type InputType } from "./process-input";
 import { fetchYouTubeTranscript } from "./youtube";
+import { AI_FILE_TEXT_MESSAGE } from "./ai-messages";
 import { GenerationInputError, parseAvoidQuestions, parseCardCount, parseDifficulty, type Difficulty } from "@/lib/generation-options";
 
 export type GenerationMode = "flashcards" | "summary";
@@ -70,16 +71,24 @@ export async function parseGenerationFormData(
     throw new Error("ფაილი სავალდებულოა");
   }
 
-  const userMessage = await buildUserMessage(inputType, {
-    file,
-    text: text.trim(),
-    youtubeTranscript,
-    topic,
-    cardCount,
-    difficulty,
-    avoidQuestions,
-    mode,
-  });
+  let userMessage: UserModelMessage;
+  try {
+    userMessage = await buildUserMessage(inputType, {
+      file,
+      text: text.trim(),
+      youtubeTranscript,
+      topic,
+      cardCount,
+      difficulty,
+      avoidQuestions,
+      mode,
+    });
+  } catch (error) {
+    // A file that couldn't be read says so, not „generation failed“.
+    if (error instanceof GenerationInputError || !file) throw error;
+    console.error("[generation] reading the file failed", error instanceof Error ? error.message : error);
+    throw new GenerationInputError(AI_FILE_TEXT_MESSAGE);
+  }
 
   return {
     inputType,

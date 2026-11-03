@@ -1,4 +1,5 @@
 import type { UploadedData } from "./generation-input";
+import { appendFile } from "./stored-file";
 
 export type GenerationInput = UploadedData;
 
@@ -30,12 +31,13 @@ export function buildGenerationFormData(
     }
   } else if (input.inputType === "presentation") {
     // A saved presentation is sent as its slides' text, a .pptx as the file.
-    if (input.file) formData.append("file", input.file);
+    if (input.file) appendFile(formData, "file", input.file);
     else formData.append("text", input.text);
   } else if (input.files?.length) {
-    for (const file of input.files) formData.append("files", file);
+    // Files in storage go as their path (lib/stored-file); the server reads them.
+    for (const file of input.files) appendFile(formData, "files", file);
   } else if (input.file) {
-    formData.append("file", input.file);
+    appendFile(formData, "file", input.file);
   }
 
   return formData;

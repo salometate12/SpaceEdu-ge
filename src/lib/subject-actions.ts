@@ -9,7 +9,8 @@ import { getSubjectFileBlob } from "./subject-files-client";
 import { getFiles, getTopic, markTopicStarted } from "./subject-store";
 import { handOffPresentation } from "./tool-handoff";
 import { newPresentationId } from "./presentation-store";
-import type { SubjectFile, SubjectTopic } from "./subjects";
+import { fileTitle, type SubjectFile, type SubjectTopic } from "./subjects";
+import { StoredFile } from "./stored-file";
 
 /** The files sent along for their text when they aren't in storage (the size the server takes in a request). */
 const SEND_MAX_BYTES = 4 * 1024 * 1024;
@@ -88,7 +89,24 @@ export async function toolHref(tool: TopicTool, subject: { id: string; name: str
   return `/presentation?id=${encodeURIComponent(newPresentationId())}`;
 }
 
-/** The topic a tool was opened on (`?subject=&topic=`), its files' contents and the link to put on what's made. */
+/**
+ * A topic's file for a generator: in storage, only its name, size and path
+ * (the server reads it there; nothing is downloaded here); not uploaded yet
+ * (signed out, offline), this device's copy.
+ */
+async function sourceFile(file: SubjectFile): Promise<File | null> {
+  if (file.storagePath) return new StoredFile(fileTitleFor(file), file.size, file.mime, file.storagePath);
+  return getSubjectFileBlob(file);
+}
+
+/** The name a generator lists: the title from the contents, with the file's own extension (the server reads the type from it). */
+function fileTitleFor(file: SubjectFile): string {
+  const extension = file.name.match(/\.[a-z0-9]{1,8}$/i)?.[0] ?? "";
+  const title = fileTitle(file).replace(/[\\/:*?"<>|]+/g, " ").trim();
+  return title.toLowerCase().endsWith(extension.toLowerCase()) ? title : `${title}${extension}`;
+}
+
+/** The topic a tool was opened on (`?subject=&topic=`), its files and the link to put on what's made. */
 export async function topicSources(subjectId: string | null, topicId: string | null): Promise<{
   topic: SubjectTopic;
   files: File[];
@@ -97,6 +115,6 @@ export async function topicSources(subjectId: string | null, topicId: string | n
   if (!subjectId || !topicId) return null;
   const topic = getTopic(topicId);
   if (!topic || topic.subjectId !== subjectId) return null;
-  const blobs = await Promise.all(topicFiles(topic).map((file) => getSubjectFileBlob(file)));
-  return { topic, files: blobs.filter((file): file is File => Boolean(file)), link: { subjectId, topicId } };
+  const files = await Promise.all(topicFiles(topic).map(sourceFile));
+  return { topic, files: files.filter((file): file is File => Boolean(file)), link: { subjectId, topicId } };
 }
