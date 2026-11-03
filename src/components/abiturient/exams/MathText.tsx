@@ -1,41 +1,30 @@
 "use client";
 
-import "katex/dist/katex.min.css";
-import { InlineMath, BlockMath } from "react-katex";
+import { BlockMath, MathSegment } from "@/components/math/Math";
+import { parseInline } from "@/lib/markdown-blocks";
 
 /**
- * Renders a string that may contain inline maths written between `$…$`. The
- * text between dollar signs is KaTeX; everything else is plain Georgian text.
+ * Renders a string that may contain maths ($…$, \(…\)): the same parser and
+ * KaTeX rendering as the AI answers (lib/markdown-blocks, components/math).
  * Prompts and option labels both come through here.
  */
 export function MathText({ text, className }: { text: string; className?: string }) {
-  const parts = text.split(/(\$[^$]+\$)/g);
   return (
     <span className={className}>
-      {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
-          const latex = part.slice(1, -1);
-          try {
-            return <InlineMath key={i} math={latex} />;
-          } catch {
-            return <span key={i}>{part}</span>;
-          }
-        }
-        return <span key={i}>{part}</span>;
-      })}
+      {parseInline(text).map((segment, i) =>
+        segment.type === "math" ? (
+          <MathSegment key={i} segment={segment} />
+        ) : segment.type === "bold" ? (
+          <strong key={i}>{segment.text}</strong>
+        ) : (
+          <span key={i}>{segment.text}</span>
+        ),
+      )}
     </span>
   );
 }
 
 /** A centered block formula. */
 export function MathBlock({ latex, className }: { latex: string; className?: string }) {
-  try {
-    return (
-      <div className={className}>
-        <BlockMath math={latex} />
-      </div>
-    );
-  } catch {
-    return <div className={className}>{latex}</div>;
-  }
+  return <BlockMath latex={latex} className={className} />;
 }

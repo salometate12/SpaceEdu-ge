@@ -11,6 +11,7 @@ import {
   type ResearchSectionKey,
 } from "@/lib/ai/research-platform-schema";
 import { parseInline } from "@/lib/markdown-blocks";
+import { MathSegment } from "@/components/math/Math";
 import { readingMinutes } from "@/lib/research-files";
 import { ReadAloudButton } from "./ReadAloudButton";
 import { RESEARCH_SECTIONS } from "./research-sections";
@@ -20,7 +21,15 @@ export const RP_SECONDARY = `inline-flex h-9 items-center gap-1.5 rounded-full b
 
 function inline(text: string): ReactNode[] {
   return parseInline(text).map((segment, index) =>
-    segment.type === "bold" ? <strong key={index}>{segment.text}</strong> : segment.type === "code" ? <code key={index}>{segment.text}</code> : segment.text,
+    segment.type === "bold" ? (
+      <strong key={index}>{segment.text}</strong>
+    ) : segment.type === "code" ? (
+      <code key={index}>{segment.text}</code>
+    ) : segment.type === "math" ? (
+      <MathSegment key={index} segment={segment} />
+    ) : (
+      segment.text
+    ),
   );
 }
 

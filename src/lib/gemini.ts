@@ -12,6 +12,7 @@ import {
 import { stripNulls } from "@/lib/ai/model-nulls";
 import { AI_BUSY_MESSAGE, AI_UNAVAILABLE_MESSAGE } from "@/lib/ai/ai-messages";
 import { llmTextStreamResponse, type LlmStreamRequest } from "@/lib/ai/llm-stream";
+import { restoreLatex } from "@/lib/ai/latex-json";
 
 export const FRIENDLY_AI_ERROR_MESSAGE = AI_UNAVAILABLE_MESSAGE;
 export const FRIENDLY_AI_BUSY_MESSAGE = AI_BUSY_MESSAGE;
@@ -170,7 +171,8 @@ export async function generateGeminiObject({
       });
       // Absent fields come back as null (see model-nulls.ts); the client
       // shape has them as missing keys.
-      return keepNulls ? object : stripNulls(object);
+      // LaTeX a JSON escape swallowed ("\frac" read as a form feed) is put back.
+      return restoreLatex(keepNulls ? object : stripNulls(object));
     },
     "generateGeminiObject",
   );

@@ -26,6 +26,7 @@ import type { Deck, Flashcard } from "@/lib/types";
 import { FlashcardResults } from "./FlashcardResults";
 import { CardListSheet } from "./CardListSheet";
 import "@/components/generate/generate.css";
+import { RichText } from "@/components/math/RichText";
 
 /** Beyond this many cards the progress bar is one continuous bar instead of a segment per card. */
 const SEGMENTS_UP_TO = 30;
@@ -130,14 +131,14 @@ function FlipCard({
               </span>
             </div>
             <p className={`m-auto max-w-[560px] text-center font-bold leading-snug text-[var(--gen-title)] [overflow-wrap:anywhere] ${long ? "text-[19px] sm:text-[22px]" : "text-[23px] sm:text-[30px]"}`}>
-              {card.question}
+              <RichText text={card.question} />
             </p>
-            {card.hint ? <p className="text-center text-[13px] text-[var(--gen-muted)]">მინიშნება: {card.hint}</p> : null}
+            {card.hint ? <p className="text-center text-[13px] text-[var(--gen-muted)]">მინიშნება: <RichText text={card.hint} /></p> : null}
           </div>
           <div className="flip-face flip-back flex flex-col p-6 sm:p-8">
             <span className="text-[13px] font-bold text-[#854d0e] dark:text-[#fde68a]">პასუხი</span>
             <p className="m-auto max-w-[580px] overflow-y-auto text-center text-[17px] leading-relaxed text-[var(--gen-title)] [overflow-wrap:anywhere] sm:text-[20px]">
-              {card.answer}
+              <RichText text={card.answer} />
             </p>
           </div>
         </div>

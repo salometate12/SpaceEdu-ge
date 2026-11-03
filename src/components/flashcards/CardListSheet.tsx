@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Check, Circle, X } from "lucide-react";
 import type { FlashcardSession } from "@/lib/flashcard-session";
 import type { Deck } from "@/lib/types";
+import { RichText } from "@/components/math/RichText";
 
 /** Every card of the deck with where it stands, in a sheet from the side (from below on a phone). */
 export function CardListSheet({ open, onClose, deck, session }: { open: boolean; onClose: () => void; deck: Deck; session: FlashcardSession }) {
@@ -55,7 +56,7 @@ export function CardListSheet({ open, onClose, deck, session }: { open: boolean;
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="text-[12px] font-semibold text-[var(--gen-faint)]">{index + 1}</span>
-                  <span className="block text-[14.5px] font-semibold leading-snug text-[var(--gen-title)]">{card.question}</span>
+                  <span className="block text-[14.5px] font-semibold leading-snug text-[var(--gen-title)]"><RichText text={card.question} /></span>
                 </span>
               </li>
             );

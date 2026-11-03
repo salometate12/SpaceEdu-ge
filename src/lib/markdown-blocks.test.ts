@@ -109,3 +109,66 @@ describe("markdownToPlainText", () => {
     );
   });
 });
+
+describe("maths", () => {
+  const math = (latex: string, display = false) => ({ type: "math", latex, display });
+
+  it("inline $…$ and \\(…\\) inside a line", () => {
+    expect(parseInline("ფართობი $S = \\pi r^{2}$ და $\\alpha$ კუთხე")).toEqual([
+      { type: "text", text: "ფართობი " },
+      math("S = \\pi r^{2}"),
+      { type: "text", text: " და " },
+      math("\\alpha"),
+      { type: "text", text: " კუთხე" },
+    ]);
+    expect(parseInline("ვექტორი \\(\\vec{v}\\) აქ")).toEqual([{ type: "text", text: "ვექტორი " }, math("\\vec{v}"), { type: "text", text: " აქ" }]);
+  });
+
+  it("a block: $$…$$ on one line, over several lines, and \\[…\\]", () => {
+    expect(parseMarkdownBlocks("ფორმულა:\n\n$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$")).toEqual([
+      { type: "paragraph", text: "ფორმულა:" },
+      { type: "math", latex: "x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}", closed: true, source: "$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$" },
+    ]);
+    const multi = parseMarkdownBlocks("$$\nA=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}\n$$\nშემდეგ");
+    expect(multi[0]).toMatchObject({ type: "math", latex: "A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}", closed: true });
+    expect(multi[1]).toEqual({ type: "paragraph", text: "შემდეგ" });
+    expect(parseMarkdownBlocks("\\[\n\\int_0^2 x^2\\,dx = \\frac{8}{3}\n\\]")[0]).toMatchObject({ type: "math", latex: "\\int_0^2 x^2\\,dx = \\frac{8}{3}", closed: true });
+  });
+
+  it("aligned steps stay one block, line breaks and all", () => {
+    const text = "$$\\begin{aligned}\n2A &= 2\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix} \\\\\n&= \\begin{pmatrix}2&4\\\\6&8\\end{pmatrix}\n\\end{aligned}$$";
+    const [block] = parseMarkdownBlocks(text);
+    expect(block).toMatchObject({ type: "math", closed: true });
+    expect(block.type === "math" && block.latex.split("\n")).toHaveLength(4);
+  });
+
+  it("prices are not maths: „5$ და 10$“, „$5 and $10“", () => {
+    expect(parseInline("ღირს 5$ და 10$")).toEqual([{ type: "text", text: "ღირს 5$ და 10$" }]);
+    expect(parseInline("from $5 to $10 today")).toEqual([{ type: "text", text: "from $5 to $10 today" }]);
+  });
+
+  it("$ inside code (inline or a fence) stays code", () => {
+    expect(parseInline("ცვლადი `$x$` და $y$")).toEqual([
+      { type: "text", text: "ცვლადი " },
+      { type: "code", text: "$x$" },
+      { type: "text", text: " და " },
+      math("y"),
+    ]);
+    const blocks = parseMarkdownBlocks("```bash\necho $HOME $PATH\n$$ not maths $$\n```");
+    expect(blocks).toEqual([{ type: "code", lang: "bash", code: "echo $HOME $PATH\n$$ not maths $$", closed: true }]);
+  });
+
+  it("an unclosed $$ while streaming stays plain text until it closes", () => {
+    const streaming = parseMarkdownBlocks("ასე:\n\n$$\nA=\\begin{pmatrix}1&2");
+    expect(streaming[1]).toEqual({ type: "math", latex: "A=\\begin{pmatrix}1&2", closed: false, source: "$$\nA=\\begin{pmatrix}1&2" });
+    expect(markdownToPlainText("$$\nA=\\begin{pmatrix}1&2")).toBe("$$\nA=\\begin{pmatrix}1&2");
+  });
+
+  it("plain text keeps the LaTeX source, without the $", () => {
+    expect(markdownToPlainText("**ჯამი** $a+b$\n\n$$\\frac{1}{2}$$")).toBe("ჯამი a+b\n\n\\frac{1}{2}");
+  });
+
+  it("wrong LaTeX is still a formula segment (KaTeX shows its source, grey)", () => {
+    expect(parseInline("$\\frac{1}{$")).toEqual([math("\\frac{1}{")]);
+  });
+});

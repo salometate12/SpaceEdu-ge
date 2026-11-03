@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Check, MoreHorizontal, RotateCcw, X } from "lucide-react";
 import { parseInline } from "@/lib/markdown-blocks";
+import { MathSegment } from "@/components/math/Math";
 import { setDockHidden } from "@/lib/mobile-overlay";
 import {
   currentTurn,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/quiz-run";
 import { getSpaceBackTarget, readSpaceeduSpace } from "@/lib/space-back-navigation";
 import { BackButton } from "@/components/ui/BackButton";
+
 
 export interface QuizRunQuestion {
   questionText: string;
@@ -55,6 +57,8 @@ function inline(text: string): ReactNode[] {
       <strong key={index}>{segment.text}</strong>
     ) : segment.type === "code" ? (
       <code key={index}>{segment.text}</code>
+    ) : segment.type === "math" ? (
+      <MathSegment key={index} segment={segment} />
     ) : (
       segment.text
     ),
@@ -317,7 +321,7 @@ export function QuizRun({
             ) : null}
             <span className="text-[13px] font-medium text-[var(--quiz-muted)]">ერთი სწორი პასუხი</span>
           </div>
-          <h2 className="mt-4 text-[21px] font-bold leading-[1.4] text-[var(--quiz-strong)] sm:text-[23px]">{question.questionText}</h2>
+          <h2 className="mt-4 text-[21px] font-bold leading-[1.4] text-[var(--quiz-strong)] sm:text-[23px]">{inline(question.questionText)}</h2>
 
           <div className="mt-6 space-y-3">
             {question.options.map((option, optionIndex) => {
@@ -368,7 +372,7 @@ export function QuizRun({
                     data-option-text
                     className={`min-w-0 flex-1 break-words ${code ? "quiz-code text-[14.5px] leading-snug" : "text-[16px] leading-snug"}`}
                   >
-                    {option}
+                    {inline(option)}
                   </span>
                   {tag ? <span className="shrink-0 text-[12.5px] font-bold">{tag}</span> : null}
                 </button>
@@ -527,7 +531,7 @@ export function QuizResults({
                 return (
                   <li key={index} className="rounded-[24px] border border-[var(--quiz-card-border)] bg-[var(--quiz-card)] p-5 sm:p-6">
                     <p className="text-[12.5px] font-bold text-[var(--quiz-muted)]">კითხვა {index + 1}</p>
-                    <h3 className="mt-1 text-[17px] font-bold leading-[1.45] text-[var(--quiz-strong)]">{item.questionText}</h3>
+                    <h3 className="mt-1 text-[17px] font-bold leading-[1.45] text-[var(--quiz-strong)]">{inline(item.questionText)}</h3>
                     <div className="mt-4 space-y-2">
                       {chosen !== null && chosen !== item.correctAnswerIndex ? (
                         <AnswerRow text={item.options[chosen]} kind="yours" />

@@ -5,6 +5,7 @@ import { extractTextFromPdfFile, PdfExtractError } from "@/lib/ai/extract-pdf-te
 import { requireApiKey } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, generateGeminiObject } from "@/lib/gemini";
 import { buildQuizResponseSchema } from "@/lib/ai/quiz-schema";
+import { MATH_FORMAT_RULES, MATH_JSON_RULE } from "@/lib/ai/prompts";
 import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { AI_FILE_TEXT_MESSAGE } from "@/lib/ai/ai-messages";
 import { GenerationInputError } from "@/lib/generation-options";
@@ -42,7 +43,10 @@ Return ONLY a valid JSON object matching this contract:
 }
 The "questions" array MUST contain exactly ${count} items — not more, not fewer.
 All questionText, options, and explanation fields MUST be in beautiful Georgian.
-Base every question strictly on facts present in the provided text.`;
+Base every question strictly on facts present in the provided text.
+
+${MATH_FORMAT_RULES}
+${MATH_JSON_RULE}`;
 }
 
 function buildQuizPrompt(fileName: string, extractedText: string): string {
