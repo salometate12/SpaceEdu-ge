@@ -66,4 +66,10 @@ describe("tile labels", () => {
     expect(labels(tiles)).not.toContain("ლექციის ნოტები");
     expect(tiles.some((tile) => tile.id === "lecture-notes")).toBe(false);
   });
+
+  it("„ლექცია“ and „ნოტები“ find „ჩემი საგნები“, where lecture notes are now", () => {
+    const tiles = buildToolTiles(groups("student"));
+    expect(filterTools(tiles, "ლექცია").map((tile) => tile.id)).toContain("my-subjects");
+    expect(filterTools(tiles, "ნოტები").map((tile) => tile.id)).toContain("my-subjects");
+  });
 });

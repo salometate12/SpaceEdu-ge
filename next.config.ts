@@ -69,6 +69,9 @@ const nextConfig: NextConfig = {
       { source: "/settings/sessions", destination: "/settings/security#sessions", permanent: true },
       { source: "/settings/language", destination: "/settings/appearance#language", permanent: true },
       { source: "/settings/billing", destination: "/settings/plan#billing", permanent: true },
+      // Lecture notes moved into „ჩემი საგნები“ (308; `?id=` goes along and opens the moved note).
+      { source: "/lecture-notes", destination: "/subjects", permanent: true },
+      { source: "/lecture-notes/:path*", destination: "/subjects", permanent: true },
     ];
   },
 };

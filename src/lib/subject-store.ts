@@ -7,6 +7,7 @@
 import { userStore } from "./user-data";
 import { SUBJECT_FILES_KEY, SUBJECT_TOPICS_KEY, SUBJECTS_UPDATED_EVENT } from "./user-data-keys";
 import { getGeneratedMilestones } from "./syllabus-calendar";
+import { detachTopic } from "./subject-notes";
 import { statusAfterQuiz, syllabusTopicsToAdd, type SubjectFile, type SubjectTopic, type TopicStatus } from "./subjects";
 
 export { SUBJECTS_UPDATED_EVENT };
@@ -92,7 +93,8 @@ export function recordTopicQuiz(id: string, percent: number, now: number = Date.
 
 export function deleteTopic(id: string, now: number = Date.now()): void {
   patchItem<SubjectTopic>(SUBJECT_TOPICS_KEY, id, { deletedAt: now }, now);
-  // Its files stay in the subject, without this topic.
+  // Its files and notes stay in the subject, without this topic.
+  detachTopic(id, now);
   for (const file of getFiles().filter((item) => item.topicIds.includes(id))) {
     patchItem<SubjectFile>(SUBJECT_FILES_KEY, file.id, { topicIds: file.topicIds.filter((topicId) => topicId !== id) }, now);
   }

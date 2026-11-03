@@ -65,8 +65,8 @@ export function DashboardHeader({
   }, []);
 
   // Each space gets the tools that are actually its own. The student's
-  // row is the university-only side of the product — the journal, live
-  // lecture notes and the presentation wizard — rather than the shared
+  // row is the university-only side of the product — the subjects (with
+  // their lecture notes), the journal and the presentation wizard — rather than the shared
   // plan/quiz pair the other spaces lead with.
   const navItems =
     effectiveSpace === "student"
@@ -74,7 +74,6 @@ export function DashboardHeader({
           { label: "დეშბორდი", href: dashboardHrefForSpace(effectiveSpace) },
           { label: "ჩემი საგნები", href: "/subjects" },
           { label: "ჟურნალი", href: "/journal" },
-          { label: "ლექციები", href: "/lecture-notes" },
           { label: "პრეზენტაცია", href: "/presentation" },
           { label: "AI", href: aiTeacherHrefForSpace(effectiveSpace) },
         ]

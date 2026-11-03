@@ -14,6 +14,8 @@ import {
 import { connectUserFiles, disconnectUserFiles } from "@/lib/user-files";
 import { clearSubjectFilesCache } from "@/lib/subject-files-client";
 import { clearDocumentsCache } from "@/lib/important-documents";
+import { runLectureNotesMigration } from "@/lib/migrations/lecture-notes-to-subjects";
+import { LECTURE_NOTES_UPDATED_EVENT } from "@/lib/user-data-keys";
 
 /** How often a deck or quiz being made elsewhere (another tab, the server) is checked. */
 const GENERATION_POLL_MS = 3000;
@@ -28,6 +30,23 @@ const GENERATION_POLL_MS = 3000;
  * checked every 3 seconds (lib/library/generation).
  */
 export function UserDataSync() {
+  // Lecture notes move to „ჩემი საგნები“ once the account's copy is in (not
+  // mid-sync: the subjects they match may not be here yet), and again when
+  // another device's old list arrives.
+  useEffect(() => {
+    const store = getUserStore();
+    const migrate = () => {
+      if (store.status() !== "syncing") runLectureNotesMigration();
+    };
+    migrate();
+    const stopStatus = store.subscribeStatus(migrate);
+    window.addEventListener(LECTURE_NOTES_UPDATED_EVENT, migrate);
+    return () => {
+      stopStatus();
+      window.removeEventListener(LECTURE_NOTES_UPDATED_EVENT, migrate);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isSupabaseBrowserConfigured()) return;
     let supabase: ReturnType<typeof createBrowserSupabaseClient>;

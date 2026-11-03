@@ -74,7 +74,7 @@ export const STUDENT_TOOLS: StudentTool[] = [
   {
     id: "journal",
     title: "ციფრული ჟურნალი",
-    description: "ლექციების ჩანაწერები ერთ ადგილას",
+    description: "დავალებები, იდეები და AI ნოტები ერთ ადგილას",
     href: "/journal",
     icon: BookOpen,
     accent: STUDENT_TOOL_ACCENTS.journal,

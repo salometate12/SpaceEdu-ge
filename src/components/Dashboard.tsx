@@ -27,7 +27,8 @@ import { SubjectProgress } from "./profile/SubjectProgress";
 import { DASHBOARD_GOALS_STORAGE_KEY } from "@/lib/profile";
 import { DashboardJournalWidget } from "./lecture-notes/DashboardJournalWidget";
 import { ImportantDocuments } from "./dashboard/ImportantDocuments";
-import { DashboardLectureStickers } from "./lecture-notes/DashboardLectureStickers";
+import { DashboardPinnedNotes } from "./dashboard/DashboardPinnedNotes";
+import { LectureNotesMovedToast } from "./subjects/LectureNotesMovedToast";
 import { AbiturientDashboard } from "./abiturient/AbiturientDashboard";
 import { PreviewModeProvider } from "@/contexts/PreviewModeContext";
 import { useCurrentUserFirstName } from "@/hooks/useCurrentUserFirstName";
@@ -133,7 +134,8 @@ function StudentDashboardView({ activeSpace }: { activeSpace: SmartSpace }) {
 
           <ImportantDocuments />
 
-          <DashboardLectureStickers />
+          <DashboardPinnedNotes />
+          <LectureNotesMovedToast />
 
           {/* The AI teacher's „დაამატე შენი საგნები“ links here. */}
           <div id="semester-subjects" className="scroll-mt-[calc(var(--site-header-h)+1rem)]">

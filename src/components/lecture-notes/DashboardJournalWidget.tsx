@@ -113,7 +113,7 @@ export function DashboardJournalWidget() {
       ) : (
         <div className="mt-4">
           <p className="text-[14px] font-medium leading-relaxed text-[var(--text-secondary)]">
-            აქ გამოჩნდება შენი ჩანაწერები ლექციებზე, დავალებებსა და იდეებზე.
+            აქ გამოჩნდება შენი დავალებები, AI ნოტები და იდეები.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {JOURNAL_CATEGORIES.map((category) => (
@@ -134,7 +134,7 @@ export function DashboardJournalWidget() {
       <div ref={chooserRef} className="relative mt-4">
         <button
           type="button"
-          onClick={() => (count > 0 ? setChoosing((open) => !open) : create("lectures"))}
+          onClick={() => (count > 0 ? setChoosing((open) => !open) : create(JOURNAL_CATEGORIES[0].id))}
           aria-expanded={count > 0 ? choosing : undefined}
           aria-haspopup={count > 0 ? "menu" : undefined}
           className={nbButtonClass({ variant: "primary" })}

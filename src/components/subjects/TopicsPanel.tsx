@@ -18,8 +18,10 @@ import {
 } from "lucide-react";
 import { addTopic, deleteTopic, renameTopic, setTopicStatus } from "@/lib/subject-store";
 import type { TopicTool } from "@/lib/subject-actions";
+import type { SubjectNote } from "@/lib/subject-notes";
 import { FILE_KINDS, type SubjectFile, type SubjectTopic } from "@/lib/subjects";
 import { MoreMenu } from "./MoreMenu";
+import { NotesBlock } from "./NoteRows";
 
 const TOOLS: { id: TopicTool; label: string; icon: typeof Layers }[] = [
   { id: "quiz", label: "ქვიზი", icon: ListChecks },
@@ -49,6 +51,7 @@ function TopicRow({
   topic,
   number,
   files,
+  notes,
   open,
   onToggle,
   onStudy,
@@ -59,6 +62,7 @@ function TopicRow({
   topic: SubjectTopic;
   number: number;
   files: SubjectFile[];
+  notes: SubjectNote[];
   open: boolean;
   onToggle: () => void;
   onStudy: () => void;
@@ -116,7 +120,7 @@ function TopicRow({
           ) : (
             <button type="button" onClick={onToggle} aria-expanded={open} className="sj-focus block w-full rounded-md text-left">
               <span className="block text-[15px] font-semibold leading-snug text-[var(--sj-title)]">{topic.title}</span>
-              <span className="mt-0.5 block text-[13px] text-[var(--sj-muted)]">{files.length ? `${files.length} ფაილი` : "ფაილი ჯერ არ არის"}</span>
+              <span className="mt-0.5 block text-[13px] text-[var(--sj-muted)]">{notes.length || files.length ? `${notes.length} ჩანაწერი · ${files.length} ფაილი` : "ჩანაწერი და ფაილი ჯერ არ არის"}</span>
             </button>
           )}
           <span className="mt-1.5 block">
@@ -145,6 +149,7 @@ function TopicRow({
       </div>
       {open ? (
         <div className="flex flex-col gap-4 px-3 pb-4 sm:pl-[56px]">
+          <NotesBlock subjectId={topic.subjectId} topicId={topic.id} notes={notes} />
           {files.length > 0 ? (
             <ul className="flex flex-col gap-1">
               {files.map((file) => {
@@ -163,7 +168,7 @@ function TopicRow({
               })}
             </ul>
           ) : (
-            <p className="text-[13.5px] text-[var(--sj-muted)]">ამ თემას ფაილი ჯერ არ აქვს. ატვირთე მასალებში და თემას თავად მივაბამთ.</p>
+            <p className="text-[13.5px] text-[var(--sj-muted)]">ფაილი ჯერ არ აქვს. ატვირთე მასალებში და თემას თავად მივაბამთ.</p>
           )}
           <div>
             <p className="text-[13px] font-semibold text-[var(--sj-muted)]">ამ თემაზე შექმენი:</p>
@@ -194,13 +199,16 @@ function TopicRow({
 
 /**
  * A subject's topics, in order: from its syllabus or added by hand, each
- * with its files, status and „დაიწყე სწავლა“; opened, the topic's files and
- * a button per tool.
+ * with its notes, files, status and „დაიწყე სწავლა“; opened, the topic's
+ * notes („+ ჩანაწერი“), files and a button per tool. Notes without a topic
+ * are listed under the topics.
  */
 export function TopicsPanel({
   subjectId,
   topics,
   files,
+  notes,
+  initialOpen = null,
   onStudy,
   onTool,
   onOpenFile,
@@ -211,6 +219,9 @@ export function TopicsPanel({
   subjectId: string;
   topics: SubjectTopic[];
   files: SubjectFile[];
+  notes: SubjectNote[];
+  /** `?topic=`: open when the page opens (back from a note). */
+  initialOpen?: string | null;
   onStudy: (topic: SubjectTopic) => void;
   onTool: (tool: TopicTool, topic: SubjectTopic) => void;
   onOpenFile: (file: SubjectFile) => void;
@@ -218,7 +229,9 @@ export function TopicsPanel({
   adding: boolean;
   setAdding: (value: boolean) => void;
 }) {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(initialOpen);
+  const topicIds = new Set(topics.map((topic) => topic.id));
+  const loose = notes.filter((note) => !note.topicId || !topicIds.has(note.topicId));
   const [draft, setDraft] = useState("");
   const fromSyllabus = topics.filter((topic) => topic.source === "syllabus").length;
 
@@ -270,6 +283,7 @@ export function TopicsPanel({
               topic={topic}
               number={index + 1}
               files={files.filter((file) => file.topicIds.includes(topic.id))}
+              notes={notes.filter((note) => note.topicId === topic.id)}
               open={openId === topic.id}
               onToggle={() => setOpenId((current) => (current === topic.id ? null : topic.id))}
               onStudy={() => onStudy(topic)}
@@ -281,6 +295,12 @@ export function TopicsPanel({
         </ol>
       ) : !adding ? (
         <p className="mt-4 text-[14px] text-[var(--sj-muted)]">თემები ჯერ არ არის. ატვირთე სილაბუსი ან დაამატე ხელით.</p>
+      ) : null}
+
+      {loose.length > 0 || topics.length === 0 ? (
+        <div className="mt-4 border-t border-[var(--sj-border)] px-1 pt-4">
+          <NotesBlock subjectId={subjectId} notes={loose} title={topics.length ? "თემის გარეშე ჩანაწერები" : "ჩანაწერები"} empty="ჩანაწერი ჯერ არ არის." />
+        </div>
       ) : null}
     </section>
   );

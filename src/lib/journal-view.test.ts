@@ -4,7 +4,7 @@ import { createAutosave, enoughForAi, filterNotes, formatJournalDate, groupNotes
 
 const now = new Date(2026, 9, 22, 15, 0).getTime();
 const note = (id: string, patch: Partial<LectureNote>): LectureNote => ({
-  ...createBlankLectureNote("lectures"),
+  ...createBlankLectureNote("ideas"),
   id,
   title: "ჩანაწერი",
   ...patch,
@@ -41,7 +41,7 @@ describe("list grouping", () => {
 
 describe("search and categories", () => {
   const notes = [
-    note("a", { title: "ელასტიურობა", content: "მოთხოვნა და მიწოდება", section: "lectures" }),
+    note("a", { title: "ელასტიურობა", content: "მოთხოვნა და მიწოდება", section: "ideas" }),
     note("b", { title: "დავალება #3", content: "რეგრესია, ვადა პარასკევი", section: "assignments", subject: "სტატისტიკა" }),
     note("blank", { title: "", content: "" }),
   ];
@@ -49,8 +49,8 @@ describe("search and categories", () => {
     expect(filterNotes(notes, { category: "all", query: "" }).map((n) => n.id)).toEqual(["a", "b"]);
     expect(filterNotes(notes, { category: "all", query: "რეგრესია" }).map((n) => n.id)).toEqual(["b"]);
     expect(filterNotes(notes, { category: "all", query: "სტატისტიკა" }).map((n) => n.id)).toEqual(["b"]);
-    expect(filterNotes(notes, { category: "lectures", query: "" }).map((n) => n.id)).toEqual(["a"]);
-    expect(filterNotes(notes, { category: "ideas", query: "" })).toEqual([]);
+    expect(filterNotes(notes, { category: "ideas", query: "" }).map((n) => n.id)).toEqual(["a"]);
+    expect(filterNotes(notes, { category: "ai-notes", query: "" })).toEqual([]);
   });
 
   it("an older two-page note reads as one text", () => {

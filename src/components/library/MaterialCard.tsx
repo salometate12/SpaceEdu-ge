@@ -14,6 +14,7 @@ import {
   Film,
   Loader2,
   MoreHorizontal,
+  NotebookPen,
   Pencil,
   Presentation,
   RotateCcw,
@@ -30,6 +31,7 @@ import { retryDeckGeneration } from "@/lib/library/generation";
 import { deckAsQuizText, materialHref, type MaterialItem, type MaterialSource } from "@/lib/library/materials";
 import { deleteQuiz, renameQuiz } from "@/lib/quiz-library";
 import { deleteTaskHelper, renameTaskHelper } from "@/lib/task-helper-store";
+import { deleteNote, patchNote } from "@/lib/subject-notes";
 import { handOff } from "@/lib/tool-handoff";
 
 const SOURCE_ICONS: Record<MaterialSource, LucideIcon> = {
@@ -51,8 +53,8 @@ export function shortDate(ms: number): string {
 
 /** The 38px tile with the kind of material (a quiz and an assignment show their own icon). */
 export function SourceTile({ item, size = 38 }: { item: MaterialItem; size?: number }) {
-  const Icon = item.kind === "quiz" ? Brain : item.kind === "task" ? Compass : SOURCE_ICONS[item.source];
-  const tone = item.kind === "quiz" ? "file" : item.kind === "task" ? "task" : item.source;
+  const Icon = item.kind === "quiz" ? Brain : item.kind === "task" ? Compass : item.kind === "note" ? NotebookPen : SOURCE_ICONS[item.source];
+  const tone = item.kind === "quiz" || item.kind === "note" ? "file" : item.kind === "task" ? "task" : item.source;
   return (
     <span
       className={`lib-tile src-${tone} flex shrink-0 items-center justify-center rounded-[11px]`}
@@ -126,6 +128,7 @@ function CardMenu({ item, onRename }: { item: MaterialItem; onRename: () => void
     if (item.kind === "deck") deleteCustomDeck(item.id);
     else if (item.kind === "quiz") deleteQuiz(item.id);
     else if (item.kind === "task") deleteTaskHelper(item.id);
+    else if (item.kind === "note") deleteNote(item.id);
     else deleteConspectus(item.id);
     setOpen(false);
   };
@@ -203,6 +206,7 @@ function RenameField({ item, onDone }: { item: MaterialItem; onDone: () => void 
     if (item.kind === "deck") renameCustomDeck(item.id, value);
     else if (item.kind === "quiz") renameQuiz(item.id, value);
     else if (item.kind === "task") renameTaskHelper(item.id, value);
+    else if (item.kind === "note") patchNote(item.id, { title: value.trim() });
     else renameConspectus(item.id, value);
     onDone();
   };
@@ -377,7 +381,7 @@ export function MaterialCard({ item }: { item: MaterialItem }) {
         <ArrowRight className="h-4 w-4" aria-hidden />
       </Link>
     );
-  } else if (item.kind === "conspectus") {
+  } else if (item.kind === "conspectus" || item.kind === "note") {
     body = <p className="line-clamp-2 text-[13.5px] leading-relaxed text-[var(--lib-text)]">{item.excerpt}</p>;
     actions = (
       <Link href={materialHref(item)} className={`lib-secondary ${BUTTON}`}>

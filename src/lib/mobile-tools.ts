@@ -21,7 +21,6 @@ const TOOL_COLORS: Record<string, string> = {
   cv: "#facc15",
   research: "#4ade80",
   conspectus: "#4ade80",
-  "lecture-notes": "#fb923c",
   journal: "#2dd4bf",
   syllabus: "#7dd3fc",
   "study-plan": "#facc15",
@@ -50,11 +49,11 @@ const KEYWORDS: Record<string, string[]> = {
   quiz: ["ქვიზი", "ტესტი", "quiz", "test"],
   "quiz-tool": ["ქვიზი", "ტესტი", "quiz", "test"],
   flashcards: ["ბარათები", "ფლეშბარათები", "flashcards", "გამეორება"],
-  "my-subjects": ["საგნები", "საგანი", "თემები", "ლექციები", "subjects"],
+  // Lecture notes live in the subjects now.
+  "my-subjects": ["საგნები", "საგანი", "თემები", "ლექცია", "ლექციები", "ნოტები", "ჩანაწერი", "ჩანაწერები", "lecture", "notes", "subjects"],
   "task-helper": ["დავალება", "ბრიფი", "გეგმა", "იდეები", "assignment", "task"],
   "my-materials": ["მასალები", "ბიბლიოთეკა", "დასტები", "ქვიზები", "კონსპექტები", "library"],
   "study-plan": ["გეგმა", "კალენდარი", "plan"],
-  "lecture-notes": ["ნოტები", "ჩანაწერი", "notes"],
   journal: ["დღიური", "ჩანაწერები"],
   calculator: ["ქულები", "კალკულატორი"],
   library: ["წიგნები", "ბიბლიოთეკა"],
@@ -72,7 +71,6 @@ const ORDER = [
   "cv",
   "research",
   "conspectus",
-  "lecture-notes",
   "journal",
   "syllabus",
   "study-plan",
@@ -89,8 +87,6 @@ const LAST = ["stats", "settings", "admin"];
 /** On the dock already. */
 const ON_DOCK = new Set(["dashboard", "profile"]);
 
-/** Not in the menu: lecture notes live in the journal now. */
-const NOT_IN_MENU = new Set(["lecture-notes"]);
 
 /** The menu's own names where the rail's differ. */
 const TILE_LABELS: Record<string, string> = {
@@ -102,7 +98,7 @@ export function buildToolTiles(groups: { items: RailItem[] }[], { isAdmin = fals
   const seen = new Set<string>();
   const items = groups
     .flatMap((group) => group.items)
-    .filter((item) => !ON_DOCK.has(item.id) && !NOT_IN_MENU.has(item.id) && (item.id !== "admin" || isAdmin))
+    .filter((item) => !ON_DOCK.has(item.id) && (item.id !== "admin" || isAdmin))
     .filter((item) => {
       // The same page under two names (the abiturient's two quiz entries).
       const target = item.href ?? `action:${item.id}`;

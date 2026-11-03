@@ -428,6 +428,7 @@ describe("merge rules", () => {
       "spaceedu-task-helpers",
       "spaceedu-subject-topics",
       "spaceedu-subject-files",
+      "spaceedu-subject-notes",
       "spaceedu-documents",
       "spaceedu:eli5:history",
       "spaceedu:eli5:level",

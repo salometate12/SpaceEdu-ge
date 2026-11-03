@@ -10,8 +10,9 @@ import type { FlashcardSession } from "@/lib/flashcard-session";
 import type { QuizAttempt, SavedQuiz } from "@/lib/quiz-library";
 import type { Deck, DeckStatus } from "@/lib/types";
 import type { TaskHelper } from "@/lib/task-helper-store";
+import { firstLine, noteHref, type SubjectNote } from "@/lib/subject-notes";
 
-export type MaterialKind = "deck" | "quiz" | "conspectus" | "task";
+export type MaterialKind = "deck" | "quiz" | "conspectus" | "task" | "note";
 export type MaterialSource = "file" | "youtube" | "presentation" | "audio" | "video" | "text";
 
 export interface MaterialItem {
@@ -40,7 +41,7 @@ export interface MaterialItem {
     attempts: number;
     mistakes: boolean;
   };
-  /** Conspectus: the first lines, without markdown. */
+  /** Conspectus: the first lines, without markdown. A note: its first line. */
   excerpt?: string;
   /** „ჩემი საგნები“: the subject it was made for. */
   subjectId?: string;
@@ -173,6 +174,25 @@ export function taskItem(task: TaskHelper): MaterialItem {
   };
 }
 
+/** A lecture note („ჩემი საგნები“): its subject's name as the source. */
+export function noteItem(note: SubjectNote, subjectName = ""): MaterialItem {
+  return {
+    key: `note:${note.id}`,
+    kind: "note",
+    id: note.id,
+    title: note.title.trim() || "უსათაურო ჩანაწერი",
+    source: "text",
+    sourceName: subjectName,
+    status: "ready",
+    createdAt: note.createdAt,
+    openedAt: note.updatedAt,
+    unfinished: false,
+    done: false,
+    excerpt: firstLine(note.body),
+    ...(note.subjectId ? { subjectId: note.subjectId } : {}),
+  };
+}
+
 export type MaterialFilter = "all" | "unfinished" | "done";
 export type MaterialSort = "opened" | "newest";
 
@@ -211,6 +231,7 @@ export function materialHref(item: MaterialItem, mode?: "restart" | "mistakes"):
   if (item.kind === "deck") return `/deck/${item.id}`;
   if (item.kind === "conspectus") return `/conspectus/${item.id}`;
   if (item.kind === "task") return `/task-helper?id=${encodeURIComponent(item.id)}`;
+  if (item.kind === "note") return noteHref({ id: item.id, subjectId: item.subjectId ?? null });
   return `/quiz?quiz=${encodeURIComponent(item.id)}${mode ? `&mode=${mode}` : ""}`;
 }
 

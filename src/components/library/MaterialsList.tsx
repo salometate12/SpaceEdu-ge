@@ -25,6 +25,7 @@ const DONE_LABEL: Record<MaterialKind, string | null> = {
   quiz: "დასრულებული",
   conspectus: null,
   task: "დასრულებული",
+  note: null,
 };
 
 const LATER_KEY = "spaceedu-resume-later";
@@ -164,7 +165,7 @@ export function MaterialsList({
   const doneLabel = DONE_LABEL[kind];
   const filters: { id: MaterialFilter; label: string }[] = [
     { id: "all", label: "ყველა" },
-    ...(kind === "conspectus" ? [] : [{ id: "unfinished" as const, label: "დაუმთავრებელი" }]),
+    ...(kind === "conspectus" || kind === "note" ? [] : [{ id: "unfinished" as const, label: "დაუმთავრებელი" }]),
     ...(doneLabel ? [{ id: "done" as const, label: doneLabel }] : []),
   ];
 

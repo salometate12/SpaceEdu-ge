@@ -13,7 +13,7 @@ import { MaterialsList, ResumeStrip } from "./MaterialsList";
 import { useMaterials } from "./useMaterials";
 import "./library.css";
 
-type LibraryType = "decks" | "quizzes" | "conspectus" | "tasks";
+type LibraryType = "decks" | "quizzes" | "conspectus" | "tasks" | "notes";
 
 const TYPES: { id: LibraryType; label: string; studentOnly?: boolean }[] = [
   { id: "decks", label: "ფლეშბარათები" },
@@ -21,6 +21,8 @@ const TYPES: { id: LibraryType; label: string; studentOnly?: boolean }[] = [
   { id: "conspectus", label: "კონსპექტები" },
   // The task helper is the student space's.
   { id: "tasks", label: "დავალებები", studentOnly: true },
+  // Lecture notes, from „ჩემი საგნები“.
+  { id: "notes", label: "ჩანაწერები", studentOnly: true },
 ];
 
 /** „ახლის შექმნა“: which tool to open. */
@@ -77,7 +79,7 @@ function CreateMenu({ student }: { student: boolean }) {
 }
 
 /**
- * „ჩემი მასალები“: every deck, quiz, conspectus and assignment the student made, one
+ * „ჩემი მასალები“: every deck, quiz, conspectus, assignment and lecture note the student made, one
  * kind at a time (`?type=`), with the same list as the tools' library tabs.
  */
 export function LibraryPage() {
@@ -86,10 +88,10 @@ export function LibraryPage() {
   const materials = useMaterials();
   const backHref = useBackHref();
   const asked = params.get("type");
-  const type: LibraryType = asked === "quizzes" || asked === "conspectus" || asked === "tasks" ? asked : "decks";
+  const type: LibraryType = asked === "quizzes" || asked === "conspectus" || asked === "tasks" || asked === "notes" ? asked : "decks";
 
-  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus, tasks: materials.tasks };
-  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new", tasks: "/task-helper" };
+  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus, tasks: materials.tasks, notes: materials.notes };
+  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new", tasks: "/task-helper", notes: "/subjects" };
   // „დავალებები“: in the student space, or wherever there are some.
   const [student, setStudent] = useState(false);
   useEffect(() => {
@@ -168,7 +170,7 @@ export function LibraryPage() {
             <MaterialsList
               key={`${type}-${subjectFilter ?? ""}`}
               items={shown}
-              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : "conspectus"}
+              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : type === "notes" ? "note" : "conspectus"}
               createHref={create[type]}
             />
           </div>

@@ -4,66 +4,12 @@ import { userStore } from "./user-data";
 export { JOURNAL_PROGRESS_KEY, LECTURE_NOTES_STORAGE_KEY, LECTURE_NOTES_UPDATED_EVENT };
 export const JOURNAL_XP_PER_SAVE = 50;
 
-export const JOURNAL_SECTION_IDS = ["lectures", "assignments", "ai-notes", "ideas"] as const;
+/** The journal's kinds of entry. Lecture notes are in „ჩემი საგნები“ now (lib/subject-notes). */
+export const JOURNAL_SECTION_IDS = ["assignments", "ai-notes", "ideas"] as const;
 export type JournalSection = (typeof JOURNAL_SECTION_IDS)[number];
-
-export const JOURNAL_SECTIONS: {
-  id: JournalSection;
-  label: string;
-  heading: string;
-  placeholder: string;
-  tabColor: string;
-  tabInk: string;
-  headingColor: string;
-}[] = [
-  {
-    id: "lectures",
-    label: "ლექციები",
-    heading: "ლექცია",
-    placeholder: "ჩაწერე ლექცია აქ... მაგ: დღეს გავიარეთ TCP/IP მოდელი, DNS lookup და subnetting...",
-    tabColor: "#F9A8D4",
-    tabInk: "#9D174D",
-    headingColor: "#3B82F6",
-  },
-  {
-    id: "assignments",
-    label: "დავალებები",
-    heading: "დავალება",
-    placeholder: "დავალების პირობა, ვადა და შენიშვნები...",
-    tabColor: "#7DD3FC",
-    tabInk: "#0C4A6E",
-    headingColor: "#F97316",
-  },
-  {
-    id: "ai-notes",
-    label: "AI ნოტები",
-    heading: "AI ნოტი",
-    placeholder: "AI-სთან საუბრის შედეგები, ახსნები და კითხვები...",
-    tabColor: "#FDE047",
-    tabInk: "#854D0E",
-    headingColor: "#16A34A",
-  },
-  {
-    id: "ideas",
-    label: "იდეები",
-    heading: "იდეა",
-    placeholder: "იდეები, ჰიპოთეზები, კითხვები შემდეგი ლექციისთვის...",
-    tabColor: "#5EEAD4",
-    tabInk: "#115E59",
-    headingColor: "#DB2777",
-  },
-];
 
 export function isJournalSection(value: unknown): value is JournalSection {
   return typeof value === "string" && (JOURNAL_SECTION_IDS as readonly string[]).includes(value);
-}
-
-export function journalSectionMeta(section: JournalSection) {
-  return JOURNAL_SECTIONS.find((item) => item.id === section) ?? JOURNAL_SECTIONS[0];
-}
-
-export function lectureNoteHref(id?: string): string {
-  return id ? `/lecture-notes?id=${encodeURIComponent(id)}` : "/lecture-notes";
 }
 
 /** A new entry of this kind, opened in the editor and saved once written in. */
@@ -165,7 +111,7 @@ export function formatGeorgianDate(isoDate: string): string {
   return `${day} ${month}`;
 }
 
-export function createBlankLectureNote(section: JournalSection = "lectures"): LectureNote {
+export function createBlankLectureNote(section: JournalSection = "ideas"): LectureNote {
   const now = Date.now();
   return {
     id: crypto.randomUUID(),
@@ -200,11 +146,9 @@ export function loadLectureNotes(): LectureNote[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isLectureNote).map((note) => ({
+    // Lectures (and entries from before the journal had kinds) moved to „ჩემი საგნები“.
+    return parsed.filter((note): note is LectureNote => isLectureNote(note) && isJournalSection(note.section)).map((note) => ({
       ...note,
-      section: isJournalSection((note as LectureNote).section)
-        ? (note as LectureNote).section
-        : "lectures",
       aiKeywords: note.aiKeywords.filter((tag) => typeof tag === "string" && tag.trim()),
       createdAt: typeof note.createdAt === "number" ? note.createdAt : Date.now(),
       updatedAt: typeof note.updatedAt === "number" ? note.updatedAt : Date.now(),
@@ -216,26 +160,15 @@ export function loadLectureNotes(): LectureNote[] {
 
 export function saveLectureNotes(notes: LectureNote[]): void {
   if (typeof window === "undefined") return;
+  // Lectures the move to „ჩემი საგნები“ hasn't taken yet stay in the list for it.
+  const ids = new Set(notes.map((note) => note.id));
+  const stored = userStore.get<unknown>(LECTURE_NOTES_STORAGE_KEY, []);
+  const waiting = (Array.isArray(stored) ? stored : []).filter(
+    (item) => item && typeof item === "object" && !isJournalSection((item as LectureNote).section) && !ids.has((item as LectureNote).id),
+  );
   // On this device now, on the account shortly after.
-  userStore.set(LECTURE_NOTES_STORAGE_KEY, notes);
+  userStore.set(LECTURE_NOTES_STORAGE_KEY, [...notes, ...waiting]);
   window.dispatchEvent(new Event(LECTURE_NOTES_UPDATED_EVENT));
-}
-
-function isEmptyNote(note: LectureNote): boolean {
-  return !note.title.trim() && !note.content.trim() && !note.contentRight?.trim();
-}
-
-/**
- * The notes to show once the account's notes arrive: those, plus a blank
- * page this screen opened (not saved until written in) — but only where
- * its section would otherwise be empty, so a new device doesn't upload
- * blank pages or land on one when there are real notes.
- */
-export function withUnsavedBlanks<T extends LectureNote>(loaded: T[], current: T[]): T[] {
-  const ids = new Set(loaded.map((note) => note.id));
-  const sections = new Set(loaded.map((note) => note.section));
-  const blanks = current.filter((note) => !ids.has(note.id) && isEmptyNote(note) && !sections.has(note.section));
-  return [...blanks, ...loaded];
 }
 
 /** Generic in the note type so stores that extend `LectureNote` — the
@@ -246,21 +179,6 @@ export function upsertLectureNote<T extends LectureNote>(notes: T[], next: T): T
   const copy = [...notes];
   copy[index] = next;
   return copy.sort((a, b) => b.updatedAt - a.updatedAt);
-}
-
-export function pinnedLectureNotes(notes: LectureNote[]): LectureNote[] {
-  return notes.filter((note) => note.pinned).sort((a, b) => b.updatedAt - a.updatedAt);
-}
-
-export function notesInSection(notes: LectureNote[], section: JournalSection): LectureNote[] {
-  return notes
-    .filter((note) => note.section === section)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
-}
-
-export function latestJournalNote(notes: LectureNote[]): LectureNote | null {
-  if (notes.length === 0) return null;
-  return [...notes].sort((a, b) => b.updatedAt - a.updatedAt)[0];
 }
 
 function isJournalProgress(value: unknown): value is JournalProgress {
@@ -354,30 +272,4 @@ export function extractLocalKeywords(text: string, limit = 8): string[] {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, limit)
     .map(([tag]) => tag);
-}
-
-export const STICKER_TONES = [
-  {
-    card: "border-amber-200/80 bg-amber-100/85 dark:border-amber-300/20 dark:bg-amber-300/15",
-    ink: "text-amber-950 dark:text-amber-50",
-    muted: "text-amber-800/70 dark:text-amber-100/70",
-    chip: "border-amber-300/70 bg-white/55 text-amber-900 dark:border-amber-200/20 dark:bg-white/10 dark:text-amber-100",
-  },
-  {
-    card: "border-cyan-200/80 bg-cyan-100/85 dark:border-cyan-300/20 dark:bg-cyan-300/15",
-    ink: "text-cyan-950 dark:text-cyan-50",
-    muted: "text-cyan-800/70 dark:text-cyan-100/70",
-    chip: "border-cyan-300/70 bg-white/55 text-cyan-900 dark:border-cyan-200/20 dark:bg-white/10 dark:text-cyan-100",
-  },
-  {
-    card: "border-stone-200/90 bg-[#F5EFE0]/90 dark:border-stone-400/20 dark:bg-stone-300/10",
-    ink: "text-stone-900 dark:text-stone-50",
-    muted: "text-stone-600 dark:text-stone-300/80",
-    chip: "border-stone-300/80 bg-white/55 text-stone-800 dark:border-white/15 dark:bg-white/10 dark:text-stone-100",
-  },
-] as const;
-
-export function stickerToneForId(id: string): (typeof STICKER_TONES)[number] {
-  const sum = [...id].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return STICKER_TONES[sum % STICKER_TONES.length];
 }
