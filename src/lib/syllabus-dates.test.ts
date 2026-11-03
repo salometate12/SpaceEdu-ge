@@ -14,6 +14,7 @@ import {
   syllabusCounts,
   weekPlan,
   sortSyllabusDates,
+  isScopePhrase,
   syllabusTopics,
   unboundMilestones,
   weekToDate,
@@ -151,3 +152,19 @@ describe("syllabus analyzer views", () => {
     expect(normalizeSyllabusDate(ms[1]).weight).toBe(30);
   });
 });
+
+describe("an exam's scope is not a topic", () => {
+  it("finds „X კვირის მასალა“ and the like", () => {
+    for (const phrase of ["I-VII კვირის მასალა", "სილაბუსით გათვალისწინებული 16 კვირის მასალა", "1-8 კვირის მასალა", "VIII–XV ლექციები", "მთელი კურსის მასალა", "weeks 1-7", "Whole course material"]) {
+      expect(isScopePhrase(phrase), phrase).toBe(true);
+    }
+    for (const topic of ["პროცესები და ნაკადები", "ბაზრის წონასწორობა", "კვირის ბოლოს გამოცდა", "TCP/IP მოდელი"]) {
+      expect(isScopePhrase(topic), topic).toBe(false);
+    }
+  });
+
+  it("older analyses: the events' scope never becomes a topic", () => {
+    expect(syllabusTopics([m({ topic: "I-VII კვირის მასალა" }), m({ topic: "ელასტიურობა" })])).toEqual(["ელასტიურობა"]);
+  });
+});
+

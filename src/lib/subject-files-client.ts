@@ -3,8 +3,9 @@
  * cache (so they open offline) and, signed in, in the account's private
  * storage (lib/user-files: user-files/<user_id>/subjects/<subject>/<file>;
  * older ones in subject-files), where other devices fetch them from.
- * Adding a file also guesses its kind and topics (/api/subjects/tag-file;
- * no credit is spent).
+ * Adding a file also guesses its kind, topics and a title from its contents
+ * (/api/subjects/tag-file; no credit is spent); older files get a title once,
+ * in the background.
  */
 import {
   downloadUserFile,
@@ -89,26 +90,73 @@ async function uploadPending(): Promise<void> {
 
 /* --- Adding, opening, removing ------------------------------------------------ */
 
-/** Asks the server for the file's kind and topics, and keeps them unless the student set their own meanwhile. */
-async function tagFile(file: SubjectFile, blob: Blob): Promise<void> {
+interface TagAnswer {
+  kind?: SubjectFile["kind"];
+  topicIds?: string[];
+  displayTitle?: string | null;
+  guessed?: boolean;
+}
+
+async function askTags(file: SubjectFile, blob: Blob | null): Promise<TagAnswer | null> {
   const topics = getTopics(file.subjectId).map(({ id, title }) => ({ id, title }));
   const form = new FormData();
   form.append("name", file.name);
   form.append("topics", JSON.stringify(topics));
   if (file.storagePath) form.append("storagePath", file.storagePath);
-  else if (blob.size <= TAG_UPLOAD_MAX_BYTES) form.append("file", blob, file.name);
+  else if (blob && blob.size <= TAG_UPLOAD_MAX_BYTES) form.append("file", blob, file.name);
+  const response = await fetch("/api/subjects/tag-file", { method: "POST", body: form });
+  return response.ok ? ((await response.json()) as TagAnswer) : null;
+}
+
+/** The title from the answer, unless the student named the file meanwhile. */
+function titlePatch(current: SubjectFile, data: TagAnswer | null): Partial<SubjectFile> {
+  if (!data || data.guessed || current.titleByHand) return {};
+  return { titleTried: true, ...(data.displayTitle ? { displayTitle: data.displayTitle } : {}) };
+}
+
+/** Asks the server for the file's kind, topics and title, and keeps them unless the student set their own meanwhile. */
+async function tagFile(file: SubjectFile, blob: Blob): Promise<void> {
   try {
-    const response = await fetch("/api/subjects/tag-file", { method: "POST", body: form });
-    const data = (await response.json()) as { kind?: SubjectFile["kind"]; topicIds?: string[] };
+    const data = await askTags(file, blob);
     const current = getFile(file.id);
-    if (!current || current.tagsByHand) return;
+    if (!current) return;
     updateFileRecord(file.id, {
       tagging: false,
-      ...(response.ok && data.kind ? { kind: data.kind } : {}),
-      ...(response.ok && Array.isArray(data.topicIds) ? { topicIds: data.topicIds } : {}),
+      ...titlePatch(current, data),
+      ...(!current.tagsByHand && data?.kind ? { kind: data.kind } : {}),
+      ...(!current.tagsByHand && Array.isArray(data?.topicIds) ? { topicIds: data.topicIds } : {}),
     });
   } catch {
     if (getFile(file.id)?.tagging) updateFileRecord(file.id, { tagging: false });
+  }
+}
+
+/** Older files at most per visit, one after another. */
+const TITLE_BACKFILL_PER_RUN = 10;
+let backfilling = false;
+
+/**
+ * Files from before titles: each gets one from its contents, once, in the
+ * background (the kind and topics they have stay). Runs once per visit.
+ */
+export async function fillMissingFileTitles(): Promise<void> {
+  if (backfilling) return;
+  backfilling = true;
+  const waiting = getFiles()
+    .filter((file) => !file.displayTitle && !file.titleTried && !file.titleByHand && !file.tagging)
+    .slice(0, TITLE_BACKFILL_PER_RUN);
+  for (const file of waiting) {
+    try {
+      const blob = file.storagePath ? null : await getLocal(file.id);
+      if (!file.storagePath && !blob) continue;
+      const data = await askTags(file, blob ?? null);
+      // No AI here (or it failed): try again on a later visit.
+      if (!data || data.guessed) break;
+      const current = getFile(file.id);
+      if (current) updateFileRecord(file.id, titlePatch(current, data));
+    } catch {
+      break;
+    }
   }
 }
 

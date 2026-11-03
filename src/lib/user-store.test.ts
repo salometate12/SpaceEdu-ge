@@ -417,6 +417,7 @@ describe("merge rules", () => {
       "spaceedu-semester-subjects",
       "spaceedu-dashboard-calendar-events",
       "spaceedu-syllabus-generated-milestones",
+      "spaceedu-syllabus-topics",
       "spaceedu-dashboard-study-plan",
       "spaceedu-dashboard-study-plan-student",
       "spaceedu-exam-countdown-days",

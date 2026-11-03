@@ -12,6 +12,7 @@ import {
   Layers,
   ListChecks,
   Loader2,
+  Pencil,
   Presentation,
   ScrollText,
   Shapes,
@@ -21,8 +22,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { removeSubjectFile } from "@/lib/subject-files-client";
-import { setFileTags } from "@/lib/subject-store";
-import { FILE_KINDS, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectFileKind, type SubjectTopic } from "@/lib/subjects";
+import { setFileTags, setFileTitle } from "@/lib/subject-store";
+import { FILE_KINDS, fileTitle, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectFileKind, type SubjectTopic } from "@/lib/subjects";
 import { MoreMenu } from "./MoreMenu";
 import type { MadeItem } from "./useSubjectsData";
 
@@ -56,7 +57,39 @@ const shortDate = (date: string) => {
   return `${d} ${MONTHS[m - 1]}`;
 };
 
-type Editing = { fileId: string; what: "topics" | "kind" | "due" } | null;
+type Editing = { fileId: string; what: "topics" | "kind" | "due" | "rename" } | null;
+
+/** „გადარქმევა“: the title the list shows; empty brings back the file's name. */
+function RenameRow({ file, onDone }: { file: SubjectFile; onDone: () => void }) {
+  const [value, setValue] = useState(fileTitle(file));
+  const save = () => {
+    setFileTitle(file.id, value.trim() === file.name ? "" : value);
+    onDone();
+  };
+  return (
+    <form
+      className="mb-2 flex items-center gap-2 rounded-[14px] bg-[var(--sj-open)] p-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        save();
+      }}
+    >
+      <input
+        autoFocus
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onDone();
+        }}
+        aria-label="ფაილის სათაური"
+        className="sj-input h-9 min-w-0 flex-1"
+      />
+      <button type="submit" className="sj-secondary sj-focus h-9 px-3 text-[13px]">
+        შენახვა
+      </button>
+    </form>
+  );
+}
 
 function FileRow({
   file,
@@ -93,14 +126,16 @@ function FileRow({
   return (
     <li>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={onOpen} className="sj-focus flex min-w-0 flex-1 items-center gap-2 rounded-[10px] py-1.5 text-left hover:underline">
-          <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--sj-title)]">{file.name}</span>
+        <button type="button" onClick={onOpen} className="sj-focus group min-w-0 flex-1 rounded-[10px] py-1.5 text-left">
+          <span className="block truncate text-[14px] font-medium text-[var(--sj-title)] group-hover:underline">{fileTitle(file)}</span>
+          {fileTitle(file) !== file.name ? <span className="sj-file-name block truncate text-[12px]">{file.name}</span> : null}
         </button>
         <span className="shrink-0">{right}</span>
         <MoreMenu
-          label={`${file.name}: მეტი`}
+          label={`${fileTitle(file)}: მეტი`}
           items={[
             { label: "გახსნა", icon: <ExternalLink className="h-4 w-4" aria-hidden />, onSelect: onOpen },
+            { label: "გადარქმევა", icon: <Pencil className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "rename" }) },
             { label: "თემის შეცვლა", icon: <Tag className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "topics" }) },
             { label: "ტიპის შეცვლა", icon: <Shapes className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "kind" }) },
             ...(file.kind === "assignment"
@@ -113,6 +148,7 @@ function FileRow({
           ]}
         />
       </div>
+      {edit === "rename" ? <RenameRow file={file} onDone={() => setEditing(null)} /> : null}
       {edit === "topics" ? (
         <div className="mb-2 rounded-[14px] bg-[var(--sj-open)] p-3">
           <p className="text-[12.5px] font-semibold text-[var(--sj-muted)]">რომელ თემას ეკუთვნის (2-მდე)</p>

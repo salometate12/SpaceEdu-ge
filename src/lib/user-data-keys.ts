@@ -38,6 +38,8 @@ export const USER_DATA_REMOTE_EVENT = "spaceedu-user-data-remote";
 export const SEMESTER_SUBJECTS_STORAGE_KEY = "spaceedu-semester-subjects";
 export const DASHBOARD_CALENDAR_KEY_BASE = "spaceedu-dashboard-calendar-events";
 export const SYLLABUS_MILESTONES_KEY = "spaceedu-syllabus-generated-milestones";
+/** Each subject's topics from its syllabus schedule: [{ id: subject name ("" unbound), topics, updatedAt }]. */
+export const SYLLABUS_TOPICS_KEY = "spaceedu-syllabus-topics";
 export const STUDY_PLAN_KEYS = {
   abiturient: "spaceedu-dashboard-study-plan",
   student: "spaceedu-dashboard-study-plan-student",
@@ -282,6 +284,7 @@ export const SYNCED_KEYS: SyncSpec[] = [
   // Per space: the base key (student) and `…:abiturient` / `…:school`.
   { key: DASHBOARD_CALENDAR_KEY_BASE, variants: true, merge: unionById, event: CALENDAR_UPDATED_EVENT },
   { key: SYLLABUS_MILESTONES_KEY, merge: unionById, event: CALENDAR_UPDATED_EVENT },
+  { key: SYLLABUS_TOPICS_KEY, merge: mergeNewestById("updatedAt"), event: CALENDAR_UPDATED_EVENT },
   { key: STUDY_PLAN_KEYS.abiturient, merge: mergeStudyPlan, event: STUDY_PLAN_CALENDAR_UPDATED_EVENT },
   { key: STUDY_PLAN_KEYS.student, merge: mergeStudyPlan, event: STUDY_PLAN_CALENDAR_UPDATED_EVENT },
   { key: EXAM_COUNTDOWN_KEY, merge: keepRemote, event: EXAM_COUNTDOWN_UPDATED_EVENT },

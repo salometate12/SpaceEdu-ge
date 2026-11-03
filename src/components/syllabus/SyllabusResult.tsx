@@ -320,7 +320,7 @@ export function SyllabusResult({
                       {week.items.map((item) => (
                         <li key={item.id} className="text-[14.5px] text-[var(--sy-strong)]">
                           <span className="font-semibold">{item.title}</span>
-                          {item.topic ? <span className="text-[var(--sy-muted)]"> — {item.topic}</span> : null}
+                          {item.topic ? <span className="text-[var(--sy-muted)]"> · {item.topic}</span> : null}
                         </li>
                       ))}
                     </ul>

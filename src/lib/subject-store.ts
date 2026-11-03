@@ -6,9 +6,10 @@
  */
 import { userStore } from "./user-data";
 import { SUBJECT_FILES_KEY, SUBJECT_TOPICS_KEY, SUBJECTS_UPDATED_EVENT } from "./user-data-keys";
-import { getGeneratedMilestones } from "./syllabus-calendar";
-import { detachTopic } from "./subject-notes";
-import { statusAfterQuiz, syllabusTopicsToAdd, type SubjectFile, type SubjectTopic, type TopicStatus } from "./subjects";
+import { subjectSyllabusTopics } from "./syllabus-calendar";
+import { detachTopic, getNotes } from "./subject-notes";
+import { isScopePhrase } from "./syllabus-dates";
+import { replaceSyllabusTopicsPlan, statusAfterQuiz, syllabusTopicsToAdd, type SubjectFile, type SubjectTopic, type TopicStatus } from "./subjects";
 
 export { SUBJECTS_UPDATED_EVENT };
 
@@ -100,12 +101,40 @@ export function deleteTopic(id: string, now: number = Date.now()): void {
   }
 }
 
-/** Adds the topics of the subject's syllabus analysis it doesn't have yet. Returns how many. */
+/**
+ * An exam's scope („I-VII კვირის მასალა“) older analyses made a topic of,
+ * still untouched: no progress, no file or note on it.
+ */
+function untouchedScopeTopics(subjectId: string): string[] {
+  const used = new Set([...getFiles(subjectId).flatMap((file) => file.topicIds), ...getNotes(subjectId).flatMap((note) => (note.topicId ? [note.topicId] : []))]);
+  return getTopics(subjectId)
+    .filter((topic) => topic.source === "syllabus" && topic.status === "new" && topic.quizPercent === undefined && !used.has(topic.id) && isScopePhrase(topic.title))
+    .map((topic) => topic.id);
+}
+
+/** Adds the topics of the subject's syllabus analysis it doesn't have yet (and drops untouched scope ones). Returns how many were added. */
 export function syncSyllabusTopics(subject: { id: string; name: string }, now: number = Date.now()): number {
+  for (const id of untouchedScopeTopics(subject.id)) deleteTopic(id, now);
   const all = readList<SubjectTopic>(SUBJECT_TOPICS_KEY);
-  const fresh = syllabusTopicsToAdd(all.filter((topic) => !topic.deletedAt), getGeneratedMilestones(), subject, now);
+  const fresh = syllabusTopicsToAdd(all.filter((topic) => !topic.deletedAt), subjectSyllabusTopics(subject.name), subject, now);
   if (fresh.length > 0) writeList(SUBJECT_TOPICS_KEY, [...all, ...fresh], now);
   return fresh.length;
+}
+
+/**
+ * „თემების თავიდან ამოღება სილაბუსიდან“: the syllabus's topics replace the
+ * ones taken from it before (same titles stay, with their progress); those
+ * added by hand stay. Returns how many topics the subject has from it.
+ */
+export function resyncSyllabusTopics(subject: { id: string; name: string }, now: number = Date.now()): number {
+  const titles = subjectSyllabusTopics(subject.name);
+  const plan = replaceSyllabusTopicsPlan(readList<SubjectTopic>(SUBJECT_TOPICS_KEY), titles, subject.id, now);
+  // Files and notes leave the topics that go.
+  for (const id of plan.remove) deleteTopic(id, now);
+  const updated = new Map(plan.update.map((topic) => [topic.id, topic]));
+  const all = readList<SubjectTopic>(SUBJECT_TOPICS_KEY).map((topic) => updated.get(topic.id) ?? topic);
+  writeList(SUBJECT_TOPICS_KEY, [...all, ...plan.add], now);
+  return plan.update.filter((topic) => topic.source === "syllabus").length + plan.add.length;
 }
 
 /* --- Files ------------------------------------------------------------------ */
@@ -132,6 +161,12 @@ export function updateFileRecord(id: string, patch: Partial<SubjectFile>, now: n
 /** „თემის შეცვლა“ / „ტიპის შეცვლა“: the student's choice, which a late guess won't overwrite. */
 export function setFileTags(id: string, tags: Pick<Partial<SubjectFile>, "kind" | "topicIds" | "dueDate">, now: number = Date.now()): void {
   patchItem<SubjectFile>(SUBJECT_FILES_KEY, id, { ...tags, tagsByHand: true, tagging: false }, now);
+}
+
+/** „გადარქმევა“: the student's title, which a later guess won't overwrite. */
+export function setFileTitle(id: string, title: string, now: number = Date.now()): void {
+  const name = title.replace(/\s+/g, " ").trim().slice(0, 120);
+  patchItem<SubjectFile>(SUBJECT_FILES_KEY, id, name ? { displayTitle: name, titleByHand: true } : { displayTitle: undefined, titleByHand: true }, now);
 }
 
 export function markFileDeleted(id: string, now: number = Date.now()): void {

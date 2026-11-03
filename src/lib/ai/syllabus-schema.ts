@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isScopePhrase } from "@/lib/syllabus-dates";
 import {
   isIsoDate,
   resolveMilestoneDate,
@@ -49,7 +50,10 @@ export const SyllabusAiMilestoneSchema = z.object({
   weekday: z.string().nullable(),
   /** The model's own YYYY-MM-DD reading — only compared against, never trusted. */
   date: z.string().nullable(),
+  /** One lecture topic the event is about, when it is one. */
   topic: z.string().nullable(),
+  /** What an exam covers („I-VII კვირის მასალა“): not a topic. */
+  scope: z.string().nullable(),
   /** Points this event is worth. */
   points: z.number().nullable(),
   /** Share of the final grade, in percent. */
@@ -68,6 +72,18 @@ export const SyllabusExpectedCountsSchema = z.object({
 
 export type SyllabusExpectedCounts = z.infer<typeof SyllabusExpectedCountsSchema>;
 
+/** One row of the weekly / lecture schedule: a topic of the course. */
+export const SyllabusAiTopicSchema = z.object({
+  /** The week or lecture number as written („3“, „III“), or null. */
+  week: z.string().nullable(),
+  title: z.string(),
+});
+
+export interface SyllabusTopicResult {
+  week: string | null;
+  title: string;
+}
+
 /** What the model returns. */
 export const SyllabusAiResponseSchema = z.object({
   insight: z.string(),
@@ -76,6 +92,8 @@ export const SyllabusAiResponseSchema = z.object({
   /** YYYY-MM-DD the semester (or the course) begins, if the syllabus states it. */
   semesterStartDate: z.string().nullable(),
   milestones: z.array(SyllabusAiMilestoneSchema),
+  /** The course's topics, one per week or lecture of the schedule, in order. */
+  topics: z.array(SyllabusAiTopicSchema),
   /** How many of each the grading section says there are ("ქვიზი 4 × 5 ქულა" → 4). */
   expectedCounts: SyllabusExpectedCountsSchema,
   /** Anything the model was unsure about, in Georgian. */
@@ -96,6 +114,7 @@ export interface SyllabusMilestoneResult {
   weekday: string | null;
   rawDateText: string | null;
   topic: string | null;
+  scope: string | null;
   points: number | null;
   weight: number | null;
   sourceText: string | null;
@@ -109,6 +128,8 @@ export interface SyllabusResponse {
   /** The start the dates were computed from: the student's, else the syllabus's. */
   semesterStartDate: string | null;
   milestones: SyllabusMilestoneResult[];
+  /** The course's topics in order („ჩემი საგნები“ makes them its topics). */
+  topics: SyllabusTopicResult[];
   expectedCounts: SyllabusExpectedCounts;
   /** Model warnings plus the count checks below, in Georgian. */
   warnings: string[];
@@ -267,7 +288,9 @@ export function normalizeSyllabusMilestones(
       week: week ?? (resolved.weekNumber ? String(resolved.weekNumber) : null),
       weekday,
       rawDateText,
-      topic: cleanText(item.topic),
+      // An exam's scope that came back as its topic goes where it belongs.
+      topic: cleanText(item.topic) && !isScopePhrase(item.topic ?? "") ? cleanText(item.topic) : null,
+      scope: cleanText(item.scope) ?? (cleanText(item.topic) && isScopePhrase(item.topic ?? "") ? cleanText(item.topic) : null),
       points: item.points ?? null,
       weight: item.weight ?? null,
       sourceText: cleanText(item.sourceText),
@@ -328,4 +351,28 @@ export function normalizeSyllabusMilestones(
   }
 
   return { milestones, warnings, dateMismatches, quizMentionsInText };
+}
+
+/** The most topics a course keeps from its syllabus. */
+const MAX_TOPICS = 40;
+
+/**
+ * The schedule's topics as „ჩემი საგნები“ takes them: trimmed, once each,
+ * in order, without an exam's scope („I-VII კვირის მასალა“) or a heading
+ * like „შუალედური გამოცდა“.
+ */
+export function normalizeSyllabusTopics(topics: { week: string | null; title: string }[]): SyllabusTopicResult[] {
+  const seen = new Set<string>();
+  const result: SyllabusTopicResult[] = [];
+  for (const item of topics) {
+    const title = cleanText(item.title)?.replace(/^(?:კვირა|ლექცია|week|lecture)\s*[ivxl\d]+\s*[.:)]\s*/i, "").trim();
+    if (!title || isScopePhrase(title)) continue;
+    if (/^(?:შუალედური|ფინალური|დასკვნითი|საბოლოო)\s+(?:გამოცდა|შეფასება)$|^(?:midterm|final)(?:\s+exam)?$|^(?:ქვიზი|quiz)\s*\d*$/i.test(title)) continue;
+    const key = normalizeTitle(title);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push({ week: cleanText(item.week), title: title.slice(0, 160) });
+    if (result.length >= MAX_TOPICS) break;
+  }
+  return result;
 }

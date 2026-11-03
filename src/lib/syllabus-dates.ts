@@ -93,7 +93,8 @@ export function normalizeSyllabusDate(milestone: SyllabusMilestone, semesterStar
     date,
     week: date ? null : week,
     label: date ? shortDateLabel(date) : week ? `მე-${week} კვ.` : "თარიღი უცნობია",
-    topic: milestone.topic?.trim() || null,
+    // An exam shows what it covers.
+    topic: milestone.topic?.trim() || milestone.scope?.trim() || null,
     weight: typeof milestone.weight === "number" ? milestone.weight : null,
   };
 }
@@ -135,12 +136,28 @@ export function groupByMonth(items: SyllabusDate[]): { month: string; items: Syl
 }
 
 /** The syllabus's topics, in order, once each — to fill the plan's topics. */
+/**
+ * „I-VII კვირის მასალა“, „სილაბუსით გათვალისწინებული 16 კვირის მასალა“:
+ * what an exam covers, not a topic of the course.
+ */
+export function isScopePhrase(text: string): boolean {
+  const value = text.replace(/\s+/g, " ").trim().toLowerCase();
+  if (!value) return false;
+  if (/კვირ[ა-ჰ]*\s+(?:განმავლობაში\s+)?(?:გავლილი\s+|განვლილი\s+)?მასალ/.test(value)) return true;
+  if (/სილაბუს[ა-ჰ]*\s+(?:გათვალისწინებ|მოცემულ|განსაზღვრ)/.test(value)) return true;
+  if (/^(?:მთელი|სრული|ყველა|წინა|გავლილი|განვლილი)\s+(?:კურსის\s+|სემესტრის\s+)?მასალ/.test(value)) return true;
+  if (/^[ivxl\d]+\s*[-–—]\s*[ivxl\d]+\s*(?:კვირ|ლექცი|თემ)/.test(value)) return true;
+  if (/\bweeks?\s+\d+\s*[-–—]\s*\d+/.test(value) || /\b(?:all|whole|entire)\s+(?:course\s+)?material/.test(value)) return true;
+  return false;
+}
+
 export function syllabusTopics(milestones: SyllabusMilestone[]): string[] {
   const seen = new Set<string>();
   const topics: string[] = [];
   for (const milestone of milestones) {
     const topic = milestone.topic?.replace(/\s+/g, " ").trim();
-    if (!topic || seen.has(topic.toLowerCase())) continue;
+    // An exam's scope (older analyses kept it as the topic) isn't one.
+    if (!topic || isScopePhrase(topic) || seen.has(topic.toLowerCase())) continue;
     seen.add(topic.toLowerCase());
     topics.push(topic);
   }
@@ -245,7 +262,7 @@ export function weekPlan(milestones: SyllabusMilestone[], semesterStart?: string
     }
     if (!week || week < 1) continue;
     const row = rows.get(week) ?? { week, monday: isIso(start) ? weekToDate(week, start) : null, items: [] };
-    row.items.push({ id: milestone.id, title: milestone.title, topic: milestone.topic?.trim() || null, type: milestone.type });
+    row.items.push({ id: milestone.id, title: milestone.title, topic: milestone.topic?.trim() || milestone.scope?.trim() || null, type: milestone.type });
     rows.set(week, row);
   }
   return [...rows.values()].sort((a, b) => a.week - b.week);

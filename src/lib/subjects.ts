@@ -5,7 +5,7 @@
  * subjects themselves are the semester subjects (lib/semester-subjects).
  */
 import type { SyllabusMilestone } from "./syllabus-calendar";
-import { daysFrom, milestonesForSubject, syllabusTopics } from "./syllabus-dates";
+import { daysFrom, milestonesForSubject } from "./syllabus-dates";
 
 export type TopicStatus = "new" | "in_progress" | "done";
 export type SubjectFileKind = "lecture" | "reading" | "assignment" | "presentation" | "other";
@@ -49,10 +49,33 @@ export interface SubjectFile {
   tagging?: boolean;
   /** The student set the kind or topics: the guess doesn't overwrite them. */
   tagsByHand?: boolean;
+  /** A short title from the file's contents („ლექცია 2: პროცესები“); the list shows it over `name`. */
+  displayTitle?: string;
+  /** The student renamed it: a later guess doesn't overwrite the title. */
+  titleByHand?: boolean;
+  /** A title was asked for once (older files are filled in once, in the background). */
+  titleTried?: boolean;
   /** ms */
   createdAt: number;
   updatedAt: number;
   deletedAt?: number;
+}
+
+/** What a file is called in the lists: its title from the contents, else its name. */
+export function fileTitle(file: Pick<SubjectFile, "name" | "displayTitle">): string {
+  return file.displayTitle?.trim() || file.name;
+}
+
+/** A model's title made fit for a list: one line, no quotes or dashes around it, at most 80 characters. */
+export function cleanFileTitle(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const title = raw
+    .replace(/\s+/g, " ")
+    .replace(/^[\s"'„“«»*#]+|[\s"'„“«»*.]+$/g, "")
+    .replace(/\s+[-–—]\s+/g, ": ")
+    .trim();
+  if (title.length < 2) return null;
+  return title.length > 80 ? `${title.slice(0, 79).trimEnd()}…` : title;
 }
 
 export const SUBJECT_FILE_MAX_BYTES = 20 * 1024 * 1024;
@@ -85,14 +108,19 @@ const normalize = (title: string) => title.toLowerCase().replace(/[„“"'«».
  */
 export function syllabusTopicsToAdd(
   existing: SubjectTopic[],
-  milestones: SyllabusMilestone[],
+  titles: string[],
   subject: { id: string; name: string },
   now: number,
 ): SubjectTopic[] {
   const have = new Set(existing.filter((topic) => topic.subjectId === subject.id).map((topic) => normalize(topic.title)));
   let order = Math.max(0, ...existing.filter((topic) => topic.subjectId === subject.id && !topic.deletedAt).map((topic) => topic.order));
-  return syllabusTopics(milestonesForSubject(milestones, subject.name))
-    .filter((title) => !have.has(normalize(title)))
+  return titles
+    .filter((title) => {
+      const key = normalize(title);
+      if (!key || have.has(key)) return false;
+      have.add(key);
+      return true;
+    })
     .map((title, index) => {
       order += 1;
       return {
@@ -106,6 +134,51 @@ export function syllabusTopicsToAdd(
         updatedAt: now,
       };
     });
+}
+
+/**
+ * „თემების თავიდან ამოღება სილაბუსიდან“: the subject's syllabus topics
+ * become `titles`, in that order. One with the same title stays (with its
+ * status, files and notes); the others go; topics added by hand stay,
+ * after them.
+ */
+export function replaceSyllabusTopicsPlan(
+  existing: SubjectTopic[],
+  titles: string[],
+  subjectId: string,
+  now: number,
+): { update: SubjectTopic[]; remove: string[]; add: SubjectTopic[] } {
+  const mine = existing.filter((topic) => topic.subjectId === subjectId && !topic.deletedAt).sort((a, b) => a.order - b.order);
+  const fromSyllabus = new Map(mine.filter((topic) => topic.source === "syllabus").map((topic) => [normalize(topic.title), topic]));
+  const update: SubjectTopic[] = [];
+  const add: SubjectTopic[] = [];
+  const kept = new Set<string>();
+  let order = 0;
+  titles.forEach((title, index) => {
+    const key = normalize(title);
+    if (!key || kept.has(key)) return;
+    kept.add(key);
+    order += 1;
+    const current = fromSyllabus.get(key);
+    if (current) update.push({ ...current, order, updatedAt: now });
+    else
+      add.push({
+        id: `topic-${subjectId}-${now.toString(36)}-${index}`,
+        subjectId,
+        order,
+        title,
+        source: "syllabus",
+        status: "new",
+        createdAt: now,
+        updatedAt: now,
+      });
+  });
+  const remove = [...fromSyllabus.entries()].filter(([key]) => !kept.has(key)).map(([, topic]) => topic.id);
+  for (const topic of mine.filter((item) => item.source !== "syllabus")) {
+    order += 1;
+    update.push({ ...topic, order, updatedAt: now });
+  }
+  return { update, remove, add };
 }
 
 const EXAM_TYPES = new Set(["midterm", "final", "quiz"]);
