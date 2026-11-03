@@ -18,6 +18,8 @@ import {
   saveConspectus,
 } from "@/lib/conspectus-storage";
 import { streamAiText } from "@/lib/assistant-stream-client";
+import { buildGenerationFormData } from "@/lib/build-generation-form-data";
+import { stageUploads } from "@/lib/stage-uploads";
 import { ConspectusViewer } from "@/components/conspectus/ConspectusViewer";
 
 interface StreamingConspectusViewProps {
@@ -27,6 +29,7 @@ interface StreamingConspectusViewProps {
 interface PendingPayload {
   formData: FormData;
   topic: string;
+  data?: UploadedData;
 }
 
 function saveAndRedirect(
@@ -90,6 +93,13 @@ export function StreamingConspectusView({
       updateContent("");
 
       try {
+        // Dropped files go to storage first, so the request carries only their paths;
+        // a retry reuses them.
+        if (pending.data) {
+          const staged = await stageUploads(pending.data);
+          pending.data = staged;
+          pending.formData = buildGenerationFormData(staged);
+        }
         const finalText = await streamAiText("/api/generate-summary", pending.formData, {
           signal: controller.signal,
           fallbackError: ka.generator.error,

@@ -1,5 +1,6 @@
 import { readTextStream } from "@/lib/read-text-stream";
 import { FRIENDLY_AI_ERROR_MESSAGE } from "@/lib/gemini";
+import { aiMessageForStatus, KNOWN_ERROR_STATUSES } from "@/lib/ai/ai-messages";
 
 export const AI_STREAM_ACCEPT = "text/plain, application/json;q=0.9, */*;q=0.8";
 
@@ -49,7 +50,7 @@ export async function postAiTextStream(
   assertPlainTextStream(response);
 
   if (!response.ok) {
-    throw new Error(parseAssistantApiError(await response.text(), fallback));
+    throw new Error(apiErrorMessage(response.status, await response.text(), fallback));
   }
 
   return response;
@@ -133,6 +134,25 @@ export function parseAssistantApiError(raw: string, fallback: string): string {
   }
 
   return fallback;
+}
+
+/**
+ * The real reason a request failed: the API's own message when it sent one;
+ * for a 413 (the request was over the platform's size), 429, 503 or 504
+ * without one, what that status means; else `fallback`.
+ */
+export function apiErrorMessage(status: number, raw: string, fallback: string): string {
+  if (KNOWN_ERROR_STATUSES.has(status)) {
+    try {
+      const json = JSON.parse(raw) as { message?: unknown; error?: unknown };
+      const own = typeof json.message === "string" ? json.message : typeof json.error === "string" ? json.error : "";
+      if (own.trim()) return own;
+    } catch {
+      // not the API's JSON: the platform's page
+    }
+    return aiMessageForStatus(status);
+  }
+  return parseAssistantApiError(raw, fallback);
 }
 
 export function guardAssistantStreamText(text: string, fallback: string): string {

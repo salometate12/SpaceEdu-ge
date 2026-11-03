@@ -10,6 +10,7 @@ import { errorJsonResponse, generateLlmText, llmTextStreamResponse } from "@/lib
 import { GenerationInputError } from "@/lib/generation-options";
 import { jobCards, nextMissingPart, withPart, type GenerationJob } from "@/lib/generation-jobs";
 import { jobStoreForRequest, type JobStore } from "@/lib/generation-jobs-server";
+import { attachStoredFiles } from "@/lib/stored-files-server";
 
 export const dynamic = "force-dynamic";
 // The parts a closed tab left behind are finished after the response.
@@ -96,6 +97,8 @@ export async function POST(request: Request) {
     requireApiKey("generate-cards");
 
     const formData = await request.formData();
+    // A file in the account's storage comes as its path: read here (the later parts reuse it).
+    await attachStoredFiles(formData);
     const { userMessage } = await parseGenerationFormData(
       formData,
       "flashcards",

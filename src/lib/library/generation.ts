@@ -17,6 +17,9 @@ import { addSystemNotification } from "@/lib/notifications";
 import { getQuizzes, newQuizRecord, saveQuiz, updateQuiz, type QuizQuestion, type SavedQuiz } from "@/lib/quiz-library";
 import type { Deck, Flashcard, GenerationRetry, MaterialSourceType } from "@/lib/types";
 import type { FlashcardDraft } from "@/lib/ai/parse-flashcards-json";
+import { apiErrorMessage } from "@/lib/assistant-stream-client";
+import { appendFile } from "@/lib/stored-file";
+import { stageFile, stageUploads } from "@/lib/stage-uploads";
 
 /* --- The account's job rows ---------------------------------------------- */
 
@@ -172,8 +175,11 @@ export function startDeckGeneration(data: UploadedData, existingId?: string): { 
     let lastWrite = 0;
     let written = 0;
     try {
+      // A dropped file goes to storage first; „თავიდან ცდა“ then reuses its path.
+      const staged = await stageUploads(data);
+      inputs.set(deckId, staged);
       const parsed = await generateFlashcards(
-        data,
+        staged,
         (ready, latest, cards) => {
           progressListeners.get(deckId)?.forEach((listener) => listener(ready, latest?.question ?? null));
           const at = Date.now();
@@ -268,20 +274,21 @@ export function startQuizGeneration(
   const done = (async () => {
     try {
       const formData = new FormData();
-      formData.append("file", file, file.name);
+      // A dropped file goes to storage first; one in storage goes as its path (lib/stored-file).
+      appendFile(formData, "file", await stageFile(file));
       formData.append("questionCount", String(questionCount));
       formData.append("jobId", record.jobId ?? record.id);
       const response = await fetch("/api/quiz", { method: "POST", body: formData });
-      const data = (await response.json()) as { questions?: QuizQuestion[]; error?: string | boolean; message?: string };
+      const raw = await response.text();
+      let data: { questions?: QuizQuestion[] } = {};
+      try {
+        data = JSON.parse(raw) as typeof data;
+      } catch {
+        // a platform page (413, 504): its status says why
+      }
       if (!response.ok || !Array.isArray(data.questions)) {
         // Only a real message: some errors come back as `{ error: true }`.
-        const message =
-          typeof data.message === "string" && data.message
-            ? data.message
-            : typeof data.error === "string" && data.error
-              ? data.error
-              : QUIZ_GENERATION_ERROR;
-        throw new Error(message);
+        throw new Error(apiErrorMessage(response.status, raw, QUIZ_GENERATION_ERROR));
       }
       const quiz =
         updateQuiz(record.id, { questions: data.questions, questionCount: data.questions.length, status: "ready", jobId: undefined }) ??

@@ -8,6 +8,8 @@ import type { FilePart, ImagePart, TextPart, UserModelMessage } from "ai";
 import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { summaryPreamble } from "@/lib/ai/process-input";
 import { shareBudget } from "@/lib/summary-files";
+import { GenerationInputError } from "@/lib/generation-options";
+import { AI_FILE_TEXT_MESSAGE } from "@/lib/ai/ai-messages";
 
 /** All the files' text together, at most (about what one file may send now). */
 export const SUMMARY_TEXT_BUDGET = 120_000;
@@ -18,7 +20,12 @@ export const MULTI_SOURCE_HINT =
 type Extracted = { name: string; text: string } | { name: string; part: FilePart | ImagePart };
 
 async function extract(file: File): Promise<Extracted> {
-  return { name: file.name, ...(await extractFileContent(file.name, Buffer.from(await file.arrayBuffer()))) };
+  try {
+    return { name: file.name, ...(await extractFileContent(file.name, Buffer.from(await file.arrayBuffer()))) };
+  } catch (error) {
+    console.error("[summary] reading a file failed", file.name, error instanceof Error ? error.message : error);
+    return { name: file.name, text: "" };
+  }
 }
 
 /** Joins the files' texts under their names, each cut to its share of `budget`. */
@@ -41,6 +48,8 @@ export async function buildMultiFileSummaryMessage(files: File[], topic?: string
   const extracted = await Promise.all(files.map(extract));
   const texts = extracted.filter((item): item is { name: string; text: string } => "text" in item);
   const attached = extracted.filter((item): item is { name: string; part: FilePart | ImagePart } => "part" in item);
+  // Nothing readable in any of them: the real reason, not „generation failed“.
+  if (attached.length === 0 && texts.every((item) => !item.text.trim())) throw new GenerationInputError(AI_FILE_TEXT_MESSAGE);
 
   const intro = [summaryPreamble(topic), files.length > 1 ? MULTI_SOURCE_HINT : ""].filter(Boolean).join("\n");
   const content: (TextPart | FilePart | ImagePart)[] = [
