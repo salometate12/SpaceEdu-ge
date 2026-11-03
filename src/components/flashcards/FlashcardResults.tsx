@@ -4,6 +4,7 @@ import { RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { useStreak } from "@/hooks/useStreak";
 import { counts, type FlashcardSession } from "@/lib/flashcard-session";
 import type { Deck } from "@/lib/types";
+import { RichText } from "@/components/math/RichText";
 
 function durationLabel(ms: number): string {
   const seconds = Math.max(1, Math.round(ms / 1000));
@@ -96,8 +97,8 @@ export function FlashcardResults({
           <ul className="mt-4 flex max-h-[420px] flex-col gap-3 overflow-y-auto pr-1">
             {toRepeat.map((card) => (
               <li key={card.id} className="rounded-[16px] border border-[var(--gen-border)] p-4">
-                <p className="text-[15px] font-semibold text-[var(--gen-title)]">{card.question}</p>
-                <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--gen-muted)]">{card.answer}</p>
+                <p className="text-[15px] font-semibold text-[var(--gen-title)]"><RichText text={card.question} /></p>
+                <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--gen-muted)]"><RichText text={card.answer} /></p>
               </li>
             ))}
           </ul>

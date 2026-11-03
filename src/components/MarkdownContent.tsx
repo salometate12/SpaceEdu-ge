@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { slugifyHeading } from "@/lib/markdown-headings";
 import { parseInline, parseMarkdownBlocks } from "@/lib/markdown-blocks";
 import { CodeBlock } from "@/components/CodeBlock";
+import { BlockMath, MathSegment } from "@/components/math/Math";
 
 /** Bold in turn gets these marker colours (`data-mark`), when asked. */
 const MARKS = ["yellow", "pink"] as const;
@@ -17,6 +18,7 @@ function formatInline(text: string, nextMark?: () => string): ReactNode[] {
         </strong>
       );
     }
+    if (segment.type === "math") return <MathSegment key={index} segment={segment} />;
     if (segment.type === "code") {
       return (
         <code
@@ -54,6 +56,15 @@ export function MarkdownContent({
     switch (block.type) {
       case "code":
         return <CodeBlock key={key} code={block.code} lang={block.lang} />;
+      case "math":
+        // Still streaming (no closing $$ yet): the plain text, so the page doesn't flicker.
+        return block.closed ? (
+          <BlockMath key={key} latex={block.latex} />
+        ) : (
+          <p key={key} className="my-3 whitespace-pre-wrap leading-relaxed text-zinc-700 dark:text-zinc-300">
+            {block.source}
+          </p>
+        );
       case "heading": {
         if (block.level === 1) {
           return (

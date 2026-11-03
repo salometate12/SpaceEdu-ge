@@ -1,4 +1,5 @@
 import { generatedFlashcardsSchema, type GeneratedFlashcards } from "./schemas";
+import { escapeLatexInJson } from "./latex-json";
 
 export const FLASHCARD_JSON_OUTPUT_RULE = `
 8. დააბრუნე მხოლოდ სწორი JSON ობიექტი, markdown-ის გარეშე, ამ სტრუქტურით:
@@ -35,7 +36,7 @@ function extractQuotedField(source: string, field: string): string | undefined {
   const match = source.match(re);
   if (!match?.[1]) return undefined;
   try {
-    return JSON.parse(`"${match[1]}"`) as string;
+    return JSON.parse(`"${escapeLatexInJson(match[1])}"`) as string;
   } catch {
     return match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\");
   }
@@ -71,7 +72,7 @@ function extractCompleteCardObjects(source: string): FlashcardDraft[] {
 
     const slice = source.slice(braceStart, braceEnd + 1);
     try {
-      const parsed = JSON.parse(slice) as { question?: unknown; answer?: unknown };
+      const parsed = JSON.parse(escapeLatexInJson(slice)) as { question?: unknown; answer?: unknown };
       if (
         typeof parsed.question === "string" &&
         typeof parsed.answer === "string" &&
@@ -164,7 +165,8 @@ export function parseGeneratedFlashcardsJson(text: string): GeneratedFlashcards 
     if (start === -1 || end <= start) continue;
 
     try {
-      const parsed = JSON.parse(candidate.slice(start, end + 1)) as { cards?: unknown };
+      // LaTeX with single backslashes ("$\frac{1}{2}$") is made valid JSON first.
+      const parsed = JSON.parse(escapeLatexInJson(candidate.slice(start, end + 1))) as { cards?: unknown };
       // A model that overshoots the 50-card cap still gives a usable deck.
       if (Array.isArray(parsed?.cards)) parsed.cards = parsed.cards.slice(0, 50);
       return generatedFlashcardsSchema.parse(parsed);

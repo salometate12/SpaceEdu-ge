@@ -25,6 +25,7 @@ import {
   upsertLectureNote,
 } from "@/lib/lecture-notes";
 import { markdownToPlainText, parseInline } from "@/lib/markdown-blocks";
+import { MathSegment } from "@/components/math/Math";
 import { handOff } from "@/lib/tool-handoff";
 
 const BUSY_ERROR = "AI ახლა გადატვირთულია, სცადე ცოტა ხანში.";
@@ -57,6 +58,8 @@ function richText(text: string, mark: { next: number }): ReactNode[] {
       </strong>
     ) : segment.type === "code" ? (
       <code key={index}>{segment.text}</code>
+    ) : segment.type === "math" ? (
+      <MathSegment key={index} segment={segment} />
     ) : (
       segment.text
     ),

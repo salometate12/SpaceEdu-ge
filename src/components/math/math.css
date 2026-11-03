@@ -1,0 +1,33 @@
+/* Formulas in AI answers (components/math/Math.tsx): the text's own colour
+   in both themes, a little larger than the text, and a wide block scrolls
+   on its own. */
+.ai-math-inline .katex {
+  font-size: 1.05em;
+  color: currentColor;
+}
+
+.ai-math-block {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  margin: 0.5em 0;
+  text-align: center;
+  -webkit-overflow-scrolling: touch;
+}
+.ai-math-block .katex-display {
+  margin: 0;
+}
+.ai-math-block .katex {
+  font-size: 1.15em;
+  color: currentColor;
+}
+
+/* LaTeX that doesn't parse: its source, light grey (throwOnError: false). */
+.ai-math-inline .katex-error,
+.ai-math-block .katex-error {
+  color: #a8a29e !important;
+  font-family: inherit;
+  white-space: pre-wrap;
+}

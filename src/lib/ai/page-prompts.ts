@@ -1,3 +1,4 @@
+import { MATH_FORMAT_RULES, MATH_JSON_RULE } from "./prompts";
 import type { AiPageType } from "./page-types";
 
 const PAGE_SYSTEM_PROMPTS: Record<AiPageType, string> = {
@@ -93,13 +94,26 @@ export const AI_TEACHER_SPACE_PROMPTS: Record<"student" | "abiturient", string> 
     "The learner is a Georgian school graduate preparing for the National Exams (ეროვნული გამოცდები, NAEC). Stay within the national exam programme for the subject. Explain clearly for a 17–18-year-old. When it helps, add one sentence on how the topic is tested (a typical question format or trap) — not a whole section. Offer exam-style practice questions as the next step, and check the student's answers when asked. Use the Georgian school terminology the exam uses.",
 };
 
+/** Answers shown as markdown (with maths rendered); the JSON ones also need their backslashes escaped. */
+const MATH_PAGES: Partial<Record<AiPageType, "markdown" | "json">> = {
+  "ai-teacher": "markdown",
+  "lecture-notes": "markdown",
+  eli5: "json",
+};
+
+function withMathRules(pageType: AiPageType, prompt: string): string {
+  const kind = MATH_PAGES[pageType];
+  if (!kind) return prompt;
+  return `${prompt}\n\n${MATH_FORMAT_RULES}${kind === "json" ? `\n${MATH_JSON_RULE}` : ""}`;
+}
+
 export function getSystemPromptForPageType(
   pageType: AiPageType,
   payload?: Record<string, unknown>,
 ): string {
   if (pageType === "ai-teacher") {
     const space = aiTeacherSpaceFromPayload(payload);
-    return `${PAGE_SYSTEM_PROMPTS["ai-teacher"]}\n\n${AI_TEACHER_SPACE_PROMPTS[space]}`;
+    return withMathRules(pageType, `${PAGE_SYSTEM_PROMPTS["ai-teacher"]}\n\n${AI_TEACHER_SPACE_PROMPTS[space]}`);
   }
-  return PAGE_SYSTEM_PROMPTS[pageType];
+  return withMathRules(pageType, PAGE_SYSTEM_PROMPTS[pageType]);
 }
