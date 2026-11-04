@@ -13,7 +13,7 @@ import { MaterialsList, ResumeStrip } from "./MaterialsList";
 import { useMaterials } from "./useMaterials";
 import "./library.css";
 
-type LibraryType = "decks" | "quizzes" | "conspectus" | "tasks" | "notes";
+type LibraryType = "decks" | "quizzes" | "conspectus" | "tasks" | "notes" | "sessions";
 
 const TYPES: { id: LibraryType; label: string; studentOnly?: boolean }[] = [
   { id: "decks", label: "ფლეშბარათები" },
@@ -23,6 +23,8 @@ const TYPES: { id: LibraryType; label: string; studentOnly?: boolean }[] = [
   { id: "tasks", label: "დავალებები", studentOnly: true },
   // Lecture notes, from „ჩემი საგნები“.
   { id: "notes", label: "ჩანაწერები", studentOnly: true },
+  // Study sessions, from „ჩემი საგნები“.
+  { id: "sessions", label: "სესიები", studentOnly: true },
 ];
 
 /** „ახლის შექმნა“: which tool to open. */
@@ -88,10 +90,10 @@ export function LibraryPage() {
   const materials = useMaterials();
   const backHref = useBackHref();
   const asked = params.get("type");
-  const type: LibraryType = asked === "quizzes" || asked === "conspectus" || asked === "tasks" || asked === "notes" ? asked : "decks";
+  const type: LibraryType = asked === "quizzes" || asked === "conspectus" || asked === "tasks" || asked === "notes" || asked === "sessions" ? asked : "decks";
 
-  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus, tasks: materials.tasks, notes: materials.notes };
-  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new", tasks: "/task-helper", notes: "/subjects" };
+  const items = { decks: materials.decks, quizzes: materials.quizzes, conspectus: materials.conspectus, tasks: materials.tasks, notes: materials.notes, sessions: materials.sessions };
+  const create = { decks: "/generate?tab=new", quizzes: "/quiz?tab=new", conspectus: "/generate?tab=new", tasks: "/task-helper", notes: "/subjects", sessions: "/subjects" };
   // „დავალებები“: in the student space, or wherever there are some.
   const [student, setStudent] = useState(false);
   useEffect(() => {
@@ -170,7 +172,7 @@ export function LibraryPage() {
             <MaterialsList
               key={`${type}-${subjectFilter ?? ""}`}
               items={shown}
-              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : type === "notes" ? "note" : "conspectus"}
+              kind={type === "decks" ? "deck" : type === "quizzes" ? "quiz" : type === "tasks" ? "task" : type === "notes" ? "note" : type === "sessions" ? "session" : "conspectus"}
               createHref={create[type]}
             />
           </div>

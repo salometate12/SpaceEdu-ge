@@ -8,6 +8,8 @@ export type HandoffTarget = "cards" | "quiz";
 export interface Handoff {
   title: string;
   text: string;
+  /** „ჩემი საგნები“: the subject and topic what's made belongs to. */
+  link?: { subjectId: string; topicId: string };
 }
 
 const key = (target: HandoffTarget) => `spaceedu-handoff:${target}`;
@@ -27,7 +29,9 @@ export function takeHandoff(target: HandoffTarget): Handoff | null {
     if (!raw) return null;
     window.sessionStorage.removeItem(key(target));
     const parsed = JSON.parse(raw) as Partial<Handoff>;
-    return typeof parsed.text === "string" ? { title: String(parsed.title ?? ""), text: parsed.text } : null;
+    if (typeof parsed.text !== "string") return null;
+    const link = parsed.link && typeof parsed.link.subjectId === "string" && typeof parsed.link.topicId === "string" ? { subjectId: parsed.link.subjectId, topicId: parsed.link.topicId } : undefined;
+    return { title: String(parsed.title ?? ""), text: parsed.text, ...(link ? { link } : {}) };
   } catch {
     return null;
   }

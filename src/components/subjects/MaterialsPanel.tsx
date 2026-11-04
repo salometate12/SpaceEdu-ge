@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import {
   BookOpen,
   CalendarDays,
+  Check,
   ClipboardList,
   Compass,
   ExternalLink,
@@ -13,19 +15,24 @@ import {
   ListChecks,
   Loader2,
   Pencil,
+  Play,
   Presentation,
   ScrollText,
   Shapes,
   Tag,
   Trash2,
   UploadCloud,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { removeSubjectFile } from "@/lib/subject-files-client";
 import { setFileTags, setFileTitle } from "@/lib/subject-store";
 import { FILE_KINDS, fileTitle, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectFileKind, type SubjectTopic } from "@/lib/subjects";
+import { STUDY_MAX_FILES } from "@/lib/study/schemas";
+import { estimateMinutes, newSessionHref } from "@/lib/study/sessions";
 import { MoreMenu } from "./MoreMenu";
 import type { MadeItem } from "./useSubjectsData";
+import "./study/study.css";
 
 const KIND_ICONS: Record<SubjectFileKind, LucideIcon> = {
   lecture: FileText,
@@ -98,6 +105,10 @@ function FileRow({
   setEditing,
   onOpen,
   taskHref,
+  selected,
+  canSelect,
+  onToggle,
+  onStudy,
 }: {
   file: SubjectFile;
   topics: SubjectTopic[];
@@ -105,6 +116,11 @@ function FileRow({
   setEditing: (value: Editing) => void;
   onOpen: () => void;
   taskHref: string;
+  selected: boolean;
+  /** Under the five-file limit (or already chosen). */
+  canSelect: boolean;
+  onToggle: () => void;
+  onStudy: () => void;
 }) {
   const edit = editing?.fileId === file.id ? editing.what : null;
   const right = file.tagging ? (
@@ -126,6 +142,18 @@ function FileRow({
   return (
     <li>
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={selected}
+          aria-label={`${fileTitle(file)}: მონიშვნა სასწავლად`}
+          disabled={!canSelect}
+          title={canSelect ? undefined : `მაქსიმუმ ${STUDY_MAX_FILES} ფაილი ერთ სესიაში`}
+          onClick={onToggle}
+          className="st-check sj-focus flex shrink-0 items-center justify-center disabled:opacity-40"
+        >
+          {selected ? <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden /> : null}
+        </button>
         <button type="button" onClick={onOpen} className="sj-focus group min-w-0 flex-1 rounded-[10px] py-1.5 text-left">
           <span className="block truncate text-[14px] font-medium text-[var(--sj-title)] group-hover:underline">{fileTitle(file)}</span>
           {fileTitle(file) !== file.name ? <span className="sj-file-name block truncate text-[12px]">{file.name}</span> : null}
@@ -135,6 +163,7 @@ function FileRow({
           label={`${fileTitle(file)}: მეტი`}
           items={[
             { label: "გახსნა", icon: <ExternalLink className="h-4 w-4" aria-hidden />, onSelect: onOpen },
+            { label: "ისწავლე ეს ფაილი", icon: <Play className="h-4 w-4" aria-hidden />, onSelect: onStudy },
             { label: "გადარქმევა", icon: <Pencil className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "rename" }) },
             { label: "თემის შეცვლა", icon: <Tag className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "topics" }) },
             { label: "ტიპის შეცვლა", icon: <Shapes className="h-4 w-4" aria-hidden />, onSelect: () => setEditing({ fileId: file.id, what: "kind" }) },
@@ -234,8 +263,21 @@ export function MaterialsPanel({
   uploading: boolean;
   uploadError: string | null;
 }) {
+  const router = useRouter();
   const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
+  // „ისწავლე მონიშნულით“: up to five files for one study session.
+  const [selected, setSelected] = useState<string[]>([]);
+  const chosen = selected.filter((id) => files.some((file) => file.id === id));
+  const toggle = (id: string) =>
+    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : current.length >= STUDY_MAX_FILES ? current : [...current, id]));
+  const selectAll = (ids: string[]) =>
+    setSelected((current) => {
+      const all = ids.every((id) => current.includes(id));
+      if (all) return current.filter((id) => !ids.includes(id));
+      return [...current, ...ids.filter((id) => !current.includes(id))].slice(0, STUDY_MAX_FILES);
+    });
+  const studyMinutes = estimateMinutes(files.filter((file) => chosen.includes(file.id)));
   const [dragging, setDragging] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
   const groups = FILE_KINDS.map((kind) => ({ ...kind, files: files.filter((file) => file.kind === kind.id) })).filter((group) => group.files.length > 0);
@@ -298,16 +340,35 @@ export function MaterialsPanel({
           const Icon = KIND_ICONS[group.id];
           return (
             <div key={group.id}>
-              <p className="flex items-center gap-2 text-[13.5px] font-bold text-[var(--sj-title)]">
-                <span className={`sj-kind kind-${group.id} flex h-7 w-7 items-center justify-center rounded-[8px]`} aria-hidden>
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
-                {group.label}
-                <span className="font-semibold text-[var(--sj-muted)]">{group.files.length}</span>
-              </p>
-              <ul className="mt-1.5 flex flex-col pl-9">
+              <div className="flex items-center gap-2">
+                <p className="flex min-w-0 flex-1 items-center gap-2 text-[13.5px] font-bold text-[var(--sj-title)]">
+                  <span className={`sj-kind kind-${group.id} flex h-7 w-7 items-center justify-center rounded-[8px]`} aria-hidden>
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  {group.label}
+                  <span className="font-semibold text-[var(--sj-muted)]">{group.files.length}</span>
+                </p>
+                {group.files.length > 1 ? (
+                  <button type="button" onClick={() => selectAll(group.files.map((file) => file.id))} className="sj-focus shrink-0 rounded-md text-[12.5px] font-bold text-[#9d174d] hover:underline dark:text-[#f9a8d4]">
+                    {group.files.every((file) => chosen.includes(file.id)) ? "მონიშვნის მოხსნა" : "ყველას მონიშვნა"}
+                  </button>
+                ) : null}
+              </div>
+              <ul className="mt-1.5 flex flex-col pl-1">
                 {group.files.map((file) => (
-                  <FileRow key={file.id} file={file} topics={topics} editing={editing} setEditing={setEditing} onOpen={() => onOpenFile(file)} taskHref={taskHref(file)} />
+                  <FileRow
+                    key={file.id}
+                    file={file}
+                    topics={topics}
+                    editing={editing}
+                    setEditing={setEditing}
+                    onOpen={() => onOpenFile(file)}
+                    taskHref={taskHref(file)}
+                    selected={chosen.includes(file.id)}
+                    canSelect={chosen.includes(file.id) || chosen.length < STUDY_MAX_FILES}
+                    onToggle={() => toggle(file.id)}
+                    onStudy={() => router.push(newSessionHref(subjectId, [file.id]))}
+                  />
                 ))}
               </ul>
               {group.id === "assignment" && latestAssignment ? (
@@ -340,6 +401,25 @@ export function MaterialsPanel({
           </div>
         ) : null}
       </div>
+
+      {chosen.length > 0 ? (
+        <div role="region" aria-label="მონიშნული ფაილები" className="st-bar fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+96px)] z-40 mx-auto flex max-w-[560px] items-center gap-3 px-4 py-3 shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] md:bottom-6">
+          <button type="button" onClick={() => setSelected([])} aria-label="მონიშვნის მოხსნა" className="sj-focus flex h-8 w-8 shrink-0 items-center justify-center rounded-full opacity-70 hover:opacity-100">
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14.5px] font-bold">{chosen.length} ფაილი მონიშნულია</p>
+            <p className="text-[12.5px] opacity-70">
+              დაახლოებით {studyMinutes} წუთი{chosen.length >= STUDY_MAX_FILES ? ` · მაქსიმუმ ${STUDY_MAX_FILES}` : ""}
+            </p>
+          </div>
+          <button type="button" onClick={() => router.push(newSessionHref(subjectId, chosen))} className="sj-primary sj-focus h-10 shrink-0 px-4 text-[14px]">
+            <Play className="h-4 w-4" aria-hidden />
+            <span className="max-sm:hidden">ისწავლე მონიშნულით</span>
+            <span className="sm:hidden">ისწავლე</span>
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -11,8 +11,9 @@ import type { QuizAttempt, SavedQuiz } from "@/lib/quiz-library";
 import type { Deck, DeckStatus } from "@/lib/types";
 import type { TaskHelper } from "@/lib/task-helper-store";
 import { firstLine, noteHref, type SubjectNote } from "@/lib/subject-notes";
+import { MODE_LABELS, progressOf, scoreOf, sessionHref, type StudySession } from "@/lib/study/sessions";
 
-export type MaterialKind = "deck" | "quiz" | "conspectus" | "task" | "note";
+export type MaterialKind = "deck" | "quiz" | "conspectus" | "task" | "note" | "session";
 export type MaterialSource = "file" | "youtube" | "presentation" | "audio" | "video" | "text";
 
 export interface MaterialItem {
@@ -47,6 +48,8 @@ export interface MaterialItem {
   subjectId?: string;
   /** An assignment (the task helper): steps done of all, and when it's due. */
   task?: { done: number; steps: number; dueDate?: string };
+  /** A study session: parts done of all, its mode, and the result once finished. */
+  session?: { done: number; parts: number; mode: string; correct: number; finished: boolean };
 }
 
 const SOURCES: MaterialSource[] = ["file", "youtube", "presentation", "audio", "video", "text"];
@@ -193,6 +196,28 @@ export function noteItem(note: SubjectNote, subjectName = ""): MaterialItem {
   };
 }
 
+/** A study session („ჩემი საგნები“): what it was made from, and how far it got. */
+export function sessionItem(session: StudySession, subjectName = ""): MaterialItem {
+  const { done, total } = progressOf(session);
+  const finished = typeof session.finishedAt === "number";
+  const names = session.files.map((file) => file.name.replace(/\.[a-z0-9]{1,8}$/i, ""));
+  return {
+    key: `session:${session.id}`,
+    kind: "session",
+    id: session.id,
+    title: names.length > 1 ? `${names[0]} და კიდევ ${names.length - 1}` : (names[0] ?? MODE_LABELS[session.mode]),
+    source: "file",
+    sourceName: subjectName,
+    status: "ready",
+    createdAt: session.startedAt,
+    openedAt: session.updatedAt,
+    unfinished: !finished && done > 0,
+    done: finished,
+    subjectId: session.subjectId,
+    session: { done, parts: total, mode: MODE_LABELS[session.mode], correct: scoreOf(session).correct, finished },
+  };
+}
+
 export type MaterialFilter = "all" | "unfinished" | "done";
 export type MaterialSort = "opened" | "newest";
 
@@ -232,6 +257,7 @@ export function materialHref(item: MaterialItem, mode?: "restart" | "mistakes"):
   if (item.kind === "conspectus") return `/conspectus/${item.id}`;
   if (item.kind === "task") return `/task-helper?id=${encodeURIComponent(item.id)}`;
   if (item.kind === "note") return noteHref({ id: item.id, subjectId: item.subjectId ?? null });
+  if (item.kind === "session") return sessionHref({ id: item.id, subjectId: item.subjectId ?? "" });
   return `/quiz?quiz=${encodeURIComponent(item.id)}${mode ? `&mode=${mode}` : ""}`;
 }
 

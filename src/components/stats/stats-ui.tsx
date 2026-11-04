@@ -250,6 +250,7 @@ export const TOOL_LABEL: Record<ToolKey, string> = {
   conspectus: "კონსპექტი",
   open_grader: "ღია დავალებები",
   practice: "სავარჯიშოები",
+  study_session: "სწავლის სესია",
   other: "სხვა",
 };
 

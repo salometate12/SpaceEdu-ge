@@ -18,6 +18,7 @@ export const QUIZZES_UPDATED_EVENT = "spaceedu-quizzes-updated";
 export const TASK_HELPERS_UPDATED_EVENT = "spaceedu-task-helpers-updated";
 export const SUBJECTS_UPDATED_EVENT = "spaceedu-subjects-updated";
 export const SUBJECT_NOTES_UPDATED_EVENT = "spaceedu-subject-notes-updated";
+export const STUDY_SESSIONS_UPDATED_EVENT = "spaceedu-study-sessions-updated";
 export const AI_TEACHER_HISTORY_UPDATED_EVENT = "spaceedu-ai-teacher-history-updated";
 export const ASSISTANT_HISTORY_UPDATED_EVENT = "spaceedu-assistant-history-updated";
 export const CV_PREFS_UPDATED_EVENT = "spaceedu-cv-prefs-updated";
@@ -62,6 +63,8 @@ export const SUBJECT_TOPICS_KEY = "spaceedu-subject-topics";
 export const SUBJECT_FILES_KEY = "spaceedu-subject-files";
 /** „ჩემი საგნები“ (lib/subject-notes): lecture notes, each in a subject (and a topic). */
 export const SUBJECT_NOTES_KEY = "spaceedu-subject-notes";
+/** „სწავლის სესია“ (lib/study/sessions): each session's plan, parts, answers and place. */
+export const STUDY_SESSIONS_KEY = "spaceedu-study-sessions";
 export const AI_TEACHER_HISTORY_KEYS = {
   student: "spaceedu-ai-teacher-conversations-student",
   abiturient: "spaceedu-ai-teacher-conversations-abiturient",
@@ -301,6 +304,7 @@ export const SYNCED_KEYS: SyncSpec[] = [
   { key: SUBJECT_TOPICS_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT, rows: true },
   { key: SUBJECT_FILES_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECTS_UPDATED_EVENT, rows: true },
   { key: SUBJECT_NOTES_KEY, merge: mergeNewestById("updatedAt"), event: SUBJECT_NOTES_UPDATED_EVENT, rows: true },
+  { key: STUDY_SESSIONS_KEY, merge: mergeNewestById("updatedAt"), event: STUDY_SESSIONS_UPDATED_EVENT, rows: true },
   { key: DOCUMENTS_KEY, merge: mergeNewestById("updatedAt"), event: DOCUMENTS_UPDATED_EVENT },
   { key: ELI5_HISTORY_KEY, merge: mergeNewestById("createdAt", ELI5_HISTORY_LIMIT), event: ELI5_HISTORY_UPDATED_EVENT, rows: true },
   // The chosen level: a preference, kept on the device after sign-out.

@@ -80,20 +80,22 @@ export default function QuizPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  // Opened from a journal entry („ქვიზი ამ ჩანაწერიდან“): the entry as a text file.
+  // Opened on a topic from „ჩემი საგნები“ (`?subject=&topic=`): its files as
+  // the source (one PDF, PPTX, DOCX or text file as it is, read by the server
+  // from storage; otherwise their text as one
+  // file), and the quiz tagged with the subject and topic.
+  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
+  // Opened from a journal entry („ქვიზი ამ ჩანაწერიდან“) or a study session: the text as a file
+  // (a session's mistakes keep their subject and topic).
   useEffect(() => {
     void Promise.resolve().then(() => {
       const handed = takeHandoff("quiz");
       if (!handed) return;
       const name = `${(handed.title || "ჩანაწერი").replace(/[\\/:*?"<>|]+/g, " ").trim()}.txt`;
       setFile(new File([handed.text], name, { type: "text/plain" }));
+      if (handed.link) setTopicLink(handed.link);
     });
   }, []);
-  // Opened on a topic from „ჩემი საგნები“ (`?subject=&topic=`): its files as
-  // the source (one PDF, PPTX, DOCX or text file as it is, read by the server
-  // from storage; otherwise their text as one
-  // file), and the quiz tagged with the subject and topic.
-  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
   const [handedTopic] = useState(() => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("topic") : null));
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
