@@ -26,6 +26,7 @@ const DONE_LABEL: Record<MaterialKind, string | null> = {
   conspectus: null,
   task: "დასრულებული",
   note: null,
+  session: "დასრულებული",
 };
 
 const LATER_KEY = "spaceedu-resume-later";

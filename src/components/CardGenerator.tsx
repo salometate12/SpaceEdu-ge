@@ -163,6 +163,8 @@ export function CardGenerator() {
   const [handed] = useState(() => typeof window !== "undefined" && hasHandoff("cards"));
 
   // Opened from a journal entry („გადააქციე ბარათებად“): its text, ready to go.
+  // „ჩემი საგნები“ (a topic, or a study session's hard parts): put on what's made.
+  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
   useEffect(() => {
     void Promise.resolve().then(() => {
       const handed = takeHandoff("cards");
@@ -170,6 +172,8 @@ export function CardGenerator() {
       setSource("text");
       setText(handed.text);
       if (handed.title) setTopic(handed.title);
+      // From a study session: what's made goes with its subject and topic.
+      if (handed.link) setTopicLink(handed.link);
     });
   }, []);
 
@@ -200,7 +204,6 @@ export function CardGenerator() {
   const linkSubject = params.get("subject");
   const linkTopic = params.get("topic");
   const linkMode = params.get("mode");
-  const [topicLink, setTopicLink] = useState<{ subjectId: string; topicId: string } | null>(null);
   const [topicChoices, setTopicChoices] = useState<File[]>([]);
   useEffect(() => {
     if (!linkSubject || !linkTopic) return;

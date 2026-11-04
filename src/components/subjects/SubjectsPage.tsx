@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BookOpenCheck, FolderOpen, ListRestart, Loader2, NotebookPen, Play, Plus, UploadCloud } from "lucide-react";
+import { ArrowRight, BookOpenCheck, FolderOpen, ListRestart, Loader2, NotebookPen, Play, Plus, UploadCloud } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { readSavedSemesterSubjects, readSemesterSubjects, saveSemesterSubjects } from "@/lib/semester-subjects";
-import { prepareStudy, toolHref, type TopicTool } from "@/lib/subject-actions";
+import { prepareStudy, toolHref, topicFiles, type TopicTool } from "@/lib/subject-actions";
+import { STUDY_MAX_FILES } from "@/lib/study/schemas";
+import { MODE_LABELS, newSessionHref, progressOf, sessionHref, STUDY_SESSIONS_UPDATED_EVENT, unfinishedSession, type StudySession } from "@/lib/study/sessions";
 import { addSubjectFiles, fillMissingFileTitles, getSubjectFileBlob } from "@/lib/subject-files-client";
 import { getNoteByLegacyId, newNoteHref, NO_SUBJECT, noteHref } from "@/lib/subject-notes";
 import { resyncSyllabusTopics, syncSyllabusTopics } from "@/lib/subject-store";
@@ -145,11 +147,28 @@ export function SubjectsPage() {
   const firstOpen = topics.find((topic) => topic.status !== "done");
   const quizzes = made.filter((item) => item.kind === "quiz").length;
 
+  /** „დაიწყე სწავლა“: a study session from the topic's files; without files, the AI teacher on the topic. */
   const study = async (topic: SubjectTopic) => {
     if (!subject || busyTopic) return;
     setBusyTopic(topic.id);
+    const own = topicFiles(topic);
+    if (own.length > 0) {
+      router.push(newSessionHref(subject.id, own.slice(0, STUDY_MAX_FILES).map((file) => file.id), topic.id));
+      return;
+    }
     router.push(await prepareStudy(subject, topic));
   };
+
+  // „გააგრძელე სესია“: the subject's session left half way.
+  const [openSession, setOpenSession] = useState<StudySession | null>(null);
+  const openSubjectId = subject?.id ?? null;
+  useEffect(() => {
+    const read = () => setOpenSession(openSubjectId ? (unfinishedSession(openSubjectId) ?? null) : null);
+    void Promise.resolve().then(read);
+    window.addEventListener(STUDY_SESSIONS_UPDATED_EVENT, read);
+    return () => window.removeEventListener(STUDY_SESSIONS_UPDATED_EVENT, read);
+  }, [openSubjectId]);
+  const openProgress = openSession ? progressOf(openSession) : null;
 
   const openTool = async (tool: TopicTool, topic: SubjectTopic) => {
     if (!subject || busyTopic) return;
@@ -361,6 +380,21 @@ export function SubjectsPage() {
                     </p>
                   ) : null}
                 </section>
+
+                {openSession && openProgress ? (
+                  <Link href={sessionHref(openSession)} className="sj-card sj-focus mt-4 flex items-center gap-3 px-4 py-3.5 hover:bg-[var(--sj-hover)] sm:px-5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#fdf2f8] text-[#e11d74] dark:bg-pink-500/15 dark:text-[#f472b6]" aria-hidden>
+                      <Play className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-bold text-[var(--sj-title)]">
+                        გააგრძელე სესია · ნაწილი {Math.min(openProgress.done + 1, openProgress.total)} / {openProgress.total}
+                      </span>
+                      <span className="block truncate text-[13px] text-[var(--sj-muted)]">{MODE_LABELS[openSession.mode]}</span>
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--sj-muted)]" aria-hidden />
+                  </Link>
+                ) : null}
 
                 {empty ? (
                   <section className="sj-card mt-5 flex flex-col items-center gap-3 px-6 py-10 text-center">

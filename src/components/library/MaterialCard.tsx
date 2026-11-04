@@ -12,6 +12,7 @@ import {
   Compass,
   FileText,
   Film,
+  GraduationCap,
   Loader2,
   MoreHorizontal,
   NotebookPen,
@@ -32,6 +33,7 @@ import { deckAsQuizText, materialHref, type MaterialItem, type MaterialSource } 
 import { deleteQuiz, renameQuiz } from "@/lib/quiz-library";
 import { deleteTaskHelper, renameTaskHelper } from "@/lib/task-helper-store";
 import { deleteNote, patchNote } from "@/lib/subject-notes";
+import { deleteSession } from "@/lib/study/sessions";
 import { handOff } from "@/lib/tool-handoff";
 
 const SOURCE_ICONS: Record<MaterialSource, LucideIcon> = {
@@ -53,8 +55,8 @@ export function shortDate(ms: number): string {
 
 /** The 38px tile with the kind of material (a quiz and an assignment show their own icon). */
 export function SourceTile({ item, size = 38 }: { item: MaterialItem; size?: number }) {
-  const Icon = item.kind === "quiz" ? Brain : item.kind === "task" ? Compass : item.kind === "note" ? NotebookPen : SOURCE_ICONS[item.source];
-  const tone = item.kind === "quiz" || item.kind === "note" ? "file" : item.kind === "task" ? "task" : item.source;
+  const Icon = item.kind === "quiz" ? Brain : item.kind === "task" ? Compass : item.kind === "note" ? NotebookPen : item.kind === "session" ? GraduationCap : SOURCE_ICONS[item.source];
+  const tone = item.kind === "quiz" || item.kind === "note" ? "file" : item.kind === "task" ? "task" : item.kind === "session" ? "audio" : item.source;
   return (
     <span
       className={`lib-tile src-${tone} flex shrink-0 items-center justify-center rounded-[11px]`}
@@ -129,6 +131,7 @@ function CardMenu({ item, onRename }: { item: MaterialItem; onRename: () => void
     else if (item.kind === "quiz") deleteQuiz(item.id);
     else if (item.kind === "task") deleteTaskHelper(item.id);
     else if (item.kind === "note") deleteNote(item.id);
+    else if (item.kind === "session") deleteSession(item.id);
     else deleteConspectus(item.id);
     setOpen(false);
   };
@@ -170,18 +173,20 @@ function CardMenu({ item, onRename }: { item: MaterialItem; onRename: () => void
             </>
           ) : (
             <>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onRename();
-                }}
-                className={row}
-              >
-                <Pencil className="h-4 w-4" aria-hidden />
-                გადარქმევა
-              </button>
+              {item.kind !== "session" ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                    onRename();
+                  }}
+                  className={row}
+                >
+                  <Pencil className="h-4 w-4" aria-hidden />
+                  გადარქმევა
+                </button>
+              ) : null}
               {(item.kind === "deck" || item.kind === "conspectus") && item.status === "ready" ? (
                 <button type="button" role="menuitem" onClick={toQuiz} className={row}>
                   <Brain className="h-4 w-4" aria-hidden />
@@ -379,6 +384,26 @@ export function MaterialCard({ item }: { item: MaterialItem }) {
       <Link href={materialHref(item)} className={`lib-primary ${BUTTON}`}>
         {done > 0 && done < steps ? "გაგრძელება" : "გახსნა"}
         <ArrowRight className="h-4 w-4" aria-hidden />
+      </Link>
+    );
+  } else if (item.kind === "session" && item.session) {
+    const { done, parts, mode, correct, finished } = item.session;
+    body = (
+      <div className="flex flex-col gap-2">
+        <p className="text-[13.5px] text-[var(--lib-text)]">
+          {[mode, parts ? `${done}/${parts} ნაწილი` : null, finished && parts ? `${correct} სწორი` : null].filter(Boolean).join(" · ")}
+        </p>
+        {parts > 0 ? (
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--lib-track)] sm:h-2" aria-hidden>
+            <div className="h-full rounded-full bg-[var(--lib-pink)]" style={{ width: `${(done / parts) * 100}%` }} />
+          </div>
+        ) : null}
+      </div>
+    );
+    actions = (
+      <Link href={materialHref(item)} className={`${finished ? "lib-secondary" : "lib-primary"} ${BUTTON}`}>
+        {finished ? "გახსნა" : "გაგრძელება"}
+        {finished ? null : <ArrowRight className="h-4 w-4" aria-hidden />}
       </Link>
     );
   } else if (item.kind === "conspectus" || item.kind === "note") {

@@ -16,6 +16,7 @@ import { buildQuizResponseSchema } from "@/lib/ai/quiz-schema";
 import { ResearchResponseSchema } from "@/lib/ai/research-platform-schema";
 import { StudyPlanResponseSchema } from "@/lib/ai/study-plan-schema";
 import { SyllabusAiResponseSchema } from "@/lib/ai/syllabus-schema";
+import { CheckQuizSchema, PartSchema, PlanSchema } from "@/lib/study/schemas";
 import { TextEditingGraderResponseSchema } from "@/lib/ai/text-editing-grader-schema";
 import { WritingTaskGraderResponseSchema } from "@/lib/ai/writing-task-grader-schema";
 
@@ -27,6 +28,9 @@ import { WritingTaskGraderResponseSchema } from "@/lib/ai/writing-task-grader-sc
  * optional fields must be `.nullable()`, never `.optional()` / `.default()`.
  */
 const MODEL_SCHEMAS: Record<string, z.ZodType> = {
+  StudyPlanSchema: PlanSchema,
+  StudyPartSchema: PartSchema,
+  StudyCheckQuizSchema: CheckQuizSchema,
   ChemistryOpenGraderResponseSchema,
   CivicsOpenGraderResponseSchema,
   CvResponseSchema,

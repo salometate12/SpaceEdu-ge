@@ -49,6 +49,7 @@ export type ToolKey =
   | "conspectus"
   | "open_grader"
   | "practice"
+  | "study_session"
   | "other";
 
 export interface ActivityEvent {
