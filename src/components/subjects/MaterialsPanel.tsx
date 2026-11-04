@@ -25,7 +25,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { removeSubjectFile } from "@/lib/subject-files-client";
+import { removeSubjectFile, retrySubjectFileUpload } from "@/lib/subject-files-client";
 import { setFileTags, setFileTitle } from "@/lib/subject-store";
 import { FILE_KINDS, fileTitle, SUBJECT_FILE_ACCEPT, type SubjectFile, type SubjectFileKind, type SubjectTopic } from "@/lib/subjects";
 import { STUDY_MAX_FILES } from "@/lib/study/schemas";
@@ -123,6 +123,13 @@ function FileRow({
   onStudy: () => void;
 }) {
   const edit = editing?.fileId === file.id ? editing.what : null;
+  const [retrying, setRetrying] = useState(false);
+  const [retryProblem, setRetryProblem] = useState<string | null>(null);
+  const retry = async () => {
+    setRetrying(true);
+    setRetryProblem(await retrySubjectFileUpload(file));
+    setRetrying(false);
+  };
   const right = file.tagging ? (
     <span className="flex items-center gap-1 text-[12.5px] text-[var(--sj-muted)]">
       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -177,6 +184,16 @@ function FileRow({
           ]}
         />
       </div>
+      {file.uploadFailed && !file.storagePath ? (
+        <p role="alert" className="mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[12.5px] font-medium text-rose-600 dark:text-rose-400">
+          ვერ აიტვირთა ·
+          <button type="button" disabled={retrying} onClick={() => void retry()} className="sj-focus inline-flex items-center gap-1 rounded font-bold underline disabled:opacity-60">
+            {retrying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}
+            თავიდან ცდა
+          </button>
+          {retryProblem ? <span className="w-full font-normal">{retryProblem}</span> : null}
+        </p>
+      ) : null}
       {edit === "rename" ? <RenameRow file={file} onDone={() => setEditing(null)} /> : null}
       {edit === "topics" ? (
         <div className="mb-2 rounded-[14px] bg-[var(--sj-open)] p-3">

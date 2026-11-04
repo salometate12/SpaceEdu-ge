@@ -5,14 +5,15 @@
  */
 import { aiTeacherHrefForSpace } from "./access-control";
 import { AI_TEACHER_CONTEXT_KEY, AI_TEACHER_PROMPT_KEY, AI_TEACHER_TITLE_KEY } from "./syllabus-calendar";
-import { getSubjectFileBlob } from "./subject-files-client";
+import { ensureSubjectFileStored, getSubjectFileBlob } from "./subject-files-client";
+import { isUserFilesConnected } from "./user-files";
 import { getFiles, getTopic, markTopicStarted } from "./subject-store";
 import { handOffPresentation } from "./tool-handoff";
 import { newPresentationId } from "./presentation-store";
 import { fileTitle, type SubjectFile, type SubjectTopic } from "./subjects";
 import { StoredFile } from "./stored-file";
 
-/** The files sent along for their text when they aren't in storage (the size the server takes in a request). */
+/** Signed out, with no storage to read from: what one request may carry in all (Vercel takes 4.5 MB). */
 const SEND_MAX_BYTES = 4 * 1024 * 1024;
 
 export type TopicTool = "quiz" | "cards" | "summary" | "presentation";
@@ -32,13 +33,17 @@ export async function fetchExcerpts(files: SubjectFile[], budget = 12_000): Prom
   if (files.length === 0) return [];
   const form = new FormData();
   form.append("budget", String(budget));
+  let sent = 0;
   for (const file of files.slice(0, 5)) {
+    const path = await ensureSubjectFileStored(file);
     form.append("names", file.name);
-    form.append("paths", file.storagePath ?? "");
-    if (!file.storagePath) {
-      const blob = await getSubjectFileBlob(file);
-      // Too big to send: left out (it reaches the AI once it's in storage).
-      form.append("files", blob && blob.size <= SEND_MAX_BYTES ? blob : new Blob([]), file.name);
+    form.append("paths", path ?? "");
+    if (!path) {
+      const blob = isUserFilesConnected() ? null : await getSubjectFileBlob(file);
+      // Signed in, a file goes through storage or is left out; never in the request.
+      const fits = blob && sent + blob.size <= SEND_MAX_BYTES;
+      if (fits) sent += blob.size;
+      form.append("files", fits ? blob : new Blob([]), file.name);
     }
   }
   try {

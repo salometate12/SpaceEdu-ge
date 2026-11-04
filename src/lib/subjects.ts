@@ -45,6 +45,8 @@ export interface SubjectFile {
   dueDate?: string;
   /** In the subject-files bucket; null until uploaded (signed out, offline). */
   storagePath: string | null;
+  /** Signed in, and the upload to storage failed: the list says so and offers to try again. */
+  uploadFailed?: boolean;
   /** The kind and topics are being guessed. */
   tagging?: boolean;
   /** The student set the kind or topics: the guess doesn't overwrite them. */

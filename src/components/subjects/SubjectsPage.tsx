@@ -9,7 +9,7 @@ import { readSavedSemesterSubjects, readSemesterSubjects, saveSemesterSubjects }
 import { prepareStudy, toolHref, topicFiles, type TopicTool } from "@/lib/subject-actions";
 import { STUDY_MAX_FILES } from "@/lib/study/schemas";
 import { MODE_LABELS, newSessionHref, progressOf, sessionHref, STUDY_SESSIONS_UPDATED_EVENT, unfinishedSession, type StudySession } from "@/lib/study/sessions";
-import { addSubjectFiles, fillMissingFileTitles, getSubjectFileBlob } from "@/lib/subject-files-client";
+import { addSubjectFiles, fillMissingFileTitles, getSubjectFileBlob, uploadPendingFiles } from "@/lib/subject-files-client";
 import { getNoteByLegacyId, newNoteHref, NO_SUBJECT, noteHref } from "@/lib/subject-notes";
 import { resyncSyllabusTopics, syncSyllabusTopics } from "@/lib/subject-store";
 import { getSyllabusTopicList } from "@/lib/syllabus-calendar";
@@ -94,7 +94,11 @@ export function SubjectsPage() {
 
   // Older files get a title from their contents, once, in the background.
   useEffect(() => {
-    if (data.ready && data.files.length > 0) void fillMissingFileTitles();
+    if (data.ready && data.files.length > 0) {
+      void fillMissingFileTitles();
+      // Whatever this device still holds alone (the account's list may have just arrived).
+      void uploadPendingFiles();
+    }
   }, [data.ready, data.files.length]);
 
   // /lecture-notes?id=… (redirected here): the note it moved to, once it's here.

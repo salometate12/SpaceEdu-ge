@@ -5,7 +5,7 @@
  * of the files in IndexedDB as a cache.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { bucketFor, documentPath, subjectFilePath, USER_FILES_BUCKET } from "./user-files-path";
+import { bucketFor, documentPath, USER_FILES_BUCKET } from "./user-files-path";
 import { AI_TOO_LARGE_MESSAGE } from "./ai/ai-messages";
 
 let remote: { client: SupabaseClient; userId: string } | null = null;
@@ -30,7 +30,6 @@ export function onUserFilesConnected(listener: () => void): () => void {
 export const isUserFilesConnected = () => remote !== null;
 
 export const pathForDocument = (id: string) => (remote ? documentPath(remote.userId, id) : null);
-export const pathForSubjectFile = (subjectId: string, id: string) => (remote ? subjectFilePath(remote.userId, subjectId, id) : null);
 
 /** Uploads to the given path; the path back, or null (signed out, failed). */
 export async function uploadUserFile(path: string | null, blob: Blob, contentType: string): Promise<string | null> {
@@ -59,27 +58,45 @@ async function clearOldUploads(): Promise<void> {
   if (old.length) await remote.client.storage.from(USER_FILES_BUCKET).remove(old);
 }
 
-/**
- * A file dropped into a generator goes straight to storage with a signed
- * upload URL (/api/uploads/sign picks the path in the student's folder), so
- * the request to the generator carries only its path. Null when signed out
- * or the upload failed; UploadTooLargeError over 20 MB.
- */
-export async function uploadForGeneration(file: File): Promise<string | null> {
-  if (!remote) return null;
+/** Why an upload failed, or where the file now is. */
+export type UploadResult = { path: string } | { error: string };
+
+/** Straight to storage with a signed URL (/api/uploads/sign picks the path in the student's folder). */
+async function signedUpload(blob: Blob, name: string, contentType: string, subject?: { subjectId: string; fileId: string }): Promise<UploadResult> {
+  if (!remote) return { error: "signed out" };
   const client = remote.client;
-  void clearOldUploads().catch(() => undefined);
   const response = await fetch("/api/uploads/sign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: file.name, size: file.size }),
+    body: JSON.stringify({ name, size: blob.size, ...(subject ? { subject } : {}) }),
   });
   if (response.status === 413) throw new UploadTooLargeError();
-  if (!response.ok) return null;
+  if (!response.ok) return { error: `sign ${response.status}` };
   const { path, token } = (await response.json()) as { path?: string; token?: string };
-  if (!path || !token) return null;
-  const { error } = await client.storage.from(USER_FILES_BUCKET).uploadToSignedUrl(path, token, file, { contentType: file.type || "application/octet-stream" });
-  return error ? null : path;
+  if (!path || !token) return { error: "sign: no url" };
+  const { error } = await client.storage.from(USER_FILES_BUCKET).uploadToSignedUrl(path, token, blob, { contentType: contentType || "application/octet-stream" });
+  return error ? { error: error.message } : { path };
+}
+
+/** A subject's file, to its place in the subject's folder. */
+export function uploadSubjectFile(subjectId: string, fileId: string, name: string, blob: Blob, contentType: string): Promise<UploadResult> {
+  return signedUpload(blob, name, contentType, { subjectId, fileId });
+}
+
+/**
+ * A file dropped into a generator: to storage first, so the request to the
+ * generator carries only its path. Null when signed out or the upload
+ * failed; UploadTooLargeError over 20 MB.
+ */
+export async function uploadForGeneration(file: File): Promise<string | null> {
+  if (!remote) return null;
+  void clearOldUploads().catch(() => undefined);
+  const result = await signedUpload(file, file.name, file.type);
+  if ("error" in result) {
+    console.error("[uploads]", result.error);
+    return null;
+  }
+  return result.path;
 }
 
 export async function downloadUserFile(path: string): Promise<Blob | null> {
