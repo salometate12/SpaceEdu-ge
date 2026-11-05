@@ -11,9 +11,8 @@ import {
   downloadUserFile,
   isUserFilesConnected,
   onUserFilesConnected,
-  pathForSubjectFile,
   removeUserFile,
-  uploadUserFile,
+  uploadSubjectFile,
 } from "./user-files";
 import { fileProblem, guessKindFromName, subjectBytes, type SubjectFile } from "./subjects";
 import { getFile, getFiles, getTopics, markFileDeleted, saveFileRecord, updateFileRecord } from "./subject-store";
@@ -74,18 +73,60 @@ export function clearSubjectFilesCache(): void {
   void withStore("readwrite", (store) => store.clear()).catch(() => undefined);
 }
 
-const upload = (file: SubjectFile, blob: Blob) => uploadUserFile(pathForSubjectFile(file.subjectId, file.id), blob, file.mime);
-
-// Signed in: files added while signed out (or offline) go up now.
-if (typeof window !== "undefined") onUserFilesConnected(() => void uploadPending());
-
-async function uploadPending(): Promise<void> {
-  for (const file of getFiles().filter((item) => !item.storagePath)) {
-    const blob = await getLocal(file.id);
-    if (!blob) continue;
-    const path = await upload(file, blob);
-    if (path) updateFileRecord(file.id, { storagePath: path });
+/**
+ * To storage, and the record says how it went: its path, or `uploadFailed`
+ * for the list's „ვერ აიტვირთა · თავიდან ცდა“. Signed out nothing is tried
+ * (it goes up on sign-in) and nothing has failed.
+ */
+async function upload(file: SubjectFile, blob: Blob): Promise<string | null> {
+  if (!isUserFilesConnected()) return null;
+  let reason = "";
+  try {
+    const result = await uploadSubjectFile(file.subjectId, file.id, file.name, blob, file.mime);
+    if ("path" in result) {
+      updateFileRecord(file.id, { storagePath: result.path, uploadFailed: undefined });
+      return result.path;
+    }
+    reason = result.error;
+  } catch (error) {
+    reason = error instanceof Error ? error.message : "upload failed";
   }
+  console.error("[subject-files] upload failed", file.id, reason);
+  updateFileRecord(file.id, { uploadFailed: true });
+  return null;
+}
+
+// Signed in: files only on this device (added signed out or offline, from before, or that failed) go up now.
+if (typeof window !== "undefined") onUserFilesConnected(() => void uploadPendingFiles());
+
+let uploadingPending = false;
+
+/** Every file not in storage yet that this device has, one after another. */
+export async function uploadPendingFiles(): Promise<void> {
+  if (uploadingPending || !isUserFilesConnected()) return;
+  uploadingPending = true;
+  try {
+    for (const file of getFiles().filter((item) => !item.storagePath)) {
+      const blob = await getLocal(file.id);
+      if (blob) await upload(file, blob);
+    }
+  } finally {
+    uploadingPending = false;
+  }
+}
+
+/** „თავიდან ცდა“: null when it went up, else why not. */
+export async function retrySubjectFileUpload(file: SubjectFile): Promise<string | null> {
+  const blob = await getLocal(file.id);
+  if (!blob) return "ფაილი ამ მოწყობილობაზე არ არის. გახსენი იქ, სადაც ატვირთე.";
+  return (await upload(file, blob)) ? null : "ვერ აიტვირთა. სცადე ცოტა ხანში.";
+}
+
+/** The file's path in storage, uploading it first when this device has only its copy; null when that can't be done. */
+export async function ensureSubjectFileStored(file: SubjectFile): Promise<string | null> {
+  if (file.storagePath) return file.storagePath;
+  const blob = await getLocal(file.id);
+  return blob ? upload(file, blob) : null;
 }
 
 /* --- Adding, opening, removing ------------------------------------------------ */
@@ -103,7 +144,8 @@ async function askTags(file: SubjectFile, blob: Blob | null): Promise<TagAnswer 
   form.append("name", file.name);
   form.append("topics", JSON.stringify(topics));
   if (file.storagePath) form.append("storagePath", file.storagePath);
-  else if (blob && blob.size <= TAG_UPLOAD_MAX_BYTES) form.append("file", blob, file.name);
+  // Signed out only: signed in, a file reaches the server through storage or not at all.
+  else if (blob && !isUserFilesConnected() && blob.size <= TAG_UPLOAD_MAX_BYTES) form.append("file", blob, file.name);
   const response = await fetch("/api/subjects/tag-file", { method: "POST", body: form });
   return response.ok ? ((await response.json()) as TagAnswer) : null;
 }
@@ -190,7 +232,6 @@ export async function addSubjectFiles(subjectId: string, picked: File[]): Promis
     await putLocal(record.id, blob);
     saveFileRecord(record, now);
     const path = await upload(record, blob);
-    if (path) updateFileRecord(record.id, { storagePath: path });
     void tagFile({ ...record, storagePath: path }, blob);
   }
   return problem;

@@ -5,7 +5,7 @@
  * (lib/stage-uploads).
  */
 import { apiErrorMessage } from "@/lib/assistant-stream-client";
-import { getSubjectFileBlob } from "@/lib/subject-files-client";
+import { ensureSubjectFileStored, getSubjectFileBlob } from "@/lib/subject-files-client";
 import { getFile } from "@/lib/subject-store";
 import { appendFile, StoredFile } from "@/lib/stored-file";
 import { stageFile } from "@/lib/stage-uploads";
@@ -19,7 +19,11 @@ type Kinds = Record<string, "slide" | "page">;
 async function sendable(file: SessionFile): Promise<File | null> {
   if (file.storagePath) return new StoredFile(file.name, file.size, file.mime, file.storagePath);
   const record = getFile(file.id);
-  const blob = record ? await getSubjectFileBlob(record) : null;
+  if (!record) return null;
+  // Saved on the session before it was uploaded: to its own place in storage now.
+  const path = await ensureSubjectFileStored(record);
+  if (path) return new StoredFile(file.name, file.size, file.mime, path);
+  const blob = await getSubjectFileBlob(record);
   return blob ? stageFile(blob) : null;
 }
 
