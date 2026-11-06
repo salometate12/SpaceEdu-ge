@@ -15,6 +15,7 @@ import {
   Video,
   X,
   type LucideIcon,
+  Loader2,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { FieldError } from "@/components/ui/Alert";
@@ -42,7 +43,10 @@ import { AudioRecorder } from "./generate/AudioRecorder";
 import { GenerationProgress } from "./generate/GenerationProgress";
 import { KeepOneFileDialog, SummaryFiles } from "./generate/SummaryFiles";
 import { addFiles, addFilesBeside, presentationAsFile, SUMMARY_MAX_FILES, TOO_MANY_FILES } from "@/lib/summary-files";
-import { topicSources } from "@/lib/subject-actions";
+import { topicFileSource, topicSources } from "@/lib/subject-actions";
+import { retrySubjectFileUpload } from "@/lib/subject-files-client";
+import { getFile, SUBJECTS_UPDATED_EVENT } from "@/lib/subject-store";
+import { fileTitle, type SubjectFile } from "@/lib/subjects";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
 import type { SavedPresentation } from "@/lib/presentation-store";
 import { useYouTubePreview, YouTubeSource, type YouTubeMode } from "./generate/YouTubeSource";
@@ -133,6 +137,34 @@ function FileRow({ file, onClear, kind }: { file: File; onClear: () => void; kin
   );
 }
 
+/** A topic's file that couldn't be made ready: said so, never silently left out. */
+function TopicFileProblem({ file, onRetry }: { file: SubjectFile; onRetry: (file: SubjectFile) => Promise<string | null> }) {
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  return (
+    <li role="alert" className="rounded-[12px] border border-rose-200 bg-rose-50 px-3 py-2.5 text-[13.5px] text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300">
+      <span className="block truncate font-semibold">{fileTitle(file)}</span>
+      <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5">
+        ვერ აიტვირთა ·
+        <button
+          type="button"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setProblem(await onRetry(file));
+            setBusy(false);
+          }}
+          className="gen-focus inline-flex items-center gap-1 rounded font-bold underline disabled:opacity-60"
+        >
+          {busy ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}
+          თავიდან ცდა
+        </button>
+      </span>
+      {problem ? <span className="mt-1 block">{problem}</span> : null}
+    </li>
+  );
+}
+
 /**
  * The AI generator: pick the material (six sources), what to make from it
  * and how many cards, then go. One screen, no modal.
@@ -218,27 +250,56 @@ export function CardGenerator() {
   const linkTopic = params.get("topic");
   const linkMode = params.get("mode");
   const [topicChoices, setTopicChoices] = useState<File[]>([]);
+  // „თემის ფაილებს ვამზადებთ…“ until they're here (nothing can be made meanwhile).
+  const [topicPreparing, setTopicPreparing] = useState(Boolean(linkSubject && linkTopic));
+  const [topicFailed, setTopicFailed] = useState<SubjectFile[]>([]);
   useEffect(() => {
     if (!linkSubject || !linkTopic) return;
     let active = true;
-    void topicSources(linkSubject, linkTopic).then((sources) => {
-      if (!active || !sources) return;
+    let filled = false;
+    // Right away, so the screen and its button already say what's being made.
+    void Promise.resolve().then(() => {
+      setSource("file");
+      setKind(linkMode === "summary" ? "summary" : "flashcards");
+    });
+    const load = async () => {
+      const sources = await topicSources(linkSubject, linkTopic);
+      if (!active) return;
+      setTopicPreparing(false);
+      if (!sources) return;
       setTopicLink(sources.link);
       setTopic(sources.topic.title);
       setSource("file");
-      if (linkMode === "summary") {
-        setKind("summary");
-        setDocs(sources.files.slice(0, SUMMARY_MAX_FILES));
-      } else {
-        setKind("flashcards");
-        setDocs(sources.files.slice(0, 1));
-      }
+      setKind(linkMode === "summary" ? "summary" : "flashcards");
+      setDocs(sources.files.slice(0, linkMode === "summary" ? SUMMARY_MAX_FILES : 1));
       setTopicChoices(sources.files);
-    });
+      setTopicFailed(sources.failed);
+      filled = sources.files.length + sources.failed.length > 0;
+    };
+    void load();
+    // The account's list arriving later (a slow connection): filled in then.
+    const late = () => {
+      if (!filled) void load();
+    };
+    window.addEventListener(SUBJECTS_UPDATED_EVENT, late);
     return () => {
       active = false;
+      window.removeEventListener(SUBJECTS_UPDATED_EVENT, late);
     };
   }, [linkSubject, linkTopic, linkMode]);
+
+  /** „თავიდან ცდა“: up it goes and onto the list; otherwise the reason. */
+  const retryTopicFile = async (file: SubjectFile): Promise<string | null> => {
+    const problem = await retrySubjectFileUpload(file);
+    if (problem) return problem;
+    const record = getFile(file.id);
+    const ready = record ? await topicFileSource(record) : null;
+    if (!ready) return "ვერ აიტვირთა. სცადე ცოტა ხანში.";
+    setTopicFailed((current) => current.filter((item) => item.id !== file.id));
+    setTopicChoices((current) => [...current, ready]);
+    setDocs((current) => (current.length < (kind === "summary" ? SUMMARY_MAX_FILES : 1) ? [...current, ready] : current));
+    return null;
+  };
 
   const [tab, setTab] = useToolTab({
     ready: materials.ready,
@@ -363,6 +424,7 @@ export function CardGenerator() {
 
   /** What's still missing before anything can be made, or null. */
   const missing = (() => {
+    if (topicPreparing) return "თემის ფაილებს ვამზადებთ…";
     if (source === "file" || source === "audio" || source === "video") {
       if (!fileOf(source)) return source === "audio" ? "ჩაწერე ლექცია ან ატვირთე აუდიო." : "ატვირთე ფაილი.";
     }
@@ -542,7 +604,20 @@ export function CardGenerator() {
             </div>
 
             <div>
-              {fileSource === "file" && kind === "summary" ? (
+              {topicPreparing ? (
+                <p role="status" className="mb-3 flex items-center gap-2 rounded-[14px] bg-[var(--gen-soft)] px-4 py-3 text-[14.5px] font-semibold text-[var(--gen-title)]">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  თემის ფაილებს ვამზადებთ…
+                </p>
+              ) : null}
+              {topicFailed.length > 0 && source === "file" ? (
+                <ul className="mb-3 flex flex-col gap-2">
+                  {topicFailed.map((file) => (
+                    <TopicFileProblem key={file.id} file={file} onRetry={retryTopicFile} />
+                  ))}
+                </ul>
+              ) : null}
+              {topicPreparing ? null : fileSource === "file" && kind === "summary" ? (
                 <SummaryFiles files={docs} onAdd={addDocs} onRemove={removeDoc} />
               ) : fileSource === "file" || fileSource === "video" ? (
                 fileOf(fileSource) ? (

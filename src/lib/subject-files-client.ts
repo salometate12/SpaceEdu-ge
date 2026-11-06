@@ -109,6 +109,8 @@ export async function uploadPendingFiles(): Promise<void> {
     for (const file of getFiles().filter((item) => !item.storagePath)) {
       const blob = await getLocal(file.id);
       if (blob) await upload(file, blob);
+      // On the list, in storage nowhere, and not here: it can't be read until someone re-uploads it, so the list says so.
+      else if (!file.uploadFailed) updateFileRecord(file.id, { uploadFailed: true });
     }
   } finally {
     uploadingPending = false;
@@ -118,7 +120,7 @@ export async function uploadPendingFiles(): Promise<void> {
 /** „თავიდან ცდა“: null when it went up, else why not. */
 export async function retrySubjectFileUpload(file: SubjectFile): Promise<string | null> {
   const blob = await getLocal(file.id);
-  if (!blob) return "ფაილი ამ მოწყობილობაზე არ არის. გახსენი იქ, სადაც ატვირთე.";
+  if (!blob) return "ფაილი ამ მოწყობილობაზე არ არის. სცადე იქ, სადაც ატვირთე, ან წაშალე და ატვირთე თავიდან.";
   return (await upload(file, blob)) ? null : "ვერ აიტვირთა. სცადე ცოტა ხანში.";
 }
 

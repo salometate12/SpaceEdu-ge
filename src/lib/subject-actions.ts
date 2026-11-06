@@ -7,6 +7,7 @@ import { aiTeacherHrefForSpace } from "./access-control";
 import { AI_TEACHER_CONTEXT_KEY, AI_TEACHER_PROMPT_KEY, AI_TEACHER_TITLE_KEY } from "./syllabus-calendar";
 import { ensureSubjectFileStored, getSubjectFileBlob } from "./subject-files-client";
 import { isUserFilesConnected } from "./user-files";
+import { whenAccountDataIn } from "./user-data";
 import { getFiles, getTopic, markTopicStarted } from "./subject-store";
 import { handOffPresentation } from "./tool-handoff";
 import { newPresentationId } from "./presentation-store";
@@ -96,12 +97,14 @@ export async function toolHref(tool: TopicTool, subject: { id: string; name: str
 
 /**
  * A topic's file for a generator: in storage, only its name, size and path
- * (the server reads it there; nothing is downloaded here); not uploaded yet
- * (signed out, offline), this device's copy.
+ * (the server reads it there; nothing is downloaded here). Not there yet: it
+ * goes up first. Signed out, with no storage, this device's copy. Null when
+ * none of that worked.
  */
-async function sourceFile(file: SubjectFile): Promise<File | null> {
-  if (file.storagePath) return new StoredFile(fileTitleFor(file), file.size, file.mime, file.storagePath);
-  return getSubjectFileBlob(file);
+export async function topicFileSource(file: SubjectFile): Promise<File | null> {
+  const path = await ensureSubjectFileStored(file);
+  if (path) return new StoredFile(fileTitleFor(file), file.size, file.mime, path);
+  return isUserFilesConnected() ? null : getSubjectFileBlob(file);
 }
 
 /** The name a generator lists: the title from the contents, with the file's own extension (the server reads the type from it). */
@@ -111,15 +114,28 @@ function fileTitleFor(file: SubjectFile): string {
   return title.toLowerCase().endsWith(extension.toLowerCase()) ? title : `${title}${extension}`;
 }
 
-/** The topic a tool was opened on (`?subject=&topic=`), its files and the link to put on what's made. */
+/**
+ * The topic a tool was opened on (`?subject=&topic=`), its files, those that
+ * couldn't be made ready (the tool says so and offers to try again), and the
+ * link to put on what's made. Waits for the account's data: right after a
+ * reload the lists may not be here yet.
+ */
 export async function topicSources(subjectId: string | null, topicId: string | null): Promise<{
   topic: SubjectTopic;
   files: File[];
+  failed: SubjectFile[];
   link: { subjectId: string; topicId: string };
 } | null> {
   if (!subjectId || !topicId) return null;
+  await whenAccountDataIn();
   const topic = getTopic(topicId);
   if (!topic || topic.subjectId !== subjectId) return null;
-  const files = await Promise.all(topicFiles(topic).map(sourceFile));
-  return { topic, files: files.filter((file): file is File => Boolean(file)), link: { subjectId, topicId } };
+  const records = topicFiles(topic);
+  const sources = await Promise.all(records.map(topicFileSource));
+  return {
+    topic,
+    files: sources.filter((file): file is File => Boolean(file)),
+    failed: records.filter((_, index) => !sources[index]),
+    link: { subjectId, topicId },
+  };
 }

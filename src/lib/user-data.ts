@@ -50,6 +50,34 @@ export function getUserStore(): UserStore {
   return store;
 }
 
+let accountDataIn = false;
+const accountDataWaiters = new Set<() => void>();
+
+/** Called by UserDataSync: signed out, or the account's first pull has finished. */
+export function markAccountDataIn(): void {
+  accountDataIn = true;
+  accountDataWaiters.forEach((resolve) => resolve());
+  accountDataWaiters.clear();
+}
+
+/**
+ * Resolves once this device's copy can be read as the account's: right after
+ * a reload the session and the first pull are still on their way. Never
+ * hangs: after `timeoutMs` (a slow connection) what's here is read.
+ */
+export function whenAccountDataIn(timeoutMs = 8000): Promise<void> {
+  if (accountDataIn || typeof window === "undefined") return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      window.clearTimeout(timer);
+      accountDataWaiters.delete(done);
+      resolve();
+    };
+    const timer = window.setTimeout(done, timeoutMs);
+    accountDataWaiters.add(done);
+  });
+}
+
 /** Shorthand used by the modules. */
 export const userStore = {
   get: <T,>(key: string, fallback: T) => getUserStore().get<T>(key, fallback),
