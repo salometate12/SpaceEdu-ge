@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { createClient as createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
-import { getUserStore, supabaseUserData } from "@/lib/user-data";
+import { getUserStore, markAccountDataIn, supabaseUserData } from "@/lib/user-data";
 import { connectPresentations, disconnectPresentations, refreshPresentations } from "@/lib/presentation-sync-client";
 import {
   connectGenerationJobs,
@@ -48,11 +48,15 @@ export function UserDataSync() {
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseBrowserConfigured()) return;
+    if (!isSupabaseBrowserConfigured()) {
+      markAccountDataIn();
+      return;
+    }
     let supabase: ReturnType<typeof createBrowserSupabaseClient>;
     try {
       supabase = createBrowserSupabaseClient();
     } catch {
+      markAccountDataIn();
       return;
     }
     const store = getUserStore();
@@ -69,22 +73,27 @@ export function UserDataSync() {
         clearSubjectFilesCache();
         clearDocumentsCache();
         void disconnectPresentations();
+        markAccountDataIn();
         return;
       }
       if (!next) {
         store.detach();
         disconnectGenerationJobs();
         disconnectUserFiles();
+        markAccountDataIn();
         return;
       }
       if (next === userId) return;
       userId = next;
       // Outside the auth callback: Supabase calls made inside it can deadlock.
       setTimeout(() => {
-        void store.connect(next, supabaseUserData(supabase, next));
         void connectPresentations(supabase, next);
         connectGenerationJobs(supabase, next);
-        connectUserFiles(supabase, next);
+        void store.connect(next, supabaseUserData(supabase, next)).finally(() => {
+          // Files first known from the account go up only now, and tools waiting on them can read them.
+          if (userId === next) connectUserFiles(supabase, next);
+          markAccountDataIn();
+        });
       }, 0);
     });
 
