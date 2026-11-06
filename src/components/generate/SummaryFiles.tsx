@@ -18,41 +18,54 @@ function iconFor(name: string) {
   return FileText;
 }
 
+/** „{n} / 5 · {ჯამი} MB / 50 MB“ */
+export function SummaryCounter({ sources }: { sources: { size: number }[] }) {
+  return (
+    <p className="text-[13px] font-medium tabular-nums text-[var(--gen-muted)]">
+      {sources.length} / {SUMMARY_MAX_FILES} · {mb(totalBytes(sources))} MB / {mb(SUMMARY_MAX_TOTAL_BYTES).replace(/\.0$/, "")} MB
+    </p>
+  );
+}
+
 /**
  * The conspectus's files: a dropzone for up to five, then the list (48px
  * rows: icon, name, size, ✕), what's used of 5 files and 50 MB, and
- * „+ კიდევ ფაილი“ until there are five.
+ * „+ კიდევ ფაილი“ until there are five. `beside`: what else counts toward
+ * the same limits (a presentation source's saved presentations).
  */
 export function SummaryFiles({
   files,
   onAdd,
   onRemove,
+  accept = SUMMARY_ACCEPT,
+  label = "ჩააგდე ფაილები აქ ან აირჩიე",
+  hint = "PDF, DOCX, PPTX, JPG, PNG · მაქს. 5 ფაილი",
+  beside = [],
 }: {
   files: File[];
   onAdd: (files: File[]) => void;
   onRemove: (index: number) => void;
+  accept?: string;
+  label?: string;
+  hint?: string;
+  beside?: { size: number }[];
 }) {
   const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
+  const count = files.length + beside.length;
 
-  if (files.length === 0) {
+  if (files.length === 0 && count < SUMMARY_MAX_FILES) {
     return (
-      <UploadDropzone
-        accept={SUMMARY_ACCEPT}
-        multiple
-        onFiles={onAdd}
-        label="ჩააგდე ფაილები აქ ან აირჩიე"
-        hint="PDF, DOCX, PPTX, JPG, PNG · მაქს. 5 ფაილი"
-        className="min-h-[200px]"
-      />
+      <div className="flex flex-col gap-2">
+        {count > 0 ? <SummaryCounter sources={beside} /> : null}
+        <UploadDropzone accept={accept} multiple onFiles={onAdd} label={label} hint={hint} className="min-h-[200px]" />
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[13px] font-medium tabular-nums text-[var(--gen-muted)]">
-        {files.length} / {SUMMARY_MAX_FILES} · {mb(totalBytes(files))} MB / {mb(SUMMARY_MAX_TOTAL_BYTES).replace(/\.0$/, "")} MB
-      </p>
+      <SummaryCounter sources={[...beside, ...files]} />
       <ul className="flex flex-col gap-2">
         {files.map((file, index) => {
           const Icon = iconFor(file.name);
@@ -75,14 +88,14 @@ export function SummaryFiles({
           );
         })}
       </ul>
-      {files.length < SUMMARY_MAX_FILES ? (
+      {count < SUMMARY_MAX_FILES ? (
         <>
           <input
             ref={input}
             id={inputId}
             type="file"
             multiple
-            accept={SUMMARY_ACCEPT}
+            accept={accept}
             className="sr-only"
             tabIndex={-1}
             onChange={(event) => {
@@ -106,7 +119,7 @@ export function SummaryFiles({
 }
 
 /** Flashcards take one file: which of the conspectus's files stays. „გაუქმება“ keeps the conspectus. */
-export function KeepOneFileDialog({ files, onKeep, onCancel }: { files: File[]; onKeep: (index: number) => void; onCancel: () => void }) {
+export function KeepOneFileDialog({ files, onKeep, onCancel }: { files: { name: string; size: number }[]; onKeep: (index: number) => void; onCancel: () => void }) {
   const [picked, setPicked] = useState(0);
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);

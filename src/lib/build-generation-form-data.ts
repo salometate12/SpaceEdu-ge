@@ -21,7 +21,11 @@ export function buildGenerationFormData(
     formData.append("topicId", input.link.topicId);
   }
 
-  if (input.inputType === "text") {
+  if (input.files?.length) {
+    // A conspectus from several files (a presentation source's too). Files in
+    // storage go as their path (lib/stored-file); the server reads them.
+    for (const file of input.files) appendFile(formData, "files", file);
+  } else if (input.inputType === "text") {
     formData.append("text", input.text);
   } else if (input.inputType === "youtube") {
     formData.append("youtubeUrl", input.youtubeUrl);
@@ -33,9 +37,6 @@ export function buildGenerationFormData(
     // A saved presentation is sent as its slides' text, a .pptx as the file.
     if (input.file) appendFile(formData, "file", input.file);
     else formData.append("text", input.text);
-  } else if (input.files?.length) {
-    // Files in storage go as their path (lib/stored-file); the server reads them.
-    for (const file of input.files) appendFile(formData, "files", file);
   } else if (input.file) {
     appendFile(formData, "file", input.file);
   }

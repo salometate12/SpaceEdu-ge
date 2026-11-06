@@ -58,6 +58,26 @@ export function addFiles<T extends { name: string; size: number }>(
   return { files, error };
 }
 
+/**
+ * `addFiles` when something else already counts toward the same limits (a
+ * conspectus's saved presentations, beside its uploaded .pptx files).
+ */
+export function addFilesBeside<T extends { name: string; size: number }>(
+  beside: { name: string; size: number }[],
+  current: T[],
+  picked: T[],
+  max: number,
+): { files: T[]; error: string | null } {
+  const result = addFiles<{ name: string; size: number }>([...beside, ...current], picked, max);
+  return { files: result.files.slice(beside.length) as T[], error: result.error };
+}
+
+/** A saved presentation as the plain-text file a conspectus is made from. */
+export function presentationAsFile(presentation: { title: string; text: string }): File {
+  const name = presentation.title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim() || "პრეზენტაცია";
+  return new File([presentation.text], `${name}.txt`, { type: "text/plain" });
+}
+
 /** The request's files, checked again on the server. */
 export const summaryFilesSchema = z
   .array(z.instanceof(File))

@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import {
   addFiles,
+  addFilesBeside,
+  isSummaryFile,
+  SUMMARY_MAX_FILES,
+  presentationAsFile,
   FILE_MAX_BYTES,
   FILE_TOO_BIG,
   shareBudget,
@@ -76,5 +80,31 @@ describe("summary files", () => {
     expect(text).toContain("### ბიოლოგია.txt\nუჯრედის მემბრანა");
     expect(text).toContain("### ეკონომიკა.md\nბაზრის წონასწორობა");
     expect(text).toContain("გამოცდა");
+  });
+});
+
+describe("a conspectus from presentations: saved ones and .pptx together", () => {
+  const saved = (name: string, size = 1000) => ({ name, size });
+
+  it("five in all, counted across both", () => {
+    const beside = [saved("ა"), saved("ბ"), saved("გ")];
+    const result = addFilesBeside(beside, [file("a")], [file("b"), file("c")], SUMMARY_MAX_FILES);
+    expect(result.files.map((item) => item.name)).toEqual(["a", "b"]);
+    expect(result.error).toBe(TOO_MANY_FILES);
+    expect(addFilesBeside(beside, [file("a")], [file("b")], SUMMARY_MAX_FILES).error).toBeNull();
+  });
+
+  it("the 50 MB counts the saved ones too, and the returned list holds only files", () => {
+    const result = addFilesBeside([saved("დიდი", 40 * MB)], [], [file("a", 15 * MB), file("b", 5 * MB)], SUMMARY_MAX_FILES);
+    expect(result.files.map((item) => item.name)).toEqual(["b"]);
+    expect(result.error).toBe(TOTAL_TOO_BIG);
+  });
+
+  it("a saved presentation becomes a text file with a safe name", async () => {
+    const made = presentationAsFile({ title: "ლექცია 2: პროცესები/ნაკადები", text: "სლაიდი 1" });
+    expect(made.name).toBe("ლექცია 2 პროცესები ნაკადები.txt");
+    expect(isSummaryFile(made.name)).toBe(true);
+    expect(await made.text()).toBe("სლაიდი 1");
+    expect(presentationAsFile({ title: " ", text: "x" }).name).toBe("პრეზენტაცია.txt");
   });
 });
