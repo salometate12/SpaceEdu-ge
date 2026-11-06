@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Presentation, Search, X } from "lucide-react";
+import { Check, Presentation, Search, X } from "lucide-react";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import { listPresentations, type SavedPresentation } from "@/lib/presentation-store";
 import { MONTH_LONG } from "@/lib/study-day";
+import { SUMMARY_MAX_FILES } from "@/lib/summary-files";
+import { SummaryCounter, SummaryFiles } from "./SummaryFiles";
+
+const PPTX_ACCEPT = ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation";
 
 export type PresentationMode = "saved" | "pptx";
 
@@ -34,23 +38,30 @@ function useSavedPresentations(): SavedPresentation[] | null {
 }
 
 /**
- * A presentation as material: one of the user's own (its slides become the
- * text) or an uploaded .pptx (read on the server).
+ * A presentation as material: the user's own (their slides become the text)
+ * or an uploaded .pptx (read on the server). A flashcard deck takes one; a
+ * conspectus (`multiple`) up to five, from both tabs together.
  */
 export function PresentationSource({
   mode,
   onMode,
-  selectedId,
+  selected,
   onSelect,
-  file,
-  onFile,
+  files,
+  onAddFiles,
+  onRemoveFile,
+  multiple,
 }: {
   mode: PresentationMode;
   onMode: (mode: PresentationMode) => void;
-  selectedId: string | null;
+  /** The chosen saved presentations; `size` is what its text weighs. */
+  selected: { id: string; name: string; size: number }[];
+  /** Chooses it (or, with `multiple`, takes it off when already chosen). */
   onSelect: (presentation: SavedPresentation) => void;
-  file: File | null;
-  onFile: (file: File | null) => void;
+  files: File[];
+  onAddFiles: (files: File[]) => void;
+  onRemoveFile: (index: number) => void;
+  multiple: boolean;
 }) {
   const items = useSavedPresentations();
   const [query, setQuery] = useState("");
@@ -58,6 +69,8 @@ export function PresentationSource({
     const q = query.trim().toLowerCase();
     return (items ?? []).filter((item) => !q || item.title.toLowerCase().includes(q));
   }, [items, query]);
+  const count = selected.length + files.length;
+  const file = files[0] ?? null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -108,16 +121,26 @@ export function PresentationSource({
                 />
               </div>
             ) : null}
-            <div role="radiogroup" aria-label="ჩემი პრეზენტაციები" className="flex max-h-[264px] flex-col gap-2 overflow-y-auto pr-1">
-              {shown.map((item) => (
+            {multiple && count > 0 ? <SummaryCounter sources={[...selected, ...files]} /> : null}
+            <div role={multiple ? "group" : "radiogroup"} aria-label="ჩემი პრეზენტაციები" className="flex max-h-[264px] flex-col gap-2 overflow-y-auto pr-1">
+              {shown.map((item) => {
+                const chosen = selected.some((pick) => pick.id === item.id);
+                return (
                 <button
                   key={item.id}
                   type="button"
-                  role="radio"
-                  aria-checked={item.id === selectedId}
+                  role={multiple ? "checkbox" : "radio"}
+                  aria-checked={chosen}
+                  // Five in all: another comes in once one is taken off.
+                  disabled={multiple && !chosen && count >= SUMMARY_MAX_FILES}
                   onClick={() => onSelect(item)}
-                  className="gen-option gen-focus flex items-center gap-3 rounded-[14px] p-2.5 text-left"
+                  className="gen-option gen-focus flex items-center gap-3 rounded-[14px] p-2.5 text-left disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  {multiple ? (
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border-2 ${chosen ? "border-[#e11d74] bg-[#e11d74] text-white" : "border-[var(--gen-field-border)]"}`} aria-hidden>
+                      {chosen ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
+                    </span>
+                  ) : null}
                   <span className="flex h-10 w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-[#fff7ed] text-[#c2410c] dark:bg-[rgba(249,115,22,0.14)] dark:text-[#fdba74]">
                     {item.thumbnail ? (
                       // eslint-disable-next-line @next/next/no-img-element -- a stored data URL
@@ -133,11 +156,22 @@ export function PresentationSource({
                     </span>
                   </span>
                 </button>
-              ))}
+                );
+              })}
               {shown.length === 0 ? <p className="px-1 py-3 text-[14px] text-[var(--gen-muted)]">ასეთი პრეზენტაცია ვერ ვიპოვე.</p> : null}
             </div>
           </>
         )
+      ) : multiple ? (
+        <SummaryFiles
+          files={files}
+          beside={selected}
+          onAdd={onAddFiles}
+          onRemove={onRemoveFile}
+          accept={PPTX_ACCEPT}
+          label="ჩააგდე .pptx ფაილები აქ ან აირჩიე"
+          hint={`.pptx · მაქს. ${SUMMARY_MAX_FILES} ფაილი`}
+        />
       ) : file ? (
         <div className="flex items-center gap-3 rounded-[14px] border border-[var(--gen-border)] p-3">
           <span className="flex h-10 w-[72px] shrink-0 items-center justify-center rounded-[8px] bg-[#fff7ed] text-[#c2410c] dark:bg-[rgba(249,115,22,0.14)] dark:text-[#fdba74]">
@@ -147,14 +181,14 @@ export function PresentationSource({
             <span className="block truncate text-[14.5px] font-semibold text-[var(--gen-title)]">{file.name}</span>
             <span className="block text-[13px] text-[var(--gen-muted)]">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
           </span>
-          <button type="button" onClick={() => onFile(null)} aria-label="ფაილის მოშორება" className="gen-focus flex h-9 w-9 items-center justify-center rounded-full text-[var(--gen-muted)] hover:bg-[var(--gen-hover)]">
+          <button type="button" onClick={() => onRemoveFile(0)} aria-label="ფაილის მოშორება" className="gen-focus flex h-9 w-9 items-center justify-center rounded-full text-[var(--gen-muted)] hover:bg-[var(--gen-hover)]">
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
       ) : (
         <UploadDropzone
-          accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-          onFiles={(files) => onFile(files[0] ?? null)}
+          accept={PPTX_ACCEPT}
+          onFiles={(picked) => onAddFiles(picked.slice(0, 1))}
           label="ჩააგდე .pptx ფაილი აქ ან აირჩიე"
           hint=".pptx · მაქს. 20 MB"
           className="min-h-[170px]"

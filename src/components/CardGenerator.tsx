@@ -41,9 +41,10 @@ import { savedPresentationText } from "@/lib/pptx/saved-presentation-text";
 import { AudioRecorder } from "./generate/AudioRecorder";
 import { GenerationProgress } from "./generate/GenerationProgress";
 import { KeepOneFileDialog, SummaryFiles } from "./generate/SummaryFiles";
-import { addFiles, SUMMARY_MAX_FILES } from "@/lib/summary-files";
+import { addFiles, addFilesBeside, presentationAsFile, SUMMARY_MAX_FILES, TOO_MANY_FILES } from "@/lib/summary-files";
 import { topicSources } from "@/lib/subject-actions";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
+import type { SavedPresentation } from "@/lib/presentation-store";
 import { useYouTubePreview, YouTubeSource, type YouTubeMode } from "./generate/YouTubeSource";
 import { MaterialsList, ResumeStrip } from "./library/MaterialsList";
 import { ToolTabs, useToolTab } from "./library/ToolTabs";
@@ -78,6 +79,17 @@ const FILE_RULES: Record<FileSource, { accept: string; hint: string; label: stri
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const TEXT_MAX = 50_000;
 const DASHBOARD_HREF = "/dashboard-student";
+
+/** A saved presentation chosen as material: `name` and `size` as a file's, for the list and the limits. */
+interface SavedPick {
+  id: string;
+  title: string;
+  text: string;
+  name: string;
+  size: number;
+}
+
+const savedPick = (id: string, title: string, text: string): SavedPick => ({ id, title, text, name: title, size: new Blob([text]).size });
 
 function sizeLabel(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -142,8 +154,9 @@ export function CardGenerator() {
   const [ytStart, setYtStart] = useState("");
   const [ytEnd, setYtEnd] = useState("");
   const [presentationMode, setPresentationMode] = useState<PresentationMode>("saved");
-  const [presentation, setPresentation] = useState<{ id: string; title: string; text: string } | null>(null);
-  const [pptxFile, setPptxFile] = useState<File | null>(null);
+  // A deck takes one of these in all; a conspectus up to five, from both together.
+  const [presentations, setPresentations] = useState<SavedPick[]>([]);
+  const [pptxFiles, setPptxFiles] = useState<File[]>([]);
   const [topic, setTopic] = useState("");
   const [kind, setKind] = useState<GenerationKind>("flashcards");
   const [count, setCount] = useState(CARD_COUNT_DEFAULT);
@@ -190,7 +203,7 @@ export function CardGenerator() {
       .then((loaded) => {
         const record = loaded?.presentation;
         if (!active || !record?.slides?.length) return;
-        setPresentation({ id: record.id, title: record.title, text: savedPresentationText(record.slides) });
+        setPresentations([savedPick(record.id, record.title, savedPresentationText(record.slides))]);
       })
       .catch(() => {});
     return () => {
@@ -264,26 +277,76 @@ export function CardGenerator() {
     setFileError(null);
   };
 
+  /** What a deck would have to choose from on this source. */
+  const chosenOn = (on: InputType): { name: string; size: number }[] =>
+    on === "file" ? docs : on === "presentation" ? [...presentations, ...pptxFiles] : [];
+
   const chooseKind = (next: GenerationKind) => {
     // Flashcards take one file: ask which, never drop the others silently.
-    if (next === "flashcards" && docs.length > 1) {
+    if (next === "flashcards" && chosenOn(source).length > 1) {
       setKeepOne(true);
       return;
     }
     setKind(next);
   };
 
-  const pickPptx = (file: File | null) => {
-    if (file && !file.name.toLowerCase().endsWith(".pptx")) {
-      setFileError("აქ მხოლოდ .pptx ფაილი იტვირთება.");
+  /** Back on a source holding several, while making a deck: the same question. */
+  const chooseSource = (next: InputType) => {
+    setSource(next);
+    if (kind === "flashcards" && chosenOn(next).length > 1) setKeepOne(true);
+  };
+
+  const keepOneOf = (index: number) => {
+    if (source === "presentation") {
+      const keep = index < presentations.length;
+      setPresentations(keep ? presentations.slice(index, index + 1) : []);
+      setPptxFiles(keep ? [] : pptxFiles.slice(index - presentations.length, index - presentations.length + 1));
+      setPresentationMode(keep ? "saved" : "pptx");
+    } else {
+      setDocs((current) => current.slice(index, index + 1));
+    }
+    setKeepOne(false);
+    setKind("flashcards");
+  };
+
+  /** .pptx files: a deck's one replaces what's chosen, a conspectus's join it under the same limits. */
+  const addPptx = (picked: File[]) => {
+    const pptx = picked.filter((file) => file.name.toLowerCase().endsWith(".pptx"));
+    const wrongType = pptx.length < picked.length ? "აქ მხოლოდ .pptx ფაილი იტვირთება." : null;
+    if (kind === "flashcards") {
+      const result = addFiles<File>([], pptx.slice(0, 1), 1);
+      setFileError(result.error ?? wrongType);
+      if (result.files.length > 0) {
+        setPptxFiles(result.files);
+        setPresentations([]);
+      }
       return;
     }
-    if (file && file.size > MAX_FILE_BYTES) {
-      setFileError("ფაილი ძალიან დიდია. მაქსიმუმ 20 MB.");
-      return;
-    }
+    const result = addFilesBeside(presentations, pptxFiles, pptx, SUMMARY_MAX_FILES);
+    setPptxFiles(result.files);
+    setFileError(result.error ?? wrongType);
+  };
+
+  const removePptx = (index: number) => {
+    setPptxFiles((current) => current.filter((_, at) => at !== index));
     setFileError(null);
-    setPptxFile(file);
+  };
+
+  const pickPresentation = (item: SavedPresentation) => {
+    const pick = savedPick(item.id, item.title, savedPresentationText(item.slides ?? []));
+    setFileError(null);
+    if (kind === "flashcards") {
+      setPresentations([pick]);
+      setPptxFiles([]);
+      return;
+    }
+    if (presentations.some((chosen) => chosen.id === item.id)) {
+      setPresentations(presentations.filter((chosen) => chosen.id !== item.id));
+    } else if (presentations.length + pptxFiles.length >= SUMMARY_MAX_FILES) {
+      setFileError(TOO_MANY_FILES);
+    } else {
+      setPresentations([...presentations, pick]);
+    }
   };
 
   // The YouTube segment, in seconds, or a problem with it.
@@ -313,15 +376,16 @@ export function CardGenerator() {
       if (segment.error) return segment.error;
     }
     if (source === "presentation") {
-      if (presentationMode === "saved" && !presentation) return "აირჩიე პრეზენტაცია.";
-      if (presentationMode === "pptx" && !pptxFile) return "ატვირთე .pptx ფაილი.";
+      if (presentations.length + pptxFiles.length === 0) return presentationMode === "saved" ? "აირჩიე პრეზენტაცია." : "ატვირთე .pptx ფაილი.";
     }
     return null;
   })();
 
   const sourceLabel = (): string | undefined => {
     if (source === "presentation") {
-      const title = presentationMode === "saved" ? presentation?.title : pptxFile?.name.replace(/\.pptx$/i, "");
+      const total = presentations.length + pptxFiles.length;
+      if (total > 1) return `${total} პრეზენტაცია`;
+      const title = presentations[0]?.title ?? pptxFiles[0]?.name.replace(/\.pptx$/i, "");
       return title ? `პრეზენტაცია: ${title}` : "პრეზენტაცია";
     }
     if (source === "youtube" && ytPreview.status === "ready") return `YouTube: ${ytPreview.preview.title}`;
@@ -334,16 +398,17 @@ export function CardGenerator() {
     inputType: source,
     file:
       source === "presentation"
-        ? presentationMode === "pptx"
-          ? pptxFile
+        ? kind === "flashcards" && presentations.length === 0
+          ? (pptxFiles[0] ?? null)
           : null
         : source === "file" && kind === "summary"
           ? null
           : source === "file" || source === "audio" || source === "video"
             ? fileOf(source)
             : null,
-    files: source === "file" && kind === "summary" ? docs : undefined,
-    text: source === "presentation" ? (presentationMode === "saved" ? (presentation?.text ?? "") : "") : text,
+    // A conspectus: the saved presentations' text and the .pptx files, as one list of files.
+    files: kind !== "summary" ? undefined : source === "file" ? docs : source === "presentation" ? [...presentations.map(presentationAsFile), ...pptxFiles] : undefined,
+    text: source === "presentation" ? (kind === "flashcards" ? (presentations[0]?.text ?? "") : "") : text,
     youtubeUrl,
     topic,
     cardCount: count,
@@ -457,7 +522,7 @@ export function CardGenerator() {
                       role="radio"
                       aria-checked={source === item.id}
                       onClick={() => {
-                        setSource(item.id);
+                        chooseSource(item.id);
                         setFileError(null);
                       }}
                       className={`gen-option gen-source gen-focus relative flex min-w-0 items-center gap-1.5 rounded-full px-1 max-sm:h-10 max-sm:justify-center sm:h-[84px] sm:flex-col sm:justify-center sm:gap-2 sm:rounded-[18px] sm:px-1 ${item.tile}`}
@@ -557,10 +622,12 @@ export function CardGenerator() {
                     setPresentationMode(mode);
                     setFileError(null);
                   }}
-                  selectedId={presentation?.id ?? null}
-                  onSelect={(item) => setPresentation({ id: item.id, title: item.title, text: savedPresentationText(item.slides ?? []) })}
-                  file={pptxFile}
-                  onFile={pickPptx}
+                  selected={presentations}
+                  onSelect={pickPresentation}
+                  files={pptxFiles}
+                  onAddFiles={addPptx}
+                  onRemoveFile={removePptx}
+                  multiple={kind === "summary"}
                 />
               ) : null}
 
@@ -704,13 +771,13 @@ export function CardGenerator() {
       </div>
       {keepOne ? (
         <KeepOneFileDialog
-          files={docs}
-          onCancel={() => setKeepOne(false)}
-          onKeep={(index) => {
-            setDocs((current) => current.slice(index, index + 1));
+          files={chosenOn(source)}
+          onCancel={() => {
+            // Several stay chosen, so it stays (or becomes) a conspectus.
             setKeepOne(false);
-            setKind("flashcards");
+            setKind("summary");
           }}
+          onKeep={keepOneOf}
         />
       ) : null}
     </div>

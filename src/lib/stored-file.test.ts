@@ -38,6 +38,21 @@ describe("a file in storage", () => {
   });
 });
 
+describe("a presentation source's conspectus", () => {
+  it("sends its files, not the empty text", () => {
+    const form = buildGenerationFormData({ inputType: "presentation", file: null, files: [new File(["ა"], "ა.txt"), stored("ბ.pptx")], text: "", youtubeUrl: "", topic: "", cardCount: 10 });
+    expect((form.getAll("files") as File[]).map((file) => file.name)).toEqual(["ა.txt"]);
+    expect(form.getAll("storagePaths")).toEqual(["u1/subjects/s1/ბ.pptx"]);
+    expect(form.has("text")).toBe(false);
+    expect(form.get("inputType")).toBe("presentation");
+  });
+
+  it("a deck from one saved presentation still sends its text", () => {
+    const form = buildGenerationFormData({ inputType: "presentation", file: null, text: "სლაიდები", youtubeUrl: "", topic: "", cardCount: 10 });
+    expect(form.get("text")).toBe("სლაიდები");
+  });
+});
+
 describe("staging a dropped file", () => {
   beforeEach(() => {
     connected.value = true;
