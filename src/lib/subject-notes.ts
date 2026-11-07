@@ -5,7 +5,7 @@
  * pages read. Deleted ones stay as empty records for a while, so another
  * device's copy doesn't bring them back.
  */
-import { userStore } from "./user-data";
+import { userStore, whenAccountDataIn } from "./user-data";
 import { SUBJECT_NOTES_KEY, SUBJECT_NOTES_UPDATED_EVENT } from "./user-data-keys";
 
 export { SUBJECT_NOTES_KEY, SUBJECT_NOTES_UPDATED_EVENT };
@@ -116,6 +116,111 @@ export function blankNote(subjectId: string | null, topicId: string | undefined,
     createdAt: now,
     updatedAt: now,
   };
+}
+
+/* --- The editor's AI ------------------------------------------------------ */
+
+/** „საკვანძო თემები“ are made once the text is this long. */
+export const KEYWORDS_MIN_CHARS = 300;
+export const KEYWORDS_MAX = 6;
+/** „ჰკითხე ამ ჩანაწერს“ sends this much of the note, and these many messages. */
+export const ASK_NOTE_CHARS = 8000;
+export const ASK_CONTEXT_MESSAGES = 10;
+
+/** A short hash of what the key topics are made from. */
+export function keywordsHash(note: Pick<SubjectNote, "title" | "body">): string {
+  const text = `${note.title.trim()}\n${note.body.trim()}`;
+  let hash = 5381;
+  for (let index = 0; index < text.length; index += 1) hash = ((hash << 5) + hash + text.charCodeAt(index)) | 0;
+  return `${text.length}:${(hash >>> 0).toString(36)}`;
+}
+
+/** Long enough, and changed since the key topics were last made. */
+export function needsKeywords(note: Pick<SubjectNote, "title" | "body" | "keywordsHash">): boolean {
+  return note.body.trim().length >= KEYWORDS_MIN_CHARS && keywordsHash(note) !== note.keywordsHash;
+}
+
+/** Natural words: no #, no _, no repeats, at most six. */
+export function cleanKeywords(list: unknown[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of list) {
+    if (typeof item !== "string") continue;
+    const word = item.replace(/#/g, "").replace(/_+/g, " ").replace(/\s+/g, " ").trim().replace(/^[-.,;:]+|[-.,;:]+$/g, "").trim();
+    const key = word.toLocaleLowerCase("ka");
+    if (!word || word.length > 48 || seen.has(key)) continue;
+    seen.add(key);
+    out.push(word);
+    if (out.length === KEYWORDS_MAX) break;
+  }
+  return out;
+}
+
+/** A question and its answer join the history; the oldest go past 20. */
+export function appendAsk(history: AskMessage[], ...messages: AskMessage[]): AskMessage[] {
+  return [...history, ...messages].slice(-ASK_HISTORY_LIMIT);
+}
+
+/** What „ჰკითხე“ sends: the note (cut at 8k) and the last 10 messages. */
+export function askPayload(note: Pick<SubjectNote, "title" | "body" | "askHistory">, subjectName: string | null, message: string) {
+  return {
+    mode: "chat" as const,
+    title: note.title.trim() || "უსათაურო ჩანაწერი",
+    subject: subjectName ?? undefined,
+    content: note.body.slice(0, ASK_NOTE_CHARS),
+    history: note.askHistory.slice(-ASK_CONTEXT_MESSAGES).map(({ role, text }) => ({ role, text })),
+    message,
+  };
+}
+
+/** An answer at the end of the note, after a blank line. */
+export function insertAnswer(body: string, answer: string): string {
+  const text = answer.trim();
+  if (!text) return body;
+  const head = body.replace(/\s+$/, "");
+  return head ? `${head}\n\n${text}\n` : `${text}\n`;
+}
+
+/** The empty chat's suggestions. */
+export function askSuggestions(keywords: string[]): string[] {
+  return ["ამიხსენი მარტივად", "შემიქმენი 3 კითხვა", ...(keywords[0] ? [`რა არის ${keywords[0]}?`] : [])];
+}
+
+export type NoteTool = "quiz" | "cards" | "summary";
+
+/** „ამ ჩანაწერიდან შექმენი“: the tool, with the note as its source. */
+export function noteToolHref(noteId: string, tool: NoteTool): string {
+  const id = encodeURIComponent(noteId);
+  if (tool === "quiz") return `/quiz?tab=new&noteId=${id}`;
+  return `/generate?tab=new&mode=${tool}&noteId=${id}`;
+}
+
+export interface NoteSource {
+  title: string;
+  text: string;
+  /** What's made goes with the note's subject and topic (when it has one). */
+  link?: { subjectId: string; topicId: string };
+}
+
+/** A note as a tool's source: its title and text. */
+export function noteAsSource(note: SubjectNote): NoteSource | null {
+  const text = [note.title.trim(), note.body.trim()].filter(Boolean).join("\n\n");
+  if (!note.body.trim()) return null;
+  return {
+    title: note.title.trim() || "ჩანაწერი",
+    text,
+    ...(note.subjectId && note.topicId ? { link: { subjectId: note.subjectId, topicId: note.topicId } } : {}),
+  };
+}
+
+/** `?noteId=` on /quiz and /generate: the note, once the account's copy is in. */
+export async function noteSource(noteId: string | null): Promise<NoteSource | null> {
+  if (!noteId) return null;
+  const now = getNote(noteId);
+  if (now) return noteAsSource(now);
+  await whenAccountDataIn();
+  const later = getNote(noteId);
+  return later ? noteAsSource(later) : null;
 }
 
 /* --- Store -------------------------------------------------------------- */

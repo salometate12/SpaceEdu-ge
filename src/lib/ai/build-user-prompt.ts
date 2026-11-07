@@ -174,19 +174,23 @@ export function buildUserPrompt(
       const title = asString(payload.title, "ლექციის ნოტი");
       const content = asString(payload.content);
       const keyword = asString(payload.keyword);
+      const subject = asString(payload.subject);
       if (mode === "keywords") {
         return [
           `ლექციის სათაური: ${title}`,
-          "ამოიღე 3-8 მოკლე საკვანძო თემა/ტერმინი ამ ნოტიდან.",
-          "დააბრუნე მხოლოდ JSON { \"keywords\": [\"...\"] } — უპირატესობა ტექნიკურ ტერმინებს და ქართულ თემებს.",
-          "არ დაამატო # პრეფიქსი.",
+          subject ? `საგანი: ${subject}` : "",
+          "დააბრუნე 3–6 მოკლე თემა ბუნებრივ ქართულად, # და _ გარეშე.",
+          "დააბრუნე მხოლოდ JSON { \"keywords\": [\"...\"] }. ტექნიკური ტერმინი (მაგ. DNS) დატოვე როგორც არის.",
           "--- BEGIN NOTE ---",
           content || "(ცარიელი ნოტი)",
           "--- END NOTE ---",
-        ].join("\n");
+        ]
+          .filter(Boolean)
+          .join("\n");
       }
       return [
         `ლექციის სათაური: ${title}`,
+        subject ? `საგანი: ${subject}` : "",
         keyword ? `ფოკუსი საკვანძო თემაზე: ${keyword}` : "",
         "--- BEGIN LECTURE NOTE ---",
         content || "(ნოტი ჯერ ცარიელია — უპასუხე ზოგადად, მაგრამ თქვი რომ კონტექსტი ცოტაა.)",

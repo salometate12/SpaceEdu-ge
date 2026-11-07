@@ -275,7 +275,7 @@ Return ONLY valid JSON:
 {
   "keywords": ["TCP/IP", "DNS Lookup"]
 }
-3-8 short topic tags from the lecture notes. Prefer original technical terms or Georgian topic names. No # prefix. No explanations.`;
+3-6 short topics from the lecture note, in natural Georgian (keep an original technical term such as "DNS" or "TCP/IP" as it is). Plain words: no # and no _ (write "DNS lookup", never "#DNS_lookup"). No explanations.`;
 
 const RESEARCH_JSON_INSTRUCTIONS = `
 Return ONLY valid JSON, every key present (all text in Georgian):
@@ -828,8 +828,24 @@ export async function POST(request: Request) {
           prompt,
           temperature: 0.2,
         })) as LectureNotesKeywords;
-        return Response.json(object);
+        // Natural words, whatever the model did: no #, no _, no repeats.
+        const seen = new Set<string>();
+        const keywords = object.keywords
+          .map((tag) => tag.replace(/#/g, "").replace(/_+/g, " ").replace(/\s+/g, " ").trim())
+          .filter((tag) => tag && !seen.has(tag.toLowerCase()) && seen.add(tag.toLowerCase()))
+          .slice(0, 6);
+        return Response.json({ keywords });
       }
+      // „ჰკითხე ამ ჩანაწერს“: the conversation so far as real messages, the note with the question.
+      return llmTextStreamResponse({
+        system,
+        messages: [
+          ...notesPayload.history.map((turn) => ({ role: turn.role, content: turn.text }) as const),
+          { role: "user" as const, content: buildUserPrompt(pageType, notesPayload) },
+        ],
+        temperature: 0.3,
+        abortSignal: request.signal,
+      });
     }
 
     if (pageType === "research-platform-abit") {

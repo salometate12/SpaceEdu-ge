@@ -28,36 +28,12 @@ import { setDockHidden } from "@/lib/mobile-overlay";
 import { readSemesterSubjects } from "@/lib/semester-subjects";
 import { AI_TEACHER_PROMPT_KEY } from "@/lib/syllabus-calendar";
 import { handOff } from "@/lib/tool-handoff";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import { CategoryDot } from "./CategoryDot";
 import { CategoryLabel, JOURNAL_HEADER, JOURNAL_ICON_BUTTON } from "./JournalList";
 
 /** Text handed to the AI teacher stays well inside a prompt. */
 const HANDOFF_LIMIT = 6000;
-
-/** How far the on-screen keyboard covers the page (0 without one). */
-function useKeyboardInset(): number {
-  const [inset, setInset] = useState(0);
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() =>
-        setInset(Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))),
-      );
-    };
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      cancelAnimationFrame(frame);
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, []);
-  return inset;
-}
 
 /** A small menu anchored to its button (closes on Esc or a tap outside). */
 function useDismiss(open: boolean, close: () => void) {

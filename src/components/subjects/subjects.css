@@ -268,3 +268,123 @@ html.dark .sj .sj-note-chip {
 html.dark .sj .sj-file-name {
   color: #78716c;
 }
+
+/* The note editor's side: key topics, „ამ ჩანაწერიდან შექმენი“, „ჰკითხე ამ ჩანაწერს“. */
+.sj .sj-tool-icon {
+  background: var(--tool-bg);
+  color: var(--tool);
+}
+.sj .sj-key-topic {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid #fbcfe8;
+  background: #fdf2f8;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9d174d;
+  white-space: nowrap;
+}
+.sj .sj-key-topic:hover {
+  background: #fce7f3;
+}
+html.dark .sj .sj-key-topic {
+  border-color: rgba(236, 72, 153, 0.32);
+  background: rgba(236, 72, 153, 0.12);
+  color: #f9a8d4;
+}
+html.dark .sj .sj-key-topic:hover {
+  background: rgba(236, 72, 153, 0.2);
+}
+.sj .sj-suggestion {
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  background: var(--sj-card);
+  padding: 6px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--sj-title);
+  text-align: left;
+}
+.sj .sj-suggestion:hover {
+  background: var(--sj-hover);
+}
+/* The student's question: a dark bubble on the right. The answer has none. */
+.sj .sj-question {
+  align-self: flex-end;
+  max-width: 85%;
+  border-radius: 18px 18px 6px 18px;
+  background: #18181b;
+  padding: 8px 14px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: #fafafa;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+html.dark .sj .sj-question {
+  background: #2a2a33;
+}
+.sj .sj-answer strong {
+  font-weight: 700;
+  color: var(--sj-title);
+}
+.sj .sj-answer-action {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  gap: 5px;
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sj-text);
+}
+.sj .sj-answer-action:hover {
+  background: var(--sj-hover);
+}
+.sj .sj-ask-pill {
+  display: flex;
+  height: 48px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--sj-field-border);
+  background: var(--sj-card);
+  padding: 0 6px 0 16px;
+}
+.sj .sj-ask-pill:focus-within {
+  border-color: #e11d74;
+}
+.sj .sj-send {
+  display: flex;
+  height: 36px;
+  width: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #e11d74;
+  color: #fff;
+}
+.sj .sj-send:disabled {
+  opacity: 0.4;
+}
+.sj .sj-sheet {
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--sj-border);
+  background: var(--sj-card);
+  box-shadow: 0 -16px 40px -20px rgb(0 0 0 / 0.35);
+}
+/* Dictating: the microphone button glows. */
+.sj .sj-listening {
+  background: #fdf2f8;
+  color: #e11d74;
+}
+html.dark .sj .sj-listening {
+  background: rgba(236, 72, 153, 0.14);
+  color: #f9a8d4;
+}
