@@ -56,6 +56,7 @@ import { startQuizGeneration, watchGeneration } from "@/lib/library/generation";
 import { firstTryMistakes } from "@/lib/library/materials";
 import { fetchExcerpts, joinExcerpts, topicFiles, topicSources } from "@/lib/subject-actions";
 import { recordTopicQuiz } from "@/lib/subject-store";
+import { noteSource } from "@/lib/subject-notes";
 import "./quiz-theme.css";
 
 export type { QuizQuestion };
@@ -96,7 +97,24 @@ export default function QuizPage() {
       if (handed.link) setTopicLink(handed.link);
     });
   }, []);
-  const [handedTopic] = useState(() => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("topic") : null));
+  // „ამ ჩანაწერიდან შექმენი“ (`?noteId=`): the note's text as a file, the quiz with its subject and topic.
+  useEffect(() => {
+    const noteId = new URLSearchParams(window.location.search).get("noteId");
+    let active = true;
+    void noteSource(noteId).then((found) => {
+      if (!active || !found) return;
+      setFile(new File([found.text], `${found.title.replace(/[\\/:*?"<>|]+/g, " ").trim() || "ჩანაწერი"}.txt`, { type: "text/plain" }));
+      if (found.link) setTopicLink(found.link);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const [handedTopic] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("topic") ?? params.get("noteId");
+  });
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let active = true;

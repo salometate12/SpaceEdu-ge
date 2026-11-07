@@ -2,18 +2,28 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Bold, Check, ChevronDown, List, MoreHorizontal, NotebookPen, Pin, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Bold, Check, ChevronDown, List, Mic, MoreHorizontal, NotebookPen, Pin, Square, Trash2 } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
+import { Toast } from "@/components/ui/Toast";
 import { useUserDataStatus } from "@/hooks/useUserDataStatus";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useSpeechDictation } from "@/hooks/useSpeechDictation";
+import { fetchAiJson } from "@/lib/ai/fetch-ai";
+import type { LectureNotesKeywords } from "@/lib/ai/lecture-notes-schema";
+import { setDockHidden } from "@/lib/mobile-overlay";
 import { createAutosave, type SaveStatus } from "@/lib/journal-view";
 import { readSavedSemesterSubjects, type SemesterSubject } from "@/lib/semester-subjects";
 import {
   blankNote,
+  cleanKeywords,
   deleteNote,
   getNote,
   hasContent,
+  insertAnswer,
+  KEYWORDS_MIN_CHARS,
+  keywordsHash,
+  needsKeywords,
   NO_SUBJECT,
   noteHref,
   saveNote,
@@ -21,13 +31,18 @@ import {
   subjectHref,
   SUBJECT_NOTES_KEY,
   SUBJECT_NOTES_UPDATED_EVENT,
+  type AskMessage,
   type SubjectNote,
 } from "@/lib/subject-notes";
 import { getTopics, SUBJECTS_UPDATED_EVENT } from "@/lib/subject-store";
 import type { SubjectTopic } from "@/lib/subjects";
 import { localDay } from "@/lib/task-helper";
 import { onRemoteUserData } from "@/lib/user-data";
+import { AskCard, KeyTopics, MobileAsk, NoteTools, useAskNote } from "./NoteAssist";
 import "./subjects.css";
+
+/** Key topics are asked for this long after a save. */
+const KEYWORDS_DELAY = 3000;
 
 type Picker = "subject" | "topic" | null;
 
@@ -101,6 +116,10 @@ function SaveLine({ status }: { status: SaveStatus }) {
  * and the text, saved ~800ms after the last keystroke. A new note is saved
  * once something is written in it. Pin to the dashboard, and „⋯“: change
  * the topic, move to another subject, delete.
+ *
+ * Beside it (below `lg`: chips under the title and a chat sheet): the key
+ * topics the AI finds in the text, „ამ ჩანაწერიდან შექმენი“ (quiz, cards,
+ * conspectus with the note as the source) and „ჰკითხე ამ ჩანაწერს“.
  */
 export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: string }) {
   const router = useRouter();
@@ -114,6 +133,14 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
   const [picker, setPicker] = useState<Picker>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
+  const [keywordsBusy, setKeywordsBusy] = useState(false);
+  const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
+  const draftRef = useRef<SubjectNote | null>(null);
+  const subjectNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const moreTrigger = useRef<HTMLButtonElement>(null);
@@ -199,14 +226,62 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
   }, [body, title]);
 
   /** `dropTopic`: out of its topic (moved to another subject, or „თემის გარეშე“). */
-  const change = (patch: Partial<SubjectNote>, { dropTopic = false } = {}) => {
-    if (!draft) return;
+  // Always from the latest copy: a streamed answer or the key topics land while typing goes on.
+  const change = useCallback((patch: Partial<SubjectNote>, { dropTopic = false } = {}) => {
+    const current = draftRef.current;
+    if (!current) return;
     // saveNote stamps updatedAt.
-    const next = { ...draft, ...patch };
+    const next = { ...current, ...patch };
     if (dropTopic) delete next.topicId;
+    draftRef.current = next;
     setDraft(next);
     autosave.current?.schedule(next);
-  };
+  }, []);
+
+  // „საკვანძო თემები“: 3 s after a save (or after opening a note that has none yet),
+  // once the text is 300+ characters and changed since.
+  const keywordsFailed = useRef<string | null>(null);
+  const [keywordsFailedFor, setKeywordsFailedFor] = useState<string | null>(null);
+  useEffect(() => {
+    if (status === "saving") return;
+    const timer = window.setTimeout(() => {
+      const note = draftRef.current;
+      if (!note || !savedOnce.current || !needsKeywords(note)) return;
+      const hash = keywordsHash(note);
+      if (keywordsFailed.current === hash) return;
+      setKeywordsBusy(true);
+      fetchAiJson<LectureNotesKeywords>({
+        pageType: "lecture-notes",
+        responseMode: "json",
+        payload: { mode: "keywords", title: note.title, subject: subjectNameRef.current ?? undefined, content: note.body.slice(0, 12_000) },
+      })
+        .then((data) => {
+          const keywords = cleanKeywords(data.keywords ?? []);
+          if (keywords.length === 0) throw new Error("no keywords");
+          if (draftRef.current?.id === note.id) change({ keywords, keywordsHash: hash });
+        })
+        .catch(() => {
+          // Not again for the same text; the next edit tries again.
+          keywordsFailed.current = hash;
+          setKeywordsFailedFor(hash);
+        })
+        .finally(() => setKeywordsBusy(false));
+    }, KEYWORDS_DELAY);
+    return () => window.clearTimeout(timer);
+  }, [status, change]);
+
+  // Dictation: each phrase at the end of the text.
+  const dictation = useSpeechDictation((text) => {
+    const current = draftRef.current?.body ?? "";
+    const glue = !current || /\s$/.test(current) ? "" : " ";
+    change({ body: `${current}${glue}${text}` });
+  });
+
+  // Phones: the chat pill takes the bottom edge, the dock steps aside.
+  useEffect(() => {
+    setDockHidden("note-editor", true);
+    return () => setDockHidden("note-editor", false);
+  }, []);
 
   /** Moved to another subject (or none): the topic goes, the address follows. */
   const moveTo = (id: string | null) => {
@@ -252,6 +327,33 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
   };
 
   const subject = subjects.find((item) => item.id === draft?.subjectId) ?? null;
+  useEffect(() => {
+    subjectNameRef.current = subject?.name ?? null;
+  }, [subject]);
+  const saveHistory = useCallback((askHistory: AskMessage[]) => change({ askHistory }), [change]);
+  const ask = useAskNote(draftRef, subject?.name ?? null, saveHistory);
+  const insert = useCallback(
+    (answer: string) => {
+      const before = draftRef.current?.body ?? "";
+      const after = insertAnswer(before, answer);
+      change({ body: after });
+      setToast({
+        message: "ჩასმულია ჩანაწერში",
+        undo: () => {
+          if (draftRef.current?.body === after) change({ body: before });
+          setToast(null);
+        },
+      });
+    },
+    [change],
+  );
+  const pickTopic = (topic: string) => {
+    setAskOpen(true);
+    ask.send(`ამიხსენი: ${topic}`);
+  };
+  const flush = () => autosave.current?.flush();
+  const closeAsk = useCallback(() => setAskOpen(false), []);
+  const closeToast = useCallback(() => setToast(null), []);
   const topicIndex = topics.findIndex((topic) => topic.id === draft?.topicId);
   const topic = topicIndex === -1 ? null : topics[topicIndex];
   const crumb = [subject?.name ?? "საგნის გარეშე", topic ? `თემა ${topicIndex + 1}` : null].filter(Boolean).join(" · ");
@@ -277,6 +379,9 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
     );
   }
 
+  const toolsReady = Boolean(draft.body.trim());
+  const keywordsState = draft.body.trim().length < KEYWORDS_MIN_CHARS ? "short" : keywordsFailedFor === keywordsHash(draft) ? "failed" : "waiting";
+  const canAsk = hasContent(draft);
   const pinLabel = draft.pinned ? "მიმაგრებულია დეშბორდზე" : "დეშბორდზე მიმაგრება";
   const menuRow = "sj-menu-item sj-focus";
 
@@ -367,6 +472,9 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
                     >
                       გადატანა სხვა საგანში
                     </button>
+                    <div className="my-1 border-t border-[var(--sj-border)] lg:hidden">
+                      <NoteTools noteId={draft.id} ready={draft.body.trim() !== ""} beforeOpen={flush} layout="menu" role="menuitem" />
+                    </div>
                     <button type="button" role="menuitem" onClick={() => setConfirming(true)} className={`${menuRow} !text-rose-600 dark:!text-rose-400`}>
                       <Trash2 className="h-4 w-4" aria-hidden />
                       წაშლა
@@ -378,7 +486,9 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
           </div>
         </header>
 
-        <article className="sj-card mx-auto mt-5 max-w-[820px] p-4 sm:p-7">
+        <div className="mx-auto mt-5 flex max-w-[820px] flex-col gap-5 lg:max-w-none lg:flex-row lg:items-start">
+        <div className="min-w-0 lg:flex-[1.5]">
+        <article className="sj-card p-4 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
             <ChipPicker label={subject?.name ?? "საგნის გარეშე"} tone="pink" open={picker === "subject"} onOpen={() => setPicker("subject")} onClose={() => setPicker(null)}>
               {subjects.map((item) => (
@@ -446,6 +556,10 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
             className="mt-5 block w-full resize-none bg-transparent !text-[24px] font-bold leading-tight text-[var(--sj-title)] outline-none placeholder:text-[var(--sj-muted)] placeholder:opacity-70 sm:!text-[28px]"
           />
 
+          <div className="lg:hidden">
+            <KeyTopics keywords={draft.keywords} busy={keywordsBusy} state={keywordsState} onPick={pickTopic} layout="row" />
+          </div>
+
           <div className="mt-4 flex items-center gap-1 border-y border-[var(--sj-border)] py-2">
             <button type="button" onClick={() => format("bold")} aria-label="მუქი შრიფტი" className="sj-focus flex h-9 w-9 items-center justify-center rounded-full text-[var(--sj-text)] hover:bg-[var(--sj-hover)]">
               <Bold className="h-4 w-4" aria-hidden />
@@ -453,7 +567,27 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
             <button type="button" onClick={() => format("list")} aria-label="სია" className="sj-focus flex h-9 w-9 items-center justify-center rounded-full text-[var(--sj-text)] hover:bg-[var(--sj-hover)]">
               <List className="h-4 w-4" aria-hidden />
             </button>
+            {dictation.supported ? (
+              <>
+                <button
+                  type="button"
+                  aria-pressed={dictation.listening}
+                  onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
+                  aria-label={dictation.listening ? "ხმით ჩაწერის შეჩერება" : "ხმით ჩაწერა"}
+                  className={`sj-focus flex h-9 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold ${dictation.listening ? "sj-listening px-3" : "w-9 text-[var(--sj-text)] hover:bg-[var(--sj-hover)]"}`}
+                >
+                  {dictation.listening ? <Square className="h-3.5 w-3.5 fill-current" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
+                  {dictation.listening ? "ისმის…" : null}
+                </button>
+                <span className="ml-auto truncate pl-2 text-[12.5px] text-[var(--sj-muted)] max-sm:hidden">ხმით ჩაწერა ლექციის დროს</span>
+              </>
+            ) : null}
           </div>
+          {dictation.error ? (
+            <p role="alert" className="mt-2 text-[13px] font-medium text-rose-600 dark:text-rose-400">
+              {dictation.error}
+            </p>
+          ) : null}
 
           <textarea
             ref={textareaRef}
@@ -467,11 +601,34 @@ export function NoteEditor({ subjectId, noteId }: { subjectId: string; noteId: s
         </article>
 
         {!isSaved && !hasContent(draft) ? (
-          <p className="mx-auto mt-3 flex max-w-[820px] items-center gap-2 px-1 text-[13px] text-[var(--sj-muted)]">
+          <p className="mt-3 flex items-center gap-2 px-1 text-[13px] text-[var(--sj-muted)]">
             <NotebookPen className="h-4 w-4" aria-hidden />
             ჩანაწერი შეინახება, როგორც კი რამეს დაწერ.
           </p>
         ) : null}
+        </div>
+
+        <aside className="hidden min-w-0 flex-col gap-4 lg:flex lg:flex-1">
+          <KeyTopics keywords={draft.keywords} busy={keywordsBusy} state={keywordsState} onPick={(topic) => ask.send(`ამიხსენი: ${topic}`)} />
+          <NoteTools noteId={draft.id} ready={toolsReady} beforeOpen={flush} />
+          <AskCard history={draft.askHistory} ask={ask} keywords={draft.keywords} onInsert={insert} canAsk={canAsk} />
+        </aside>
+        </div>
+
+        <MobileAsk
+          open={askOpen}
+          onOpen={() => setAskOpen(true)}
+          onClose={closeAsk}
+          noteId={draft.id}
+          toolsReady={toolsReady}
+          beforeOpenTool={flush}
+          history={draft.askHistory}
+          ask={ask}
+          keywords={draft.keywords}
+          onInsert={insert}
+          canAsk={canAsk}
+        />
+        {toast ? <Toast message={toast.message} actionLabel={toast.undo ? "დაბრუნება" : undefined} onAction={toast.undo} onClose={closeToast} /> : null}
       </div>
     </div>
   );

@@ -6,6 +6,13 @@ export const LectureNotesRequestSchema = z.object({
   content: z.string().default(""),
   message: z.string().optional(),
   keyword: z.string().optional(),
+  /** „ჩემი საგნები“: the note's subject. */
+  subject: z.string().max(200).optional(),
+  /** „ჰკითხე ამ ჩანაწერს“: the conversation so far (the last 10 messages). */
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(12_000) }))
+    .max(10)
+    .default([]),
 });
 
 export type LectureNotesRequest = z.infer<typeof LectureNotesRequestSchema>;

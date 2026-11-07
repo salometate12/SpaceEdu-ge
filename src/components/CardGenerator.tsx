@@ -45,6 +45,7 @@ import { KeepOneFileDialog, SummaryFiles } from "./generate/SummaryFiles";
 import { addFiles, addFilesBeside, presentationAsFile, SUMMARY_MAX_FILES, TOO_MANY_FILES } from "@/lib/summary-files";
 import { topicFileSource, topicSources } from "@/lib/subject-actions";
 import { retrySubjectFileUpload } from "@/lib/subject-files-client";
+import { noteSource } from "@/lib/subject-notes";
 import { getFile, SUBJECTS_UPDATED_EVENT } from "@/lib/subject-store";
 import { fileTitle, type SubjectFile } from "@/lib/subjects";
 import { PresentationSource, type PresentationMode } from "./generate/PresentationSource";
@@ -222,6 +223,27 @@ export function CardGenerator() {
     });
   }, []);
 
+  // „ამ ჩანაწერიდან შექმენი“ (`?mode=cards|summary&noteId=`): the note's text, and its subject and topic.
+  const noteId = params.get("noteId");
+  const noteMode = params.get("mode");
+  useEffect(() => {
+    if (!noteId) return;
+    let active = true;
+    void Promise.resolve().then(() => {
+      setSource("text");
+      setKind(noteMode === "summary" ? "summary" : "flashcards");
+    });
+    void noteSource(noteId).then((found) => {
+      if (!active || !found) return;
+      setText(found.text);
+      setTopic(found.title);
+      if (found.link) setTopicLink(found.link);
+    });
+    return () => {
+      active = false;
+    };
+  }, [noteId, noteMode]);
+
   // „ფლეშბარათების შექმნა“ from a presentation's menu: that presentation, picked.
   const presetId = params.get("source") === "presentation" ? params.get("id") : null;
   useEffect(() => {
@@ -305,7 +327,7 @@ export function CardGenerator() {
     ready: materials.ready,
     hasItems: libraryItems.length > 0,
     // Opened with material to use: straight to „ახალი“.
-    forceNew: handed || Boolean(presetId) || Boolean(linkTopic),
+    forceNew: handed || Boolean(presetId) || Boolean(linkTopic) || Boolean(noteId),
   });
 
   const setCountValue = (value: number) => {
