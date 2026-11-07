@@ -72,7 +72,7 @@ const TYPE_STYLE: Record<
     dot: "bg-sky-400",
     icon: Brain,
     iconWrap: "bg-sky-400/15 text-sky-600 dark:bg-sky-400/20 dark:text-sky-300",
-    label: "Quiz",
+    label: "ქვიზი",
     mobileRow: "mobile-vivid-sky",
   },
   final: {

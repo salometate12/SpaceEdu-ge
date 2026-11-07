@@ -3,13 +3,25 @@
  * under `### {its name}`, cut to an equal share when the whole is too long
  * (lib/summary-files shareBudget), so no file is left out. Images, and PDFs
  * whose text can't be read (scans), go along as attachments instead.
+ *
+ * A file with almost no text (a PPTX of pictures) is left out and named
+ * back; when nothing usable is left, the AI isn't asked at all
+ * (NoMaterialTextError → 400 NO_TEXT).
  */
 import type { FilePart, ImagePart, TextPart, UserModelMessage } from "ai";
 import { extractFileContent } from "@/lib/ai/extract-file-text";
 import { summaryPreamble } from "@/lib/ai/process-input";
 import { shareBudget } from "@/lib/summary-files";
 import { GenerationInputError } from "@/lib/generation-options";
-import { AI_FILE_TEXT_MESSAGE } from "@/lib/ai/ai-messages";
+import { MIN_SOURCE_TEXT, noTextHeadline } from "@/lib/conspectus-empty";
+
+/** Nothing to make a conspectus from: the files that had no text. */
+export class NoMaterialTextError extends GenerationInputError {
+  constructor(public readonly files: string[]) {
+    super(`${noTextHeadline(files)}. კონსპექტი არ შეიქმნა.`);
+    this.name = "NoMaterialTextError";
+  }
+}
 
 /** All the files' text together, at most (about what one file may send now). */
 export const SUMMARY_TEXT_BUDGET = 120_000;
@@ -44,19 +56,29 @@ export function joinSections(sections: { name: string; text: string }[], budget:
     .join("\n\n");
 }
 
-export async function buildMultiFileSummaryMessage(files: File[], topic?: string): Promise<UserModelMessage> {
-  const extracted = await Promise.all(files.map(extract));
-  const texts = extracted.filter((item): item is { name: string; text: string } => "text" in item);
-  const attached = extracted.filter((item): item is { name: string; part: FilePart | ImagePart } => "part" in item);
-  // Nothing readable in any of them: the real reason, not „generation failed“.
-  if (attached.length === 0 && texts.every((item) => !item.text.trim())) throw new GenerationInputError(AI_FILE_TEXT_MESSAGE);
+export interface MultiFileSummary {
+  message: UserModelMessage;
+  /** Files left out: there was no text in them. */
+  skipped: string[];
+}
 
-  const intro = [summaryPreamble(topic), files.length > 1 ? MULTI_SOURCE_HINT : ""].filter(Boolean).join("\n");
+export async function buildMultiFileSummaryMessage(files: File[], topic?: string): Promise<MultiFileSummary> {
+  const extracted = await Promise.all(files.map(extract));
+  const withText = extracted.filter((item): item is { name: string; text: string } => "text" in item);
+  const attached = extracted.filter((item): item is { name: string; part: FilePart | ImagePart } => "part" in item);
+  // A file with (almost) no text adds nothing: left out, and named back.
+  const texts = withText.filter((item) => item.text.trim().length >= MIN_SOURCE_TEXT);
+  const skipped = withText.filter((item) => item.text.trim().length < MIN_SOURCE_TEXT).map((item) => item.name);
+  // Nothing readable left: the AI isn't asked (it would only write a letter about it).
+  if (attached.length === 0 && texts.length === 0) throw new NoMaterialTextError(skipped);
+
+  const used = texts.length + attached.length;
+  const intro = [summaryPreamble(topic), used > 1 ? MULTI_SOURCE_HINT : ""].filter(Boolean).join("\n");
   const content: (TextPart | FilePart | ImagePart)[] = [
     { type: "text", text: texts.length > 0 ? `${intro}\n\n--- მასალა ---\n${joinSections(texts)}` : intro },
   ];
   for (const item of attached) {
     content.push({ type: "text", text: `### ${item.name}\n(თან ერთვის)` }, item.part);
   }
-  return { role: "user", content };
+  return { message: { role: "user", content }, skipped };
 }

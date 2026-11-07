@@ -6,7 +6,8 @@ import {
 } from "@/lib/ai/parse-form-data";
 import { errorJsonResponse, llmTextStreamResponse } from "@/lib/gemini";
 import { GenerationInputError } from "@/lib/generation-options";
-import { buildMultiFileSummaryMessage } from "@/lib/ai/multi-file-summary";
+import { buildMultiFileSummaryMessage, NoMaterialTextError } from "@/lib/ai/multi-file-summary";
+import { encodeSkippedFiles, NO_TEXT_CODE, SKIPPED_FILES_HEADER } from "@/lib/conspectus-empty";
 import { summaryCreditCost, summaryFilesSchema } from "@/lib/summary-files";
 import { attachStoredFiles } from "@/lib/stored-files-server";
 
@@ -30,11 +31,13 @@ export async function POST(request: Request) {
       const checked = summaryFilesSchema.safeParse(files);
       if (!checked.success) throw new GenerationInputError(checked.error.issues[0]?.message ?? "ფაილები არასწორია.");
       const topic = String(formData.get("topic") ?? "");
+      const { message, skipped } = await buildMultiFileSummaryMessage(checked.data, topic);
       const response = llmTextStreamResponse({
         system: GEORGIAN_SUMMARY_SYSTEM_PROMPT,
-        messages: [await buildMultiFileSummaryMessage(checked.data, topic)],
+        messages: [message],
         temperature: 0.25,
       });
+      if (skipped.length > 0) response.headers.set(SKIPPED_FILES_HEADER, encodeSkippedFiles(skipped));
       // What it costs, from the files actually sent (nothing is charged: there's no credit balance yet).
       response.headers.set("X-Credit-Cost", String(summaryCreditCost(checked.data.length)));
       return response;
@@ -48,6 +51,10 @@ export async function POST(request: Request) {
       temperature: 0.25,
     });
   } catch (error) {
+    // No text in the material: the AI wasn't asked, nothing is made.
+    if (error instanceof NoMaterialTextError) {
+      return Response.json({ error: error.message, message: error.message, code: NO_TEXT_CODE, files: error.files }, { status: 400 });
+    }
     if (error instanceof GenerationInputError) {
       return Response.json({ error: error.message, message: error.message }, { status: 400 });
     }

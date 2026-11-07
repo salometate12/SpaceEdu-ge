@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { ka } from "@/lib/i18n";
 import type { Conspectus } from "@/lib/conspectus-storage";
 import { ConspectusViewer } from "@/components/conspectus/ConspectusViewer";
+import { SkippedFilesChip } from "@/components/conspectus/NoTextNotice";
 
 interface ConspectusReaderProps {
   conspectus: Conspectus;
@@ -36,6 +37,7 @@ export function ConspectusReader({ conspectus }: ConspectusReaderProps) {
     <ConspectusViewer
       content={conspectus.content}
       leftPanel={leftPanel}
+      loadingBanner={conspectus.skippedFiles?.length ? <SkippedFilesChip files={conspectus.skippedFiles} /> : undefined}
       downloadFilename={conspectus.title}
       accent="violet"
     />

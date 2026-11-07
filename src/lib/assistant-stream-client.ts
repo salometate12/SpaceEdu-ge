@@ -26,6 +26,36 @@ export function buildAssistantJsonBody(
   return JSON.stringify({ [bodyKey]: value.trim(), space });
 }
 
+/** A request the server refused: its status and body, for callers that act on a code. */
+export class AiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly body: string,
+  ) {
+    super(message);
+    this.name = "AiRequestError";
+  }
+
+  /** The JSON body's `code` (e.g. NO_TEXT), if it has one. */
+  get code(): string | undefined {
+    try {
+      const parsed = JSON.parse(this.body) as { code?: unknown };
+      return typeof parsed.code === "string" ? parsed.code : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  json<T>(): Partial<T> {
+    try {
+      return JSON.parse(this.body) as Partial<T>;
+    } catch {
+      return {};
+    }
+  }
+}
+
 export interface PostAiTextStreamOptions {
   signal?: AbortSignal;
   fallbackError?: string;
@@ -50,7 +80,8 @@ export async function postAiTextStream(
   assertPlainTextStream(response);
 
   if (!response.ok) {
-    throw new Error(apiErrorMessage(response.status, await response.text(), fallback));
+    const raw = await response.text();
+    throw new AiRequestError(apiErrorMessage(response.status, raw, fallback), response.status, raw);
   }
 
   return response;
@@ -60,6 +91,8 @@ export interface StreamAiTextOptions extends PostAiTextStreamOptions {
   onChunk?: (partial: string) => void;
   sanitizeMarkdown?: boolean;
   guardHtml?: boolean;
+  /** The response, before its text is read (for its headers). */
+  onResponse?: (response: Response) => void;
 }
 
 export async function streamAiText(
@@ -74,6 +107,7 @@ export async function streamAiText(
     signal: options.signal,
     fallbackError: fallback,
   });
+  options.onResponse?.(response);
 
   const text = await readTextStream(response, {
     sanitizeMarkdown: options.sanitizeMarkdown,

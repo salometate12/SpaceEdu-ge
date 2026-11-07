@@ -22,6 +22,8 @@ export interface Conspectus {
   /** „ჩემი საგნები“: the subject (semester subject id) and topic it was made for. */
   subjectId?: string;
   topicId?: string;
+  /** Files left out of it: no text was found in them. */
+  skippedFiles?: string[];
 }
 
 const TOMBSTONE_DAYS = 60;
