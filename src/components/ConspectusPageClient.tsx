@@ -30,13 +30,13 @@ export function ConspectusPageClient() {
 
   if (!ready) {
     return (
-      <p className="text-center text-zinc-500">{ka.conspectus.loading}</p>
+      <p className="py-16 text-center text-zinc-500">{ka.conspectus.loading}</p>
     );
   }
 
   if (!conspectus) {
     return (
-      <div className="text-center">
+      <div className="px-4 py-16 text-center">
         <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
           {ka.conspectus.notFound}
         </h1>

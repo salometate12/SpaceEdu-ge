@@ -33,6 +33,36 @@ function formatInline(text: string, nextMark?: () => string): ReactNode[] {
   });
 }
 
+/** A pipe table, scrolling sideways on its own when it's wider than the page. */
+export function MarkdownTable({ header, rows, format }: { header: string[]; rows: string[][]; format: (text: string) => ReactNode }) {
+  return (
+    <div className="md-table my-4 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+      <table className="w-full min-w-max border-collapse text-left text-[0.95em]">
+        <thead className="bg-zinc-50 dark:bg-white/[0.04]">
+          <tr>
+            {header.map((cell, i) => (
+              <th key={i} className="border-b border-zinc-200 px-3 py-2 font-semibold text-zinc-900 dark:border-zinc-700 dark:text-zinc-50">
+                {format(cell)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, r) => (
+            <tr key={r} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
+              {row.map((cell, i) => (
+                <td key={i} className="px-3 py-2 align-top text-zinc-700 dark:text-zinc-300">
+                  {format(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 interface MarkdownContentProps {
   content: string;
   className?: string;
@@ -106,6 +136,8 @@ export function MarkdownContent({
             {inlineFormat(block.text)}
           </blockquote>
         );
+      case "table":
+        return <MarkdownTable key={key} header={block.header} rows={block.rows} format={inlineFormat} />;
       case "paragraph":
         return (
           <p key={key} className="my-3 leading-relaxed text-zinc-700 dark:text-zinc-300">

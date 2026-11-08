@@ -171,4 +171,14 @@ describe("maths", () => {
   it("wrong LaTeX is still a formula segment (KaTeX shows its source, grey)", () => {
     expect(parseInline("$\\frac{1}{$")).toEqual([math("\\frac{1}{")]);
   });
+
+  it("a pipe table: header, rule and rows; a lone | line stays a paragraph", () => {
+    const blocks = parseMarkdownBlocks("| ფენა | პროტოკოლი |\n|---|:---:|\n| აპლიკაციის | **HTTP** |\n| სატრანსპორტო |\n\nბოლო");
+    expect(blocks).toEqual([
+      { type: "table", header: ["ფენა", "პროტოკოლი"], rows: [["აპლიკაციის", "**HTTP**"], ["სატრანსპორტო", ""]] },
+      { type: "paragraph", text: "ბოლო" },
+    ]);
+    expect(parseMarkdownBlocks("| მხოლოდ ეს |")).toEqual([{ type: "paragraph", text: "| მხოლოდ ეს |" }]);
+    expect(markdownToPlainText("| a | b |\n| --- | --- |\n| 1 | 2 |")).toBe("a\tb\n1\t2");
+  });
 });

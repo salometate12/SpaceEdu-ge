@@ -11,6 +11,8 @@ export type MarkdownBlock =
   | { type: "paragraph"; text: string }
   /** Consecutive `> ` lines, joined into one block. */
   | { type: "quote"; text: string }
+  /** A pipe table: its header row and body rows (cells as inline markdown). */
+  | { type: "table"; header: string[]; rows: string[][] }
   /**
    * $$…$$ or \[…\] on lines of their own. Not closed yet (a streamed answer):
    * shown as the plain text it is until the closing delimiter arrives.
@@ -57,6 +59,13 @@ function readMathBlock(lines: string[], start: number): { latex: string; end: nu
   }
   return { latex: parts.join("\n").trim(), end: lines.length - 1, closed: false, after: "", source: lines.slice(start).join("\n") };
 }
+
+/** `| a | b |` → ["a", "b"]. */
+function tableCells(line: string): string[] {
+  return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+}
+
+const TABLE_RULE = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$/;
 
 export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
@@ -138,6 +147,21 @@ export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
       continue;
     }
 
+    // A table: a `|` row with a `---` rule under it, then rows until one isn't.
+    if (trimmed.startsWith("|") && TABLE_RULE.test(lines[index + 1]?.trim() ?? "")) {
+      flushList();
+      const header = tableCells(trimmed);
+      const rows: string[][] = [];
+      index += 1;
+      while (lines[index + 1]?.trim().startsWith("|")) {
+        index += 1;
+        const cells = tableCells(lines[index]);
+        rows.push(header.map((_, column) => cells[column] ?? ""));
+      }
+      blocks.push({ type: "table", header, rows });
+      continue;
+    }
+
     flushList();
     blocks.push({ type: "paragraph", text: trimmed });
   }
@@ -205,6 +229,8 @@ export function markdownToPlainText(content: string): string {
           return inline(block.text);
         case "list":
           return block.items.map((item, i) => `${block.ordered ? `${i + 1}.` : "•"} ${inline(item)}`).join("\n");
+        case "table":
+          return [block.header, ...block.rows].map((row) => row.map(inline).join("\t")).join("\n");
       }
     })
     .join("\n\n");
