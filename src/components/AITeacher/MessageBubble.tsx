@@ -4,12 +4,16 @@ import { MarkdownContent } from "@/components/MarkdownContent";
 import { CopyButton } from "@/components/CodeBlock";
 import { markdownToPlainText } from "@/lib/markdown-blocks";
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
+import type { ChatImage } from "@/lib/chat-photos";
+import { MessagePhotos } from "./ChatPhotos";
 import { QuickReplies } from "./QuickReplies";
 import { ThinkingIndicator } from "./ThinkingIndicator";
 
 interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
+  /** A question's photos, above its bubble. */
+  images?: ChatImage[];
   /** While the answer is empty: "full" waiting card (page) or stages only. */
   waitingVariant?: "full" | "compact";
   space?: AiTeacherSpace;
@@ -24,6 +28,7 @@ interface MessageBubbleProps {
 export function MessageBubble({
   role,
   content,
+  images,
   waitingVariant = "compact",
   space,
   appearance = "default",
@@ -34,8 +39,19 @@ export function MessageBubble({
   const sheet = appearance === "sheet";
 
   if (isUser) {
+    const photos = images?.length ? <MessagePhotos images={images} /> : null;
+    // A photo sent without a question: just the photos.
+    if (!content.trim()) {
+      return (
+        <div data-chat-message="user" className="flex justify-end">
+          {photos}
+        </div>
+      );
+    }
     return (
-      <div data-chat-message="user" className="group flex items-start justify-end gap-1.5">
+      <div data-chat-message="user" className="flex flex-col items-end gap-1.5">
+        {photos}
+      <div className="group flex w-full items-start justify-end gap-1.5">
         {sheet ? null : (
           <CopyButton
             text={content}
@@ -53,6 +69,7 @@ export function MessageBubble({
         >
           <p className="whitespace-pre-wrap">{content}</p>
         </div>
+      </div>
       </div>
     );
   }

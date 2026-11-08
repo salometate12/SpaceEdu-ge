@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -24,7 +23,9 @@ import {
 } from "lucide-react";
 import { aiTeacherHrefForSpace } from "@/lib/access-control";
 import { CopyButton } from "@/components/CodeBlock";
-import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { chatErrorMessage, fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { PHOTO_ONLY_PROMPT, type ChatImage } from "@/lib/chat-photos";
+import { useIsTouchDevice } from "@/hooks/useMobileChatViewport";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import { useAIChatPanel } from "@/contexts/AIChatPanelContext";
 import { useWorkingSpace } from "@/hooks/useWorkingSpace";
@@ -37,11 +38,13 @@ import {
 } from "@/lib/ai-teacher-content";
 import { JumpToEndButton } from "./JumpToEndButton";
 import { MessageBubble } from "./MessageBubble";
+import { forgetChatPhotos, PhotoAttachButton, PhotoDrafts, PhotoDropOverlay, useChatPhotos } from "./ChatPhotos";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  images?: ChatImage[];
 }
 
 interface SuggestionOption {
@@ -153,7 +156,13 @@ export function AIChatSidePanel() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
+  // This window's chat isn't saved: its photos have a folder of their own,
+  // emptied when the chat starts over.
+  const chatId = useRef<string | null>(null);
+  const photos = useChatPhotos(() => (chatId.current ??= crypto.randomUUID()));
+  const isTouch = useIsTouchDevice();
+  const readyPhotos = photos.drafts.some((draft) => draft.status === "ready");
+  const canSend = (input.trim().length > 0 || readyPhotos) && !isLoading && !photos.busy;
   const hasMessages = messages.length > 0;
   const showHome = view === "home";
 
@@ -226,9 +235,9 @@ export function AIChatSidePanel() {
 
   /** `base` replaces the conversation so far — „თავიდან დაწერა“ resends a
    * question with the turns before it. */
-  const sendMessage = async (rawMessage: string, base: ChatMessage[] = messages) => {
+  const sendMessage = async (rawMessage: string, base: ChatMessage[] = messages, images: ChatImage[] = []) => {
     const trimmed = rawMessage.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && images.length === 0) || isLoading) return;
     // The turns before this question, so follow-ups keep their topic.
     const history = buildChatHistory(base);
 
@@ -241,7 +250,7 @@ export function AIChatSidePanel() {
     setIsLoading(true);
     setMessages([
       ...base,
-      { id: crypto.randomUUID(), role: "user", content: trimmed },
+      { id: crypto.randomUUID(), role: "user", content: trimmed, ...(images.length ? { images } : {}) },
       { id: assistantId, role: "assistant", content: "" },
     ]);
 
@@ -251,9 +260,14 @@ export function AIChatSidePanel() {
           pageType: "ai-teacher",
           // No subject = the model just answers the question directly,
           // instead of being artificially framed around an unrelated topic.
-          payload: subject
-            ? { subject, message: trimmed, space: teacherSpace, history }
-            : { message: trimmed, space: teacherSpace, history },
+          payload: {
+            ...(subject ? { subject } : {}),
+            // A photo without words: explain it, and solve it if it's a problem.
+            message: trimmed || PHOTO_ONLY_PROMPT,
+            ...(images.length ? { images: images.map((image) => image.path) } : {}),
+            space: teacherSpace,
+            history,
+          },
         },
         (partial) => {
           setMessages((prev) =>
@@ -273,27 +287,37 @@ export function AIChatSidePanel() {
           ),
         );
       }
-    } catch {
-      setFriendlyError("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
+    } catch (error) {
+      setFriendlyError(chatErrorMessage(error));
       setMessages((prev) => prev.filter((message) => message.id !== assistantId));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  /** The field's question with its photos. */
+  const sendInput = () => {
+    if (!canSend) return;
+    void sendMessage(input, messages, photos.take());
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await sendMessage(input);
+    sendInput();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      if (canSend) void sendMessage(input);
+      sendInput();
     }
   };
 
   const startNewChat = () => {
+    // Not saved anywhere: the chat's photos (sent or not) leave storage with it.
+    photos.discard();
+    forgetChatPhotos(chatId.current);
+    chatId.current = null;
     setMessages([]);
     setPendingSuggestions(null);
     setFriendlyError(null);
@@ -331,7 +355,7 @@ export function AIChatSidePanel() {
   const regenerate = (assistantIndex: number) => {
     const userIndex = messages.slice(0, assistantIndex).map((m) => m.role).lastIndexOf("user");
     if (userIndex === -1) return;
-    void sendMessage(messages[userIndex].content, messages.slice(0, userIndex));
+    void sendMessage(messages[userIndex].content, messages.slice(0, userIndex), messages[userIndex].images ?? []);
   };
 
   if (isPhone) {
@@ -341,7 +365,7 @@ export function AIChatSidePanel() {
       "flex h-8 w-8 items-center justify-center rounded-full text-[#71717a] active:bg-black/5 dark:text-[#a1a1aa] dark:active:bg-white/10";
     const sheetMessage = (message: ChatMessage, index: number) => (
       <div key={message.id}>
-        <MessageBubble role={message.role} content={message.content} appearance="sheet" />
+        <MessageBubble role={message.role} content={message.content} images={message.images} appearance="sheet" />
         {message.role === "assistant" && message.content.trim() && !(isLoading && index === messages.length - 1) ? (
           <div className="mt-1.5 flex gap-1 pl-[34px]">
             <CopyButton
@@ -498,15 +522,19 @@ export function AIChatSidePanel() {
                 {friendlyError}
               </div>
             ) : null}
-            <form onSubmit={handleSubmit} className="flex items-end gap-2">
+            <PhotoDrafts photos={photos} errorId="ai-panel-photo-error" />
+            <form onSubmit={handleSubmit} className="flex items-end gap-1.5 pt-1">
+              <PhotoAttachButton photos={photos} touch={isTouch} disabled={isLoading} className="mb-[3px]" />
               <textarea
                 ref={textareaRef}
                 value={input}
                 rows={1}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
+                onPaste={photos.onPaste}
                 placeholder="დაწერე კითხვა…"
                 aria-label="შენი კითხვა"
+                aria-describedby={photos.error ? "ai-panel-photo-error" : undefined}
                 // 16px keeps iOS from zooming into the field.
                 className="max-h-32 min-h-[44px] flex-1 resize-none rounded-[22px] bg-[#f4f4f5] px-4 py-[11px] text-base leading-snug text-[#18181b] outline-none placeholder:text-[#a1a1aa] dark:bg-white/[0.06] dark:text-[#f4f4f5]"
               />
@@ -530,6 +558,7 @@ export function AIChatSidePanel() {
       key={message.id}
       role={message.role}
       content={message.content}
+      images={message.images}
       complete={!(isLoading && index === messages.length - 1)}
     />
   );
@@ -555,7 +584,9 @@ export function AIChatSidePanel() {
       }`}
       aria-hidden={!isOpen}
       inert={!isOpen || undefined}
+      {...photos.dropProps}
     >
+      <PhotoDropOverlay show={photos.dragging} />
 
       <div className="relative z-[1] flex shrink-0 items-center justify-between gap-2 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -723,14 +754,17 @@ export function AIChatSidePanel() {
               with it underneath — the shape of the composer in the
               reference, on /ai-teacher's own card. */}
           <div
-            className="overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)]"
+            className="overflow-visible rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] transition-colors duration-200 focus-within:border-[var(--text-secondary)]"
           >
+            <PhotoDrafts photos={photos} errorId="ai-panel-photo-error" />
             <textarea
               ref={textareaRef}
               value={input}
               rows={1}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
+              onPaste={photos.onPaste}
+              aria-describedby={photos.error ? "ai-panel-photo-error" : undefined}
               placeholder={
                 subject ? `${subject} — დაწერე შენი კითხვა...` : "დაწერე შენი კითხვა..."
               }
@@ -738,6 +772,7 @@ export function AIChatSidePanel() {
             />
 
             <div className="flex items-center justify-end gap-2 border-t border-black/[0.06] px-3 py-2 dark:border-white/[0.08]">
+              <PhotoAttachButton photos={photos} touch={isTouch} disabled={isLoading} />
               <button
                 type="submit"
                 disabled={!canSend}

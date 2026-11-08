@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { STORED_FILE_MAX_BYTES, STORED_FILE_SIGNED_OUT, STORED_FILE_TOO_BIG } from "@/lib/stored-files-server";
-import { subjectFilePath, USER_FILES_BUCKET, uploadPath } from "@/lib/user-files-path";
+import { chatPhotoPath, subjectFilePath, USER_FILES_BUCKET, uploadPath } from "@/lib/user-files-path";
+import { CHAT_PHOTO_MAX_BYTES, CHAT_PHOTO_TOO_BIG } from "@/lib/chat-photos";
 import { createClient as createServerSupabaseClient } from "@/utils/supabase/server";
 import { isSupabaseBrowserConfigured } from "@/utils/supabase/env";
 
@@ -15,6 +16,8 @@ const BodySchema = z.object({
   size: z.number().int().nonnegative(),
   /** A subject's file: its own place in the subject's folder, instead of the generators' uploads. */
   subject: z.object({ subjectId: z.string().regex(SAFE_ID), fileId: z.string().regex(SAFE_ID) }).optional(),
+  /** A photo for the AI teacher: in that conversation's folder (removed with it). */
+  chat: z.object({ conversationId: z.string().regex(SAFE_ID) }).optional(),
 });
 
 /**
@@ -30,6 +33,7 @@ export async function POST(request: Request) {
   const parsed = BodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: true, message: "ფაილი არასწორია." }, { status: 400 });
   if (parsed.data.size > STORED_FILE_MAX_BYTES) return Response.json({ error: true, message: STORED_FILE_TOO_BIG }, { status: 413 });
+  if (parsed.data.chat && parsed.data.size > CHAT_PHOTO_MAX_BYTES) return Response.json({ error: true, message: CHAT_PHOTO_TOO_BIG }, { status: 413 });
   if (!isSupabaseBrowserConfigured()) return Response.json({ error: true, message: STORED_FILE_SIGNED_OUT }, { status: 401 });
 
   const supabase = await createServerSupabaseClient();
@@ -37,10 +41,13 @@ export async function POST(request: Request) {
   if (!userId) return Response.json({ error: true, message: STORED_FILE_SIGNED_OUT }, { status: 401 });
 
   const extension = parsed.data.name.match(/\.[a-z0-9]{1,8}$/i)?.[0]?.toLowerCase() ?? "";
-  const { subject } = parsed.data;
+  const { subject, chat } = parsed.data;
+  const fresh = `${Date.now().toString(36)}-${crypto.randomUUID()}${extension}`;
   const path = subject
     ? subjectFilePath(userId, subject.subjectId, subject.fileId)
-    : uploadPath(userId, `${Date.now().toString(36)}-${crypto.randomUUID()}${extension}`);
+    : chat
+      ? chatPhotoPath(userId, chat.conversationId, fresh)
+      : uploadPath(userId, fresh);
   const { data, error } = await supabase.storage.from(USER_FILES_BUCKET).createSignedUploadUrl(path, { upsert: true });
   if (error || !data) {
     console.error("[uploads/sign]", error?.message);
