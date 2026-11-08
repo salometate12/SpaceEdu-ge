@@ -43,6 +43,8 @@ export interface TaskHelper {
   doneSteps: number[];
   /** Index of the idea chosen, or null. */
   chosenIdea: number | null;
+  /** The presentation made from it („პრეზენტაციის შექმნა“ opens it again). */
+  presentationId?: string;
   messages: TaskChatMessage[];
   /** ms */
   createdAt: number;

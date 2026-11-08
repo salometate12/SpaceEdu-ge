@@ -264,6 +264,7 @@ export async function exportToPptx(
     const fit = fitScales[slideIndex] ?? 1;
     const s = pptx.addSlide();
     s.background = aurora ? { data: aurora } : { color: hex(theme.bg) };
+    if (slide.notes?.trim()) s.addNotes(slide.notes.trim());
 
     const images = slide.images.filter((image) => photoById.has(image.photoId));
     const { text, card } = themedTextBox(theme, textBoxFor(images), slide.type);

@@ -73,6 +73,8 @@ export const GeneratedSlideSchema = z.object({
   figure: z.object({ value: z.string(), caption: z.string() }).nullable(),
   /** Ids of the user's photos that belong on this slide (max 2), or null. */
   photoIds: z.array(z.string()).nullable(),
+  /** Speaker notes: what the presenter says on this slide (not shown on it). */
+  notes: z.string().nullable(),
 });
 
 export const PresentationResponseSchema = z.object({

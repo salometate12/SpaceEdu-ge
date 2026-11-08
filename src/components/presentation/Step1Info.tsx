@@ -2,7 +2,7 @@
 
 import { FileText, Plus } from "lucide-react";
 import type { UploadedPhoto } from "@/lib/presentation-photos";
-import { PRESENTATION_LEVELS } from "@/lib/presentation-constants";
+import { PRESENTATION_LANGUAGES, PRESENTATION_LEVELS, PRESENTATION_SLIDE_COUNTS } from "@/lib/presentation-constants";
 import { StepSection, TONES } from "@/components/ui/wizard/StepSection";
 import { ChoiceChips, Field } from "@/components/ui/wizard/fields";
 import { PhotoUploader } from "./PhotoUploader";
@@ -15,13 +15,9 @@ interface Step1InfoProps {
   onPhotosChange: (photos: UploadedPhoto[]) => void;
 }
 
-export const SLIDE_COUNTS = [5, 8, 10, 12, 15];
+export const SLIDE_COUNTS: number[] = [...PRESENTATION_SLIDE_COUNTS];
 
-export const LANGUAGES = [
-  { value: "ქართული", label: "ქართული" },
-  { value: "ინგლისური", label: "English" },
-  { value: "ქართული + ინგლისური", label: "ორივე" },
-];
+export const LANGUAGES = PRESENTATION_LANGUAGES.map((language) => ({ ...language }));
 
 /** Each quick chip adds one sentence to the instructions. */
 export const QUICK_INSTRUCTIONS = [
