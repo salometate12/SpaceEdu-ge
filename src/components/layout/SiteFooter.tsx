@@ -4,7 +4,7 @@ const quickLinks = [
   { href: "/select-space", label: "დაფა" },
   { href: "/pricing", label: "ფასები" },
   { href: "/study-plan", label: "სასწავლო გეგმა" },
-  { href: "/quiz", label: "Quiz" },
+  { href: "/quiz", label: "ქვიზი" },
   { href: "/ai-teacher", label: "AI მასწავლებელი" },
 ];
 

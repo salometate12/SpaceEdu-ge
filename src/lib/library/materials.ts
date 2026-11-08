@@ -6,6 +6,7 @@
  * lib/flashcard-session) and pass them in.
  */
 import type { Conspectus } from "@/lib/conspectus-storage";
+import { isLetterConspectus } from "@/lib/conspectus-empty";
 import type { FlashcardSession } from "@/lib/flashcard-session";
 import type { QuizAttempt, SavedQuiz } from "@/lib/quiz-library";
 import type { Deck, DeckStatus } from "@/lib/types";
@@ -146,7 +147,8 @@ export function conspectusItem(conspectus: Conspectus): MaterialItem {
     title: conspectus.title,
     source: sourceOf(conspectus.sourceType, conspectus.sourceLabel),
     sourceName: stripSourcePrefix(conspectus.sourceLabel),
-    status: conspectus.status ?? "ready",
+    // Saved before empty material was caught: a letter about the files, not a conspectus.
+    status: isLetterConspectus(conspectus.content) ? "failed" : (conspectus.status ?? "ready"),
     createdAt: conspectus.createdAt,
     openedAt: conspectus.lastOpenedAt ?? conspectus.createdAt,
     unfinished: false,

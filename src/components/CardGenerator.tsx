@@ -244,6 +244,18 @@ export function CardGenerator() {
     };
   }, [noteId, noteMode]);
 
+  // A link straight to a kind and source (`?mode=summary&source=text`, e.g. from
+  // „კონსპექტი ვერ შეიქმნა“), when it isn't for a note or a topic.
+  const plainSource = params.get("source");
+  const plainLink = !noteId && !params.get("subject");
+  useEffect(() => {
+    if (!plainLink || (noteMode !== "summary" && noteMode !== "cards" && plainSource !== "text")) return;
+    void Promise.resolve().then(() => {
+      if (noteMode === "summary" || noteMode === "cards") setKind(noteMode === "summary" ? "summary" : "flashcards");
+      if (plainSource === "text") setSource("text");
+    });
+  }, [plainLink, noteMode, plainSource]);
+
   // „ფლეშბარათების შექმნა“ from a presentation's menu: that presentation, picked.
   const presetId = params.get("source") === "presentation" ? params.get("id") : null;
   useEffect(() => {

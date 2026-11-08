@@ -71,15 +71,27 @@ describe("summary files", () => {
   });
 
   it("asks for one conspectus from all the sources", async () => {
-    const message = await buildMultiFileSummaryMessage(
-      [new File(["უჯრედის მემბრანა"], "ბიოლოგია.txt"), new File(["ბაზრის წონასწორობა"], "ეკონომიკა.md")],
-      "გამოცდა",
-    );
+    const bio = `უჯრედის მემბრანა ${"ფოსფოლიპიდები ".repeat(20)}`;
+    const eco = `ბაზრის წონასწორობა ${"მოთხოვნა მიწოდება ".repeat(15)}`;
+    const { message, skipped } = await buildMultiFileSummaryMessage([new File([bio], "ბიოლოგია.txt"), new File([eco], "ეკონომიკა.md")], "გამოცდა");
     const text = Array.isArray(message.content) && message.content[0].type === "text" ? message.content[0].text : "";
+    expect(skipped).toEqual([]);
     expect(text).toContain(MULTI_SOURCE_HINT);
     expect(text).toContain("### ბიოლოგია.txt\nუჯრედის მემბრანა");
     expect(text).toContain("### ეკონომიკა.md\nბაზრის წონასწორობა");
     expect(text).toContain("გამოცდა");
+  });
+
+  it("a file with no text is left out and named; with nothing left, the AI isn't asked", async () => {
+    const full = new File([`ლექცია ${"ინტეგრალი ".repeat(30)}`], "ლექცია 1.txt");
+    const empty = new File(["ლექცია 3"], "ლექცია 3.txt");
+    const { message, skipped } = await buildMultiFileSummaryMessage([full, empty]);
+    const text = Array.isArray(message.content) && message.content[0].type === "text" ? message.content[0].text : "";
+    expect(skipped).toEqual(["ლექცია 3.txt"]);
+    expect(text).toContain("### ლექცია 1.txt");
+    expect(text).not.toContain("ლექცია 3.txt");
+    expect(text).not.toContain(MULTI_SOURCE_HINT);
+    await expect(buildMultiFileSummaryMessage([empty])).rejects.toMatchObject({ name: "NoMaterialTextError", files: ["ლექცია 3.txt"] });
   });
 });
 

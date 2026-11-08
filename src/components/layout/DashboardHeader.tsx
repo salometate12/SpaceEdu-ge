@@ -78,9 +78,9 @@ export function DashboardHeader({
           { label: "AI", href: aiTeacherHrefForSpace(effectiveSpace) },
         ]
       : [
-          { label: "Dashboard", href: dashboardHrefForSpace(effectiveSpace) },
+          { label: "დეშბორდი", href: dashboardHrefForSpace(effectiveSpace) },
           { label: "გეგმა", href: studyPlanHrefForSpace(effectiveSpace) },
-          { label: "Quiz", href: "/quiz" },
+          { label: "ქვიზი", href: "/quiz" },
           { label: "AI", href: aiTeacherHrefForSpace(effectiveSpace) },
           { label: "პროფილი", href: profileHrefForSpace(effectiveSpace) },
         ];

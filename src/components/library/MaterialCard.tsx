@@ -271,12 +271,12 @@ export function MaterialCard({ item }: { item: MaterialItem }) {
     );
     const retry = () => {
       if (item.kind === "deck" && retryDeckGeneration(item.id)) return;
-      router.push(item.kind === "quiz" ? "/quiz?tab=new" : "/generate?tab=new");
+      router.push(item.kind === "quiz" ? "/quiz?tab=new" : item.kind === "conspectus" ? "/generate?tab=new&mode=summary" : "/generate?tab=new");
     };
     actions = (
       <button type="button" onClick={retry} className={`lib-primary ${BUTTON}`}>
         <RotateCcw className="h-4 w-4" aria-hidden />
-        თავიდან ცდა
+        {item.kind === "conspectus" ? "თავიდან შექმნა" : "თავიდან ცდა"}
       </button>
     );
   } else if (item.kind === "deck" && item.deck) {

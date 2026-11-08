@@ -17,7 +17,10 @@ import {
   extractTitleFromMarkdown,
   saveConspectus,
 } from "@/lib/conspectus-storage";
-import { streamAiText } from "@/lib/assistant-stream-client";
+import { AiRequestError, streamAiText } from "@/lib/assistant-stream-client";
+import { decodeSkippedFiles, isNoContentAnswer, mightBeNoContent, NO_TEXT_CODE, SKIPPED_FILES_HEADER } from "@/lib/conspectus-empty";
+import { NoTextScreen, SkippedFilesChip } from "@/components/conspectus/NoTextNotice";
+import { STORED_NAMES } from "@/lib/stored-file";
 import { buildGenerationFormData } from "@/lib/build-generation-form-data";
 import { stageUploads } from "@/lib/stage-uploads";
 import { ConspectusViewer } from "@/components/conspectus/ConspectusViewer";
@@ -37,6 +40,7 @@ function saveAndRedirect(
   pending: PendingPayload,
   body: string,
   savedRef: React.MutableRefObject<boolean>,
+  skippedFiles: string[] = [],
 ) {
   const topic = pending.topic;
   const inputType = pending.formData.get("inputType");
@@ -58,10 +62,21 @@ function saveAndRedirect(
     ...(typeof inputType === "string" && inputType ? { sourceType: inputType } : {}),
     ...(typeof sourceLabel === "string" && sourceLabel ? { sourceLabel } : {}),
     ...(typeof subjectId === "string" && typeof topicId === "string" && subjectId && topicId ? { subjectId, topicId } : {}),
+    ...(skippedFiles.length > 0 ? { skippedFiles } : {}),
   });
 
   router.replace(`/conspectus/${id}`);
   return true;
+}
+
+/** The names of the files sent: dropped ones, and those in storage (sent as paths with their names). */
+function fileNames(formData: FormData): string[] {
+  const names = formData.getAll(STORED_NAMES).map(String).filter(Boolean);
+  for (const value of [...formData.getAll("files"), ...formData.getAll("file")]) {
+    if (typeof value !== "string" && value.name) names.push(value.name);
+  }
+  const label = formData.get("sourceLabel");
+  return names.length > 0 ? names : typeof label === "string" && label ? [label] : [];
 }
 
 export function StreamingConspectusView({
@@ -79,6 +94,10 @@ export function StreamingConspectusView({
   const [error, setError] = useState<string | null>(null);
   const [streamWarning, setStreamWarning] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
+  // No text in the material: which files (nothing is saved).
+  const [noText, setNoText] = useState<string[] | null>(null);
+  const [skipped, setSkipped] = useState<string[]>([]);
+  const skippedRef = useRef<string[]>([]);
 
   const updateContent = useCallback((value: string) => {
     contentRef.current = value;
@@ -89,6 +108,9 @@ export function StreamingConspectusView({
     async (pending: PendingPayload, controller: AbortController) => {
       setError(null);
       setStreamWarning(null);
+      setNoText(null);
+      setSkipped([]);
+      skippedRef.current = [];
       setIsLoading(true);
       updateContent("");
 
@@ -104,19 +126,43 @@ export function StreamingConspectusView({
           signal: controller.signal,
           fallbackError: ka.generator.error,
           sanitizeMarkdown: true,
-          onChunk: updateContent,
+          onResponse: (response) => {
+            skippedRef.current = decodeSkippedFiles(response.headers.get(SKIPPED_FILES_HEADER));
+            setSkipped(skippedRef.current);
+          },
+          // While the answer could still be „[[NO_CONTENT]]“, nothing is shown.
+          onChunk: (partial) => {
+            if (mightBeNoContent(partial)) return;
+            updateContent(partial);
+          },
         });
 
         if (controller.signal.aborted) return;
+
+        // The AI found nothing to make a conspectus from: nothing is saved.
+        if (isNoContentAnswer(finalText)) {
+          updateContent("");
+          setNoText(fileNames(pending.formData));
+          setIsLoading(false);
+          return;
+        }
 
         const body = finalText.trim() || contentRef.current.trim();
         if (!body) {
           throw new Error(ka.generator.error);
         }
 
-        saveAndRedirect(router, pending, body, savedRef);
+        saveAndRedirect(router, pending, body, savedRef, skippedRef.current);
       } catch (err) {
         if (controller.signal.aborted) return;
+
+        // The server found no text in the files and didn't ask the AI.
+        if (err instanceof AiRequestError && err.code === NO_TEXT_CODE) {
+          const files = err.json<{ files: string[] }>().files;
+          setNoText(Array.isArray(files) && files.length > 0 ? files : fileNames(pending.formData));
+          setIsLoading(false);
+          return;
+        }
 
         const partial = contentRef.current.trim();
         if (partial.length > 120) {
@@ -181,7 +227,7 @@ export function StreamingConspectusView({
   const savePartial = () => {
     const pending = pendingRef.current;
     if (!pending) return;
-    saveAndRedirect(router, pending, contentRef.current, savedRef);
+    saveAndRedirect(router, pending, contentRef.current, savedRef, skippedRef.current);
   };
 
   const leftPanel = (
@@ -258,6 +304,14 @@ export function StreamingConspectusView({
   const isSearchingPhase = isLoading && content.length === 0;
   const isWritingPhase = isLoading && content.length > 0;
 
+  if (noText) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <NoTextScreen files={noText} />
+      </div>
+    );
+  }
+
   // Before the first words arrive: the generator's loader, with sheets.
   if (isSearchingPhase || (error && content.length === 0)) {
     return (
@@ -279,7 +333,9 @@ export function StreamingConspectusView({
         leftPanel={leftPanel}
         isLoading={isSearchingPhase}
         loadingBanner={
-          isWritingPhase ? (
+          <>
+          <SkippedFilesChip files={skipped} />
+          {isWritingPhase ? (
             <div className="flex shrink-0 items-center gap-2 border-b border-pink-200/50 bg-pink-50/50 px-4 py-2 text-xs font-medium text-pink-800 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-200 lg:px-8">
               <Cpu className="h-3.5 w-3.5 animate-pulse stroke-[1.5]" />
               {ka.generator.modal.loadingSummary}
@@ -289,7 +345,8 @@ export function StreamingConspectusView({
               <Loader2 className="h-3.5 w-3.5 animate-spin stroke-[1.5]" />
               {ka.generator.modal.loadingSummary}
             </div>
-          ) : undefined
+          ) : null}
+          </>
         }
         showCursor={isWritingPhase}
         downloadFilename={topicRef.current || "conspectus"}
