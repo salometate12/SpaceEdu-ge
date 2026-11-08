@@ -44,16 +44,17 @@ export function NoTextScreen({ files }: { files: string[] }) {
 }
 
 /** Above a conspectus made without some of its files. */
-export function SkippedFilesChip({ files }: { files: string[] }) {
+/** `bare`: no padding of its own (the reading page places it); the text wraps instead of being cut. */
+export function SkippedFilesChip({ files, bare = false }: { files: string[]; bare?: boolean }) {
   if (files.length === 0) return null;
   return (
-    <div className="shrink-0 px-4 pt-3 lg:px-8 print:hidden">
+    <div className={bare ? "print:hidden" : "shrink-0 px-4 pt-3 lg:px-8 print:hidden"}>
       <p
         title={files.join(", ")}
         className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#fff7ed] px-3 py-1.5 text-[13px] font-semibold text-[#c2410c] dark:bg-[rgba(251,146,60,0.12)] dark:text-[#fdba74]"
       >
         <FileWarning className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        <span className="truncate">{skippedFilesLabel(files.length)}</span>
+        <span className={bare ? "min-w-0" : "truncate"}>{skippedFilesLabel(files.length)}</span>
       </p>
     </div>
   );
