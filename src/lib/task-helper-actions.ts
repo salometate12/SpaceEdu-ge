@@ -7,12 +7,11 @@
  */
 import { addMilestonesToDashboardCalendar, getGeneratedMilestones, setGeneratedMilestones, type SyllabusMilestone } from "./syllabus-calendar";
 import { CALENDAR_UPDATED_EVENT } from "./user-data-keys";
-import { handOffPresentation } from "./tool-handoff";
-import { newPresentationId } from "./presentation-store";
-import type { TaskHelper } from "./task-helper-store";
+import { handOffPresentation, type PresentationHandoff } from "./tool-handoff";
+import { loadPresentation, newPresentationId } from "./presentation-store";
+import { updateTaskHelper, type TaskHelper } from "./task-helper-store";
+import { DEFAULT_PRESENTATION_LEVEL, PRESENTATION_SLIDE_COUNTS, type PresentationLevel } from "./presentation-constants";
 
-/** The wizard's slide counts (Step1Info). */
-const SLIDE_COUNTS = [5, 8, 10, 12, 15];
 
 const stepId = (task: TaskHelper, index: number) => `${task.id}-step-${index}`;
 const dueId = (task: TaskHelper) => `${task.id}-due`;
@@ -44,10 +43,10 @@ export function addTaskToPlan(task: TaskHelper): { added: number } {
 }
 
 export function nearestSlideCount(count: number): number {
-  return SLIDE_COUNTS.reduce((best, value) => (Math.abs(value - count) < Math.abs(best - count) ? value : best), SLIDE_COUNTS[0]);
+  return PRESENTATION_SLIDE_COUNTS.reduce<number>((best, value) => (Math.abs(value - count) < Math.abs(best - count) ? value : best), PRESENTATION_SLIDE_COUNTS[0]);
 }
 
-/** The structure as the wizard's extra instructions. */
+/** The structure as the wizard's extra instructions: each slide with what to say on it. */
 export function presentationInstructions(task: TaskHelper): string {
   const slides = task.result.presentation?.slides ?? [];
   return [
@@ -56,15 +55,89 @@ export function presentationInstructions(task: TaskHelper): string {
   ].join("\n");
 }
 
-/** Opens a new presentation with the topic, subject, slide count and structure filled in; returns its URL. */
-export function presentationFromTask(task: TaskHelper): string {
-  handOffPresentation({
-    topic: task.title,
-    subject: task.subjectName,
-    slideCount: nearestSlideCount(task.result.presentation?.slides.length ?? 10),
-    extraInstructions: presentationInstructions(task),
-  });
-  return `/presentation?id=${encodeURIComponent(newPresentationId())}`;
+/** Bachelor unless the assignment says master's or doctoral (the profile doesn't keep the level). */
+export function levelFromTask(text: string): PresentationLevel {
+  if (/დოქტორანტ|სადოქტორო|\bph\.?d\b|doctoral/i.test(text)) return "დოქტორანტურა";
+  if (/მაგისტრ|\bmaster'?s?\b|\bMA\b|\bMSc\b/i.test(text)) return "მაგისტრატურა";
+  return DEFAULT_PRESENTATION_LEVEL;
+}
+
+/** The assignment's language: English when its letters are mostly Latin, otherwise Georgian. */
+export function languageFromTask(text: string): string {
+  const georgian = (text.match(/[\u10A0-\u10FF]/g) ?? []).length;
+  const latin = (text.match(/[A-Za-z]/g) ?? []).length;
+  return latin >= 40 && latin > georgian * 2 ? "ინგლისური" : "ქართული";
+}
+
+/** Who it's presented to: the group, a committee, or (also for „ლექტორი“) the professor. */
+export function audienceFromTask(text: string): string {
+  if (/ჯგუფის\s+წინ|ჯგუფელ|კურსელ|in front of (the )?(class|group)|classmates|your peers/i.test(text)) return "ჯგუფელები";
+  if (/კომისი|ჟიური|committee|jury|panel/i.test(text)) return "კომისია";
+  return "პროფესორი";
+}
+
+/** „დეტალების“ goal by the assignment's kind. */
+function goalFor(task: TaskHelper): string {
+  if (task.taskType === "research") return "კვლევის წარდგენა";
+  if (task.taskType === "writing") return "არგუმენტის დამტკიცება";
+  return "ცნების განმარტება";
+}
+
+/** A design by the assignment's kind: none (the wizard's default) for the rest. */
+function themeFor(task: TaskHelper): string | undefined {
+  if (task.taskType === "design") return "minimal";
+  if (task.taskType === "research") return "paper";
+  return undefined;
+}
+
+/** Every field of the presentation wizard, from the assignment: what the button hands over. */
+export function taskToPresentationHandoff(task: TaskHelper): PresentationHandoff {
+  const idea = task.chosenIdea !== null ? task.result.ideas?.[task.chosenIdea] : undefined;
+  const text = [task.inputText, task.note ?? ""].join("\n");
+  const slides = task.result.presentation?.slides ?? [];
+  const grading = task.result.grading?.trim();
+  const instructions = [
+    slides.length ? presentationInstructions(task) : "",
+    grading ? `შეფასების წესი: ${grading}\nპრეზენტაციამ ამ კრიტერიუმებს გაუსვას ხაზი.` : "",
+    slides.length ? "თითო სლაიდის „რა თქვა“ ტექსტი სპიკერის შენიშვნებში (notes) ჩაწერე." : "",
+  ].filter(Boolean);
+  const theme = themeFor(task);
+  const keyPoint = idea ? `${idea.title}: ${idea.description}` : task.result.requirements[0];
+  return {
+    topic: idea ? `${task.title}: ${idea.title}` : task.title,
+    ...(task.subjectName ? { subject: task.subjectName } : {}),
+    slideCount: nearestSlideCount(slides.length || 10),
+    level: levelFromTask(text),
+    language: languageFromTask(task.inputText),
+    ...(instructions.length ? { extraInstructions: instructions.join("\n\n") } : {}),
+    ...(theme ? { theme } : {}),
+    goal: goalFor(task),
+    audience: audienceFromTask(text),
+    tone: task.taskType === "design" ? "კრეატიული" : "აკადემიური",
+    ...(keyPoint ? { keyPoint } : {}),
+    autoStart: true,
+    source: { kind: "task-helper", id: task.id },
+    ...(task.subjectId ? { subjectId: task.subjectId } : {}),
+    ...(task.topicId ? { topicId: task.topicId } : {}),
+  };
+}
+
+const presentationHref = (id: string) => `/presentation?id=${encodeURIComponent(id)}`;
+
+/**
+ * „პრეზენტაციის შექმნა“ / „გახსნა“: the one made from this assignment
+ * when it's still there, otherwise (or with `fresh`, „ახლის შექმნა“) a new
+ * one, filled in and generating by itself. Returns where to go.
+ */
+export async function openTaskPresentation(task: TaskHelper, { fresh = false }: { fresh?: boolean } = {}): Promise<string> {
+  if (!fresh && task.presentationId) {
+    const saved = await loadPresentation(task.presentationId).catch(() => null);
+    if (saved) return presentationHref(task.presentationId);
+  }
+  const id = newPresentationId();
+  handOffPresentation(taskToPresentationHandoff(task));
+  updateTaskHelper(task.id, { presentationId: id });
+  return presentationHref(id);
 }
 
 /** What the chat sends along with each question. */

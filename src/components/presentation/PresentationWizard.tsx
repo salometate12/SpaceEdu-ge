@@ -3,14 +3,13 @@
 import { logActivity } from "@/lib/activity-log";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Settings2, Sparkles } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { StepperBar } from "@/components/ui/StepperBar";
 import { StepFooter } from "@/components/ui/wizard/StepFooter";
 import { WizardColumns } from "@/components/ui/wizard/WizardPage";
 import { fetchAiJson } from "@/lib/ai/fetch-ai";
 import type { PresentationResponse } from "@/lib/ai/presentation-schema";
-import { DEFAULT_PRESENTATION_LEVEL } from "@/lib/presentation-constants";
 import { historyReducer, initHistory } from "@/lib/presentation-history";
 import { assignPhotosToSlides } from "@/lib/presentation-layout";
 import {
@@ -33,6 +32,7 @@ import { normalizeAudience, Step3PhotosQA } from "./Step3PhotosQA";
 import { Step4Result } from "./Step4Result";
 import { PresentationSummary } from "./PresentationSummary";
 import { takePresentationHandoff } from "@/lib/tool-handoff";
+import { autoStartLabel, DEFAULT_PRESENTATION_FORM as DEFAULT_FORM, DEFAULT_PRESENTATION_QA as DEFAULT_QA, wizardFromHandoff } from "@/lib/presentation-wizard-fill";
 
 export type { GeneratedSlide, PresentationForm, PresentationTemplate, QAAnswers } from "@/lib/presentation-types";
 
@@ -41,21 +41,15 @@ const STEPS = [{ label: "ინფორმაცია" }, { label: "დიზ�
 const SAVE_DELAY_MS = 800;
 
 
-const DEFAULT_FORM: PresentationForm = {
-  topic: "",
-  subject: "",
-  slideCount: 10,
-  level: DEFAULT_PRESENTATION_LEVEL,
-  language: "ქართული",
-  extraInstructions: "",
-};
+/** What generating sends: the wizard's state, or a handoff's before it's on screen. */
+interface GenerateInput {
+  form: PresentationForm;
+  qa: QAAnswers;
+  templateId: string;
+  photos: UploadedPhoto[];
+}
 
-const DEFAULT_QA: QAAnswers = {
-  goal: "ცნების განმარტება",
-  audience: "პროფესორი",
-  tone: "აკადემიური",
-  mainPoint: "",
-};
+const AUTO_FAILED = "ავტომატურად ვერ შეიქმნა, შეამოწმე და სცადე თავიდან.";
 
 interface PresentationWizardProps {
   /** Where this presentation is saved; a new id starts an empty wizard. */
@@ -96,8 +90,16 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
 
   // ---- loading a saved presentation ----
   const createdAt = useRef<number | null>(null);
-  // „ჩემი საგნები“: the subject and topic it was made for (opened from a topic, or saved with one).
-  const link = useRef<{ subjectId: string; topicId: string } | null>(null);
+  // „ჩემი საგნები“: the subject (and topic) it was made for (opened from a topic or an assignment, or saved with one).
+  const link = useRef<{ subjectId: string; topicId?: string } | null>(null);
+  // The assignment it was made from („დავალების დამხმარე“).
+  const sourceTaskId = useRef<string | null>(null);
+  // Generating straight from a handoff: the line above the loader (null otherwise).
+  const [autoLabel, setAutoLabel] = useState<string | null>(null);
+  // It failed on its own: the message goes above the steps, where it's seen.
+  const [autoFailed, setAutoFailed] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  useEffect(() => () => abortRef.current?.abort(), []);
   const [storageProblem, setStorageProblem] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -107,7 +109,8 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         if (saved) {
           const { presentation } = saved;
           createdAt.current = presentation.createdAt;
-          if (presentation.subjectId && presentation.topicId) link.current = { subjectId: presentation.subjectId, topicId: presentation.topicId };
+          if (presentation.subjectId) link.current = { subjectId: presentation.subjectId, ...(presentation.topicId ? { topicId: presentation.topicId } : {}) };
+          sourceTaskId.current = presentation.sourceTaskId ?? null;
           setForm({ ...DEFAULT_FORM, ...presentation.form });
           setQa({ ...DEFAULT_QA, ...presentation.qa, audience: normalizeAudience(presentation.qa?.audience ?? DEFAULT_QA.audience) });
           setSelectedTemplateId(presentation.templateId);
@@ -122,17 +125,20 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
             setStep(Math.min(presentation.step, 3) as SavedPresentation["step"]);
           }
         } else {
-          // A new one opened from another tool (the task helper): its first step filled in.
+          // A new one opened from another tool (the task helper, a topic, a conspectus): every step filled in.
           const handed = takePresentationHandoff();
-          if (handed?.subjectId && handed.topicId) link.current = { subjectId: handed.subjectId, topicId: handed.topicId };
+          if (handed?.subjectId) link.current = { subjectId: handed.subjectId, ...(handed.topicId ? { topicId: handed.topicId } : {}) };
+          if (handed?.source) sourceTaskId.current = handed.source.id;
           if (handed) {
-            setForm({
-              ...DEFAULT_FORM,
-              topic: handed.topic,
-              subject: handed.subject ?? "",
-              slideCount: handed.slideCount ?? DEFAULT_FORM.slideCount,
-              extraInstructions: handed.extraInstructions ?? "",
-            });
+            const fill = wizardFromHandoff(handed);
+            setForm(fill.form);
+            setQa(fill.qa);
+            setSelectedTemplateId(fill.templateId);
+            // „დავალების დამხმარე“: no steps, straight to generating.
+            if (handed.autoStart) {
+              setAutoLabel(autoStartLabel(fill, handed.source?.kind === "task-helper"));
+              void runGenerate({ ...fill, photos: [] }, true);
+            }
           }
         }
         setLoaded(true);
@@ -195,6 +201,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
             slides: current.deck?.slides ?? null,
             photoIds: current.photos.map((photo) => photo.id),
             ...(link.current ?? {}),
+            ...(sourceTaskId.current ? { sourceTaskId: sourceTaskId.current } : {}),
           },
           current.photos,
         );
@@ -260,28 +267,35 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
     [selectedTemplateId],
   );
 
-  const generate = async () => {
+  /** `auto`: started from a handoff; a failure opens the steps with what was filled in. */
+  async function runGenerate(input: GenerateInput, auto = false) {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     setError(null);
+    setAutoFailed(false);
     try {
       const parsed = await fetchAiJson<PresentationResponse>({
         pageType: "presentation",
         responseMode: "json",
+        signal: controller.signal,
         payload: {
-          topic: form.topic,
-          subject: form.subject,
-          slideCount: form.slideCount,
-          level: form.level,
-          language: form.language,
-          extraInstructions: form.extraInstructions,
-          qa,
-          templateId: selectedTemplateId,
+          topic: input.form.topic,
+          subject: input.form.subject,
+          slideCount: input.form.slideCount,
+          level: input.form.level,
+          language: input.form.language,
+          extraInstructions: input.form.extraInstructions,
+          qa: input.qa,
+          templateId: input.templateId,
           // Only metadata — the images themselves never leave the browser.
-          photos: photos.map(photoMeta),
+          photos: input.photos.map(photoMeta),
         },
       });
+      if (controller.signal.aborted) return;
 
-      const layouts = assignPhotosToSlides(parsed.slides, photos);
+      const layouts = assignPhotosToSlides(parsed.slides, input.photos);
       const slides: GeneratedSlide[] = parsed.slides.map((slide, index) => ({
         id: slide.id,
         type: slide.type,
@@ -294,21 +308,43 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
         quote: slide.quote,
         figure: slide.figure,
         footnote: (slide as { footnote?: string }).footnote,
+        ...(slide.notes?.trim() ? { notes: slide.notes.trim() } : {}),
         images: layouts[index],
       }));
       // A fresh deck starts a fresh undo history.
-      dispatch({ type: "reset", present: { title: parsed.title, templateId: selectedTemplate.id, slides } });
+      dispatch({ type: "reset", present: { title: parsed.title, templateId: input.templateId, slides } });
       logActivity({ type: "presentation_created", tool: "presentation", meta: { slides: slides.length } });
+      setAutoLabel(null);
       setStep(4);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "AI ამჟამად მიუწვდომელია. გთხოვ სცადე კიდევ ერთხელ.",
-      );
+      if (controller.signal.aborted) return;
+      const message = err instanceof Error ? err.message : "AI ამჟამად მიუწვდომელია. გთხოვ სცადე კიდევ ერთხელ.";
+      if (auto) {
+        // The steps, filled in, with what went wrong.
+        setAutoLabel(null);
+        setStep(1);
+        setAutoFailed(true);
+        setError(`${AUTO_FAILED} ${message}`);
+      } else {
+        setError(message);
+      }
     } finally {
-      setLoading(false);
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+        setLoading(false);
+      }
     }
+  }
+
+  const generate = () => runGenerate({ form, qa, templateId: selectedTemplateId, photos });
+
+  /** „პარამეტრების შეცვლა“: stops generating and opens the steps, filled in. */
+  const changeSettings = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setLoading(false);
+    setAutoLabel(null);
+    setStep(1);
   };
 
   const commitDeck = useCallback((next: Deck) => dispatch({ type: "commit", next }), []);
@@ -368,11 +404,30 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
     </AnimatePresence>
   );
 
+  if (autoLabel && loading) {
+    return (
+      <div className="flex flex-col gap-5">
+        {storageProblem ? <Alert tone="warning">{storageProblem}</Alert> : null}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[20px] border border-[#ece9e4] bg-white px-4 py-3 dark:border-[#26262e] dark:bg-[#15151b]">
+          <span className="flex min-w-0 flex-1 basis-[18rem] items-center gap-2 text-[14px] font-medium text-[#44403c] dark:text-zinc-300">
+            <Sparkles className="h-4 w-4 shrink-0 text-[#e11d74]" aria-hidden />
+            <span className="min-w-0">{autoLabel}</span>
+          </span>
+          <button type="button" onClick={changeSettings} className="inline-flex shrink-0 items-center gap-1.5 text-[14px] font-semibold text-[#be185d] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-pink-300">
+            <Settings2 className="h-4 w-4" aria-hidden />
+            პარამეტრების შეცვლა
+          </button>
+        </div>
+        <PresentationThinkingLoader />
+      </div>
+    );
+  }
+
   const errorBox =
     error && !loading ? (
       <Alert
         tone="error"
-        className="mt-5"
+        className={autoFailed ? "" : "mt-5"}
         action={
           <button type="button" onClick={() => void generate()} className="wz-secondary h-10 px-4 text-[14px]">
             კვლავ სცადე
@@ -388,6 +443,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
       {storageProblem ? <Alert tone="warning">{storageProblem}</Alert> : null}
       {/* Only a problem with saving is shown here; a good save is the page's „შენახულია“. */}
       {step < 4 && saveProblem ? <div className="flex justify-end text-[13px]">{saveStatus}</div> : null}
+      {autoFailed ? errorBox : null}
       <StepperBar steps={STEPS} current={step} onStep={step < 4 ? (n) => setStep(n as SavedPresentation["step"]) : undefined} />
 
       {editorStep ? (
@@ -400,7 +456,7 @@ export function PresentationWizard({ presentationId, onFirstSave, onNewPresentat
           form={
             <>
               {body}
-              {errorBox}
+              {autoFailed ? null : errorBox}
               {step < 4 && !loading ? (
                 <StepFooter
                   step={step}

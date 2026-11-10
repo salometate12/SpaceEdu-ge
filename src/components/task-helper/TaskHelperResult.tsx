@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, CalendarPlus, Check, FolderOpen, Plus, Presentation as PresentationIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CalendarPlus, Check, FolderOpen, Loader2, MoreHorizontal, Plus, Presentation as PresentationIcon } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import { Toast } from "@/components/ui/Toast";
 import { daysUntil, localDay } from "@/lib/task-helper";
-import { addTaskToPlan, presentationFromTask } from "@/lib/task-helper-actions";
+import { addTaskToPlan, openTaskPresentation } from "@/lib/task-helper-actions";
+import { useDismiss } from "@/hooks/useDismiss";
 import { chooseTaskIdea, toggleTaskStep, type TaskHelper } from "@/lib/task-helper-store";
 import { TaskChat } from "./TaskChat";
 
@@ -66,6 +67,63 @@ function useScrollSpy(ids: string[]): string | null {
 
 function SectionTitle({ children }: { children: string }) {
   return <h2 className="text-[19px] font-bold tracking-tight text-[var(--th-title)] sm:text-[21px]">{children}</h2>;
+}
+
+/**
+ * „პრეზენტაციის შექმნა“: fills every field of the presentation and starts
+ * generating. Once made, „გახსნა“ opens that one (a second press makes no
+ * new one); „⋯ → ახლის შექმნა“ makes another.
+ */
+function PresentationAction({ task, onOpen }: { task: TaskHelper; onOpen: (href: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  useDismiss(menu, () => setMenu(false), panel, trigger);
+  const open = (fresh: boolean) => {
+    setMenu(false);
+    setBusy(true);
+    void openTaskPresentation(task, { fresh })
+      .then(onOpen)
+      .catch(() => setBusy(false));
+  };
+  const icon = busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <PresentationIcon className="h-4 w-4" aria-hidden />;
+  if (!task.presentationId) {
+    return (
+      <button type="button" onClick={() => open(false)} disabled={busy} className="th-primary th-focus h-11 px-5 text-[14.5px]">
+        {icon}
+        პრეზენტაციის შექმნა
+      </button>
+    );
+  }
+  return (
+    <div className="relative flex items-center gap-2">
+      <button type="button" onClick={() => open(false)} disabled={busy} className="th-primary th-focus h-11 px-5 text-[14.5px]">
+        {icon}
+        გახსნა
+      </button>
+      <button
+        ref={trigger}
+        type="button"
+        onClick={() => setMenu((value) => !value)}
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        aria-label="პრეზენტაციის სხვა მოქმედებები"
+        disabled={busy}
+        className="th-secondary th-focus h-11 w-11"
+      >
+        <MoreHorizontal className="h-5 w-5" aria-hidden />
+      </button>
+      {menu ? (
+        <div ref={panel} role="menu" className="absolute left-0 top-[calc(100%+8px)] z-30 min-w-[200px] sm:left-auto sm:right-0 rounded-[18px] border border-[var(--th-border)] bg-[var(--th-card)] p-1.5 shadow-[0_18px_40px_-18px_rgb(0_0_0/0.35)]">
+          <button type="button" role="menuitem" onClick={() => open(true)} className="th-focus flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium text-[var(--th-title)] hover:bg-[var(--th-hover)]">
+            <Plus className="h-4 w-4 shrink-0" aria-hidden />
+            ახლის შექმნა
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 /**
@@ -304,10 +362,7 @@ export function TaskHelperResult({ task }: { task: TaskHelper }) {
               <section id="th-presentation" className="th-card scroll-mt-[calc(var(--site-header-h)+72px)] p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <SectionTitle>პრეზენტაციის სტრუქტურა</SectionTitle>
-                  <button type="button" onClick={() => router.push(presentationFromTask(task))} className="th-primary th-focus h-11 px-5 text-[14.5px]">
-                    <PresentationIcon className="h-4 w-4" aria-hidden />
-                    პრეზენტაციის შექმნა
-                  </button>
+                  <PresentationAction task={task} onOpen={(href) => router.push(href)} />
                 </div>
                 <ol className="mt-4 grid gap-3 sm:grid-cols-2">
                   {result.presentation.slides.map((slide, index) => (

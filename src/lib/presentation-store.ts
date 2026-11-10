@@ -32,6 +32,8 @@ export interface SavedPresentation {
   /** „ჩემი საგნები“: the subject (semester subject id) and topic it was made for. */
   subjectId?: string;
   topicId?: string;
+  /** „დავალების დამხმარე“: the assignment it was made from. */
+  sourceTaskId?: string;
 }
 
 export type PhotoMeta = Omit<UploadedPhoto, "dataUrl">;

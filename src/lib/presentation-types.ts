@@ -47,6 +47,8 @@ export interface GeneratedSlide {
   figure?: { value: string; caption: string };
   /** Small closing line, e.g. „კითხვები?“ on the thank-you slide. */
   footnote?: string;
+  /** Speaker notes: what to say on this slide (the editor and the .pptx notes; not on the slide). */
+  notes?: string;
   /** The user's photos on this slide, positioned in percent of the slide. */
   images: SlideImage[];
 }

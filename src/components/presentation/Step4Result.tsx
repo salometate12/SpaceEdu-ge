@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
   ClipboardCopy,
   Copy,
   CopyPlus,
   Download,
   ImagePlus,
   LayoutTemplate,
+  MessageSquareText,
   Loader2,
   MoreHorizontal,
   Palette,
@@ -103,6 +105,33 @@ const secondaryBtn =
   "inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-pink-300 hover:bg-pink-50 hover:text-pink-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 dark:hover:border-pink-400/30 dark:hover:bg-pink-500/10 dark:hover:text-white";
 const barBtn =
   "inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 font-semibold text-slate-700 transition hover:border-pink-300 hover:text-pink-700 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-pink-400/30";
+
+/**
+ * „სპიკერის შენიშვნები“ under a slide: what to say on it (the .pptx keeps
+ * them as notes; they're never on the slide). Open when there are some;
+ * saved when the field is left.
+ */
+function SpeakerNotes({ notes, onCommit }: { notes: string; onCommit: (notes: string) => void }) {
+  const [value, setValue] = useState(notes);
+  return (
+    <details open={Boolean(notes)} className="group mt-2 rounded-xl border border-slate-200 bg-slate-50/70 text-xs dark:border-white/10 dark:bg-white/[0.03]">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 font-semibold text-slate-600 dark:text-zinc-400 [&::-webkit-details-marker]:hidden">
+        <MessageSquareText className="h-3.5 w-3.5" aria-hidden />
+        სპიკერის შენიშვნები
+        <ChevronDown className="ml-auto h-3.5 w-3.5 transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <textarea
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onBlur={() => value.trim() !== notes.trim() && onCommit(value)}
+        rows={Math.min(6, Math.max(2, Math.ceil(value.length / 90)))}
+        placeholder="რას იტყვი ამ სლაიდზე"
+        aria-label="სპიკერის შენიშვნები"
+        className="block w-full resize-y rounded-b-xl border-t border-slate-200 bg-white px-3 py-2 text-[13px] leading-relaxed text-slate-800 outline-none focus:ring-2 focus:ring-pink-500/40 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100"
+      />
+    </details>
+  );
+}
 
 export function Step4Result({
   deck,
@@ -970,6 +999,12 @@ export function Step4Result({
                     ტექსტი სლაიდზე არ ეტევა — შეამოკლე, ან ნაწილი ახალ სლაიდზე გადაიტანე.
                   </p>
                 ) : null}
+
+                <SpeakerNotes
+                  key={`${slide.id}-${slide.notes ?? ""}`}
+                  notes={slide.notes ?? ""}
+                  onCommit={(notes) => editSlide(index, (current) => ({ ...current, notes: notes.trim() || undefined }))}
+                />
 
                 {fieldSelection ? (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50/60 px-2.5 py-2 text-xs dark:border-pink-400/20 dark:bg-pink-500/10">

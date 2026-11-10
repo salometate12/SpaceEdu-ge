@@ -3,6 +3,7 @@
 import { HelpCircle } from "lucide-react";
 import { StepSection, TONES } from "@/components/ui/wizard/StepSection";
 import { ChoiceChips, Field } from "@/components/ui/wizard/fields";
+import { PRESENTATION_QA_OPTIONS } from "@/lib/presentation-constants";
 
 interface QA {
   goal: string;
@@ -16,19 +17,14 @@ interface Step3PhotosQAProps {
   onQaChange: (qa: Partial<QA>) => void;
 }
 
-export const QA_OPTIONS = {
-  goal: ["ცნების განმარტება", "არგუმენტის დამტკიცება", "ისტორიის მიმოხილვა", "კვლევის წარდგენა"],
-  // Students present to their groupmates, not classmates.
-  audience: ["ჯგუფელები", "პროფესორი", "კომისია", "შერეული"],
-  tone: ["აკადემიური", "მეგობრული", "ფორმალური", "კრეატიული"],
-};
+export const QA_OPTIONS = PRESENTATION_QA_OPTIONS;
 
 /** Saved presentations from before may still say „კლასელები“. */
 export function normalizeAudience(value: string): string {
   return value === "კლასელები" ? "ჯგუფელები" : value;
 }
 
-const chips = (values: string[]) => values.map((value) => ({ value, label: value }));
+const chips = (values: readonly string[]) => values.map((value) => ({ value, label: value }));
 
 export function Step3PhotosQA({ qa, onQaChange }: Step3PhotosQAProps) {
   return (
