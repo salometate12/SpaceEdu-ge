@@ -8,6 +8,8 @@ import {
   type ProviderAttempt,
 } from "@/lib/ai/llm-fallback";
 import { aiStreamHeaders } from "@/lib/ai/assistant-text-stream";
+import { modelReadsImages } from "@/lib/ai/vision-models";
+import { CHAT_PHOTO_NO_VISION } from "@/lib/chat-photos";
 import { formatUrlSources } from "@/lib/history-sources";
 import {
   buildFriendlyError,
@@ -36,6 +38,8 @@ export interface LlmStreamRequest {
   maxOutputTokens?: number;
   /** Stops generating when the client goes away (e.g. presses ■). */
   abortSignal?: AbortSignal;
+  /** The messages hold photos: only models that read images are tried. */
+  requireVision?: boolean;
 }
 
 /**
@@ -45,10 +49,15 @@ export function createFallbackLlmPlainTextStream(
   request: LlmStreamRequest,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const providers = getConfiguredProviders();
+  const providers = getConfiguredProviders().filter((provider) => !request.requireVision || modelReadsImages(provider.id, provider.model));
 
   return new ReadableStream({
     async start(controller) {
+      if (providers.length === 0 && request.requireVision) {
+        controller.enqueue(encoder.encode(CHAT_PHOTO_NO_VISION));
+        controller.close();
+        return;
+      }
       if (providers.length === 0) {
         controller.enqueue(
           encoder.encode(

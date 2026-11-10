@@ -1,6 +1,7 @@
 import type { AiTeacherSpace } from "@/lib/ai-teacher-content";
 import { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_LIMIT, AI_TEACHER_HISTORY_UPDATED_EVENT } from "@/lib/user-data-keys";
 import { userStore } from "@/lib/user-data";
+import type { ChatImage } from "@/lib/chat-photos";
 
 export { AI_TEACHER_HISTORY_KEYS, AI_TEACHER_HISTORY_UPDATED_EVENT };
 
@@ -8,6 +9,8 @@ export interface AiTeacherMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** A question's photos: storage paths (never the photos themselves), shown by signed link. */
+  images?: ChatImage[];
 }
 
 export interface AiTeacherConversation {
@@ -39,7 +42,7 @@ export function conversationTitleFrom(messages: AiTeacherMessage[]): string {
     .replace(/[*_`#>~]+/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  if (!raw) return "ახალი საუბარი";
+  if (!raw) return firstUser?.images?.length ? "ფოტო" : "ახალი საუბარი";
   if (raw.length <= TITLE_MAX_LENGTH) return raw;
   const cut = raw.slice(0, TITLE_MAX_LENGTH);
   const lastSpace = cut.lastIndexOf(" ");
@@ -132,7 +135,7 @@ export function loadConversations(
 
 /** Only conversations that actually got an answer are worth keeping. */
 function isWorthSaving(messages: AiTeacherMessage[]): boolean {
-  const hasUser = messages.some((m) => m.role === "user" && m.content.trim().length > 0);
+  const hasUser = messages.some((m) => m.role === "user" && (m.content.trim().length > 0 || Boolean(m.images?.length)));
   const hasAnswer = messages.some((m) => m.role === "assistant" && m.content.trim().length > 0);
   return hasUser && hasAnswer;
 }

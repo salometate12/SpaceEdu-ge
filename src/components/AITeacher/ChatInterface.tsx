@@ -18,7 +18,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ArrowUp, BookOpen, ClipboardList, GraduationCap, ListChecks, PanelLeft, Sparkles, Square, SquarePen, type LucideIcon } from "lucide-react";
 import { useIsPhoneLayout, useIsTouchDevice, useMobileChatViewport } from "@/hooks/useMobileChatViewport";
 import { useChatScroll } from "@/hooks/useChatScroll";
-import { fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { chatErrorMessage, fetchAiTextStream } from "@/lib/ai/fetch-ai";
+import { PHOTO_ONLY_PROMPT, type ChatImage } from "@/lib/chat-photos";
 import { buildChatHistory } from "@/lib/ai/ai-teacher-conversation";
 import {
   AI_TEACHER_HISTORY_UPDATED_EVENT,
@@ -38,6 +39,7 @@ import { readSuggestionData, type SuggestionData } from "@/lib/ai-teacher-sugges
 import { AITeacherSidebar, trapFocus } from "./AITeacherSidebar";
 import { JumpToEndButton } from "./JumpToEndButton";
 import { MessageBubble } from "./MessageBubble";
+import { forgetChatPhotos, PhotoAttachButton, PhotoDrafts, PhotoDropOverlay, useChatPhotos } from "./ChatPhotos";
 import { QuickReplies } from "./QuickReplies";
 
 /** Each kind of starting card: its icon and soft colour. */
@@ -102,6 +104,7 @@ interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  images?: ChatImage[];
 }
 
 interface ChatInterfaceProps {
@@ -154,7 +157,10 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
   );
   const needsSubjects = space === "student" && suggestionData !== null && suggestionData.subjects.length === 0;
 
-  const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
+  // Photos go up into this conversation's folder as soon as they're picked.
+  const photos = useChatPhotos(() => (conversationIdRef.current ??= crypto.randomUUID()));
+  const readyPhotos = photos.drafts.some((draft) => draft.status === "ready");
+  const canSend = (input.trim().length > 0 || readyPhotos) && !isLoading && !photos.busy;
   const hasMessages = messages.length > 0;
 
   const adjustTextareaHeight = useCallback(() => {
@@ -209,16 +215,17 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     );
   };
 
-  /** `context`: reference material sent along (a starting card's subject and dates). */
-  const sendMessage = async (rawMessage: string, context?: string) => {
+  /** `context`: reference material sent along (a starting card's subject and dates); `images`: the question's photos. */
+  const sendMessage = async (rawMessage: string, context?: string, images: ChatImage[] = []) => {
     const trimmed = rawMessage.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && images.length === 0) || isLoading) return;
 
     const priorMessages = messagesRef.current;
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content: trimmed,
+      ...(images.length ? { images } : {}),
     };
     const assistantId = crypto.randomUUID();
 
@@ -247,7 +254,9 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           pageType: "ai-teacher",
           payload: {
             material: context ?? (material.trim() || undefined),
-            message: trimmed,
+            // A photo without words: explain it, and solve it if it's a problem.
+            message: trimmed || PHOTO_ONLY_PROMPT,
+            ...(images.length ? { images: images.map((image) => image.path) } : {}),
             space,
             // This chat's earlier turns (empty after „ახალი ჩატი“).
             history: buildChatHistory(priorMessages),
@@ -272,7 +281,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       ];
       setMessages(finalMessages);
       persistCurrentConversation(finalMessages);
-    } catch {
+    } catch (error) {
       if (controller.signal.aborted) {
         // Stopped with ■: keep whatever already arrived.
         if (partialText.trim()) {
@@ -287,7 +296,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           setMessages((prev) => prev.filter((message) => message.id !== assistantId));
         }
       } else {
-        setFriendlyError("AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.");
+        setFriendlyError(chatErrorMessage(error));
         setMessages((prev) => prev.filter((message) => message.id !== assistantId));
       }
     } finally {
@@ -333,9 +342,15 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  /** The field's question with its photos. */
+  const sendInput = () => {
+    if (!canSend) return;
+    void sendMessage(input, undefined, photos.take());
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await sendMessage(input);
+    sendInput();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -343,12 +358,14 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
     if (isTouch) return;
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      if (canSend) void sendMessage(input);
+      sendInput();
     }
   };
 
   const startNewChat = () => {
     abortRef.current?.abort();
+    // Photos picked but never sent leave storage; sent ones stay with the saved chat.
+    photos.discard();
     conversationIdRef.current = null;
     handoffTitleRef.current = null;
     setActiveConversationId(null);
@@ -362,6 +379,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
 
   const openConversation = (conversation: AiTeacherConversation) => {
     abortRef.current?.abort();
+    photos.discard();
     conversationIdRef.current = conversation.id;
     handoffTitleRef.current = null;
     setActiveConversationId(conversation.id);
@@ -375,6 +393,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
 
   const removeConversation = (id: string) => {
     setConversations(deleteConversation(id, space));
+    // Its photos go from storage too.
+    forgetChatPhotos(id);
     if (conversationIdRef.current === id) startNewChat();
   };
 
@@ -451,6 +471,7 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
       key={message.id}
       role={message.role}
       content={message.content}
+      images={message.images}
       waitingVariant="full"
       space={space}
       complete={!(isLoading && index === messages.length - 1)}
@@ -476,17 +497,21 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
           <div
             className="rounded-[29px] border border-[var(--chat-input-border)] bg-[var(--chat-surface)] shadow-[0_8px_28px_-16px_rgba(0,0,0,0.25)] transition-colors duration-200 focus-within:border-[var(--chat-border-hover)] max-md:rounded-[24px] max-md:shadow-[0_2px_12px_rgb(0_0_0/0.06)]"
           >
-            <div className="flex items-end gap-2 py-1.5 pl-3 pr-1.5 max-md:gap-1.5 max-md:py-[5px] max-md:pl-2 max-md:pr-[5px]">
+            <PhotoDrafts photos={photos} errorId="ai-teacher-photo-error" />
+            <div className="flex items-end gap-2 py-1.5 pl-1.5 pr-1.5 max-md:gap-1 max-md:py-[5px] max-md:pl-[5px] max-md:pr-[5px]">
+              <PhotoAttachButton photos={photos} touch={isTouch} disabled={isLoading} className="mb-[3px] max-md:mb-0" />
               <textarea
                 ref={textareaRef}
                 value={input}
                 rows={1}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
+                onPaste={photos.onPaste}
                 placeholder={isPhone ? "დაწერე კითხვა…" : copy.placeholder}
                 aria-label="შენი კითხვა"
+                aria-describedby={photos.error ? "ai-teacher-photo-error" : undefined}
                 // 16px on phones: iOS zooms into anything smaller.
-                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-[11px] pl-2 text-[15px] leading-[22px] text-[var(--chat-text-strong)] outline-none placeholder:text-[var(--chat-text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:leading-[22px]"
+                className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent py-[11px] pl-0.5 text-[15px] leading-[22px] text-[var(--chat-text-strong)] outline-none placeholder:text-[var(--chat-text-muted)] max-md:max-h-[140px] max-md:min-h-[36px] max-md:py-[7px] max-md:text-[16px] max-md:leading-[22px]"
               />
               {isLoading ? (
                 <button
@@ -570,7 +595,8 @@ export function ChatInterface({ space }: ChatInterfaceProps) {
         ) : null}
       </AnimatePresence>
 
-      <div className="relative flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col" {...photos.dropProps}>
+        <PhotoDropOverlay show={photos.dragging} />
         {/* Top bar — phone: under the status bar, always on top of the chat. */}
         <div
           className={`z-10 shrink-0 border-b bg-[var(--bg-primary)]/80 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-colors duration-200 md:hidden ${

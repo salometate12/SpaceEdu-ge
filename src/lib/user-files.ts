@@ -5,7 +5,7 @@
  * of the files in IndexedDB as a cache.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { bucketFor, documentPath, USER_FILES_BUCKET } from "./user-files-path";
+import { bucketFor, chatFolder, documentPath, USER_FILES_BUCKET } from "./user-files-path";
 import { AI_TOO_LARGE_MESSAGE } from "./ai/ai-messages";
 
 let remote: { client: SupabaseClient; userId: string } | null = null;
@@ -62,13 +62,19 @@ async function clearOldUploads(): Promise<void> {
 export type UploadResult = { path: string } | { error: string };
 
 /** Straight to storage with a signed URL (/api/uploads/sign picks the path in the student's folder). */
-async function signedUpload(blob: Blob, name: string, contentType: string, subject?: { subjectId: string; fileId: string }): Promise<UploadResult> {
+async function signedUpload(
+  blob: Blob,
+  name: string,
+  contentType: string,
+  subject?: { subjectId: string; fileId: string },
+  chat?: { conversationId: string },
+): Promise<UploadResult> {
   if (!remote) return { error: "signed out" };
   const client = remote.client;
   const response = await fetch("/api/uploads/sign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, size: blob.size, ...(subject ? { subject } : {}) }),
+    body: JSON.stringify({ name, size: blob.size, ...(subject ? { subject } : {}), ...(chat ? { chat } : {}) }),
   });
   if (response.status === 413) throw new UploadTooLargeError();
   if (!response.ok) return { error: `sign ${response.status}` };
@@ -97,6 +103,41 @@ export async function uploadForGeneration(file: File): Promise<string | null> {
     return null;
   }
   return result.path;
+}
+
+/** A photo for the AI teacher, into its conversation's folder. Null when signed out or it failed. */
+export async function uploadChatPhoto(conversationId: string, blob: Blob): Promise<string | null> {
+  if (!remote) return null;
+  const result = await signedUpload(blob, "photo.jpg", blob.type || "image/jpeg", undefined, { conversationId });
+  if ("error" in result) {
+    console.error("[chat photo]", result.error);
+    return null;
+  }
+  return result.path;
+}
+
+/** A conversation deleted (or a chat started over): its photos go too. */
+export async function removeChatPhotos(conversationId: string): Promise<void> {
+  if (!remote) return;
+  const folder = chatFolder(remote.userId, conversationId);
+  const { data } = await remote.client.storage.from(USER_FILES_BUCKET).list(folder, { limit: 100 });
+  const paths = (data ?? []).map((item) => `${folder}/${item.name}`);
+  if (paths.length) await remote.client.storage.from(USER_FILES_BUCKET).remove(paths);
+}
+
+/** How long a photo's link works, and how long before that it's asked for again. */
+const PHOTO_URL_SECONDS = 60 * 60;
+const photoUrls = new Map<string, { url: string; until: number }>();
+
+/** A chat photo's link to show it (signed, an hour); cached until shortly before it ends. */
+export async function chatPhotoUrl(path: string): Promise<string | null> {
+  const cached = photoUrls.get(path);
+  if (cached && cached.until > Date.now()) return cached.url;
+  if (!remote) return null;
+  const { data, error } = await remote.client.storage.from(USER_FILES_BUCKET).createSignedUrl(path, PHOTO_URL_SECONDS);
+  if (error || !data?.signedUrl) return null;
+  photoUrls.set(path, { url: data.signedUrl, until: Date.now() + (PHOTO_URL_SECONDS - 300) * 1000 });
+  return data.signedUrl;
 }
 
 export async function downloadUserFile(path: string): Promise<Blob | null> {

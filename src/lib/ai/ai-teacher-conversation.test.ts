@@ -5,12 +5,11 @@ import {
   HISTORY_MAX_CHARS,
   HISTORY_MAX_TURNS,
   wantsDetailedAnswer,
-  type ChatTurn,
 } from "./ai-teacher-conversation";
 import { AiTeacherHistorySchema, buildAiTeacherMessages, HISTORY_SERVER_MAX_CHARS } from "./ai-teacher-request";
 
-const user = (content: string): ChatTurn => ({ role: "user", content });
-const bot = (content: string): ChatTurn => ({ role: "assistant", content });
+const user = (content: string) => ({ role: "user" as const, content });
+const bot = (content: string) => ({ role: "assistant" as const, content });
 
 describe("buildChatHistory", () => {
   it("keeps the last 10 turns, oldest first", () => {

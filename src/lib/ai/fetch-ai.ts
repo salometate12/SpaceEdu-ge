@@ -110,3 +110,9 @@ export async function fetchAiMultipartJson<T>(
   }
   return (await response.json()) as T;
 }
+
+/** What went wrong with a chat question: the server's own words for a problem with it (a photo, signed out), otherwise the usual line. */
+export function chatErrorMessage(error: unknown): string {
+  if (error instanceof FetchAiError && (error.status === 400 || error.status === 401)) return error.message;
+  return "AI ამჟამად მიუწვდომელია. სცადე კიდევ ერთხელ.";
+}

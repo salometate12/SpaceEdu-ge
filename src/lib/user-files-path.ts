@@ -10,7 +10,7 @@ export const LEGACY_SUBJECT_FILES_BUCKET = "subject-files";
 
 export function bucketFor(path: string): string {
   const area = path.split("/")[1];
-  return area === "documents" || area === "subjects" || area === "uploads" ? USER_FILES_BUCKET : LEGACY_SUBJECT_FILES_BUCKET;
+  return area === "documents" || area === "subjects" || area === "uploads" || area === "chat" ? USER_FILES_BUCKET : LEGACY_SUBJECT_FILES_BUCKET;
 }
 
 /** Only the student's own folder may be read (the bucket's RLS says the same). */
@@ -20,5 +20,14 @@ export function isOwnPath(path: string, userId: string): boolean {
 
 export const documentPath = (userId: string, id: string) => `${userId}/documents/${id}`;
 export const subjectFilePath = (userId: string, subjectId: string, id: string) => `${userId}/subjects/${subjectId}/${id}`;
+/** A photo sent to the AI teacher: one folder per conversation (deleted with it), kept while the chat is. */
+export const chatFolder = (userId: string, conversationId: string) => `${userId}/chat/${conversationId}`;
+export const chatPhotoPath = (userId: string, conversationId: string, id: string) => `${chatFolder(userId, conversationId)}/${id}`;
+
+/** One of the student's own chat photos: only those may go to the AI teacher. */
+export function isOwnChatPhoto(path: string, userId: string): boolean {
+  return isOwnPath(path, userId) && /^[^/]+\/chat\/[\w-]{1,120}\/[\w.-]{1,160}$/.test(path);
+}
+
 /** A file dropped into a generator (flashcards, conspectus, quiz), read from there by the server. */
 export const uploadPath = (userId: string, id: string) => `${userId}/uploads/${id}`;

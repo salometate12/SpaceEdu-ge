@@ -11,7 +11,8 @@ import {
   normalizeSlidePlaceholders,
   slideText,
 } from "@/lib/presentation-style";
-import { AiTeacherHistorySchema, buildAiTeacherMessages } from "@/lib/ai/ai-teacher-request";
+import { AiTeacherHistorySchema, AiTeacherImagesSchema, buildAiTeacherMessages, photoPathsOf } from "@/lib/ai/ai-teacher-request";
+import { ChatPhotoError, loadChatPhotos, type LoadedPhoto } from "@/lib/ai/chat-photos-server";
 import { AI_TEACHER_MAX_OUTPUT_TOKENS, wantsDetailedAnswer } from "@/lib/ai/ai-teacher-conversation";
 import { CvRequestSchema, CvResponseSchema, type CvResponse } from "@/lib/ai/cv-schema";
 import {
@@ -883,10 +884,24 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+      const parsedImages = AiTeacherImagesSchema.safeParse(body.payload.images ?? []);
+      if (!parsedImages.success) {
+        return Response.json({ error: true, message: "მაქსიმუმ 4 ფოტო" }, { status: 400 });
+      }
+      // The question's photos and the previous question's, read from the student's storage.
+      const photoPaths = photoPathsOf(parsedHistory.data, parsedImages.data);
+      let photos: Map<string, LoadedPhoto>;
+      try {
+        photos = await loadChatPhotos(photoPaths);
+      } catch (error) {
+        if (error instanceof ChatPhotoError) return Response.json({ error: true, message: error.message }, { status: error.status });
+        throw error;
+      }
       const detailed = wantsDetailedAnswer(String(body.payload.message ?? ""));
       return llmTextStreamResponse({
         system,
-        messages: buildAiTeacherMessages(parsedHistory.data, prompt),
+        requireVision: photos.size > 0,
+        messages: buildAiTeacherMessages(parsedHistory.data, prompt, parsedImages.data, photos),
         temperature: 0.35,
         maxOutputTokens: detailed
           ? AI_TEACHER_MAX_OUTPUT_TOKENS.detailed
